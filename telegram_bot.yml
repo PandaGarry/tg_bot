@@ -15,7 +15,7 @@ def help(update, context):
 
 def main():
     # Создаем объект Updater и передаем ему токен вашего бота
-    updater = Updater(token='6125989607:AAH5tUdUaksqpHuP1m5NiwuayRi0vsWFBuQ', use_context=True)
+    updater = Updater(token='YOUR_TOKEN', use_context=True)
 
     # Получаем dispatcher для регистрации обработчиков
     dp = updater.dispatcher
