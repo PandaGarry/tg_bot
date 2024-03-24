@@ -1,27 +1,34 @@
-name: Telegram Bot
+from telegram.ext import Updater, CommandHandler
 
-on:
-  push:
-    branches:
-      - main
+# Функция для обработки команды /start
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Привет! Я бот. Напиши /help для списка команд.")
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# Функция для обработки команды /help
+def help(update, context):
+    help_message = """
+    Список доступных команд:
+    /start - Начать общение с ботом
+    /help - Получить список команд
+    """
+    context.bot.send_message(chat_id=update.effective_chat.id, text=help_message)
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+def main():
+    # Создаем объект Updater и передаем ему токен вашего бота
+    updater = Updater(token='6125989607:AAH5tUdUaksqpHuP1m5NiwuayRi0vsWFBuQ', use_context=True)
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+    # Получаем dispatcher для регистрации обработчиков
+    dp = updater.dispatcher
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+    # Регистрируем обработчики команд
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help))
 
-    - name: Run bot
-      env:
-        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-      run: python Boobll_bot
+    # Запускаем бота
+    updater.start_polling()
+
+    # Останавливаем бота при нажатии Ctrl+C
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
