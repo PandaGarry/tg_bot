@@ -245,7 +245,10 @@ body {
 
 #panel {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tab-h) + var(--safe-bottom));
   z-index: 50;
   background: var(--bg);
   display: flex;

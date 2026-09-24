@@ -220,6 +220,8 @@ function loop(now: number): void {
 }
 
 function boot(): void {
+  // отладочный доступ к состоянию: им пользуются скрипты скриншотов и тестов
+  (globalThis as unknown as Record<string, unknown>).__ashfall = state;
   initMap(qs('#map'));
   setupMapButtons();
 
