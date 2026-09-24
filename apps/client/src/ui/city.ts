@@ -1,6 +1,5 @@
 import {
   BUILDING_DESCRIPTIONS,
-  BUILDING_ICONS,
   BUILDING_KEYS,
   BUILDING_NAMES,
   RESOURCE_KEYS,
@@ -10,8 +9,10 @@ import {
 } from '@ashfall/rules';
 import type { BuildingKey, ResourceKey } from '@ashfall/rules';
 import { cmd } from '../net';
-import { RESOURCE_META, fmt, fmtDuration, perMinute, player, resourcesAt, serverNow } from '../store';
+import { BUILDING_ICON, RESOURCE_META, fmt, fmtDuration, perMinute, player, resourcesAt, serverNow } from '../store';
 import { clear, h } from './dom';
+import { iconEl } from './icons';
+import { resAmount } from './widgets';
 
 interface BuildingRefs {
   key: BuildingKey;
@@ -39,17 +40,17 @@ export function renderCity(host: HTMLElement): void {
     const fill = h('div');
     const bar = h('div', { class: 'bar' }, [fill]);
     const text = h('div', { class: 'kv-row' }, [
-      h('span', { text: `${RESOURCE_META[key].icon} ${RESOURCE_META[key].name}` }),
+      h('span', { class: 'rc' }, [iconEl(RESOURCE_META[key].icon, 'ic-s'), h('span', { text: RESOURCE_META[key].name })]),
       h('span', { text: '' }),
     ]);
     storageCard.append(text, bar);
     storageRefs.push({ fill, text: text.lastElementChild as HTMLElement });
   }
-  const rateRow = h('div', { class: 'muted', style: 'margin-top:8px' });
+  const rateRow = h('div', { class: 'muted rate-row' });
   for (const key of ['food', 'wood', 'stone', 'iron'] as ResourceKey[]) {
     const span = h('span', { text: '' });
     rateRefs.push(span);
-    rateRow.append(span, document.createTextNode('  '));
+    rateRow.append(h('span', { class: 'rc' }, [iconEl(RESOURCE_META[key].icon, 'ic-s'), span]));
   }
   storageCard.append(rateRow);
   host.append(storageCard);
@@ -69,7 +70,7 @@ export function renderCity(host: HTMLElement): void {
     const progressBar = h('div', { class: 'bar', style: 'display:none' }, [h('div')]);
     const action = h('button', { class: 'ghost', text: 'Улучшить' }) as HTMLButtonElement;
     const card = h('div', { class: 'build' }, [
-      h('div', { class: 'ic', text: BUILDING_ICONS[key] }),
+      h('div', { class: 'ic build-ic' }, [iconEl(BUILDING_ICON[key] ?? 'castle')]),
       h('div', { class: 'info' }, [
         h('div', { class: 'name' }, [h('span', { text: BUILDING_NAMES[key] }), lvl]),
         cost,
@@ -124,7 +125,7 @@ export function updateCity(): void {
     const pct = Math.min(100, (res[k] / Math.max(1, p.storageCap)) * 100);
     ref.fill.style.width = `${pct}%`;
     ref.text.textContent = `${fmt(res[k])} / ${fmt(p.storageCap)}`;
-    if (rateRefs[i]) rateRefs[i].textContent = `${RESOURCE_META[k].icon}+${perMinute(p.rates[k])}/м`;
+    if (rateRefs[i]) rateRefs[i].textContent = `+${perMinute(p.rates[k])}/м`;
   });
 
   const thLevel = p.buildings.find((b) => b.key === 'town_hall')?.level ?? 1;
@@ -155,11 +156,9 @@ export function updateCity(): void {
     for (const r of RESOURCE_KEYS) {
       if (!cost[r]) continue;
       const lack = res[r] < cost[r];
-      ref.cost.append(
-        h('span', { class: lack ? 'no' : '', text: `${RESOURCE_META[r].icon}${fmt(cost[r])}` }),
-      );
+      ref.cost.append(resAmount(r, cost[r], lack));
     }
-    ref.cost.append(h('span', { text: `⏱ ${fmtDuration(buildingTime(ref.key, level + 1))}` }));
+    ref.cost.append(h('span', { class: 'rc' }, [iconEl('clock', 'ic-s'), h('span', { text: fmtDuration(buildingTime(ref.key, level + 1)) })]));
 
     if (!check.ok) {
       ref.action.disabled = true;

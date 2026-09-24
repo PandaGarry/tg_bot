@@ -43,6 +43,9 @@ const ctxStub = new Proxy(
     canvas: null,
     setTransform: () => {},
     measureText: () => ({ width: 10 }),
+    createRadialGradient: () => ({ addColorStop: () => {} }),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
+    getImageData: () => ({ data: new Uint8ClampedArray(4) }),
   } as Record<string, unknown>,
   {
     get(target, prop) {

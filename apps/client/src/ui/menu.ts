@@ -1,9 +1,11 @@
 import { HOUSES, KVK_TOWN_HALL_REQUIRED, LORE } from '@ashfall/rules';
 import type { WorldInfo } from '@ashfall/shared';
 import { api, cmd } from '../net';
-import { fmt, fmtDuration, player, pushToasts, serverNow, state } from '../store';
+import { HOUSE_ICON, fmt, fmtDuration, player, pushToasts, serverNow, state } from '../store';
 import { clear, h } from './dom';
+import { iconEl } from './icons';
 import { nav } from './nav';
+import { resJoin } from './widgets';
 
 export function renderMenu(host: HTMLElement): void {
   clear(host);
@@ -13,12 +15,12 @@ export function renderMenu(host: HTMLElement): void {
 
   host.append(
     h('div', { class: 'card' }, [
-      h('h3', { text: `${house.icon} ${p.nick} · ${house.name}` }),
+      h('h3', { class: 'rc' }, [iconEl(HOUSE_ICON[p.house] ?? 'crown'), h('span', { text: `${p.nick} · ${house.name}` })]),
       h('div', { class: 'muted', text: house.bonus }),
       h('div', { class: 'kv-row' }, [h('span', { text: 'Мощь' }), h('span', { text: fmt(p.power) })]),
       h('div', { class: 'kv-row' }, [
         h('span', { text: 'Жар за сезон' }),
-        h('span', { class: 'ember', text: `${fmt(p.kvkEmber)} 🔥` }),
+        h('span', { class: 'ember rc-row' }, resJoin([['ember', p.kvkEmber]])),
       ]),
       h('div', { class: 'kv-row' }, [
         h('span', { text: 'Мир' }),
@@ -66,13 +68,12 @@ export function renderMenu(host: HTMLElement): void {
 
   host.append(
     h('button', {
-      class: 'ghost',
-      text: 'Выйти из аккаунта',
+      class: 'ghost exit-btn',
       onclick: () => {
         localStorage.removeItem('ashfall.token');
         location.reload();
       },
-    }),
+    }, [iconEl('door'), h('span', { text: 'Выйти из аккаунта' })]),
   );
 }
 

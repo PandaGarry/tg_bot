@@ -1,6 +1,7 @@
 import { HOUSES } from '@ashfall/rules';
-import { RESOURCE_META, fmt, perMinute, player, resourcesAt, state } from '../store';
+import { HOUSE_ICON, RESOURCE_META, fmt, perMinute, player, resourcesAt, state } from '../store';
 import { clear, h, qs } from './dom';
+import { iconEl } from './icons';
 
 const KEYS = ['food', 'wood', 'stone', 'iron', 'ember'] as const;
 
@@ -23,11 +24,11 @@ export function renderHud(): void {
 
   const top = h('div', { class: 'hud-row hud-top' }, [
     h('div', { class: 'hud-chip', title: house.name }, [
-      h('span', { text: house.icon }),
+      iconEl(HOUSE_ICON[p.house] ?? 'crown' ),
       h('b', { text: p.nick }),
     ]),
-    h('div', { class: 'hud-chip', title: 'Мощь' }, [h('span', { text: '⚔' }), power]),
-    h('div', { class: 'hud-chip', title: 'Мир' }, [h('span', { text: '🗺' }), world]),
+    h('div', { class: 'hud-chip', title: 'Мощь' }, [iconEl('swords'), power]),
+    h('div', { class: 'hud-chip', title: 'Мир' }, [iconEl('globe'), world]),
   ]);
 
   const values = new Map<string, { value: HTMLElement; rate: HTMLElement; root: HTMLElement }>();
@@ -35,8 +36,8 @@ export function renderHud(): void {
   for (const key of KEYS) {
     const value = h('div', { class: 'v', text: '0' });
     const rate = h('div', { class: 'r', text: '' });
-    const root = h('div', { class: 'res' }, [
-      h('div', { class: 'i', text: RESOURCE_META[key].icon }),
+    const root = h('div', { class: `res res-${key}` }, [
+      iconEl(RESOURCE_META[key].icon),
       value,
       rate,
     ]);

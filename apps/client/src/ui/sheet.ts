@@ -2,7 +2,6 @@ import {
   CAMP_LOOT,
   NODE_INFO,
   TERRAIN_NAMES,
-  UNIT_ICONS,
   UNIT_KEYS,
   UNIT_NAMES,
   UNITS,
@@ -14,9 +13,11 @@ import {
   travelSeconds,
 } from '@ashfall/rules';
 import type { EntityView, MarchKind } from '@ashfall/shared';
-import { fmt, fmtDuration, player, serverNow, state } from '../store';
+import { RESOURCE_META, UNIT_ICON, fmt, fmtDuration, player, pushToasts, serverNow, state } from '../store';
 import { clear, h, qs } from './dom';
+import { iconEl } from './icons';
 import { nav } from './nav';
+import { kv, resJoin } from './widgets';
 
 let current: { entity: EntityView | null; tile: { x: number; y: number } } | null = null;
 let composer: { entity: EntityView; kind: MarchKind; troops: Record<string, number> } | null = null;
@@ -73,6 +74,7 @@ function render(): void {
     const terrain = terrainAt(world().seed, world().kind, tile.x, tile.y);
     host.append(
       h('div', { class: 'title-row' }, [
+        iconEl('peak'),
         h('span', { text: TERRAIN_NAMES[terrain] ?? 'Земля' }),
         h('span', { class: 'muted', text: `(${tile.x}, ${tile.y})` }),
       ]),
@@ -93,6 +95,7 @@ function render(): void {
   const p = player();
   const dist = Math.round(distance(p.x, p.y, entity.x, entity.y));
   const head = h('div', { class: 'title-row' }, [
+    iconEl(iconFor(entity)),
     h('span', { text: titleFor(entity) }),
     h('span', { class: 'muted', text: `(${entity.x}, ${entity.y}) · ${dist} кл.` }),
   ]);
@@ -107,7 +110,7 @@ function render(): void {
     rows.push(kv('Гарнизон', describeTroops(entity.garrison)));
     rows.push(kv('Мощь', fmt(entity.power)));
     const loot = CAMP_LOOT[Math.min(6, entity.level)];
-    rows.push(kv('Добыча', `${fmt(loot.food)}🌾 ${fmt(loot.wood)}🪵 ${fmt(loot.stone)}🪨 ${fmt(loot.iron)}⛏`));
+    rows.push(kv('Добыча', resJoin([['food', loot.food], ['wood', loot.wood], ['stone', loot.stone], ['iron', loot.iron]])));
   } else if (entity.kind === 'node') {
     const info = NODE_INFO[entity.resource ?? 'food'];
     rows.push(kv('Ресурс', entity.resource ?? '—'));
@@ -116,7 +119,7 @@ function render(): void {
   } else if (entity.kind === 'well') {
     rows.push(kv('Уровень', String(entity.level)));
     rows.push(kv('Хозяин', entity.ownerId === p.id ? 'ты' : (entity.ownerNick ?? 'никто')));
-    rows.push(kv('Доход', `${WELL_EMBER_PER_MINUTE * entity.level} 🔥/мин`));
+    rows.push(kv('Доход', [...resJoin([['ember', WELL_EMBER_PER_MINUTE * entity.level]]), ' /мин']));
     rows.push(kv('Стражи', describeTroops(entity.garrison)));
   }
   rows.push(kv('ETA марша', fmtDuration(travelTo(entity.x, entity.y))));
@@ -125,38 +128,45 @@ function render(): void {
   const actions = h('div', { class: 'chips' });
   if (entity.kind === 'city' && entity.ownerId === p.id) {
     actions.append(
-      h('button', { class: 'chip', text: 'Открыть город', onclick: () => nav.openTab('city') }),
+      h('button', { class: 'chip', onclick: () => nav.openTab('city') }, [iconEl('castle', 'ic-s'), h('span', { text: 'Открыть город' })]),
     );
   } else {
     if (entity.kind === 'node') {
       actions.append(
         h('button', {
           class: 'chip',
-          text: '📦 Собрать',
           onclick: () => openComposer(entity, 'gather'),
-        }),
+        }, [iconEl('crate', 'ic-s'), h('span', { text: 'Собрать' })]),
       );
     } else {
       actions.append(
         h('button', {
           class: 'chip',
-          text: entity.kind === 'well' ? '🔥 Захватить' : '⚔ Атаковать',
           onclick: () => openComposer(entity, 'attack'),
-        }),
+        }, [
+          iconEl(entity.kind === 'well' ? 'flame' : 'swords', 'ic-s'),
+          h('span', { text: entity.kind === 'well' ? 'Захватить' : 'Атаковать' }),
+        ]),
       );
     }
     if (entity.kind !== 'node') {
       actions.append(
         h('button', {
           class: 'chip',
-          text: '🔭 Разведка',
           onclick: () => openComposer(entity, 'scout'),
-        }),
+        }, [iconEl('eye', 'ic-s'), h('span', { text: 'Разведка' })]),
       );
     }
   }
   actions.append(h('button', { class: 'chip', text: 'Закрыть', onclick: closeSheet }));
   host.append(actions);
+}
+
+function iconFor(e: EntityView): string {
+  if (e.kind === 'city') return 'castle';
+  if (e.kind === 'camp') return 'skull';
+  if (e.kind === 'node') return RESOURCE_META[(e.resource ?? 'food') as keyof typeof RESOURCE_META].icon;
+  return 'flame';
 }
 
 function titleFor(e: EntityView): string {
@@ -166,9 +176,6 @@ function titleFor(e: EntityView): string {
   return `Жар-колодец · ур. ${e.level}`;
 }
 
-function kv(label: string, value: string): HTMLElement {
-  return h('div', { class: 'kv-row' }, [h('span', { class: 'muted', text: label }), h('span', { text: value })]);
-}
 
 function describeTroops(t: { infantry: number; archers: number; cavalry: number } | null): string {
   if (!t) return 'нет';
@@ -205,8 +212,9 @@ function renderComposer(host: HTMLElement): void {
 
   host.append(
     h('div', { class: 'title-row' }, [
+      iconEl(c.kind === 'attack' ? 'swords' : c.kind === 'gather' ? 'crate' : 'eye'),
       h('span', { text: title }),
-      h('span', { class: 'muted', text: `(${c.entity.x}, ${c.entity.y})` }),
+      h('span', { class: 'muted' , text: `(${c.entity.x}, ${c.entity.y})` }),
     ]),
   );
 
@@ -214,7 +222,7 @@ function renderComposer(host: HTMLElement): void {
     const have = p.troops[key];
     const count = c.troops[key];
     const row = h('div', { class: 'unit-row' }, [
-      h('div', { class: 'u-ic', text: UNIT_ICONS[key] }),
+      h('div', { class: 'u-ic' }, [iconEl(UNIT_ICON[key])]),
       h('div', { class: 'u-name' }, [
         h('div', { text: UNIT_NAMES[key] }),
         h('div', { class: 'muted', text: `есть ${have} · скорость ${UNITS[key].speed.toFixed(2)}` }),
@@ -265,22 +273,32 @@ function renderComposer(host: HTMLElement): void {
   info.append(kv('Свободно маршей', `${p.marchSlots - p.marches.length} из ${p.marchSlots}`));
   host.append(info);
 
-  const send = h('button', {
-    class: 'primary',
-    type: 'button',
-    text: c.kind === 'attack' ? '⚔ Отправить в бой' : c.kind === 'gather' ? '📦 Отправить за ресурсами' : '🔭 Отправить разведку',
-    onclick: async () => {
-      if (totalUnits <= 0) return;
-      (send as HTMLButtonElement).disabled = true;
-      try {
-        await nav.sendMarch(c.kind, c.entity.id, troops);
-        closeSheet();
-      } catch (err) {
-        (send as HTMLButtonElement).disabled = false;
-        send.textContent = `Ошибка: ${(err as Error).message}`;
-      }
+  const send = h(
+    'button',
+    {
+      class: 'primary',
+      type: 'button',
+      onclick: async () => {
+        if (totalUnits <= 0) return;
+        (send as HTMLButtonElement).disabled = true;
+        try {
+          await nav.sendMarch(c.kind, c.entity.id, troops);
+          closeSheet();
+        } catch (err) {
+          (send as HTMLButtonElement).disabled = false;
+          pushToasts([{ kind: 'danger', text: (err as Error).message }]);
+        }
+      },
     },
-  });
+    [
+      iconEl(c.kind === 'attack' ? 'swords' : c.kind === 'gather' ? 'crate' : 'eye'),
+      h('span', {
+        id: 'composer-send-label',
+        text:
+          c.kind === 'attack' ? 'Отправить в бой' : c.kind === 'gather' ? 'Отправить за ресурсами' : 'Отправить разведку',
+      }),
+    ],
+  );
   host.append(send);
   host.append(
     h('button', { class: 'ghost', text: 'Назад', onclick: () => { composer = null; render(); }, style: 'margin-top:8px' }),

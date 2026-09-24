@@ -121,14 +121,54 @@ export function perMinute(rate: number): number {
 }
 
 export const RESOURCE_META = {
-  food: { icon: '🌾', name: 'Еда' },
-  wood: { icon: '🪵', name: 'Древесина' },
-  stone: { icon: '🪨', name: 'Камень' },
-  iron: { icon: '⛏', name: 'Железо' },
-  ember: { icon: '🔥', name: 'Жар' },
+  food: { icon: 'wheat', name: 'Еда' },
+  wood: { icon: 'wood', name: 'Древесина' },
+  stone: { icon: 'rock', name: 'Камень' },
+  iron: { icon: 'iron', name: 'Железо' },
+  ember: { icon: 'flame', name: 'Жар' },
 } as const;
 
 export type ResourceKey = keyof typeof RESOURCE_META;
+
+/** Любые эмодзи из правил заменяем своими SVG-иконками (см. ui/icons.ts). */
+export const UNIT_ICON: Record<string, string> = {
+  infantry: 'shield',
+  archers: 'bow',
+  cavalry: 'horse',
+};
+
+export const BUILDING_ICON: Record<string, string> = {
+  town_hall: 'castle',
+  farm: 'wheat',
+  lumber: 'tree',
+  quarry: 'rock',
+  mine: 'iron',
+  barracks: 'swords',
+  wall: 'bricks',
+  warehouse: 'crate',
+  watchtower: 'eye',
+};
+
+export const HOUSE_ICON: Record<string, string> = {
+  order: 'crown',
+  clans: 'peak',
+  trade: 'scales',
+};
+
+export const MARCH_ICON: Record<string, string> = {
+  attack: 'swords',
+  gather: 'crate',
+  scout: 'eye',
+  reinforce: 'shield',
+};
+
+export const REPORT_ICON: Record<string, string> = {
+  battle: 'swords',
+  gather: 'crate',
+  scout: 'eye',
+  kvk: 'flame',
+  system: 'bell',
+};
 
 export const HOUSE_COLOR: Record<string, string> = {
   order: '#8fa9d8',

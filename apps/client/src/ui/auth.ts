@@ -1,7 +1,9 @@
 import { HOUSES, LORE } from '@ashfall/rules';
 import type { HouseKey } from '@ashfall/rules';
 import { cmd, setServerBase } from '../net';
+import { HOUSE_ICON } from '../store';
 import { clear, h, qs } from './dom';
+import { iconEl } from './icons';
 
 let nick = '';
 let house: HouseKey = 'order';
@@ -59,7 +61,7 @@ function render(host: HTMLElement): void {
     const info = HOUSES[key];
     houses.append(
       h('div', { class: `house${key === house ? ' active' : ''}`, onclick: () => { house = key; render(host); } }, [
-        h('div', { class: 'h-ic', text: info.icon }),
+        h('div', { class: 'h-ic' }, [iconEl(HOUSE_ICON[key] ?? 'crown')]),
         h('div', {}, [
           h('div', { class: 'h-name', text: info.name }),
           h('div', { class: 'muted', text: info.bonus }),

@@ -1,8 +1,10 @@
-import { UNIT_ICONS, UNIT_KEYS, UNIT_NAMES, UNITS, armyCost, unitCost, unitTrainTime } from '@ashfall/rules';
+import { UNIT_KEYS, UNIT_NAMES, UNITS, armyCost, unitCost, unitTrainTime } from '@ashfall/rules';
 import type { UnitKey } from '@ashfall/rules';
 import { cmd } from '../net';
-import { RESOURCE_META, fmt, fmtDuration, player, resourcesAt, serverNow } from '../store';
+import { MARCH_ICON, RESOURCE_META, UNIT_ICON, fmt, fmtDuration, player, resourcesAt, serverNow } from '../store';
 import { clear, h } from './dom';
+import { iconEl } from './icons';
+import { resAmount } from './widgets';
 
 let selectedUnit: UnitKey = 'infantry';
 let count = 10;
@@ -22,7 +24,7 @@ export function renderArmy(host: HTMLElement): void {
     troopsRefs.set(key, value);
     troopsCard.append(
       h('div', { class: 'unit-row' }, [
-        h('div', { class: 'u-ic', text: UNIT_ICONS[key] }),
+        h('div', { class: 'u-ic' }, [iconEl(UNIT_ICON[key])]),
         h('div', { class: 'u-name' }, [
           h('div', { text: UNIT_NAMES[key] }),
           h('div', {
@@ -44,12 +46,11 @@ export function renderArmy(host: HTMLElement): void {
     chips.append(
       h('button', {
         class: `chip${key === selectedUnit ? ' active' : ''}`,
-        text: `${UNIT_ICONS[key]} ${UNIT_NAMES[key]}`,
         onclick: () => {
           selectedUnit = key;
           renderArmy(host);
         },
-      }),
+      }, [iconEl(UNIT_ICON[key], 'ic-s'), h('span', { text: UNIT_NAMES[key] })]),
     );
   }
   const input = h('input', {
@@ -129,13 +130,16 @@ export function updateArmy(): void {
   if (costRef) {
     const cost = armyCost({ ...{ infantry: 0, archers: 0, cavalry: 0 }, [selectedUnit]: count });
     const time = unitTrainTime(selectedUnit, p.buildings.find((b) => b.key === 'barracks')?.level ?? 1);
-    const parts = (['food', 'wood', 'stone', 'iron'] as const)
-      .filter((r) => cost[r] > 0)
-      .map((r) => `${RESOURCE_META[r].icon}${fmt(cost[r])}`);
     clear(costRef);
-    costRef.append(
-      document.createTextNode(`${count} шт · ${parts.join(' ')} · ${fmtDuration(time * count)}`),
-    );
+    const parts: (HTMLElement | string)[] = [`${count} шт · `];
+    for (const r of ['food', 'wood', 'stone', 'iron'] as const) {
+      if (cost[r] > 0) {
+        parts.push(resAmount(RESOURCE_META[r] ? r : r, cost[r]), ' ');
+      }
+    }
+    parts.push('· ');
+    parts.push(h('span', { class: 'rc' }, [iconEl('clock', 'ic-s'), h('span', { text: fmtDuration(time * count) })]));
+    costRef.append(...parts);
   }
 
   if (queueHost) {
@@ -151,7 +155,7 @@ export function updateArmy(): void {
       queueHost.append(
         h('div', { style: 'padding:6px 0' }, [
           h('div', { class: 'kv-row' }, [
-            h('span', { text: `${UNIT_ICONS[item.unit]} ${item.count} × ${UNIT_NAMES[item.unit]}` }),
+            h('span', { class: 'rc' }, [iconEl(UNIT_ICON[item.unit], 'ic-s'), h('span', { text: `${item.count} × ${UNIT_NAMES[item.unit]}` })]),
             h('span', { text: fmtDuration(left) }),
           ]),
           h('div', { class: 'bar' }, [h('div', { style: `width:${done}%` })]),
@@ -168,25 +172,24 @@ export function updateArmy(): void {
     }
     for (const m of p.marches) {
       const left = Math.max(0, (m.arriveAt - now) / 1000);
-      const label =
-        m.kind === 'attack' ? '⚔ Атака' : m.kind === 'gather' ? '📦 Сбор' : m.kind === 'scout' ? '🔭 Разведка' : '🛡 Помощь';
+      const labelText =
+        m.kind === 'attack' ? 'Атака' : m.kind === 'gather' ? 'Сбор' : m.kind === 'scout' ? 'Разведка' : 'Помощь';
+      const label = h('span', { class: 'rc' }, [iconEl(MARCH_ICON[m.kind] ?? 'swords', 'ic-s'), h('span', { text: `${labelText} (${m.toX}, ${m.toY})` })]);
       const phase = m.phase === 'outbound' ? 'в пути' : 'возвращается';
-      const cargo = m.cargo
-        ? ` · везёт ${(['food', 'wood', 'stone', 'iron'] as const)
-            .filter((r) => (m.cargo?.[r] ?? 0) > 0)
-            .map((r) => `${RESOURCE_META[r].icon}${fmt(m.cargo![r])}`)
-            .join(' ')}`
-        : '';
+      const cargoLine = h('div', { class: 'muted rc-row' }, [`${phase} · ${fmt(m.troops.infantry + m.troops.archers + m.troops.cavalry)} бойцов`]);
+      if (m.cargo) {
+        cargoLine.append(' · везёт ');
+        for (const r of ['food', 'wood', 'stone', 'iron'] as const) {
+          if ((m.cargo[r] ?? 0) > 0) cargoLine.append(resAmount(r, m.cargo[r]!), ' ');
+        }
+      }
       marchHost.append(
         h('div', { style: 'padding:8px 0;border-bottom:1px solid #2a2422' }, [
           h('div', { class: 'kv-row' }, [
-            h('span', { text: `${label} (${m.toX}, ${m.toY})` }),
+            label,
             h('span', { text: fmtDuration(left) }),
           ]),
-          h('div', {
-            class: 'muted',
-            text: `${phase} · ${fmt(m.troops.infantry + m.troops.archers + m.troops.cavalry)} бойцов${cargo}`,
-          }),
+          cargoLine,
           h('button', {
             class: 'ghost',
             style: 'margin-top:6px',

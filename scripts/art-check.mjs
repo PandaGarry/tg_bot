@@ -84,22 +84,59 @@ if (needsAuth) {
   await W(2600);
   await shot('m2-выбор-места');
 
-  // основание: ближайший к центру свободный тайл
-  const spots = await pickFreeTiles(1, 40);
+  // основание: ближайший к центру свободный тайл в ТОМ мире, куда посадил сервер
+  const myWorld = await page.evaluate(() => globalThis.__ashfall?.snapshot?.world?.id ?? 1);
+  console.log('  · игроку назначен мир', myWorld);
+  const spots = await pickFreeTiles(myWorld, 40);
   spots.sort((a, b) => ((a.x - 48) ** 2 + (a.y - 48) ** 2) - ((b.x - 48) ** 2 + (b.y - 48) ** 2));
   const target = spots[0];
   console.log('  · тайл для города:', JSON.stringify(target));
   await aimAt(target.x + 0.5, target.y + 0.5);
   await W(600);
-  const pos = await tileToScreen(target.x + 0.5, target.y + 0.5);
-  await page.touchscreen.tap(pos.x, pos.y);
-  await W(800);
-  await page.evaluate(() => {
-    const chip = [...document.querySelectorAll('button, .chip')].find((c) => (c.textContent ?? '').includes('Основать'));
-    chip?.click();
-  });
-  await W(2400);
-  const founded = await page.evaluate(() => globalThis.__ashfall?.snapshot?.player?.x ?? -1);
+  // тапаем и проверяем выбор: гонок снапшота не ждём, а повторяем попытку
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await W(1000);
+    const pos = await tileToScreen(target.x + 0.5, target.y + 0.5);
+    await page.touchscreen.tap(pos.x, pos.y);
+    await W(900);
+    const selected = await page.evaluate(() => globalThis.__ashfall?.placing?.selected ?? null);
+    if (selected) { console.log('  · тайл выбран:', JSON.stringify(selected)); break; }
+    console.log('  · повтор тапа (selected пуст), попытка', attempt + 1);
+  }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const kicked = await page.evaluate(() => {
+      const chip = [...document.querySelectorAll('#banner button')].find((c) => (c.textContent ?? '').includes('Основать'));
+      if (!chip) return false;
+      chip.click();
+      return true;
+    });
+    if (kicked) break;
+    console.log('  · повтор клика «Основать», попытка', attempt + 1);
+    await W(900);
+  }
+  await W(2600);
+  let founded = await page.evaluate(() => globalThis.__ashfall?.snapshot?.player?.x ?? -1);
+  if (founded < 0) {
+    // город не встал — читаем тост и пробуем соседний тайл из списка
+    const toast = await page.evaluate(() => [...document.querySelectorAll('#toasts .toast')].map((el) => el.textContent)[0] ?? '');
+    console.log('  · основание не удалось:', toast);
+    for (const alt of spots.slice(1, 5)) {
+      await aimAt(alt.x + 0.5, alt.y + 0.5);
+      await W(700);
+      const pos = await tileToScreen(alt.x + 0.5, alt.y + 0.5);
+      await page.touchscreen.tap(pos.x, pos.y);
+      await W(800);
+      const ok = await page.evaluate(() => {
+        const chip = [...document.querySelectorAll('#banner button')].find((c) => (c.textContent ?? '').includes('Основать'));
+        if (!chip) return false;
+        chip.click();
+        return true;
+      });
+      await W(2000);
+      founded = await page.evaluate(() => globalThis.__ashfall?.snapshot?.player?.x ?? -1);
+      if (ok && founded >= 0) break;
+    }
+  }
   console.log('  · город основан на x=', founded);
 } else {
   console.log('  · профиль уже в игре, вход пропускаем');

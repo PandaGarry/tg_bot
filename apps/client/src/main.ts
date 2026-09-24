@@ -1,4 +1,6 @@
 import './styles.css';
+import '@fontsource/philosopher/700.css';
+import '@fontsource/philosopher/cyrillic-400.css';
 import type { Snapshot } from '@ashfall/shared';
 import { cmd, connect, on } from './net';
 import { applyPatch, applySnapshot, hasPlayer, player, state } from './store';
@@ -15,13 +17,14 @@ import { renderRating } from './ui/rating';
 import { renderBanner, renderMenu } from './ui/menu';
 import { hideAuth, showAuth } from './ui/auth';
 import { renderToasts } from './ui/toasts';
+import { iconEl } from './ui/icons';
 
 const TABS: { id: TabName; icon: string; label: string }[] = [
-  { id: 'city', icon: '🏛', label: 'Город' },
-  { id: 'army', icon: '⚔', label: 'Войско' },
-  { id: 'reports', icon: '📜', label: 'Отчёты' },
-  { id: 'rating', icon: '🏆', label: 'Рейтинг' },
-  { id: 'menu', icon: '☰', label: 'Меню' },
+  { id: 'city', icon: 'castle', label: 'Город' },
+  { id: 'army', icon: 'swords', label: 'Войско' },
+  { id: 'reports', icon: 'scroll', label: 'Отчёты' },
+  { id: 'rating', icon: 'trophy', label: 'Рейтинг' },
+  { id: 'menu', icon: 'menu', label: 'Меню' },
 ];
 
 let lastPanelUpdate = 0;
@@ -38,7 +41,7 @@ function setupTabs(): void {
         id: `tab-${tab.id}`,
         onclick: () => openTab(state.tab === tab.id ? null : tab.id),
       }, [
-        h('span', { class: 'ic', text: tab.icon }),
+        iconEl(tab.icon),
         h('span', { text: tab.label }),
       ]),
     );
@@ -77,7 +80,7 @@ function openTab(tab: TabName | null): void {
   panel.append(
     h('div', { class: 'panel-head' }, [
       h('h2', { text: title }),
-      h('button', { class: 'close-btn', text: 'Закрыть', onclick: () => openTab(null) }),
+      h('button', { class: 'close-btn', title: 'Закрыть', onclick: () => openTab(null) }, [iconEl('close')]),
     ]),
   );
   const body = h('div', { class: 'panel-body' });
@@ -181,17 +184,17 @@ function onPatch(): void {
 
 function setupMapButtons(): void {
   const host = h('div', { class: 'map-buttons' }, [
-    h('button', { class: 'map-btn', text: '＋', onclick: () => zoomBy(1.35) }),
-    h('button', { class: 'map-btn', text: '－', onclick: () => zoomBy(1 / 1.35) }),
+    h('button', { class: 'map-btn', title: 'Приблизить', onclick: () => zoomBy(1.35) }, [iconEl('plus')]),
+    h('button', { class: 'map-btn', title: 'Отдалить', onclick: () => zoomBy(1 / 1.35) }, [iconEl('minus')]),
     h('button', {
       class: 'map-btn',
-      text: '⌂',
+      title: 'К моему городу',
       onclick: () => {
         if (!hasPlayer()) return;
         state.camera.x = player().x;
         state.camera.y = player().y;
       },
-    }),
+    }, [iconEl('crosshair')]),
   ]);
   document.querySelector('#app')!.append(host);
 
@@ -199,22 +202,32 @@ function setupMapButtons(): void {
   document.querySelector('#app')!.append(coords);
 }
 
+let lastRenderError = 0;
+
 function loop(now: number): void {
-  renderMap();
-  if (hasPlayer()) {
-    updateHud();
-    updatePanel(now);
-    if (now - lastSheetRefresh > 1000) {
-      lastSheetRefresh = now;
-      refreshSheet();
+  // даже если кадр упал с ошибкой, цикл обязан жить — иначе игра замирает
+  try {
+    renderMap();
+    if (hasPlayer()) {
+      updateHud();
+      updatePanel(now);
+      if (now - lastSheetRefresh > 1000) {
+        lastSheetRefresh = now;
+        refreshSheet();
+      }
     }
-  }
-  renderToasts();
-  const connecting = qs('#connecting');
-  connecting.classList.toggle('hidden', !state.connecting);
-  const coords = document.querySelector('#coords') as HTMLElement | null;
-  if (coords && hasPlayer()) {
-    coords.textContent = `${state.snapshot!.world.name} · ${Math.round(state.camera.x)}, ${Math.round(state.camera.y)}`;
+    renderToasts();
+    const connecting = qs('#connecting');
+    connecting.classList.toggle('hidden', !state.connecting);
+    const coords = document.querySelector('#coords') as HTMLElement | null;
+    if (coords && hasPlayer()) {
+      coords.textContent = `${state.snapshot!.world.name} · ${Math.round(state.camera.x)}, ${Math.round(state.camera.y)}`;
+    }
+  } catch (err) {
+    if (now - lastRenderError > 5000) {
+      lastRenderError = now;
+      console.error('[render]', err);
+    }
   }
   requestAnimationFrame(loop);
 }
