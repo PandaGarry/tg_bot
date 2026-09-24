@@ -1,0 +1,12 @@
+node_modules/
+dist/
+data/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+coverage/
+*.log
+ashfall-standalone.html
+world-*.png
+art/

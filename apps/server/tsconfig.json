@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@ashfall/rules": ["../../packages/rules/src/index.ts"],
+      "@ashfall/rules/*": ["../../packages/rules/src/*"],
+      "@ashfall/shared": ["../../packages/shared/src/index.ts"],
+      "@ashfall/shared/*": ["../../packages/shared/src/*"]
+    }
+  },
+  "include": ["src"]
+}
