@@ -1,10 +1,24 @@
 import { HOUSES, LORE } from '@ashfall/rules';
 import type { HouseKey } from '@ashfall/rules';
-import { cmd } from '../net';
+import { cmd, setServerBase } from '../net';
 import { clear, h, qs } from './dom';
 
 let nick = '';
 let house: HouseKey = 'order';
+let serverInput: HTMLInputElement | null = null;
+
+function currentServer(): string {
+  const params = new URLSearchParams(location.search).get('server');
+  const stored = (() => {
+    try {
+      return localStorage.getItem('ashfall.server');
+    } catch {
+      return null;
+    }
+  })();
+  const fromGlobal = (globalThis as Record<string, unknown>).__ASHFALL_SERVER__ as string | undefined;
+  return params ?? stored ?? fromGlobal ?? location.origin;
+}
 
 export function showAuth(): void {
   const host = qs('#auth');
@@ -70,6 +84,27 @@ function render(host: HTMLElement): void {
       style: 'text-align:center;margin-top:6px',
       text: 'Имя — это и есть аккаунт: вернуться можно с любого устройства.',
     }),
+  );
+
+  host.append(
+    h('div', { class: 'card' }, [
+      h('div', { class: 'muted', text: 'Не подключается? Укажи адрес сервера вручную:' }),
+      h('div', { class: 'count-input' }, [
+        (serverInput = h('input', {
+          class: 'text',
+          placeholder: 'https://адрес-сервера',
+          value: currentServer(),
+        }) as HTMLInputElement),
+      ]),
+      h('button', {
+        class: 'ghost',
+        text: 'Подключиться',
+        onclick: () => {
+          const value = (serverInput as HTMLInputElement).value.trim();
+          if (value) setServerBase(value);
+        },
+      }),
+    ]),
   );
 }
 

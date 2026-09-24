@@ -7,3 +7,5 @@ data/
 .DS_Store
 coverage/
 *.log
+ashfall-standalone.html
+world-*.png

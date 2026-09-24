@@ -22,9 +22,33 @@ function emit<K extends keyof Listeners>(event: K, ...args: unknown[]): void {
   for (const fn of listeners[event] as ((...a: unknown[]) => void)[]) fn(...args);
 }
 
+/**
+ * Базовый адрес сервера. По умолчанию — тот же origin, что и страница,
+ * но игру можно открыть и отдельным файлом (из окна предпросмотра, с диска,
+ * из нативной обёртки): тогда адрес задают через ?server= или глобальную
+ * переменную __ASHFALL_SERVER__.
+ */
+function serverBase(): string {
+  const search = new URLSearchParams(location.search).get('server');
+  const stored = (() => {
+    try {
+      return localStorage.getItem('ashfall.server');
+    } catch {
+      return null;
+    }
+  })();
+  const override =
+    search ??
+    stored ??
+    ((globalThis as Record<string, unknown>).__ASHFALL_SERVER__ as string | undefined);
+  const base = override ?? location.origin;
+  if (!/^https?:\/\//i.test(base)) throw new Error('Задай адрес сервера: ?server=https://…');
+  return base.replace(/\/$/, '');
+}
+
 function wsUrl(): string {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  return `${proto}://${location.host}/ws`;
+  const url = new URL(serverBase());
+  return `${url.protocol === 'https:' ? 'wss' : 'ws'}://${url.host}/ws`;
 }
 
 export function connect(): void {
@@ -76,6 +100,18 @@ function scheduleReconnect(): void {
   }, 2000);
 }
 
+/** Позволяет UI сменить адрес сервера на ходу (например, из окна предпросмотра). */
+export function setServerBase(url: string): void {
+  try {
+    localStorage.setItem('ashfall.server', url.replace(/\/$/, ''));
+  } catch {
+    /* приватный режим — просто перезагружаем с параметром */
+  }
+  const next = new URL(location.href);
+  next.searchParams.set('server', url.replace(/\/$/, ''));
+  location.href = next.toString();
+}
+
 export function send(msg: ClientMessage): void {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
   ws.send(JSON.stringify(msg));
@@ -96,7 +132,7 @@ export function cmd(command: Command): Promise<void> {
 }
 
 export async function api<T>(path: string): Promise<T> {
-  const res = await fetch(path, { credentials: 'same-origin' });
+  const res = await fetch(new URL(path, `${serverBase()}/`).toString());
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as T;
 }
