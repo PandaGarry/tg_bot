@@ -8,12 +8,15 @@ import type { Locale, SlotId, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 import { Slot, hasSlot } from "../slots.js";
 import { store } from "../store.js";
+import { addChronicle, hasChronicle } from "../shell/chronicle.js";
+import { Chronicle } from "./Chronicle.js";
 import { Diagnostics } from "./Diagnostics.js";
 
 const NAV: { route: string; key: string }[] = [
   { route: "court", key: "shell.nav.court" },
   { route: "map", key: "shell.nav.map" },
   { route: "reports", key: "shell.nav.reports" },
+  { route: "chronicle", key: "shell.nav.chronicle" },
   { route: "sheet", key: "shell.nav.sheet" },
 ];
 
@@ -28,20 +31,32 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
     return () => window.clearInterval(timer);
   }, []);
 
+  // Хронист говорит один раз: первая фраза остаётся в хронике навсегда.
+  useEffect(() => {
+    if (!hasChronicle("shell.tutor.palisade")) addChronicle("shell.tutor.palisade", "narrator", serverNow);
+  }, [serverNow]);
+
   return (
     <main className="flex min-h-[100dvh] flex-col">
       <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/95 pt-[env(safe-area-inset-top)]">
         <Slot slot={"hud.resources" as SlotId} view={view} lang={lang} serverNow={serverNow} empty={<ResourceBar view={view} lang={lang} />} />
       </header>
 
-      <section className="flex-1 overflow-y-auto p-3">
+      <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2 overflow-y-auto p-3">
         {route === "court" ? (
           <Slot
             slot={"court.view" as SlotId}
             view={view}
             lang={lang}
             serverNow={serverNow}
-            empty={<Panel>{t("shell.court.stub")}</Panel>}
+            empty={
+              <>
+                <Panel>
+                  <span className="text-sm leading-relaxed text-stone-300">{t("shell.tutor.palisade")}</span>
+                </Panel>
+                <Panel>{t("shell.court.stub")}</Panel>
+              </>
+            }
           />
         ) : null}
 
@@ -69,6 +84,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         ) : null}
 
         {route === "reports" ? <Reports lang={lang} /> : null}
+        {route === "chronicle" ? <Chronicle lang={lang} /> : null}
         {route === "sheet" ? (
           <Slot
             slot={"sheet" as SlotId}
@@ -84,7 +100,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
       </section>
 
       <nav className="sticky bottom-0 border-t border-stone-800 bg-stone-950/95 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex">
+        <div className="mx-auto flex w-full max-w-3xl">
           {NAV.map((item) => (
             <button
               key={item.route}
@@ -93,7 +109,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                 setRoute(item.route);
                 if (item.route === "sheet") setSheetOpen(true);
               }}
-              className={`min-h-[44px] flex-1 text-xs ${
+              className={`min-h-[44px] flex-1 px-1 text-xs ${
                 route === item.route ? "text-bone" : "text-stone-500"
               }`}
             >
@@ -142,7 +158,7 @@ function ResourceBar({ view, lang }: { view: WorldViewBase; lang: Locale }) {
   };
   const entries = Object.entries(view.stock ?? {});
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1 px-3 py-2 text-xs">
+    <div className="mx-auto flex w-full max-w-3xl flex-wrap gap-x-3 gap-y-1 px-3 py-2 text-xs">
       {entries.length === 0 ? <span className="text-stone-500">склад пуст</span> : null}
       {entries.map(([id, amount]) => (
         <span key={id} className="text-stone-400">
@@ -157,7 +173,7 @@ function Reports({ lang }: { lang: Locale }) {
   const t = translator(lang);
   const state = store.get();
   return (
-    <div className="flex flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
       <h2 className="text-sm text-stone-400">{t("shell.reports.title")}</h2>
       {state.reports.length === 0 ? <Panel>{t("shell.reports.empty")}</Panel> : null}
       {state.reports.map((report, index) => (

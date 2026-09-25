@@ -1,20 +1,28 @@
-import { StrictMode, useEffect } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { connect } from "./net.js";
 import { store } from "./store.js";
 import { useStore } from "./useStore.js";
+import { introSeen } from "./shell/firstRun.js";
 import { Boot } from "./ui/Boot.js";
 import { Create } from "./ui/Create.js";
+import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
 import { statusKey } from "./i18n/index.js";
 
 function App() {
   const state = useStore();
+  // Слайды вступления: только первый запуск на устройстве, и только до входа.
+  const [introDone, setIntroDone] = useState(() => introSeen());
 
   useEffect(() => {
     connect();
   }, []);
+
+  if (!state.auth && !introDone) {
+    return <Slides lang={state.lang} onDone={() => setIntroDone(true)} />;
+  }
 
   if (!state.auth) {
     return <Boot lang={state.lang} statusKey={statusKey(state.status)} />;
