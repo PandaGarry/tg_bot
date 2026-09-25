@@ -16,6 +16,8 @@ import type { WorldRow } from "./schema.js";
 export function resolveMigrationsDir(): string {
   const candidates = [
     process.env.KERNEL_MIGRATIONS_DIR,
+    // Рядом с собранным сервером: сборка кладёт миграции в dist/drizzle.
+    fileURLToPath(new URL("./drizzle", import.meta.url)),
     fileURLToPath(new URL("../../drizzle", import.meta.url)),
     fileURLToPath(new URL("../drizzle", import.meta.url)),
   ].filter((candidate): candidate is string => typeof candidate === "string" && candidate.length > 0);
@@ -25,9 +27,24 @@ export function resolveMigrationsDir(): string {
   throw new Error("не найдена папка миграций ядра: собрать drizzle-kit generate");
 }
 
+/**
+ * Замок миграций: один на базу, а не на мир. Миры на общем узле поднимаются
+ * разом, и без замка они строят схему наперегонки — это уже ловилось на живом
+ * запуске шести миров (падение на CREATE TABLE).
+ */
+const MIGRATION_LOCK_KEY = 0x54444c31;
+
 export async function applyKernelMigrations(db: Db, journal: Journal): Promise<void> {
   const folder = resolveMigrationsDir();
-  await migrate(db.orm, { migrationsFolder: folder });
+  // Замок держится отдельным соединением: миграция идёт своими.
+  const lock = await db.pool.connect();
+  try {
+    await lock.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_KEY]);
+    await migrate(db.orm, { migrationsFolder: folder });
+  } finally {
+    await lock.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY]).catch(() => undefined);
+    lock.release();
+  }
   journal.write({ channel: "app", event: "kernel.migrated", detail: { folder } });
 }
 

@@ -70,6 +70,8 @@ export class TestSink implements ViewSink {
 }
 
 export interface TestWorldOptions {
+  /** Потолок сна писателя: тесты тишины ставят 0, обычные — по умолчанию. */
+  maxIdleMs?: number;
   /** Дополнительные модули к сборке: проверка края контракта. */
   extraModules?: ModuleDefinition[];
   /** Модули, которых в сборке быть не должно. */
@@ -140,6 +142,7 @@ export async function createTestWorld(options: TestWorldOptions = {}): Promise<T
     slowCommandMs: options.slowCommandMs,
     quarantineStrikes: options.quarantineStrikes,
     strikeWindowMs: options.strikeWindowMs,
+    maxIdleMs: options.maxIdleMs,
   });
   return {
     id,

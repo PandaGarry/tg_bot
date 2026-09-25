@@ -108,3 +108,32 @@ describe("часы мира и календарь", () => {
     }
   });
 });
+
+describe("сон писателя", () => {
+  it("в тишине писатель не крутится, а просыпается на срок", async () => {
+    // Потолок сна 40 мс: тест живёт быстро, поведение то же, что с двумя секундами.
+    const world = await createTestWorld({ maxIdleMs: 40, extraModules: [kitModule()] });
+    try {
+      world.service.start();
+      await new Promise((done) => setTimeout(done, 200));
+      const idleSteps = world.service.stats().steps;
+      // За 200 мс при сне в 40 мс проходов должно быть единицы, а не сотни.
+      expect(idleSteps).toBeLessThan(20);
+
+      // Срок впереди: писатель просыпается сам, без команд и понуканий.
+      await world.db.pool.query(
+        `INSERT INTO deadlines (id, world_id, owner, unit_id, wake_at_ms, key, payload, created_at_ms)
+         VALUES ($1, $2, '_kit', $3, $4, 'kit.soon', '{"mode":"count"}'::jsonb, $5)`,
+        ["kit.soon", world.id, "gadget", world.service.now() + 60, world.service.now()],
+      );
+      await new Promise((done) => setTimeout(done, 400));
+      const marks = await world.db.pool.query<{ marks: number }>(
+        "SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = 'world'",
+        [world.id],
+      );
+      expect(marks.rows[0]?.marks).toBe(1);
+    } finally {
+      await world.close();
+    }
+  });
+});

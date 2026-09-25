@@ -15,10 +15,20 @@ export interface Db {
   close(): Promise<void>;
 }
 
-export function createDb(connectionString: string): Db {
+/**
+ * Размер пула. По умолчанию 10, но мирам на одном узле его задают окружением:
+ * у базы свой предел соединений, и сто миров по десять в него не влезут.
+ */
+export function poolMaxFromEnv(env: NodeJS.ProcessEnv = process.env): number {
+  const value = Number(env.PG_POOL_MAX ?? "");
+  if (!Number.isFinite(value) || value < 1) return 10;
+  return Math.min(50, Math.floor(value));
+}
+
+export function createDb(connectionString: string, options: { max?: number } = {}): Db {
   const pool = new Pool({
     connectionString,
-    max: 10,
+    max: options.max ?? poolMaxFromEnv(),
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
     application_name: "tdl-host",

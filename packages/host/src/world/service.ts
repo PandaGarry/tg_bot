@@ -156,6 +156,8 @@ export interface ServiceOptions {
   /** Пакет сроков не держит цикл дольше 50 мс. */
   stepBudgetMs?: number;
   pulseIntervalMs?: number;
+  /** Потолок простоя писателя в тишине, мс. По умолчанию 2 секунды. */
+  maxIdleMs?: number;
   /** Сколько команда может ждать прохода: дальше отказ «команда устарела». */
   queueWaitMs?: number;
   now?: () => number;
@@ -192,6 +194,11 @@ export class WorldService {
   private readonly stepBudgetMs: number;
   private readonly deadlineBudgetMs: number;
   private readonly pulseIntervalMs: number;
+  /**
+   * Потолок сна писателя: когда делать нечего, он спит столько и просыпается
+   * проверить мир. 0 — крутиться без сна (тесты расписания).
+   */
+  private readonly maxIdleMs: number;
   private readonly queueWaitMs: number;
 
   private readonly moduleStates = new Map<ModuleId, ModuleState>();
@@ -256,6 +263,13 @@ export class WorldService {
   private leaseLost = false;
   private timer: NodeJS.Timeout | null = null;
   private pulseTimer: NodeJS.Timeout | null = null;
+  /** Ближайший срок игрока (мировое время): по нему писатель и просыпается. */
+  private nextDeadlineAtMs: number | null = null;
+  /**
+   * Сроки стоят из-за карантина: будить писателя по ним нельзя, иначе он
+   * крутился бы вхолостую до самого возврата единицы. Ждём срок лечения.
+   */
+  private deadlineStalled = false;
   private lastRejections = 0;
   /** Счётчики прохода: видны в /api/health и в замерочном прогоне. */
   private steps = 0;
@@ -283,6 +297,7 @@ export class WorldService {
     this.stepBudgetMs = options.stepBudgetMs ?? 50;
     this.deadlineBudgetMs = Math.min(DEADLINE_BUDGET_MS, this.stepBudgetMs);
     this.pulseIntervalMs = options.pulseIntervalMs ?? 10_000;
+    this.maxIdleMs = options.maxIdleMs ?? 2_000;
     this.queueWaitMs = options.queueWaitMs ?? QUEUE_WAIT_MS;
     this.quarantineBackoffMs = options.quarantineBackoffMs ?? QUARANTINE_BACKOFF_MS;
     this.slowCommandMs = options.slowCommandMs ?? SLOW_COMMAND_MS;
@@ -316,9 +331,46 @@ export class WorldService {
   /** Приём команд открывается только после подъёма: сроки уже проведены. */
   start(): void {
     if (this.stopped || this.timer) return;
-    this.timer = setInterval(() => void this.pump(), 20);
     this.pulseTimer = setInterval(() => void this.writePulse().catch((error) => this.onFatal(error)), this.pulseIntervalMs);
-    void this.pump();
+    this.scheduleWake();
+  }
+
+  /**
+   * Сон писателя: просыпаемся к ближайшему делу — сроку игрока, сроку воли
+   * оператора, возврату карантина или приходу команды. Такт «каждые 20 мс» жёг
+   * процессор в пустом мире зря: сто миров на узле — это уже половина ядра.
+   */
+  private scheduleWake(): void {
+    if (this.stopped) return;
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      void this.pump();
+    }, this.nextWakeDelayMs());
+  }
+
+  /** Сколько спать до ближайшего дела. Часы идут поровну, поэтому сроки сравнимы. */
+  private nextWakeDelayMs(): number {
+    const realNow = Date.now();
+    let delay = this.maxIdleMs;
+    if (this.queue.length > 0) delay = 0;
+    if (this.quietUntilMs > realNow) delay = Math.min(delay, this.quietUntilMs - realNow);
+    if (this.nextDeadlineAtMs !== null && !this.deadlineStalled) {
+      delay = Math.min(delay, Math.max(0, this.nextDeadlineAtMs - this.now()));
+    }
+    // Срок годности кэша переключателей делом не является: его приход только
+    // велит перечитать состояние, а не что-то сделать. Будить писателя по нему
+    // значит крутиться вхолостую (проверено: 386 проходов в секунду).
+    for (const entry of this.health.values()) {
+      if (entry.until > 0) delay = Math.min(delay, Math.max(0, entry.until - this.calendarNow()));
+    }
+    return Math.max(0, delay);
+  }
+
+  /** Разбудить писателя сейчас: пришла команда или сменилось состояние мира. */
+  wake(): void {
+    if (this.stopped) return;
+    this.scheduleWake();
   }
 
   /**
@@ -327,7 +379,7 @@ export class WorldService {
    */
   async stop(): Promise<void> {
     this.stopped = true;
-    if (this.timer) clearInterval(this.timer);
+    if (this.timer) clearTimeout(this.timer);
     if (this.pulseTimer) clearInterval(this.pulseTimer);
     this.timer = null;
     this.pulseTimer = null;
@@ -445,6 +497,8 @@ export class WorldService {
     }
     return new Promise((resolve) => {
       this.queue.push({ ...input, queuedAtMs: performance.now(), resolve });
+      // Команда не ждёт конца сна: писатель просыпается на неё сразу.
+      this.wake();
     });
   }
 
@@ -498,7 +552,9 @@ export class WorldService {
       this.moduleOverrides.delete(moduleId);
     }
     this.switchesValidUntilMs = 0;
+    this.deadlineStalled = false;
     this.clearCaches();
+    this.wake();
     this.journal.write({
       channel: "app",
       worldId: this.worldId,
@@ -1088,7 +1144,9 @@ export class WorldService {
       });
       this.unitOverrides.delete(key);
       this.switchesValidUntilMs = 0;
+      this.deadlineStalled = false;
       this.clearCaches();
+      this.wake();
       this.journal.write({ channel: "app", worldId: this.worldId, moduleId, event: "unit.auto", detail: { key } });
       return;
     }
@@ -1128,7 +1186,9 @@ export class WorldService {
       await this.replaceLaneOverride(moduleId, unitId);
     }
     this.switchesValidUntilMs = 0;
+    this.deadlineStalled = false;
     this.clearCaches();
+    this.wake();
     this.journal.write({
       channel: "app",
       worldId: this.worldId,
@@ -1375,7 +1435,7 @@ export class WorldService {
     if (error instanceof StaleWriter) {
       this.leaseLost = true;
       this.stopped = true;
-      if (this.timer) clearInterval(this.timer);
+      if (this.timer) clearTimeout(this.timer);
       if (this.pulseTimer) clearInterval(this.pulseTimer);
       this.timer = null;
       this.pulseTimer = null;
@@ -1707,6 +1767,7 @@ export class WorldService {
   private async pump(): Promise<void> {
     if (this.stopped || this.pumping || Date.now() < this.quietUntilMs) return;
     this.pumping = true;
+    this.deadlineStalled = false;
     this.clearCaches();
     // Просроченные запреты снимаются до работы шага: мир возвращается сам.
     await this.sweepExpiredOverrides();
@@ -1723,8 +1784,12 @@ export class WorldService {
         const batch = await this.fetchDue(DEADLINE_BATCH);
         if (batch.length === 0) break;
         const { runnable, postponed } = this.splitQuarantined(batch);
-        // Вся выборка ждёт лечения: крутить её в этом проходе нечего.
-        if (runnable.length === 0 && postponed > 0) break;
+        // Вся выборка ждёт лечения: крутить её в этом проходе нечего, и будить
+        // писателя по этим срокам тоже нельзя — ждём срока возврата единицы.
+        if (runnable.length === 0 && postponed > 0) {
+          this.deadlineStalled = true;
+          break;
+        }
         let worked = false;
         for (const row of runnable) {
           if (this.stopped || performance.now() >= deadlineEndsAt) break;
@@ -1779,7 +1844,29 @@ export class WorldService {
       this.steps += 1;
       this.lastStepMs = performance.now() - startedAt;
       this.pumping = false;
+      // Сон назначается в конце: за проход сроки могли появиться и пройти.
+      await this.refreshNextDeadline().catch(() => {
+        this.nextDeadlineAtMs = null;
+      });
+      this.scheduleWake();
     }
+  }
+
+  /** Ближайший срок игрока: по нему писатель просыпается точно в срок. */
+  private async refreshNextDeadline(): Promise<void> {
+    const owners = this.enabled().map((def) => def.id);
+    if (owners.length === 0) {
+      this.nextDeadlineAtMs = null;
+      return;
+    }
+    const rows = await this.db.pool.query<{ next: string | number | null }>(
+      `SELECT min(wake_at_ms) AS next FROM deadlines WHERE world_id = $1 AND owner = ANY($2)`,
+      [this.worldId, owners],
+    );
+    const value = rows.rows[0]?.next;
+    const next = value === null || value === undefined ? null : Number(value);
+    // Просроченный срок под карантином делом не является: ждём лечения.
+    this.nextDeadlineAtMs = next !== null && this.deadlineStalled && next <= this.now() + 50 ? null : next;
   }
 
   /** Наступившие сроки проводятся до приёма команд. */
