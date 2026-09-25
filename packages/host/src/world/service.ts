@@ -52,11 +52,29 @@ export interface ViewSink {
   report(actorId: string, kind: string, rows: ReportRow[], serverNow: number): void;
 }
 
+/** Сколько команд может ждать прохода. Дальше очередь не растёт: отказ сразу. */
+export const QUEUE_LIMIT = 5_000;
+
+/**
+ * Сколько команда может стоять в очереди. Дальше её никто не ждёт: игрок
+ * получил бы ответ через десятки секунд, а такой ответ уже бесполезен.
+ */
+export const QUEUE_WAIT_MS = 2_000;
+
+/**
+ * Сколько миллисекунд один проход отдаёт срокам. Документ архитектуры:
+ * «пакет сроков не держит цикл событий дольше 50 мс», остаток — на следующий
+ * проход, чтобы сокеты не ждали чужую пачку.
+ */
+const DEADLINE_BUDGET_MS = 50;
+
 export type CommandOutcome =
   | { status: "ok"; repeat: boolean }
   | { status: "error"; key: string; params?: Record<string, string | number> };
 
 interface QueuedCommand {
+  /** Когда команда встала в очередь: по этим часам считается её срок. */
+  queuedAtMs: number;
   actor: ActorFacts;
   commandId: string;
   payload: unknown;
@@ -66,7 +84,7 @@ interface QueuedCommand {
 }
 
 /** Сколько наступивших сроков берётся одним запросом. */
-const DEADLINE_BATCH = 32;
+const DEADLINE_BATCH = 16;
 
 /** После стольких ошибок срок снимается: сломанный модуль не держит писателя. */
 const MAX_DEADLINE_ATTEMPTS = 5;
@@ -94,6 +112,8 @@ export interface ServiceOptions {
   /** Пакет сроков не держит цикл дольше 50 мс. */
   stepBudgetMs?: number;
   pulseIntervalMs?: number;
+  /** Сколько команда может ждать прохода: дальше отказ «команда устарела». */
+  queueWaitMs?: number;
   now?: () => number;
 }
 
@@ -112,7 +132,9 @@ export class WorldService {
   private readonly processId: string;
   private readonly profileOf?: (actorId: string) => Promise<ActorProfile | null>;
   private readonly stepBudgetMs: number;
+  private readonly deadlineBudgetMs: number;
   private readonly pulseIntervalMs: number;
+  private readonly queueWaitMs: number;
 
   private readonly moduleStates = new Map<ModuleId, ModuleState>();
   private readonly queue: QueuedCommand[] = [];
@@ -132,6 +154,20 @@ export class WorldService {
   private timer: NodeJS.Timeout | null = null;
   private pulseTimer: NodeJS.Timeout | null = null;
   private lastRejections = 0;
+  /** Счётчики прохода: видны в /api/health и в замерочном прогоне. */
+  private steps = 0;
+  private deadlinesDone = 0;
+  private commandsDone = 0;
+  private lastStepMs = 0;
+  /** Сколько длилась фаза сроков: по документу она не держит цикл дольше 50 мс. */
+  private lastDeadlineMs = 0;
+  /** Лаг сроков: сколько прошло от наступления до проведения. */
+  private deadlineLagLastMs = 0;
+  private deadlineLagMaxMs = 0;
+  private deadlineLagSumMs = 0;
+  private overflowed = 0;
+  /** Команды, которым отказано по сроку годности в очереди. */
+  private dropped = 0;
 
   constructor(options: ServiceOptions) {
     this.db = options.db;
@@ -142,7 +178,9 @@ export class WorldService {
     this.processId = options.processId;
     this.profileOf = options.profileOf;
     this.stepBudgetMs = options.stepBudgetMs ?? 50;
+    this.deadlineBudgetMs = Math.min(DEADLINE_BUDGET_MS, this.stepBudgetMs);
     this.pulseIntervalMs = options.pulseIntervalMs ?? 10_000;
+    this.queueWaitMs = options.queueWaitMs ?? QUEUE_WAIT_MS;
     this.world = options.world;
     this.worldId = options.world.id;
     this.clockValue = new WorldClock({ offsetMs: options.world.clockOffsetMs, lastWorldAtMs: options.now?.() ?? Date.now() });
@@ -182,6 +220,15 @@ export class WorldService {
     await this.writePulse().catch((error) => this.journal.write({ channel: "app", event: "pulse.failed", detail: String(error) }));
   }
 
+  /** Сколько сроков уже наступило и лежит непроведённым: лаг виден снаружи. */
+  async deadlineBacklog(): Promise<number> {
+    const rows = await this.db.pool.query<{ n: string }>(
+      `SELECT count(*)::text AS n FROM deadlines WHERE world_id = $1 AND wake_at_ms <= $2`,
+      [this.worldId, this.now()],
+    );
+    return Number(rows.rows[0]?.n ?? 0);
+  }
+
   /** Сколько команд ждёт прохода: нужно порту для ответа о нагрузке. */
   get pending(): number {
     return this.queue.length;
@@ -200,12 +247,38 @@ export class WorldService {
     return this.world;
   }
 
-  stats(): { epoch: number; pending: number; rejections: number; failures: number; modulesEnabled: number } {
+  stats(): {
+    epoch: number;
+    pending: number;
+    rejections: number;
+    failures: number;
+    overflowed: number;
+    dropped: number;
+    steps: number;
+    deadlinesDone: number;
+    commandsDone: number;
+    lastStepMs: number;
+    lastDeadlineMs: number;
+    deadlineLag: { last: number; max: number; avg: number };
+    modulesEnabled: number;
+  } {
     return {
       epoch: this.epoch,
       pending: this.queue.length,
       rejections: this.lastRejections,
       failures: this.stepFailures,
+      overflowed: this.overflowed,
+      dropped: this.dropped,
+      steps: this.steps,
+      deadlinesDone: this.deadlinesDone,
+      commandsDone: this.commandsDone,
+      lastStepMs: Math.round(this.lastStepMs),
+      lastDeadlineMs: Math.round(this.lastDeadlineMs),
+      deadlineLag: {
+        last: Math.round(this.deadlineLagLastMs),
+        max: Math.round(this.deadlineLagMaxMs),
+        avg: this.deadlinesDone === 0 ? 0 : Math.round(this.deadlineLagSumMs / this.deadlinesDone),
+      },
       modulesEnabled: [...this.moduleStates.values()].filter((state) => state === "enabled").length,
     };
   }
@@ -218,9 +291,22 @@ export class WorldService {
     requestId: string;
     idempotencyKey: string;
   }): Promise<CommandOutcome> {
-    if (this.stopped) return Promise.resolve({ status: "error", key: KERNEL_KEYS.generic });
+    if (this.stopped) return Promise.resolve({ status: "error", key: KERNEL_KEYS.stale });
+    if (this.queue.length >= QUEUE_LIMIT) {
+      // Очередь не растёт без предела: лучше отказ, чем память и задержка всем.
+      this.overflowed += 1;
+      this.journal.write({
+        channel: "security",
+        worldId: this.worldId,
+        actorId: input.actor.id,
+        requestId: input.requestId,
+        event: "command.overflow",
+        detail: { pending: this.queue.length, limit: QUEUE_LIMIT },
+      });
+      return Promise.resolve({ status: "error", key: KERNEL_KEYS.busy });
+    }
     return new Promise((resolve) => {
-      this.queue.push({ ...input, resolve });
+      this.queue.push({ ...input, queuedAtMs: performance.now(), resolve });
     });
   }
 
@@ -691,24 +777,50 @@ export class WorldService {
     if (this.stopped || this.pumping || Date.now() < this.quietUntilMs) return;
     this.pumping = true;
     this.clearCaches();
+    const startedAt = performance.now();
     try {
-      const deadlineAt = performance.now() + this.stepBudgetMs;
-      while (!this.stopped && performance.now() < deadlineAt) {
+      const stepEndsAt = startedAt + this.stepBudgetMs;
+      // Сроки идут первыми, но не съедают весь бюджет: остаток — командам.
+      const deadlineEndsAt = Math.min(startedAt + this.deadlineBudgetMs, stepEndsAt);
+      while (!this.stopped && performance.now() < deadlineEndsAt) {
         const batch = await this.fetchDue(DEADLINE_BATCH);
         if (batch.length === 0) break;
         let worked = false;
         for (const row of batch) {
-          if (this.stopped || performance.now() >= deadlineAt) break;
+          if (this.stopped || performance.now() >= deadlineEndsAt) break;
           await this.runDeadline(row);
           worked = true;
+          this.deadlinesDone += 1;
+          // Лаг: срок мог наступить раньше, чем его успели провести.
+          const lag = Math.max(0, this.clockValue.now() - row.wakeAt);
+          this.deadlineLagLastMs = lag;
+          this.deadlineLagMaxMs = Math.max(this.deadlineLagMaxMs, lag);
+          this.deadlineLagSumMs += lag;
           // Снимок, собранный до эффектов, устаревает за один шаг.
           this.clearCaches();
         }
         if (!worked) break;
       }
-      while (!this.stopped && this.queue.length > 0 && performance.now() < deadlineAt) {
+      this.lastDeadlineMs = performance.now() - startedAt;
+      while (!this.stopped && this.queue.length > 0 && performance.now() < stepEndsAt) {
         const next = this.queue.shift();
         if (!next) break;
+        if (performance.now() - next.queuedAtMs > this.queueWaitMs) {
+          // Мир не успевает: честнее отказать, чем отвечать через полминуты.
+          this.dropped += 1;
+          if (this.dropped === 1 || this.dropped % 20 === 0) {
+            this.journal.write({
+              channel: "app",
+              worldId: this.worldId,
+              actorId: next.actor.id,
+              requestId: next.requestId,
+              event: "command.dropped",
+              detail: { waitedMs: Math.round(performance.now() - next.queuedAtMs), dropped: this.dropped },
+            });
+          }
+          next.resolve({ status: "error", key: KERNEL_KEYS.stale });
+          continue;
+        }
         try {
           next.resolve(await this.runCommand(next));
         } catch (error) {
@@ -716,6 +828,7 @@ export class WorldService {
           next.resolve({ status: "error", key: KERNEL_KEYS.generic });
           throw error;
         }
+        this.commandsDone += 1;
         this.clearCaches();
       }
       this.stepFailures = 0;
@@ -723,6 +836,8 @@ export class WorldService {
     } catch (error) {
       this.onFatal(error);
     } finally {
+      this.steps += 1;
+      this.lastStepMs = performance.now() - startedAt;
       this.pumping = false;
     }
   }

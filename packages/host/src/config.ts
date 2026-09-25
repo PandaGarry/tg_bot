@@ -18,6 +18,11 @@ export const configSchema = z.object({
   WORLD_SIZE: z.coerce.number().int().min(32).max(1200).default(200),
   WORLD_ID: z.string().default("world-1"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  /**
+   * Команд в секунду на соединение. Тестовый мир поднимает флаг для
+   * нагрузочного прогона; на боевом мира флага нет.
+   */
+  COMMAND_RATE: z.coerce.number().int().min(1).max(1_000).default(20),
 });
 
 /**
@@ -45,14 +50,28 @@ export function loadEnvFile(startDir: string = process.cwd()): string | null {
 
 export type HostConfig = z.infer<typeof configSchema> & {
   registrationOpen: boolean;
+  /** Команд в секунду на соединение. */
+  commandRate: number;
   isProduction: boolean;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
-  const parsed = configSchema.parse(env);
+  let parsed: z.infer<typeof configSchema>;
+  try {
+    parsed = configSchema.parse(env);
+  } catch (error) {
+    // Понятная подсказка вместо простыни разбора: чаще всего нет файла .env.
+    const missing = ["DATABASE_URL", "SESSION_SECRET"].filter((key) => !env[key]);
+    const hint =
+      missing.length > 0
+        ? `Не задано: ${missing.join(", ")}. Создайте файл .env: cp .env.example .env и заполните его.`
+        : "Проверьте настройки окружения и файл .env.";
+    throw new Error(`${hint}\n${String(error)}`);
+  }
   return {
     ...parsed,
     registrationOpen: parsed.REGISTRATION_OPEN === "1",
+    commandRate: parsed.COMMAND_RATE,
     isProduction: parsed.NODE_ENV === "production",
   };
 }

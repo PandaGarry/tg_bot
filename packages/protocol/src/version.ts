@@ -28,6 +28,7 @@ export const KERNEL_KEYS = {
   protocol: "kernel.protocol.outdated",
   session: "kernel.session.expired",
   rate: "kernel.session.rate",
+  busy: "kernel.busy",
   generic: "kernel.failed",
   registration: "kernel.registration.closed",
   login: "kernel.login.failed",

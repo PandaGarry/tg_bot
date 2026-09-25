@@ -1,22 +1,16 @@
 /**
- * Процесс мира: подъём из boot.ts, обработка сигналов и выход.
- * Разбор настроек и порядок подъёма живут в boot.ts: тесты поднимают то же.
+ * Точка входа процесса мира: подъём из boot.ts и жизненный цикл из lifecycle.ts.
+ * Разбор настроек, порядок подъёма и остановка живут в модулях: здесь только провода.
  */
 
 import { bootServer } from "./boot.js";
+import { EXIT_SLOW_STOP, installLifecycle } from "./lifecycle.js";
 
 const booted = await bootServer();
+const lifecycle = installLifecycle(booted, { signals: ["SIGTERM", "SIGINT"] });
 
-let stopping = false;
-const shutdown = async (reason: string): Promise<void> => {
-  if (stopping) return;
-  stopping = true;
-  await booted.stop(reason);
-  process.exit(0);
-};
-
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
-process.on("SIGINT", () => void shutdown("SIGINT"));
+// Непойманная ошибка означает сломанный процесс: мир закрывается и уходит
+// на перезапуск. Писать дальше вслепую нельзя — на кону склад и сроки.
 process.on("uncaughtException", (error) => {
   booted.journal.write({
     channel: "app",
@@ -24,7 +18,10 @@ process.on("uncaughtException", (error) => {
     event: "process.uncaught",
     detail: String(error),
   });
+  void lifecycle.shutdown("uncaught-exception", EXIT_SLOW_STOP);
 });
+
+// Отклонённое обещание чаще всего приходит из сети: пишем след и живём дальше.
 process.on("unhandledRejection", (error) => {
   booted.journal.write({
     channel: "app",
@@ -33,8 +30,3 @@ process.on("unhandledRejection", (error) => {
     detail: String(error),
   });
 });
-
-// Если право писателя ушло другому процессу, этот выходит.
-setInterval(() => {
-  if (booted.service.lostLease) void shutdown("writer-lost");
-}, 2_000);

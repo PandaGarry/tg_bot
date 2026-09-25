@@ -76,6 +76,8 @@ export interface TestWorldOptions {
   size?: number;
   /** Настоящий получатель: TestSink записывает и передаёт дальше. */
   sink?: ViewSink;
+  /** Срок годности очереди: по умолчанию как у мира. */
+  queueWaitMs?: number;
 }
 
 export interface TestWorld {
@@ -127,6 +129,7 @@ export async function createTestWorld(options: TestWorldOptions = {}): Promise<T
     sink,
     processId: `test-${randomUUID().slice(0, 6)}`,
     stepBudgetMs: 2_000,
+    queueWaitMs: options.queueWaitMs,
   });
   return {
     id,
@@ -171,6 +174,41 @@ export async function runCommand(
       await world.service.pumpOnce();
     },
   };
+}
+
+/** Сколько сроков уже наступило и ещё не проведено. */
+export async function dueCount(world: TestWorld): Promise<number> {
+  const rows = await world.db.pool.query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM deadlines WHERE world_id = $1 AND wake_at_ms <= $2`,
+    [world.id, world.service.now()],
+  );
+  return Number(rows.rows[0]?.n ?? 0);
+}
+
+/**
+ * Гоняет проходы писателя, пока есть работа. Один проход ограничен бюджетом
+ * (сроки — не дольше 50 мс), поэтому «провести всё» — это несколько проходов.
+ */
+export async function drain(
+  world: TestWorld,
+  options: { maxMs?: number; until?: () => boolean; limit?: number } = {},
+): Promise<number> {
+  const maxMs = options.maxMs ?? 20_000;
+  const startedAt = Date.now();
+  let steps = 0;
+  for (;;) {
+    const due = await dueCount(world);
+    const pending = world.service.pending;
+    if (pending === 0 && due === 0) break;
+    if (Date.now() - startedAt > maxMs) {
+      throw new Error(`проходы не закончились за ${maxMs} мс: в очереди ${pending}, сроков ${due}`);
+    }
+    if (options.limit !== undefined && steps >= options.limit) break;
+    await world.service.pumpOnce();
+    steps += 1;
+  }
+  if (options.until && !options.until()) throw new Error("условие прогона не выполнено");
+  return steps;
 }
 
 export async function stockOf(world: TestWorld, holderId: string): Promise<Record<string, number>> {

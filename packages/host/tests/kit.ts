@@ -131,6 +131,24 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
           handle: (_, input) => [{ kind: "deadline.cancel", id: input.id }],
         }),
         defineCommand({
+          id: "_kit.step",
+          input: zNone,
+          handle: async (ctx) => {
+            // Чтение своей таблицы в транзакции шага: прибавление с подсчётом.
+            const holderId = ctx.actor?.id ?? "world";
+            const rows = await ctx.store.read<{ marks: number }>(
+              `SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = $2`,
+              [holderId],
+            );
+            const marks = Number(rows[0]?.marks ?? 0) + 1;
+            return [
+              { kind: "rows.upsert", table: "kit_state", key: { holder_id: holderId }, value: { marks } },
+              { kind: "stock", resource: "kit_dust", delta: 1 },
+              { kind: "patch", route: { kind: "actor" }, ops: [{ op: "add", path: "stock.kit_dust", value: 1 }] },
+            ];
+          },
+        }),
+        defineCommand({
           id: "_kit.off",
           input: zNone,
           handle: () => [{ kind: "disable", module: "_kit" }],
@@ -154,6 +172,17 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
       const payload = (ctx.deadline.payload ?? {}) as { mode?: string };
       if (payload.mode === "throw") throw new Error("срок сломался");
       if (payload.mode === "refuse") return [{ kind: "error", key: "kit.note" }];
+      if (payload.mode === "count") {
+        const rows = await ctx.store.read<{ marks: number }>(
+          `SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = $2`,
+          ["world"],
+        );
+        const marks = Number(rows[0]?.marks ?? 0) + 1;
+        return [
+          { kind: "journal", channel: "audit", event: "kit.deadline", entity: ctx.deadline.id },
+          { kind: "rows.upsert", table: "kit_state", key: { holder_id: "world" }, value: { marks } },
+        ];
+      }
       return [
         { kind: "journal", channel: "audit", event: "kit.deadline", entity: ctx.deadline.id },
         {

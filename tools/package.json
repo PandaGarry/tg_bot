@@ -7,10 +7,12 @@
     "@tdl/kernel": "workspace:*",
     "@tdl/modules": "workspace:*",
     "@tdl/protocol": "workspace:*",
-    "pg": "8.23.0"
+    "pg": "8.23.0",
+    "ws": "8.21.3"
   },
   "devDependencies": {
     "tsx": "4.23.15",
-    "@types/pg": "8.20.0"
+    "@types/pg": "8.20.0",
+    "@types/ws": "8.18.1"
   }
 }

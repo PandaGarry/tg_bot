@@ -65,10 +65,17 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     middlewares.push(async (req, res) => {
       if (req.method !== "GET" && req.method !== "HEAD") return false;
       const url = new URL(req.url ?? "/", "http://localhost");
+      // Служебные пути статике не отдаются: у них свой ответ и свой вид.
+      if (url.pathname.startsWith("/api/")) return false;
       const wanted = resolve(distRoot, `.${decodeURIComponent(url.pathname)}`);
       // Выход из папки сборки закрыт: путь всегда внутри собранного клиента.
       const inside = wanted === distRoot || wanted.startsWith(`${distRoot}${sep}`);
-      const target = inside && existsSync(wanted) && !wanted.endsWith(sep) ? wanted : indexHtml;
+      let target = indexHtml;
+      if (inside && existsSync(wanted)) {
+        const info = await files.stat(wanted);
+        // Папка и всё нечитаемое отдают оболочку: клиент сам решает, что рисовать.
+        if (info.isFile()) target = wanted;
+      }
       if (!existsSync(target)) return false;
       const body = await files.readFile(target);
       res.writeHead(200, {
@@ -82,7 +89,21 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
 
   const server = options.server ?? createServer();
   server.on("request", (req, res) => {
-    void handle(req, res);
+    void handle(req, res).catch((error: unknown) => {
+      // Сбой обработчика не оставляет игрока ждать: ответ уходит всегда.
+      options.journal.write({
+        channel: "app",
+        worldId: options.worldId,
+        event: "http.failed",
+        detail: { path: req.url ?? "/", error: String(error) },
+      });
+      if (res.headersSent) {
+        res.end();
+        return;
+      }
+      res.writeHead(500, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "порт не смог ответить" }));
+    });
   });
 
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -110,6 +131,12 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     }
     for (const middleware of middlewares) {
       if (await middleware(req, res)) return;
+    }
+    // Служебные пути отвечают как API, остальное — коротким текстом.
+    if (url.pathname.startsWith("/api/")) {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "нет такого пути" }));
+      return;
     }
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
     res.end("нет такого пути");

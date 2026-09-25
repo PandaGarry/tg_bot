@@ -38,6 +38,8 @@ export interface HubOptions {
   gates: GatesOptions;
   journal: Journal;
   worldId: string;
+  /** Команд в секунду на соединение. Тестовый мир поднимает флаг для прогона. */
+  commandRate?: number;
 }
 
 export function containsTile(
@@ -57,6 +59,7 @@ export class SocketHub implements ViewSink {
   private readonly gates: GatesOptions;
   private readonly journal: Journal;
   private readonly worldId: string;
+  private readonly commandRate: number;
   private readonly states = new Set<SocketState>();
   private service: WorldService | null = null;
   private wss: WebSocketServer | null = null;
@@ -66,6 +69,7 @@ export class SocketHub implements ViewSink {
     this.gates = options.gates;
     this.journal = options.journal;
     this.worldId = options.worldId;
+    this.commandRate = options.commandRate ?? LIMITS.commandsPerSecond;
   }
 
   setService(service: WorldService): void {
@@ -152,7 +156,7 @@ export class SocketHub implements ViewSink {
       token: null,
       viewport: null,
       lang: "ru",
-      tokens: LIMITS.commandsPerSecond,
+      tokens: this.commandRate,
       lastRefill: Date.now(),
       alive: true,
     };
@@ -345,7 +349,7 @@ export class SocketHub implements ViewSink {
   private takeToken(state: SocketState): boolean {
     const now = Date.now();
     if (now - state.lastRefill > 1000) {
-      state.tokens = LIMITS.commandsPerSecond;
+      state.tokens = this.commandRate;
       state.lastRefill = now;
     }
     if (state.tokens <= 0) return false;

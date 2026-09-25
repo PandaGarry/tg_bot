@@ -4,7 +4,7 @@
  */
 
 import { afterEach, describe, expect, it } from "vitest";
-import { countRows, createTestWorld, deadlinesOf, runCommand, simRows, type TestWorld } from "./harness.js";
+import { countRows, createTestWorld, deadlinesOf, drain, runCommand, simRows, type TestWorld } from "./harness.js";
 import { kitModule } from "./kit.js";
 
 const open: TestWorld[] = [];
@@ -43,7 +43,7 @@ describe("порядок и пачка", () => {
       await runCommand(world, actor, "_kit.plan", { id: `kit-${step}`, key: `kit-${step}`, inMs: step * 60_000 });
     }
     await makeDue(world);
-    await world.service.pumpOnce();
+    await drain(world);
     expect(await auditOrder(world, "kit.deadline")).toEqual(["kit-1", "kit-2", "kit-3"]);
     expect(await deadlinesOf(world)).toHaveLength(0);
   });
@@ -55,7 +55,7 @@ describe("порядок и пачка", () => {
       await runCommand(world, actor, "_kit.plan", { id: `kit-${index}`, key: `kit-${index}`, inMs: 60_000 });
     }
     await makeDue(world);
-    await world.service.pumpOnce();
+    await drain(world);
     const order = await auditOrder(world, "kit.deadline");
     expect(order).toHaveLength(40);
     expect(new Set(order).size).toBe(40);
@@ -73,7 +73,7 @@ describe("порядок и пачка", () => {
     await runCommand(world, actor, "_kit.plan", { id: "kit-cancel", key: "kit-cancel", inMs: 120_000 });
     await runCommand(world, actor, "_kit.cancel", { id: "kit-cancel", key: "kit-cancel", inMs: 1_000 });
     await makeDue(world);
-    await world.service.pumpOnce();
+    await drain(world);
     expect(await deadlinesOf(world)).toHaveLength(0);
     expect(await auditOrder(world, "kit.deadline")).toHaveLength(0);
   });
@@ -95,7 +95,7 @@ describe("срок и ошибка модуля", () => {
     const actor = world.actor();
     await runCommand(world, actor, "_kit.plan-mode", { mode: "refuse" });
     await makeDue(world);
-    await world.service.pumpOnce();
+    await drain(world);
     expect(await deadlinesOf(world)).toHaveLength(0);
     expect((await simRows(world, "deadline.refused")).length).toBe(1);
   });
@@ -105,7 +105,7 @@ describe("срок и ошибка модуля", () => {
     const actor = world.actor();
     await runCommand(world, actor, "_kit.plan-mode", { mode: "throw" });
     await makeDue(world);
-    for (let attempt = 0; attempt < 6; attempt += 1) await world.service.pumpOnce();
+    await drain(world);
     expect(await deadlinesOf(world)).toHaveLength(0);
     const failed = await simRows(world, "deadline.failed");
     const abandoned = await simRows(world, "deadline.abandoned");
@@ -130,7 +130,7 @@ describe("срок выключенного модуля", () => {
     expect(await auditOrder(world, "kit.deadline")).toHaveLength(0);
 
     await world.service.setModuleState("_kit", "enabled");
-    await world.service.pumpOnce();
+    await drain(world);
     expect(await auditOrder(world, "kit.deadline")).toEqual(["kit-sleep"]);
   });
 });

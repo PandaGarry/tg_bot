@@ -38,6 +38,8 @@ export interface BootOptions {
   server?: Server;
   /** Отдавать ли клиента из этого же процесса. Тестам к нему ходить незачем. */
   serveClient?: boolean;
+  /** Своя папка сборки клиента: проверка статики и нестандартный выпуск. */
+  clientDist?: string;
 }
 
 export interface BootedServer {
@@ -75,7 +77,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
   await applyModuleMigrations(db, registry, world.id, journal);
 
   const gates: GatesOptions = { db, config, journal };
-  const hub = new SocketHub({ gates, journal, worldId: world.id });
+  const hub = new SocketHub({ gates, journal, worldId: world.id, commandRate: config.commandRate });
   const service = await WorldService.open({
     db,
     journal,
@@ -94,8 +96,9 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     worldId: world.id,
     service: () => service,
     server: options.server,
-    clientDist: serveClient && config.isProduction ? paths.dist : undefined,
-    devClientRoot: serveClient && !config.isProduction ? paths.devRoot : undefined,
+    clientDist: serveClient ? (options.clientDist ?? (config.isProduction ? paths.dist : undefined)) : undefined,
+    // Своя папка сборки важнее режима разработки: так проверяется статика.
+    devClientRoot: serveClient && !options.clientDist && !config.isProduction ? paths.devRoot : undefined,
   });
   hub.attach(http.server);
 

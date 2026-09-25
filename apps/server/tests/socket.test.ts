@@ -6,11 +6,11 @@
 
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import WebSocket from "ws";
 import { loadConfig, type HostConfig } from "@tdl/host";
-import { KERNEL_KEYS, PROTOCOL_VERSION, type ServerMessage } from "@tdl/protocol";
+import { KERNEL_KEYS, PROTOCOL_VERSION } from "@tdl/protocol";
 import { bootServer, type BootedServer } from "../src/boot.js";
 import { readTestDbUrl } from "../../../tools/devdb/testing.js";
+import { Client, commandMessage, newLord, openWithToken, tokenOf, viewOf } from "./client.js";
 
 const WORLD_SIZE = 32;
 
@@ -30,134 +30,6 @@ function testConfig(overrides: Record<string, string> = {}): HostConfig {
     NODE_ENV: "test",
     ...overrides,
   });
-}
-
-/** Клиент сокета: копит сообщения и ждёт нужное. */
-class Client {
-  private readonly queue: ServerMessage[] = [];
-  private readonly waiters: { match: (message: ServerMessage) => boolean; resolve: (message: ServerMessage) => void }[] = [];
-  /** Последний снимок вида: он же уходит клиенту при входе. */
-  lastView: Record<string, unknown> | null = null;
-
-  constructor(private readonly socket: WebSocket) {
-    socket.on("message", (raw) => {
-      const message = JSON.parse(raw.toString()) as ServerMessage;
-      if (message.t === "state") this.lastView = message.view as Record<string, unknown>;
-      const index = this.waiters.findIndex((waiter) => waiter.match(message));
-      if (index >= 0) {
-        const [waiter] = this.waiters.splice(index, 1);
-        waiter?.resolve(message);
-        return;
-      }
-      this.queue.push(message);
-    });
-  }
-
-  static async open(url: string): Promise<Client> {
-    const socket = new WebSocket(url);
-    await new Promise<void>((resolve, reject) => {
-      socket.once("open", () => resolve());
-      socket.once("error", reject);
-    });
-    return new Client(socket);
-  }
-
-  send(message: unknown): void {
-    this.socket.send(JSON.stringify(message));
-  }
-
-  /** Ждёт сообщение по признаку. Тип ответа задаёт вызывающий: поля он знает сам. */
-  next<T = ServerMessage>(match: (message: ServerMessage) => boolean, timeoutMs = 15_000): Promise<T> {
-    const index = this.queue.findIndex(match);
-    if (index >= 0) {
-      const [message] = this.queue.splice(index, 1);
-      return Promise.resolve(message as T);
-    }
-    return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        const at = this.waiters.findIndex((waiter) => waiter.resolve === settle);
-        if (at >= 0) this.waiters.splice(at, 1);
-        reject(new Error(`сообщение не пришло за ${timeoutMs} мс; в очереди: ${JSON.stringify(this.queue)}`));
-      }, timeoutMs);
-      const settle = (message: ServerMessage): void => {
-        clearTimeout(timer);
-        resolve(message as T);
-      };
-      this.waiters.push({ match, resolve: settle });
-    });
-  }
-
-  close(): void {
-    this.socket.close();
-  }
-}
-
-async function registerLord(client: Client, name: string): Promise<void> {
-  await client.next((message) => message.t === "ready");
-  await client.next((message) => message.t === "auth");
-  client.send({
-    t: "lord.create",
-    protocolVersion: PROTOCOL_VERSION,
-    token: tokenOf(client),
-    name,
-    portrait: "portrait-1",
-    bannerSign: "skull",
-    bannerColor: "bone",
-    type: "bone",
-  });
-}
-
-const tokens = new WeakMap<Client, string>();
-
-function tokenOf(client: Client): string {
-  const token = tokens.get(client);
-  if (!token) throw new Error("токен ещё не пришёл");
-  return token;
-}
-
-/** Регистрация нового лорда: готовый клиент и его снимок вида. */
-async function newLord(booted: BootedServer, login: string, name: string): Promise<Client> {
-  const client = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
-  const auth = client.next((message) => message.t === "auth");
-  const tokenPromise = auth.then((message) => {
-    if (message.t === "auth") tokens.set(client, message.token);
-    return message;
-  });
-  client.send({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login, password: "secret-12345", lang: "ru" });
-  const first = await tokenPromise;
-  expect(first.t === "auth" && first.needsLord).toBe(true);
-  const ready = await client.next((message) => message.t === "ready");
-  expect(ready.t === "ready" && ready.modules).toContain("_probe");
-  client.send({
-    t: "lord.create",
-    protocolVersion: PROTOCOL_VERSION,
-    token: tokenOf(client),
-    name,
-    portrait: "portrait-1",
-    bannerSign: "skull",
-    bannerColor: "bone",
-    type: "bone",
-  });
-  const entered = await client.next((message) => message.t === "auth");
-  expect(entered.t === "auth" && entered.needsLord).toBe(false);
-  await client.next((message) => message.t === "state");
-  return client;
-}
-
-/** Снимок вида, который клиент уже получил. */
-function viewOf(client: Client): {
-  world: { size: number; now: number; downtimeMs: number };
-  me: { name: string } | null;
-  stock: Record<string, number>;
-  modules: Record<string, unknown>;
-} {
-  if (!client.lastView) throw new Error("снимок вида ещё не пришёл");
-  return client.lastView as unknown as {
-    world: { size: number; now: number; downtimeMs: number };
-    me: { name: string } | null;
-    stock: Record<string, number>;
-    modules: Record<string, unknown>;
-  };
 }
 
 describe("сокет и ворота", () => {
@@ -342,3 +214,105 @@ describe("закрытая регистрация", () => {
   });
 });
 
+describe("напор на сокет", () => {
+  let booted: BootedServer;
+
+  beforeAll(async () => {
+    booted = await bootServer({ config: testConfig(), serveClient: false });
+  }, 60_000);
+
+  afterAll(async () => {
+    await booted.stop("test");
+  });
+
+  it("соединения разных лордов не путают патчи", async () => {
+    const first = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Напор ${randomUUID().slice(0, 4)}`);
+    const second = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Тихий ${randomUUID().slice(0, 4)}`);
+    const firstSessions = [first, await openWithToken(booted, tokenOf(first)), await openWithToken(booted, tokenOf(first))];
+    const secondSession = await openWithToken(booted, tokenOf(second));
+
+    first.send(commandMessage("_probe.poke", { steps: 2 }));
+    const patches = await Promise.all(firstSessions.map((client) => client.next((message) => message.t === "patch")));
+    expect(patches).toHaveLength(3);
+    for (const patch of patches) {
+      expect(patch.t === "patch" && patch.ops.some((op) => op.path === "stock.probe_dust")).toBe(true);
+    }
+    // Второй лорд жил своей жизнью: чужих патчей он не видел.
+    await expect(secondSession.next((message) => message.t === "patch", 700)).rejects.toThrow();
+    const quietView = viewOf(secondSession);
+    const loudView = viewOf(firstSessions[0] as Client);
+    expect(quietView.stock.probe_dust ?? 0).toBe(0);
+    expect(loudView.stock.probe_dust ?? 0).toBeGreaterThan(0);
+
+    for (const client of [...firstSessions, secondSession, second]) client.close();
+  });
+
+  it("частота команд считается на соединение и не наказывает соседа", async () => {
+    const noisy = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Шумный ${randomUUID().slice(0, 4)}`);
+    const neighbour = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Сосед ${randomUUID().slice(0, 4)}`);
+    for (let index = 0; index < 25; index += 1) noisy.send(commandMessage("_probe.poke", { steps: 1 }));
+    const rate = await noisy.next<{ t: "error"; key: string }>(
+      (message) => message.t === "error" && message.key === KERNEL_KEYS.rate,
+    );
+    expect(rate.key).toBe(KERNEL_KEYS.rate);
+
+    // Сосед в тот же миг отправил одну команду: её принимают.
+    neighbour.send(commandMessage("_probe.poke", { steps: 1 }));
+    const patch = await neighbour.next((message) => message.t === "patch");
+    expect(patch.t).toBe("patch");
+    noisy.close();
+    neighbour.close();
+  });
+
+  it("мусор вместо JSON не рвёт соединение", async () => {
+    const client = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Мусор ${randomUUID().slice(0, 4)}`);
+    client.sendRaw("это не json");
+    const error = await client.next<{ t: "error"; key: string }>((message) => message.t === "error");
+    expect(error.key).toBe(KERNEL_KEYS.badInput);
+    // Соединение живо: следующая команда проходит.
+    client.send(commandMessage("_probe.poke", { steps: 1 }));
+    const patch = await client.next((message) => message.t === "patch");
+    expect(patch.t).toBe("patch");
+    client.close();
+  });
+
+  it("слишком большое сообщение не роняет мир", async () => {
+    const client = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Великан ${randomUUID().slice(0, 4)}`);
+    client.send(commandMessage("_probe.poke", { steps: 1, blob: "я".repeat(20_000) }));
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    // Мир продолжает отвечать: живой сокет и health.
+    const fresh = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
+    fresh.send({ t: "ping", protocolVersion: PROTOCOL_VERSION });
+    const pong = await fresh.next((message) => message.t === "pong");
+    expect(pong.t).toBe("pong");
+    const health = await fetch(`http://127.0.0.1:${booted.port}/api/health`);
+    const body = (await health.json()) as { ok: boolean; stats: { failures: number } };
+    expect(body.ok).toBe(true);
+    expect(body.stats.failures).toBe(0);
+    fresh.close();
+    client.close();
+  });
+
+  it("десять команд с пяти соединений проходят без потерь", async () => {
+    const lord = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Поток ${randomUUID().slice(0, 4)}`);
+    const token = tokenOf(lord);
+    const sessions = [lord, ...(await Promise.all(Array.from({ length: 4 }, () => openWithToken(booted, token))))];
+    const before = viewOf(sessions[0] as Client).stock.probe_dust ?? 0;
+    const perSession = 5;
+    for (const session of sessions) {
+      for (let index = 0; index < perSession; index += 1) session.send(commandMessage("_probe.poke", { steps: 1 }));
+    }
+    // Ждём по последнему патчу на каждом соединении.
+    const patches = await Promise.all(
+      sessions.map((session) => session.next((message) => message.t === "patch" && message.ops.length > 0)),
+    );
+    expect(patches).toHaveLength(sessions.length);
+    const wait = sessions[0] as Client;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const after = viewOf(wait).stock.probe_dust ?? before;
+    expect(after).toBeGreaterThan(before);
+    expect(booted.service.lostLease).toBe(false);
+    expect(booted.service.stats().failures).toBe(0);
+    for (const session of sessions) session.close();
+  });
+});
