@@ -110,6 +110,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     journal,
     worldId: world.id,
     service: () => service,
+    net: () => ({ connections: hub.connectionCount(), slowClients: hub.slowClientCount() }),
     server: options.server,
     clientDist: serveClient ? (options.clientDist ?? (config.isProduction ? paths.dist : undefined)) : undefined,
     // Своя папка сборки важнее режима разработки: так проверяется статика.

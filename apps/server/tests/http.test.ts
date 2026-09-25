@@ -55,13 +55,17 @@ describe("порт мира", () => {
     const body = (await response.json()) as {
       ok: boolean;
       ready: boolean;
-      stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number };
+      net: { connections: number; slowClients: number };
+      stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number; dropped: number };
     };
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.ready).toBe(true);
     expect(body.stats.epoch).toBeGreaterThan(0);
     expect(body.stats.pending).toBe(0);
+    expect(body.stats.dropped).toBe(0);
+    // Смотр сети: у мира в этот миг соединений нет, медленных не было.
+    expect(body.net).toEqual({ connections: 0, slowClients: 0 });
     expect(body.stats.failures).toBe(0);
     expect(body.stats.lastDeadlineMs).toBeGreaterThanOrEqual(0);
   });

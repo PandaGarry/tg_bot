@@ -16,6 +16,8 @@ export interface HttpOptions {
   server?: Server;
   worldId: string;
   service: () => WorldService | null;
+  /** Смотр сети: соединения и медленные клиенты. Тесты могут не давать его. */
+  net?: () => { connections: number; slowClients: number } | null;
   /** Папка сборки клиента: на бою отдаётся статикой. */
   clientDist?: string;
   /** В разработке клиент отдаёт Vite. */
@@ -111,12 +113,15 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     if (url.pathname === "/api/health") {
       const service = options.service();
       const stats = service?.stats() ?? null;
+      // Смотр мира: сколько соединений, сколько медленных клиентов отключено.
+      const net = options.net?.() ?? null;
       res.writeHead(200, { "content-type": "application/json" });
       res.end(
         JSON.stringify({
           ok: true,
           world: options.worldId,
           ready: service !== null,
+          net,
           stats,
         }),
       );
