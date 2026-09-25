@@ -232,4 +232,33 @@ describe("перезапуск под нагрузкой", () => {
     back.close();
     client.close();
   });
+
+  it("отказ склада в отчёте не роняет процесс", async () => {
+    const server = await boot(`report-${randomUUID().slice(0, 10)}`);
+    const client = await newLord(server, `lord_${randomUUID().slice(0, 8)}`, `Лорд ${randomUUID().slice(0, 6)}`);
+    const actorId = viewOf(client).me?.id;
+    if (!actorId) throw new Error("лорд не встал в мир");
+
+    const service = server.service as unknown as { view: (actor: unknown) => Promise<unknown> };
+    const healthy = service.view;
+    const rejections: unknown[] = [];
+    const onRejection = (reason: unknown) => rejections.push(reason);
+    process.on("unhandledRejection", onRejection);
+    try {
+      // Склад отказал ровно в этот миг: снимок вида не собрать, отчёт остаётся строкой.
+      service.view = () => Promise.reject(new Error("склад закрыт"));
+      server.hub.report(actorId, "gather", [], server.service.now());
+      await new Promise((done) => setTimeout(done, 100));
+    } finally {
+      service.view = healthy;
+      process.off("unhandledRejection", onRejection);
+    }
+
+    expect(rejections).toEqual([]);
+    // Мир жив: следующий ответ на месте, отказов нет.
+    client.send({ t: "ping", protocolVersion: PROTOCOL_VERSION });
+    await client.next((message) => message.t === "pong");
+    expect(server.service.stats().failures).toBe(0);
+    client.close();
+  });
 });

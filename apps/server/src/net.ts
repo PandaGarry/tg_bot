@@ -20,6 +20,7 @@ import {
 } from "@tdl/protocol";
 import type { ActorFacts, PatchOp, ReportRow, TileRef } from "@tdl/kernel";
 import type { GatesOptions, Journal, ViewSink, WorldService } from "@tdl/host";
+import type { JsonValue } from "@tdl/protocol";
 import { createLord, login, lordProfile, register, resume } from "@tdl/host";
 
 interface SocketState {
@@ -136,7 +137,14 @@ export class SocketHub implements ViewSink {
     const actor = targets[0]?.actor ?? null;
     const message = zServerReport.parse({ t: "report", serverNow, report: { rows } });
     void (async () => {
-      const view = actor && this.service ? await this.service.view(actor) : null;
+      // Остановка мира идёт в тот же миг: склад уже закрыт, снимок не собрать.
+      // Отчёт — не повод для необработанного отказа, он уходит без снимка.
+      let view: JsonValue | null = null;
+      try {
+        view = actor && this.service ? await this.service.view(actor) : null;
+      } catch {
+        view = null;
+      }
       for (const state of targets) {
         if (view) this.send(state, zServerState.parse({ t: "state", serverNow, view }));
         this.send(state, message);
