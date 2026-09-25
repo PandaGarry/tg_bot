@@ -131,6 +131,7 @@ describe("реестр", () => {
   const probe = defineModule({
     id: "probe",
     version: 1,
+    kind: "core",
     content: { strings: { ru: { "probe.hello": "Привет" }, en: { "probe.hello": "Hello" } } },
     rules: {
       resources: [{ id: "dust", storage: "warehouse" }],
@@ -152,8 +153,8 @@ describe("реестр", () => {
 
   it("собирает порядок загрузки по зависимостям", () => {
     const registry = buildRegistry([
-      defineModule({ id: "b", version: 1, depends: ["a"], content: { strings: { ru: {}, en: {} } } }),
-      defineModule({ id: "a", version: 1, content: { strings: { ru: {}, en: {} } } }),
+      defineModule({ id: "b", version: 1, kind: "core", depends: ["a"], content: { strings: { ru: {}, en: {} } } }),
+      defineModule({ id: "a", version: 1, kind: "core", content: { strings: { ru: {}, en: {} } } }),
     ]);
     expect([...registry.order]).toEqual(["a", "b"]);
   });
@@ -163,6 +164,7 @@ describe("реестр", () => {
       defineModule({
         id: "bad",
         version: 1,
+        kind: "core",
         content: { strings: { ru: { "a.b": "текст" }, en: {} } },
       }),
     ]);
@@ -174,6 +176,7 @@ describe("реестр", () => {
       defineModule({
         id: "one",
         version: 1,
+        kind: "core",
         content: { strings: { ru: {}, en: {} } },
         rules: {
           modifiers: [{ id: "m", phase: "strike", priority: 5, apply: () => ({}) }],
@@ -182,6 +185,7 @@ describe("реестр", () => {
       defineModule({
         id: "two",
         version: 1,
+        kind: "core",
         content: { strings: { ru: {}, en: {} } },
         rules: {
           modifiers: [{ id: "m", phase: "strike", priority: 5, apply: () => ({}) }],
@@ -196,11 +200,12 @@ describe("реестр", () => {
       defineModule({
         id: "x",
         version: 1,
+        kind: "core",
         depends: ["nope"],
         content: { strings: { ru: {}, en: {} } },
         client: { slots: [{ slot: "court.view" as never, id: "x.view" }] },
       }),
-      defineModule({ id: "x", version: 1, content: { strings: { ru: {}, en: {} } } }),
+      defineModule({ id: "x", version: 1, kind: "core", content: { strings: { ru: {}, en: {} } } }),
     ]);
     expect(problems.some((problem) => problem.includes("id занят"))).toBe(true);
     expect(problems.some((problem) => problem.includes("nope"))).toBe(true);
@@ -208,8 +213,8 @@ describe("реестр", () => {
 
   it("видит цикл в зависимостях", () => {
     const problems = registryProblems([
-      defineModule({ id: "a", version: 1, depends: ["b"], content: { strings: { ru: {}, en: {} } } }),
-      defineModule({ id: "b", version: 1, depends: ["a"], content: { strings: { ru: {}, en: {} } } }),
+      defineModule({ id: "a", version: 1, kind: "core", depends: ["b"], content: { strings: { ru: {}, en: {} } } }),
+      defineModule({ id: "b", version: 1, kind: "core", depends: ["a"], content: { strings: { ru: {}, en: {} } } }),
     ]);
     expect(problems.some((problem) => problem.includes("цикл"))).toBe(true);
   });

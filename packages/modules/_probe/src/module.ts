@@ -38,6 +38,7 @@ const tickDeadlineId = (holderId: string): string => `probe.tick:${holderId}`;
 const probe = defineModule({
   id: "_probe",
   version: 1,
+  kind: "core",
   content: { strings },
   rules: {
     resources: [{ id: "probe_dust", storage: "warehouse" }],

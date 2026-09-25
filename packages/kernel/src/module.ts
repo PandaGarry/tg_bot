@@ -4,12 +4,14 @@
  */
 
 import type { EffectList } from "./effects.js";
+import type { UnitDecl, UnitId } from "./units.js";
 import type { ModulationDetails, ModifierDecl, ModifierInput } from "./modulate.js";
 import type {
   ActorFacts,
   JsonObject,
   JsonValue,
   ModuleId,
+  ModuleKind,
   ModuleState,
   Phase as PhaseType,
   ResourceId,
@@ -97,6 +99,8 @@ export interface DeadlineContext extends HandlerBase {
 export interface CommandDecl<Input = JsonObject> {
   /** Полный id команды: «модуль.действие». */
   id: string;
+  /** Единица, которой принадлежит команда. Выключенная единица отказывает. */
+  unit?: UnitId;
   input: Validator<Input>;
   handle(ctx: CommandContext, input: Input): EffectList | Promise<EffectList>;
 }
@@ -154,7 +158,11 @@ export interface ModuleClient {
 export interface ModuleDefinition {
   id: ModuleId;
   version: number;
+  /** Вид модуля: основная механика, временное событие или порá года. */
+  kind: ModuleKind;
   depends?: readonly ModuleId[];
+  /** Единицы: то, что гасят точечно. Механики, события, поры года, вид, дорожка. */
+  units?: readonly UnitDecl[];
   /** Состояние на новый мир. Сезонное событие ставится выключенным. */
   defaultState?: ModuleState;
   content?: {

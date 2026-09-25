@@ -145,8 +145,89 @@ describe("порт мира", () => {
     // Состояния видны и в здоровье мира.
     const health = (await (await fetch(`http://127.0.0.1:${booted.port}/api/health`)).json()) as {
       modules: { id: string; state: string }[];
+      stats: { unitsEnabled: number };
     };
-    expect(health.modules.map((item) => item.id).sort()).toEqual(["_kit", "_probe"]);
+    const ids = health.modules.map((item) => item.id);
+    expect(ids).toEqual(expect.arrayContaining(["_kit", "_probe"]));
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const item of health.modules) expect(["enabled", "disabled"]).toContain(item.state);
+    expect(
+      health.modules.map((item) => `${item.id}:${item.state}`).sort(),
+    ).toEqual(before.modules.map((item) => `${item.id}:${item.state}`).sort());
+    expect(health.stats.unitsEnabled).toBeGreaterThan(0);
+  });
+
+  it("точечный переключатель единицы: отказ без токена, срок и причина в ответе", async () => {
+    const base = `http://127.0.0.1:${booted.port}/api/modules`;
+    const token = { "x-admin-token": "operator-token-0123456789" };
+
+    expect((await fetch(base, { method: "POST", body: "{}" })).status).toBe(403);
+
+    // Команда краёв привязана к единице _kit.gadget.
+    const listed = (await (await fetch(base, { headers: token })).json()) as {
+      units: { key: string; state: string; reason: string }[];
+    };
+    const gadget = listed.units.find((unit) => unit.key === "_kit.gadget");
+    expect(gadget?.state).toBe("enabled");
+    expect(gadget?.reason).toBe("core");
+
+    const until = Date.now() + 3_600_000;
+    const off = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "_kit", unitId: "gadget", state: "disabled", until, reason: "сломался" }),
+    });
+    expect(off.status).toBe(200);
+    const offBody = (await off.json()) as { units: { key: string; state: string; reason: string; until?: number }[] };
+    const closed = offBody.units.find((unit) => unit.key === "_kit.gadget");
+    expect(closed?.state).toBe("disabled");
+    expect(closed?.reason).toBe("quarantine");
+    expect(closed?.until).toBe(until);
+    expect(booted.records.some((record) => record.event === "admin.unit.disabled")).toBe(true);
+
+    // Урока без причины нет: единицы с таким именем в модуле не существует.
+    const wrong = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "_kit", unitId: "нет-такой", state: "disabled" }),
+    });
+    expect(wrong.status).toBe(404);
+
+    // Запрет снимается: единица снова в строю.
+    const on = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "_kit", unitId: "gadget", state: "enabled" }),
+    });
+    expect(on.status).toBe(200);
+    const onBody = (await on.json()) as { units: { key: string; state: string }[] };
+    expect(onBody.units.find((unit) => unit.key === "_kit.gadget")?.state).toBe("enabled");
+  });
+
+  it("расписание мира открыто и покрывает запрошенные дни", async () => {
+    const response = await fetch(`http://127.0.0.1:${booted.port}/api/schedule?days=14`);
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      from: number;
+      to: number;
+      days: number;
+      windows: { key: string; moduleId: string; unitId: string; start: number; stop: number }[];
+      units: { key: string; state: string; reason: string }[];
+    };
+    expect(body.days).toBe(14);
+    expect(body.windows.length).toBeGreaterThan(0);
+    const horizon = body.from + body.days * 86_400_000;
+    for (const window of body.windows) {
+      expect(window.stop).toBeGreaterThan(window.start);
+      expect(window.start).toBeLessThan(horizon);
+      expect(window.key).toBe(`${window.unitId}:${window.start}`);
+    }
+    // Поры года видны и в расписании: ровно одна включена в любой миг.
+    expect(body.units.filter((unit) => unit.state === "enabled").length).toBeGreaterThan(0);
+
+    // Мусорный параметр не роняет ручку: берётся разумный срок.
+    const fallback = (await (await fetch(`http://127.0.0.1:${booted.port}/api/schedule?days=абв`)).json()) as { days: number };
+    expect(fallback.days).toBe(30);
   });
 
   it("выход из папки сборки закрыт", async () => {

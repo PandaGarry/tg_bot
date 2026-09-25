@@ -30,6 +30,7 @@ export const LIMITS = {
 /** Ключи отказов ядра. Ключи модулей живут в словарях модулей. */
 export const KERNEL_KEYS = {
   disabled: "kernel.module.disabled",
+  betweenWindows: "kernel.unit.between-windows",
   stale: "kernel.command.stale",
   unknown: "kernel.command.unknown",
   badInput: "kernel.command.bad-input",

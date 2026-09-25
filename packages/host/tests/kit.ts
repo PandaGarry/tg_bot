@@ -36,7 +36,10 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
   return defineModule({
     id: overrides.id ?? "_kit",
     version: 1,
+    kind: "core",
     content: { strings },
+    // Единица краёв: команда за ней закрывается точечным переключателем.
+    units: [{ id: "gadget", role: "mechanic", titleKey: "kit.note" }],
     rules: { resources: [{ id: "kit_dust", storage: "warehouse" }] },
     server: {
       tables: ["kit_state"],
@@ -113,6 +116,15 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
           input: zReport,
           handle: (_, input) => [
             { kind: "report", id: input.id, reportKind: input.kind, rows: [{ key: input.rowKey ?? "kit.note" }] },
+          ],
+        }),
+        // Команда принадлежит единице: выключенная единица её не пускает.
+        defineCommand({
+          id: "_kit.gadget",
+          unit: "gadget",
+          input: zNone,
+          handle: () => [
+            { kind: "patch", route: { kind: "actor" }, ops: [{ op: "set", path: "modules._kit.gadget", value: 1 }] },
           ],
         }),
         defineCommand({
@@ -261,6 +273,7 @@ export function badReadModule(): ModuleDefinition {
   return defineModule({
     id: "_badread",
     version: 1,
+    kind: "core",
     content: { strings },
     server: {
       tables: ["read_state"],
@@ -294,6 +307,7 @@ export function otherKitModule(): ModuleDefinition {
   return defineModule({
     id: "_other",
     version: 1,
+    kind: "core",
     content: { strings },
     server: {
       commands: [

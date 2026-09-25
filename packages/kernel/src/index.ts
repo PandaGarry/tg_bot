@@ -5,3 +5,6 @@ export * from "./modulate.js";
 export * from "./time.js";
 export * from "./module.js";
 export * from "./registry.js";
+export * from "./units.js";
+export * from "./schedule.js";
+export * from "./switches.js";

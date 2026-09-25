@@ -25,8 +25,16 @@ import {
   type ResourceDecl,
   type ResourceId,
   type Effect,
+  type Override,
+  type PlannedWindow,
   type StockSnapshot,
   type TileRef,
+  type UnitState,
+  moduleIsOn,
+  planHorizon,
+  planIsFresh,
+  planWindows,
+  unitStates,
 } from "@tdl/kernel";
 import { KERNEL_KEYS } from "@tdl/protocol";
 import type { PoolClient } from "pg";
@@ -51,6 +59,15 @@ export interface ViewSink {
   error(actorId: string, key: string, params?: Record<string, string | number>): void;
   report(actorId: string, kind: string, rows: ReportRow[], serverNow: number): void;
 }
+
+/** На сколько дней вперёд считается план окон сборки. */
+export const PLAN_HORIZON_DAYS = 120;
+/** За сколько до конца плана его пересчитывают, чтобы окна не пропали. */
+export const PLAN_REFRESH_MARGIN_MS = 7 * 86_400_000;
+/** Как часто писатель снимает просроченные запреты. */
+export const SWEEP_EVERY_MS = 5_000;
+/** Через сколько миллисекунд состояния единиц считаются устаревшими. */
+export const SWITCHES_FRESH_MS = 1_000;
 
 /** Сколько команд может ждать прохода. Дальше очередь не растёт: отказ сразу. */
 export const QUEUE_LIMIT = 5_000;
@@ -137,6 +154,18 @@ export class WorldService {
   private readonly queueWaitMs: number;
 
   private readonly moduleStates = new Map<ModuleId, ModuleState>();
+  /** Операторские запреты по модулям: срок и причина. */
+  private readonly moduleOverrides = new Map<ModuleId, Override>();
+  /** Операторские переключатели единиц: ключ «модуль.единица». */
+  private readonly unitOverrides = new Map<string, Override>();
+  /** План окон расписания и миг, на который он посчитан. */
+  private planWindows: PlannedWindow[] = [];
+  /** Состояния единиц на миг: пересчитываются, когда план устарел или время ушло. */
+  private switchStates: UnitState[] = [];
+  /** До какого мига посчитанные состояния единиц ещё верны. */
+  private switchesValidUntilMs = 0;
+  /** Когда в прошлый раз снимали просроченные запреты: не чаще раза в 5 с. */
+  private sweepAtMs = 0;
   private readonly queue: QueuedCommand[] = [];
   private readonly factsCache = new Map<string, PreparedFacts>();
   private readonly snapshots = new Map<string, JsonValue>();
@@ -261,6 +290,8 @@ export class WorldService {
     lastDeadlineMs: number;
     deadlineLag: { last: number; max: number; avg: number };
     modulesEnabled: number;
+    unitsEnabled: number;
+    planHorizonMs: number;
   } {
     return {
       epoch: this.epoch,
@@ -280,6 +311,8 @@ export class WorldService {
         avg: this.deadlinesDone === 0 ? 0 : Math.round(this.deadlineLagSumMs / this.deadlinesDone),
       },
       modulesEnabled: [...this.moduleStates.values()].filter((state) => state === "enabled").length,
+      unitsEnabled: this.switches().filter((unit) => unit.state === "enabled").length,
+      planHorizonMs: planHorizon(this.planWindows),
     };
   }
 
@@ -317,37 +350,257 @@ export class WorldService {
    * кэш писателя и база меняются вместе, иначе модуль остался бы включённым
    * в памяти до следующего подъёма.
    */
-  async setModuleState(moduleId: ModuleId, state: ModuleState): Promise<void> {
+  async setModuleState(
+    moduleId: ModuleId,
+    state: ModuleState,
+    options: { until?: number; reason?: string } = {},
+  ): Promise<void> {
     if (!this.byId.has(moduleId)) throw new Error(`модуль ${moduleId} не в сборке`);
     const value = state === "disabled" ? "disabled" : "enabled";
+    const until = options.until && options.until > 0 ? Math.round(options.until) : 0;
+    // Вернули модуль в строй без причины и срока — запись остаётся, но пустой:
+    // состояние модуля живёт в той же строке, поэтому здесь только чистим срок и причину.
     await this.tx(async ({ client }) => {
       await client.query(
-        `INSERT INTO module_states (world_id, module_id, state, version)
-         VALUES ($1, $2, $3, 0)
-         ON CONFLICT (world_id, module_id) DO UPDATE SET state = EXCLUDED.state`,
-        [this.worldId, moduleId, value],
+        `INSERT INTO module_states (world_id, module_id, state, version, until_ms, reason)
+         VALUES ($1, $2, $3, 0, $4, $5)
+         ON CONFLICT (world_id, module_id)
+         DO UPDATE SET state = EXCLUDED.state, until_ms = EXCLUDED.until_ms, reason = EXCLUDED.reason`,
+        [this.worldId, moduleId, value, until, options.reason ?? null],
       );
     });
     this.moduleStates.set(moduleId, value);
+    if (until > 0 || options.reason) {
+      this.moduleOverrides.set(moduleId, {
+        state: value,
+        ...(until > 0 ? { until } : {}),
+        ...(options.reason ? { reason: options.reason } : {}),
+      });
+    } else {
+      this.moduleOverrides.delete(moduleId);
+    }
+    this.switchesValidUntilMs = 0;
     this.clearCaches();
-    this.journal.write({ channel: "app", worldId: this.worldId, event: `module.${value}`, detail: moduleId });
+    this.journal.write({
+      channel: "app",
+      worldId: this.worldId,
+      event: `module.${value}`,
+      detail: { moduleId, ...(until > 0 ? { until } : {}), ...(options.reason ? { reason: options.reason } : {}) },
+    });
+  }
+
+  /**
+   * Действующее состояние модуля: истекающий запрет считается уже снятым,
+   * иначе «выключил на час» держалось бы до перезапуска мира.
+   */
+  private moduleIsEnabled(moduleId: ModuleId): boolean {
+    const override = this.moduleOverrides.get(moduleId);
+    if (override) return moduleIsOn(override, this.now());
+    return this.moduleStates.get(moduleId) !== "disabled";
   }
 
   /** Состояния модулей мира: смотр админа, панель и тесты. */
-  statesOfModules(): { id: string; state: ModuleState }[] {
+  statesOfModules(): { id: string; state: ModuleState; until?: number; reason?: string }[] {
+    const now = this.now();
     return this.order
       .filter((id) => this.byId.has(id))
-      .map((id) => ({ id, state: this.moduleStates.get(id) === "disabled" ? "disabled" : "enabled" }));
+      .map((id) => {
+        const override = this.moduleOverrides.get(id);
+        const enabled = this.moduleIsEnabled(id);
+        const inForce = override !== undefined && moduleIsOn(override, now) === false;
+        return {
+          id,
+          state: enabled ? "enabled" : "disabled",
+          ...(inForce && override?.until ? { until: override.until } : {}),
+          ...(inForce && override?.reason ? { reason: override.reason } : {}),
+        };
+      });
+  }
+
+  /**
+   * План окон расписания. Считается от якоря ядра, поэтому один и тот же день
+   * всегда даёт один и тот же план; пересчитывается заранее, а не по концу.
+   */
+  schedulePlan(): readonly PlannedWindow[] {
+    const now = this.now();
+    if (this.planWindows.length === 0 || !planIsFresh(this.planWindows, now, PLAN_REFRESH_MARGIN_MS)) {
+      const plan = planWindows({
+        modules: [...this.byId.values()],
+        from: now,
+        to: now + PLAN_HORIZON_DAYS * 86_400_000,
+        tzOffsetMin: this.tzOffsetMin(),
+        seed: Number(this.world.seed),
+      });
+      this.planWindows = plan.windows;
+      // Состояния пересчитываются вместе с планом: окна могли сдвинуться.
+      this.switchesValidUntilMs = 0;
+    }
+    return this.planWindows;
+  }
+
+  /** Часовой сдвиг мира: у мира свои часы, расписание идёт по ним. */
+  private tzOffsetMin(): number {
+    return Number(process.env.TDL_TZ_OFFSET_MIN ?? 180);
+  }
+
+  /**
+   * Что включено сейчас. Единицы с расписанием включаются и гаснут сами,
+   * классика живёт до воли оператора, точечный запрет сильнее всего.
+   */
+  switches(): readonly UnitState[] {
+    const windows = this.schedulePlan();
+    const now = this.now();
+    // Кэш живёт до ближайшего события: конца окна, срока запрета или срока свежести.
+    if (this.switchStates.length > 0 && now < this.switchesValidUntilMs) return this.switchStates;
+    const modules = this.moduleOverrideMap();
+    this.switchStates = unitStates({ definitions: [...this.byId.values()], windows, modules, units: this.unitOverrides, now });
+    this.switchesValidUntilMs = now + SWITCHES_FRESH_MS;
+    for (const override of [...modules.values(), ...this.unitOverrides.values()]) {
+      if (override.until && override.until > now) {
+        this.switchesValidUntilMs = Math.min(this.switchesValidUntilMs, override.until);
+      }
+    }
+    for (const window of windows) {
+      // Ближайший край окна меняет состояние: раньше него кэш держится.
+      if (window.start > now) this.switchesValidUntilMs = Math.min(this.switchesValidUntilMs, window.start);
+      if (window.stop > now) this.switchesValidUntilMs = Math.min(this.switchesValidUntilMs, window.stop);
+    }
+    return this.switchStates;
+  }
+
+  private moduleOverrideMap(): Map<ModuleId, Override> {
+    const map = new Map<ModuleId, Override>();
+    const now = this.now();
+    for (const id of this.order) {
+      if (!this.byId.has(id)) continue;
+      // Истёкший запрет не отдаём: ядро переключателей и так считает его снятым,
+      // а панель не должна показывать «выключен» у работающего модуля.
+      const stored = this.moduleOverrides.get(id);
+      if (stored && stored.until !== undefined && stored.until <= now) continue;
+      const state = this.moduleStates.get(id) === "disabled" ? "disabled" : "enabled";
+      const override = this.moduleOverrides.get(id);
+      const fromDeclaration =
+        !this.moduleOverrides.has(id) && state === "disabled" && this.byId.get(id)?.defaultState === "disabled";
+      map.set(id, {
+        state,
+        ...(override?.until ? { until: override.until } : {}),
+        ...(override?.reason ? { reason: override.reason } : {}),
+        ...(fromDeclaration ? { fromDeclaration: true } : {}),
+      });
+    }
+    return map;
+  }
+
+  /** Состояние единицы на этот миг: null — единицы нет в сборке. */
+  unitStateOf(key: string): UnitState | null {
+    return this.switches().find((unit) => unit.key === key) ?? null;
+  }
+
+  /** Состояние единиц модуля: панель оператора и проверки. */
+  statesOfUnits(moduleId?: ModuleId): UnitState[] {
+    const list = [...this.switches()];
+    return moduleId ? list.filter((unit) => unit.moduleId === moduleId) : list;
+  }
+
+  /**
+   * Точечный переключатель единицы. Срок и причина — необязательны:
+   * без срока запрет держится, пока его не снимут.
+   */
+  async setUnitState(
+    moduleId: ModuleId,
+    unitId: string,
+    state: ModuleState,
+    options: { until?: number; reason?: string } = {},
+  ): Promise<void> {
+    const def = this.byId.get(moduleId);
+    if (!def) throw new Error(`модуль ${moduleId} не в сборке`);
+    if (!(def.units ?? []).some((unit) => unit.id === unitId)) {
+      throw new Error(`единицы ${unitId} нет в модуле ${moduleId}`);
+    }
+    const value = state === "disabled" ? "disabled" : "enabled";
+    const until = options.until && options.until > 0 ? Math.round(options.until) : 0;
+    // «Включено без срока и причины» — это не запрет, а пустая запись: её не храним,
+    // иначе таблица копила бы следы каждого касания оператора.
+    const noop = value === "enabled" && until === 0 && !options.reason;
+    await this.tx(async ({ client }) => {
+      if (noop) {
+        await client.query(`DELETE FROM unit_states WHERE world_id = $1 AND module_id = $2 AND unit_id = $3`, [
+          this.worldId,
+          moduleId,
+          unitId,
+        ]);
+        return;
+      }
+      await client.query(
+        `INSERT INTO unit_states (world_id, module_id, unit_id, state, version, until_ms, reason)
+         VALUES ($1, $2, $3, $4, 0, $5, $6)
+         ON CONFLICT (world_id, module_id, unit_id)
+         DO UPDATE SET state = EXCLUDED.state, until_ms = EXCLUDED.until_ms, reason = EXCLUDED.reason`,
+        [this.worldId, moduleId, unitId, value, until, options.reason ?? null],
+      );
+    });
+    const key = `${moduleId}.${unitId}`;
+    if (until === 0 && !options.reason && value === "enabled") {
+      // Снятый запрет не оставляет следа: дальше решает расписание.
+      this.unitOverrides.delete(key);
+    } else {
+      this.unitOverrides.set(key, { state: value, ...(until > 0 ? { until } : {}), ...(options.reason ? { reason: options.reason } : {}) });
+    }
+    this.switchesValidUntilMs = 0;
+    this.clearCaches();
+    this.journal.write({
+      channel: "app",
+      worldId: this.worldId,
+      moduleId,
+      event: `unit.${value}`,
+      detail: { key, ...(until > 0 ? { until } : {}), ...(options.reason ? { reason: options.reason } : {}) },
+    });
   }
 
   private async reloadModuleStates(): Promise<void> {
     this.moduleStates.clear();
-    const rows = await this.db.pool.query<{ module_id: string; state: string }>(
-      `SELECT module_id, state FROM module_states WHERE world_id = $1`,
-      [this.worldId],
-    );
+    this.moduleOverrides.clear();
+    const rows = await this.db.pool.query<{
+      module_id: string;
+      state: string;
+      until_ms: string | number | null;
+      reason: string | null;
+    }>(`SELECT module_id, state, until_ms, reason FROM module_states WHERE world_id = $1`, [this.worldId]);
     for (const row of rows.rows) {
-      this.moduleStates.set(row.module_id, row.state === "disabled" ? "disabled" : "enabled");
+      const state = row.state === "disabled" ? "disabled" : "enabled";
+      this.moduleStates.set(row.module_id, state);
+      const until = Number(row.until_ms ?? 0);
+      if (until > 0 || row.reason) {
+        this.moduleOverrides.set(row.module_id, {
+          state,
+          ...(until > 0 ? { until } : {}),
+          ...(row.reason ? { reason: row.reason } : {}),
+        });
+      }
+    }
+    await this.reloadUnitStates();
+  }
+
+  /** Точечные переключатели единиц: записи есть только там, где вмешался оператор. */
+  private async reloadUnitStates(): Promise<void> {
+    this.unitOverrides.clear();
+    const rows = await this.db.pool.query<{
+      module_id: string;
+      unit_id: string;
+      state: string;
+      until_ms: string | number | null;
+      reason: string | null;
+    }>(`SELECT module_id, unit_id, state, until_ms, reason FROM unit_states WHERE world_id = $1`, [this.worldId]);
+    for (const row of rows.rows) {
+      const until = Number(row.until_ms ?? 0);
+      const override: Override = {
+        state: row.state === "disabled" ? "disabled" : "enabled",
+        ...(until > 0 ? { until } : {}),
+        ...(row.reason ? { reason: row.reason } : {}),
+      };
+      // Просроченные записи не выбрасываем: ядро переключателей само считает их снятыми,
+      // так что мир ведёт себя одинаково и до перезапуска, и после.
+      this.unitOverrides.set(`${row.module_id}.${row.unit_id}`, override);
     }
   }
 
@@ -356,7 +609,7 @@ export class WorldService {
     for (const id of this.order) {
       const def = this.byId.get(id);
       if (!def) continue;
-      if (this.moduleStates.get(id) === "disabled") continue;
+      if (!this.moduleIsEnabled(id)) continue;
       list.push(def);
     }
     return list;
@@ -780,10 +1033,62 @@ export class WorldService {
     await this.pump();
   }
 
+  /**
+   * Снятие просроченных запретов: и модуль, и единица возвращаются сами.
+   * Записи не копятся и в базе не врут: «выключил и забыл» невозможно.
+   */
+  private async sweepExpiredOverrides(): Promise<number> {
+    const now = this.now();
+    if (now - this.sweepAtMs < SWEEP_EVERY_MS) return 0;
+    this.sweepAtMs = now;
+    let restored = 0;
+    const expiredModules: ModuleId[] = [];
+    for (const [id, override] of this.moduleOverrides) {
+      if (override.until !== undefined && override.until <= now) expiredModules.push(id);
+    }
+    const expiredUnits: string[] = [];
+    for (const [key, override] of this.unitOverrides) {
+      if (override.until !== undefined && override.until <= now) expiredUnits.push(key);
+    }
+    if (expiredModules.length === 0 && expiredUnits.length === 0) return 0;
+    await this.tx(async ({ client }) => {
+      for (const id of expiredModules) {
+        await client.query(
+          `UPDATE module_states SET state = 'enabled', until_ms = 0, reason = NULL
+           WHERE world_id = $1 AND module_id = $2`,
+          [this.worldId, id],
+        );
+      }
+      for (const key of expiredUnits) {
+        const dot = key.indexOf(".");
+        await client.query(`DELETE FROM unit_states WHERE world_id = $1 AND module_id = $2 AND unit_id = $3`, [
+          this.worldId,
+          key.slice(0, dot),
+          key.slice(dot + 1),
+        ]);
+      }
+    });
+    for (const id of expiredModules) {
+      this.moduleOverrides.delete(id);
+      this.moduleStates.set(id, "enabled");
+      restored += 1;
+      this.journal.write({ channel: "app", worldId: this.worldId, moduleId: id, event: "module.service.restored" });
+    }
+    for (const key of expiredUnits) {
+      this.unitOverrides.delete(key);
+      restored += 1;
+      this.journal.write({ channel: "app", worldId: this.worldId, event: "unit.restored", detail: key });
+    }
+    if (restored > 0) this.switchesValidUntilMs = 0;
+    return restored;
+  }
+
   private async pump(): Promise<void> {
     if (this.stopped || this.pumping || Date.now() < this.quietUntilMs) return;
     this.pumping = true;
     this.clearCaches();
+    // Просроченные запреты снимаются до работы шага: мир возвращается сам.
+    await this.sweepExpiredOverrides();
     const startedAt = performance.now();
     try {
       const stepEndsAt = startedAt + this.stepBudgetMs;
@@ -1038,8 +1343,37 @@ export class WorldService {
       });
       return { status: "error", key: KERNEL_KEYS.unknown };
     }
-    if (this.moduleStates.get(moduleId) === "disabled") {
+    if (!this.moduleIsEnabled(moduleId)) {
       return { status: "error", key: KERNEL_KEYS.disabled };
+    }
+    // Команда принадлежит единице: точечный переключатель закрывает её сам.
+    if (decl.unit) {
+      const unit = this.unitStateOf(`${moduleId}.${decl.unit}`);
+      if (!unit) {
+        this.journal.write({
+          channel: "security",
+          worldId: this.worldId,
+          actorId: queued.actor.id,
+          moduleId,
+          requestId: queued.requestId,
+          event: "command.unknown",
+          detail: { commandId: queued.commandId, unit: decl.unit },
+        });
+        return { status: "error", key: KERNEL_KEYS.unknown };
+      }
+      if (unit.state === "disabled") {
+        const key = unit.reason === "between-windows" ? KERNEL_KEYS.betweenWindows : KERNEL_KEYS.disabled;
+        this.journal.write({
+          channel: "security",
+          worldId: this.worldId,
+          actorId: queued.actor.id,
+          moduleId,
+          requestId: queued.requestId,
+          event: "command.unit.closed",
+          detail: { commandId: queued.commandId, unit: unit.key, reason: unit.reason },
+        });
+        return { status: "error", key };
+      }
     }
     const parsed = this.parseInput(decl, queued.payload);
     if (!parsed.ok) {

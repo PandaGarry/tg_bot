@@ -14,7 +14,16 @@
   },
   "dependencies": {
     "@tdl/kernel": "workspace:*",
+    "@tdl/module-day-window": "workspace:*",
+    "@tdl/module-holiday": "workspace:*",
+    "@tdl/module-hour-window": "workspace:*",
+    "@tdl/module-month-window": "workspace:*",
     "@tdl/module-probe": "workspace:*",
+    "@tdl/module-season-autumn": "workspace:*",
+    "@tdl/module-season-spring": "workspace:*",
+    "@tdl/module-season-summer": "workspace:*",
+    "@tdl/module-season-winter": "workspace:*",
+    "@tdl/module-week-window": "workspace:*",
     "@tdl/protocol": "workspace:*"
   },
   "devDependencies": {

@@ -149,6 +149,10 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       await handleModules(req, res, url);
       return;
     }
+    if (url.pathname === "/api/schedule") {
+      await handleSchedule(req, res, url);
+      return;
+    }
     for (const middleware of middlewares) {
       if (await middleware(req, res)) return;
     }
@@ -189,7 +193,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     }
     if (req.method === "GET") {
       res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify({ ok: true, modules: service.statesOfModules() }));
+      res.end(JSON.stringify({ ok: true, modules: service.statesOfModules(), units: service.statesOfUnits() }));
       return;
     }
     if (req.method !== "POST") {
@@ -210,16 +214,84 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       res.end(JSON.stringify({ ok: false, error: "такого модуля нет в сборке мира" }));
       return;
     }
-    await service.setModuleState(id, state);
+    // Срок и причина — необязательны: карантин вместо глухого запрета.
+    const untilRaw = body?.until;
+    const until =
+      typeof untilRaw === "number" && Number.isFinite(untilRaw) && untilRaw > 0
+        ? untilRaw
+        : typeof untilRaw === "string" && Number.isFinite(Date.parse(untilRaw))
+          ? Date.parse(untilRaw)
+          : 0;
+    const reason = typeof body?.reason === "string" ? body.reason.slice(0, 200) : undefined;
+    const unitId = typeof body?.unitId === "string" ? body.unitId : "";
+    if (unitId.length > 0) {
+      const key = `${id}.${unitId}`;
+      if (!service.statesOfUnits(id).some((unit) => unit.key === key)) {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: "такой единицы нет в модуле" }));
+        return;
+      }
+      await service.setUnitState(id, unitId, state, { until, reason });
+      options.journal.write({
+        channel: "access",
+        worldId: options.worldId,
+        moduleId: id,
+        event: `admin.unit.${state}`,
+        detail: { key, until, ...(reason ? { reason } : {}), path: url.pathname },
+      });
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, modules: service.statesOfModules(), units: service.statesOfUnits() }));
+      return;
+    }
+    await service.setModuleState(id, state, { until, reason });
     options.journal.write({
       channel: "access",
       worldId: options.worldId,
       moduleId: id,
       event: `admin.module.${state}`,
-      detail: { path: url.pathname },
+      detail: { until, ...(reason ? { reason } : {}), path: url.pathname },
     });
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ok: true, modules: service.statesOfModules() }));
+    res.end(JSON.stringify({ ok: true, modules: service.statesOfModules(), units: service.statesOfUnits() }));
+  }
+
+  /**
+   * Расписание мира: идущие и будущие окна. Ручка открыта, потому что в ней нет
+   * ничего тайного: те же даты игрок видит в панели событий.
+   */
+  async function handleSchedule(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
+    const service = options.service();
+    if (!service) {
+      res.writeHead(503, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "мир ещё не открыт" }));
+      return;
+    }
+    const days = Math.min(Math.max(Number(url.searchParams.get("days") ?? 30) || 30, 1), 120);
+    const now = Date.now();
+    const horizon = now + days * 86_400_000;
+    const windows = service
+      .schedulePlan()
+      .filter((window) => window.stop > now && window.start < horizon)
+      .map((window) => ({
+        key: window.key,
+        moduleId: window.moduleId,
+        unitId: window.unitId,
+        lane: window.lane,
+        source: window.source,
+        start: window.start,
+        stop: window.stop,
+      }));
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(
+      JSON.stringify({
+        ok: true,
+        from: now,
+        to: horizon,
+        days,
+        windows,
+        units: service.statesOfUnits(),
+      }),
+    );
   }
 
   return {

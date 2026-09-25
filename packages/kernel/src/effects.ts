@@ -4,6 +4,7 @@
  */
 
 import type { JsonObject, JsonValue, JournalChannel, ModuleId, ResourceId, TileRef } from "./types.js";
+import type { UnitId } from "./units.js";
 
 /** Изменение склада. Ресурсы целые. */
 export interface StockEffect {
@@ -146,6 +147,8 @@ export interface RowsDeleteEffect {
 export interface DisableModuleEffect {
   kind: "disable";
   module: ModuleId;
+  /** Единица внутри модуля: гасим механику, а не всю систему. Пусто — модуль целиком. */
+  unit?: UnitId;
 }
 
 /** Отказ ключом. Ключ должен быть в словаре модуля. */

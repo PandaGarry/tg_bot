@@ -272,7 +272,7 @@ importers:
         version: 8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
       vitest:
         specifier: 5.0.1
-        version: 5.0.1(@types/node@22.18.12)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.0.1(@types/node@22.18.12)(jsdom@27.4.0)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/host:
     dependencies:
@@ -309,7 +309,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 5.0.1
-        version: 5.0.1(@types/node@22.18.12)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.0.1(@types/node@22.18.12)(jsdom@27.4.0)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/kernel:
     devDependencies:
@@ -318,16 +318,43 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 5.0.1
-        version: 5.0.1(@types/node@22.18.12)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.0.1(@types/node@22.18.12)(jsdom@27.4.0)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   packages/modules:
     dependencies:
       '@tdl/kernel':
         specifier: workspace:*
         version: link:../kernel
+      '@tdl/module-day-window':
+        specifier: workspace:*
+        version: link:day-window
+      '@tdl/module-holiday':
+        specifier: workspace:*
+        version: link:holiday
+      '@tdl/module-hour-window':
+        specifier: workspace:*
+        version: link:hour-window
+      '@tdl/module-month-window':
+        specifier: workspace:*
+        version: link:month-window
       '@tdl/module-probe':
         specifier: workspace:*
         version: link:_probe
+      '@tdl/module-season-autumn':
+        specifier: workspace:*
+        version: link:season-autumn
+      '@tdl/module-season-spring':
+        specifier: workspace:*
+        version: link:season-spring
+      '@tdl/module-season-summer':
+        specifier: workspace:*
+        version: link:season-summer
+      '@tdl/module-season-winter':
+        specifier: workspace:*
+        version: link:season-winter
+      '@tdl/module-week-window':
+        specifier: workspace:*
+        version: link:week-window
       '@tdl/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -358,6 +385,96 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/modules/day-window:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/holiday:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/hour-window:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/month-window:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/season-autumn:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/season-spring:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/season-summer:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/season-winter:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/modules/week-window:
+    dependencies:
+      '@tdl/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/protocol:
     dependencies:
       '@tdl/kernel':
@@ -378,7 +495,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 5.0.1
-        version: 5.0.1(@types/node@22.18.12)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 5.0.1(@types/node@22.18.12)(jsdom@27.4.0)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   tools:
     dependencies:
@@ -3312,27 +3429,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.18.12
       jsdom: 27.4.0
-    transitivePeerDependencies:
-      - msw
-
-  vitest@5.0.1(@types/node@22.18.12)(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)):
-    dependencies:
-      '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.1(vite@8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-      chai: 6.2.2
-      es-module-lexer: 2.3.2
-      expect-type: 1.4.0
-      magic-string: 1.4.2
-      obug: 2.2.1
-      picomatch: 4.0.7
-      std-env: 4.2.0
-      tinybench: 6.1.4
-      tinyexec: 1.3.0
-      tinyglobby: 0.2.17
-      vite: 8.3.1(@types/node@22.18.12)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 22.18.12
     transitivePeerDependencies:
       - msw
 

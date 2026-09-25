@@ -3,9 +3,10 @@
  * собирает реестр и падает, если контракт сломан.
  */
 
-import { PHASES, isModuleId, stringsProblems, type JsonObject, type ModuleId, type Phase, SHELL_SLOTS, type SlotId } from "./types.js";
+import { MODULE_KINDS, PHASES, isModuleId, stringsProblems, type JsonObject, type ModuleId, type Phase, SHELL_SLOTS, type SlotId } from "./types.js";
 import type { CommandDecl, ModuleDefinition } from "./module.js";
 import type { ModifierDecl } from "./modulate.js";
+import { LANES, unitProblems, type UnitId } from "./units.js";
 
 export class RegistryError extends Error {
   readonly problems: string[];
@@ -36,10 +37,39 @@ export function registryProblems(definitions: readonly ModuleDefinition[]): stri
   const problems: string[] = [];
   const ids = new Set<ModuleId>();
 
+  // Единицы: id уникален внутри модуля (полное имя — «модуль.единица»),
+  // вид модуля назван, полосы не спорят.
+  const laneOwners = new Map<string, ModuleId>();
+
   for (const def of definitions) {
     problems.push(...checkIdShape(def.id));
     if (ids.has(def.id)) problems.push(`${def.id}: id занят`);
     ids.add(def.id);
+    if (!(MODULE_KINDS as readonly string[]).includes(def.kind)) {
+      problems.push(`${def.id}: вид модуля не назван или не из списка core, timed, seasonal`);
+    }
+    const units = def.units ?? [];
+    if ((def.kind === "timed" || def.kind === "seasonal") && units.length === 0) {
+      problems.push(`${def.id}: у модуля вида ${def.kind} нет ни одной единицы`);
+    }
+    const seenUnits = new Set<UnitId>();
+    for (const unit of units) {
+      problems.push(...unitProblems(def.id, unit));
+      if (seenUnits.has(unit.id)) problems.push(`${def.id}: единица ${unit.id} объявлена дважды`);
+      seenUnits.add(unit.id);
+      if (unit.id === def.id) problems.push(`${def.id}: единица не может зваться как модуль`);
+    }
+    // Каждая полоса объявляется один раз: правила пробелов живут в одном месте.
+    // Исключение — полоса пор года: в ней четыре модуля, и правило у неё «ровно одна».
+    for (const unit of units) {
+      if (!unit.lane) continue;
+      const owner = laneOwners.get(unit.lane);
+      if (owner && owner !== def.id && !LANES[unit.lane].exactlyOne) {
+        problems.push(`${def.id}: полосу ${unit.lane} уже занял модуль ${owner}`);
+        continue;
+      }
+      if (!owner) laneOwners.set(unit.lane, def.id);
+    }
     if (!Number.isInteger(def.version) || def.version < 1) {
       problems.push(`${def.id}: версия начинается с 1 и только растёт`);
     }
@@ -67,13 +97,17 @@ export function registryProblems(definitions: readonly ModuleDefinition[]): stri
   };
   for (const def of definitions) visit(def, []);
 
-  // Команды: id уникален на всю сборку.
+  // Команды: id уникален на всю сборку, единица своя.
   const commandIds = new Map<string, ModuleId>();
   for (const def of definitions) {
+    const own = new Set((def.units ?? []).map((unit) => unit.id));
     for (const command of def.server?.commands ?? []) {
       const owner = commandIds.get(command.id);
       if (owner) problems.push(`${def.id}: команда ${command.id} уже объявлена модулем ${owner}`);
       else commandIds.set(command.id, def.id);
+      if (command.unit && !own.has(command.unit)) {
+        problems.push(`${def.id}: команда ${command.id} ссылается на чужую единицу ${command.unit}`);
+      }
       problems.push(...checkCommand(def.id, command));
     }
     for (const table of def.server?.tables ?? []) {

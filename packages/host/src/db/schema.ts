@@ -109,7 +109,10 @@ export const gathers = pgTable(
   ],
 );
 
-/** Состояние модуля на мир: enabled или disabled. */
+/**
+ * Состояние модуля на мир: enabled или disabled.
+ * `untilMs` и `reason` — операторский запрет со сроком (карантин).
+ */
 export const moduleStates = pgTable(
   "module_states",
   {
@@ -117,8 +120,28 @@ export const moduleStates = pgTable(
     moduleId: text("module_id").notNull(),
     state: text("state").notNull().default("enabled"),
     version: integer("version").notNull().default(0),
+    untilMs: bigint("until_ms", { mode: "number" }).notNull().default(0),
+    reason: text("reason"),
   },
   (table) => [primaryKey({ columns: [table.worldId, table.moduleId] })],
+);
+
+/**
+ * Состояние единицы внутри модуля: точечный переключатель.
+ * Записи есть только там, где вмешался оператор: без записи решает расписание.
+ */
+export const unitStates = pgTable(
+  "unit_states",
+  {
+    worldId: text("world_id").notNull(),
+    moduleId: text("module_id").notNull(),
+    unitId: text("unit_id").notNull(),
+    state: text("state").notNull().default("enabled"),
+    version: integer("version").notNull().default(0),
+    untilMs: bigint("until_ms", { mode: "number" }).notNull().default(0),
+    reason: text("reason"),
+  },
+  (table) => [primaryKey({ columns: [table.worldId, table.moduleId, table.unitId] })],
 );
 
 /** Повтор команды с тем же ключом не удваивает выдачу. */

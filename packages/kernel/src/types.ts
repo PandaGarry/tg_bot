@@ -12,6 +12,16 @@ export type Strings = Record<string, string>;
 /** Состояние модуля на мир. */
 export type ModuleState = "enabled" | "disabled";
 
+/**
+ * Вид модуля: решает, кто может его гасить.
+ * core — основная механика: только карантин и сервисное выключение с причиной;
+ * timed — временное событие: ядро по расписанию, оператор вручную;
+ * seasonal — порá года: ядро по расписанию, оператор вручную.
+ */
+export type ModuleKind = "core" | "timed" | "seasonal";
+
+export const MODULE_KINDS = ["core", "timed", "seasonal"] as const;
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 export type JsonObject = { [key: string]: JsonValue };
