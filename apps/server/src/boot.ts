@@ -93,6 +93,39 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     commandRate: config.commandRate,
     sendBufferBytes: options.sendBufferBytes,
   });
+
+  // Порт занимается до права писателя: процесс, которому негде слушать,
+  // не имеет права отобрать мир у живого соседа и замереть.
+  let current: WorldService | null = null;
+  const serveClient = options.serveClient ?? true;
+  const paths = clientPaths();
+  const http = await createHttpServer({
+    journal,
+    worldId: world.id,
+    service: () => current,
+    net: () => ({ connections: hub.connectionCount(), slowClients: hub.slowClientCount() }),
+    server: options.server,
+    clientDist: serveClient ? (options.clientDist ?? (config.isProduction ? paths.dist : undefined)) : undefined,
+    // Своя папка сборки важнее режима разработки: так проверяется статика.
+    devClientRoot: serveClient && !options.clientDist && !config.isProduction ? paths.devRoot : undefined,
+  });
+
+  let port = 0;
+  try {
+    port = await new Promise<number>((resolve, reject) => {
+      http.server.once("error", reject);
+      http.server.listen(config.PORT, config.HOST, () => {
+        const address = http.server.address();
+        resolve(typeof address === "object" && address ? address.port : config.PORT);
+      });
+    });
+  } catch (error) {
+    // Порт занят: освобождаем за собой и уходим, не трогая писателя.
+    await http.close();
+    await db.close();
+    throw error;
+  }
+
   const service = await WorldService.open({
     db,
     journal,
@@ -102,29 +135,11 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     processId,
     profileOf: (actorId) => lordProfile(gates, actorId),
   });
+  current = service;
   hub.setService(service);
-
-  const serveClient = options.serveClient ?? true;
-  const paths = clientPaths();
-  const http = await createHttpServer({
-    journal,
-    worldId: world.id,
-    service: () => service,
-    net: () => ({ connections: hub.connectionCount(), slowClients: hub.slowClientCount() }),
-    server: options.server,
-    clientDist: serveClient ? (options.clientDist ?? (config.isProduction ? paths.dist : undefined)) : undefined,
-    // Своя папка сборки важнее режима разработки: так проверяется статика.
-    devClientRoot: serveClient && !options.clientDist && !config.isProduction ? paths.devRoot : undefined,
-  });
+  // Приём команд открывается только после права писателя.
   hub.attach(http.server);
 
-  const port = await new Promise<number>((resolve, reject) => {
-    http.server.once("error", reject);
-    http.server.listen(config.PORT, config.HOST, () => {
-      const address = http.server.address();
-      resolve(typeof address === "object" && address ? address.port : config.PORT);
-    });
-  });
   journal.write({
     channel: "app",
     worldId: world.id,

@@ -19,10 +19,11 @@ afterEach(async () => {
   while (booted.length > 0) await booted.pop()?.stop("test");
 });
 
-function testConfig(worldId: string): HostConfig {
+/** Настройки мира как из окружения: тест подменяет отдельные ключи. */
+function envOf(worldId: string, overrides: Record<string, string> = {}): Record<string, string> {
   const url = readTestDbUrl("server");
   if (!url) throw new Error("адрес тестовой базы не найден: запустите тесты пакета");
-  return loadConfig({
+  return {
     DATABASE_URL: url,
     WORLD_ID: worldId,
     WORLD_NAME: "мир живучести",
@@ -33,7 +34,12 @@ function testConfig(worldId: string): HostConfig {
     PORT: "0",
     HOST: "127.0.0.1",
     NODE_ENV: "test",
-  });
+    ...overrides,
+  };
+}
+
+function testConfig(worldId: string): HostConfig {
+  return loadConfig(envOf(worldId));
 }
 
 async function boot(worldId: string, sendBufferBytes?: number): Promise<BootedServer> {
@@ -110,6 +116,31 @@ describe("второй процесс на том же мире", () => {
     expect(second.service.stats().failures).toBe(0);
     fresh.close();
     client.close();
+  });
+});
+
+describe("занятый порт", () => {
+  it("второй процесс на том же порту не забирает право писателя", async () => {
+    const worldId = `port-${randomUUID().slice(0, 8)}`;
+    const first = await boot(worldId);
+    const lord = await newLord(first, `lord_${randomUUID().slice(0, 8)}`, `Портовый ${randomUUID().slice(0, 4)}`);
+    const epoch = first.service.stats().epoch;
+
+    // Второй процесс того же мира метит на тот же порт.
+    const second = await bootServer({
+      config: loadConfig(envOf(worldId, { PORT: String(first.port) })),
+      serveClient: false,
+    }).catch((error: unknown) => error);
+    expect(second).toBeInstanceOf(Error);
+    expect(String(second)).toContain("EADDRINUSE");
+
+    // Мир остался у первого: право писателя не отобрано, команды идут.
+    expect(first.service.stats().epoch).toBe(epoch);
+    lord.send(commandMessage("_probe.poke", { steps: 1 }));
+    const patch = await lord.next<{ t: "patch" }>((message) => message.t === "patch");
+    expect(patch.t).toBe("patch");
+    expect(viewOf(lord).me?.name).toBeDefined();
+    lord.close();
   });
 });
 
