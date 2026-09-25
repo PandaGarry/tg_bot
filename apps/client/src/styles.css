@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* Экран целиком: двойное нажатие не увеличивает страницу, масштаб остаётся у карты. */
+@theme {
+  --color-bone: #d8d2c4;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  background: #0c0a09;
+  color: #d8d2c4;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  touch-action: manipulation;
+}
+
+/* Цель не меньше 44px по короткой стороне: правило оболочки. */
+button {
+  min-height: 44px;
+}
