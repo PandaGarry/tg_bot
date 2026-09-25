@@ -76,9 +76,23 @@ class Session {
   async start(): Promise<void> {
     const name = `Прогон ${this.index} ${Math.random().toString(36).slice(2, 6)}`;
     const login = `load_${this.index}_${Math.random().toString(36).slice(2, 8)}`;
+    // Почта и согласие обязательны с шага 2: без них ворота отвечают отказом,
+    // а прогон молча ждёт входа и висит. Держим поле в одном месте с протоколом.
+    const email = `${login}@load.test`;
     await new Promise<void>((resolve) => {
       this.socket.on("open", () => {
-        this.socket.send(JSON.stringify({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login, password: Session.password, lang: "ru" }));
+        this.socket.send(
+          JSON.stringify({
+            t: "auth.register",
+            protocolVersion: PROTOCOL_VERSION,
+            login,
+            password: Session.password,
+            email,
+            acceptRules: true,
+            acceptMail: false,
+            lang: "ru",
+          }),
+        );
       });
       this.socket.on("message", (raw) => {
         const message = JSON.parse(String(raw)) as Record<string, unknown>;
@@ -132,6 +146,8 @@ class Session {
       this.socket.on("close", () => {
         resolve();
       });
+      // Сторож: молчание ворот — это прогон без замера, а не ожидание.
+      setTimeout(() => resolve(), 10_000).unref?.();
     });
     if (!this.ready) throw new Error(`сессия ${this.index} не вошла в мир: ${this.failed ?? "нет ответа"}`);
   }
