@@ -6,7 +6,7 @@
 
 Документы игры: [docs/game/README.md](docs/game/README.md).
 
-Код ещё не начат. Порядок работ: [docs/game/06-plan.md](docs/game/06-plan.md).
+Идёт шаг 1 плана — ядро; отметки шагов ставит заказчик. Порядок работ: [docs/game/06-plan.md](docs/game/06-plan.md).
 
 ## Разработка
 
