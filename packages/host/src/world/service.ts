@@ -34,7 +34,13 @@ import {
   planHorizon,
   planIsFresh,
   planWindows,
+  quarantineInForce,
   unitStates,
+  windowsActiveAt,
+  windowsEndedBetween,
+  windowsStartedBetween,
+  type Quarantine,
+  type SkipNote,
 } from "@tdl/kernel";
 import { KERNEL_KEYS } from "@tdl/protocol";
 import type { PoolClient } from "pg";
@@ -49,7 +55,7 @@ import {
   type SimFact,
 } from "./effects.js";
 import { createModuleStore } from "./store.js";
-import { WorldClock } from "./clock.js";
+import { WorldClock, type Clock } from "./clock.js";
 import type { WorldRow } from "../db/schema.js";
 
 export interface ViewSink {
@@ -64,8 +70,18 @@ export interface ViewSink {
 export const PLAN_HORIZON_DAYS = 120;
 /** За сколько до конца плана его пересчитывают, чтобы окна не пропали. */
 export const PLAN_REFRESH_MARGIN_MS = 7 * 86_400_000;
-/** Как часто писатель снимает просроченные запреты. */
+/** Как часто писатель снимает просроченные запреты и карантины. */
 export const SWEEP_EVERY_MS = 5_000;
+/** Сколько сбоев подряд за окно приводит к карантину. */
+export const QUARANTINE_STRIKES = 3;
+/** Окно счёта сбоев: дальше счёт начинается заново. */
+export const STRIKE_WINDOW_MS = 60_000;
+/** Обработчик дольше этого — уже сбой: игрок ждёт, значит что-то не так. */
+export const SLOW_COMMAND_MS = 250;
+/** Лечение с отступом: 60 с, 5 мин, 30 мин. Дальше нужен оператор. */
+export const QUARANTINE_BACKOFF_MS = [60_000, 300_000, 1_800_000] as const;
+/** Час спокойной работы забывает прошлые волны лечения. */
+export const EPISODE_WINDOW_MS = 3_600_000;
 /** Через сколько миллисекунд состояния единиц считаются устаревшими. */
 export const SWITCHES_FRESH_MS = 1_000;
 
@@ -126,12 +142,28 @@ export interface ServiceOptions {
   world: WorldRow;
   sink: ViewSink;
   processId: string;
+  /** Часы сервера: в мире настоящие, в тестах подменяются. */
+  calendar?: Clock;
   /** Пакет сроков не держит цикл дольше 50 мс. */
   stepBudgetMs?: number;
   pulseIntervalMs?: number;
   /** Сколько команда может ждать прохода: дальше отказ «команда устарела». */
   queueWaitMs?: number;
   now?: () => number;
+  /** Отступы лечения: по умолчанию 60 с, 5 мин, 30 мин. */
+  quarantineBackoffMs?: readonly number[];
+  /** Порог «обработчик повис»: по умолчанию 250 мс. */
+  slowCommandMs?: number;
+  /** Сколько сбоев подряд приводит к карантину: по умолчанию три. */
+  quarantineStrikes?: number;
+  /** Окно счёта сбоев: по умолчанию минута. */
+  strikeWindowMs?: number;
+}
+
+/** След сбоя: сколько раз и когда. В памяти, в базу попадает только карантин. */
+interface StrikeRecord {
+  /** Моменты сбоев: считаем только те, что попали в окно. */
+  at: number[];
 }
 
 interface PreparedFacts {
@@ -166,11 +198,38 @@ export class WorldService {
   private switchesValidUntilMs = 0;
   /** Когда в прошлый раз снимали просроченные запреты: не чаще раза в 5 с. */
   private sweepAtMs = 0;
+  /** Здоровье единиц: сбои, карантин, нужда в операторе. */
+  private readonly health = new Map<string, Quarantine & { moduleId: ModuleId; unitId: string | null; atMs: number }>();
+  /** Следы сбоев в памяти: в базу попадает только состоявшийся карантин. */
+  private readonly strikes = new Map<string, StrikeRecord>();
+  /**
+   * Волны лечения: сколько раз единицу уже лечили. Память держится после возврата,
+   * иначе счёт начинался бы заново и замок «нужен оператор» не наступал бы никогда.
+   */
+  private readonly episodes = new Map<string, { count: number; at: number }>();
+  /** Сроки, о заморозке которых уже сказано в журнале. */
+  private readonly postponedNoted = new Set<string>();
+  /** Какие окна расписания были открыты на прошлом шаге: для журнала старт/стоп. */
+  private activeWindowKeys = new Set<string>();
+  /** Счётчики расписания: сколько окон догнали и сколько пропустили. */
+  private scheduleResumed = 0;
+  private scheduleContinued = 0;
+  private scheduleMissed = 0;
+  private quarantines = 0;
+  /** Пропуски полос из последнего плана: видны в /api/health. */
+  private planSkipped: SkipNote[] = [];
+  private readonly quarantineBackoffMs: readonly number[];
+  private readonly slowCommandMs: number;
+  private readonly quarantineStrikes: number;
+  private readonly strikeWindowMs: number;
   private readonly queue: QueuedCommand[] = [];
   private readonly factsCache = new Map<string, PreparedFacts>();
   private readonly snapshots = new Map<string, JsonValue>();
 
   private world: WorldRow;
+  /** Часы календаря: окна, сроки оператора, карантин. */
+  private readonly calendar: Clock;
+  /** Часы хода мира: сроки игроков. */
   private clockValue: WorldClock;
   private epoch = 0;
   private pumping = false;
@@ -210,8 +269,13 @@ export class WorldService {
     this.deadlineBudgetMs = Math.min(DEADLINE_BUDGET_MS, this.stepBudgetMs);
     this.pulseIntervalMs = options.pulseIntervalMs ?? 10_000;
     this.queueWaitMs = options.queueWaitMs ?? QUEUE_WAIT_MS;
+    this.quarantineBackoffMs = options.quarantineBackoffMs ?? QUARANTINE_BACKOFF_MS;
+    this.slowCommandMs = options.slowCommandMs ?? SLOW_COMMAND_MS;
+    this.quarantineStrikes = options.quarantineStrikes ?? QUARANTINE_STRIKES;
+    this.strikeWindowMs = options.strikeWindowMs ?? STRIKE_WINDOW_MS;
     this.world = options.world;
     this.worldId = options.world.id;
+    this.calendar = options.calendar ?? { now: () => Date.now() };
     this.clockValue = new WorldClock({ offsetMs: options.world.clockOffsetMs, lastWorldAtMs: options.now?.() ?? Date.now() });
   }
 
@@ -219,8 +283,17 @@ export class WorldService {
   static async open(options: ServiceOptions): Promise<WorldService> {
     const service = new WorldService(options);
     await service.reloadModuleStates();
+    await service.reloadHealth();
     await service.takeLease();
-    await service.applyDowntime();
+    const downtime = await service.applyDowntime();
+    // Простой: окна живут по календарю, поэтому промежуток простоя для них —
+    // реальное время. Начавшиеся окна догоняются по правилам полосы, кончившиеся
+    // уходят в журнал пропущенными. Сроки игроков при этом не сгорают: они идут
+    // по ходу мира, а он на простое стоял.
+    if (downtime > 0) {
+      const calendarNow = service.calendarNow();
+      await service.resumeSchedule(calendarNow - downtime, calendarNow);
+    }
     await service.drainDeadlines();
     return service;
   }
@@ -291,6 +364,13 @@ export class WorldService {
     deadlineLag: { last: number; max: number; avg: number };
     modulesEnabled: number;
     unitsEnabled: number;
+    unitsQuarantined: number;
+    unitsQuarantineLocked: number;
+    windowsActive: number;
+    windowsSkipped: number;
+    scheduleResumed: number;
+    scheduleContinued: number;
+    scheduleMissed: number;
     planHorizonMs: number;
   } {
     return {
@@ -312,6 +392,13 @@ export class WorldService {
       },
       modulesEnabled: [...this.moduleStates.values()].filter((state) => state === "enabled").length,
       unitsEnabled: this.switches().filter((unit) => unit.state === "enabled").length,
+      unitsQuarantined: this.quarantinesInForce().length,
+      unitsQuarantineLocked: this.quarantinesInForce().filter((item) => item.needsOperator).length,
+      windowsActive: windowsActiveAt(this.planWindows, this.calendarNow()).length,
+      windowsSkipped: this.planSkipped.length,
+      scheduleResumed: this.scheduleResumed,
+      scheduleContinued: this.scheduleContinued,
+      scheduleMissed: this.scheduleMissed,
       planHorizonMs: planHorizon(this.planWindows),
     };
   }
@@ -370,6 +457,7 @@ export class WorldService {
       );
     });
     this.moduleStates.set(moduleId, value);
+    if (value === "enabled") await this.clearQuarantineOf(moduleId, null);
     if (until > 0 || options.reason) {
       this.moduleOverrides.set(moduleId, {
         state: value,
@@ -395,13 +483,203 @@ export class WorldService {
    */
   private moduleIsEnabled(moduleId: ModuleId): boolean {
     const override = this.moduleOverrides.get(moduleId);
-    if (override) return moduleIsOn(override, this.now());
+    if (override) return moduleIsOn(override, this.calendarNow());
     return this.moduleStates.get(moduleId) !== "disabled";
+  }
+
+  // --- здоровье единиц и карантин ----------------------------------------
+
+  /** Ключ здоровья: единица «модуль.единица» или модуль целиком. */
+  private scopeKeyOf(moduleId: ModuleId, unitId?: string | null): string {
+    return unitId ? `${moduleId}.${unitId}` : moduleId;
+  }
+
+  /** Загрузка здоровья из базы: карантин переживает перезапуск мира. */
+  private async reloadHealth(): Promise<void> {
+    this.health.clear();
+    const rows = await this.db.pool.query<{
+      scope_key: string;
+      module_id: string;
+      unit_id: string | null;
+      failures: number;
+      until_ms: string | number;
+      needs_operator: boolean;
+      last_error: string | null;
+      updated_at_ms: string | number;
+    }>(`SELECT scope_key, module_id, unit_id, failures, until_ms, needs_operator, last_error, updated_at_ms FROM unit_health WHERE world_id = $1`, [
+      this.worldId,
+    ]);
+    for (const row of rows.rows) {
+      this.health.set(row.scope_key, {
+        moduleId: row.module_id,
+        unitId: row.unit_id,
+        failures: Number(row.failures),
+        until: Number(row.until_ms),
+        needsOperator: Boolean(row.needs_operator),
+        ...(row.last_error ? { lastError: row.last_error } : {}),
+        atMs: Number(row.updated_at_ms),
+      });
+    }
+  }
+
+  /** Живой карантин: срок не вышел или ждём оператора. */
+  quarantineFor(moduleId: ModuleId, unitId?: string | null): Quarantine | null {
+    const now = this.calendarNow();
+    const record = this.health.get(this.scopeKeyOf(moduleId, unitId));
+    if (!record || !quarantineInForce(record, now)) return null;
+    return record;
+  }
+
+  /** Все живые карантины: панель оператора и счётчики. */
+  quarantinesInForce(): { scope: string; failures: number; until: number; needsOperator: boolean; lastError?: string }[] {
+    const now = this.calendarNow();
+    return [...this.health.entries()]
+      .filter(([, record]) => quarantineInForce(record, now))
+      .map(([scope, record]) => ({
+        scope,
+        failures: record.failures,
+        until: record.until,
+        needsOperator: Boolean(record.needsOperator),
+        ...(record.lastError ? { lastError: record.lastError } : {}),
+      }));
+  }
+
+  /** Карта карантинов для ядра переключателей: ключ — единица или модуль. */
+  private quarantineMap(): Map<string, Quarantine> {
+    const map = new Map<string, Quarantine>();
+    const now = this.calendarNow();
+    for (const [scope, record] of this.health) {
+      if (!quarantineInForce(record, now)) continue;
+      map.set(scope, record);
+    }
+    return map;
+  }
+
+  /**
+   * Сбой единицы. Три удара подряд за окно или повисший обработчик —
+   * карантин: единица уходит с расчёта, ядро лечит её с отступом.
+   */
+  private async recordFailure(
+    moduleId: ModuleId,
+    unitId: string | null,
+    error: unknown,
+    kind: "throw" | "slow" | "deadline",
+  ): Promise<void> {
+    const scope = this.scopeKeyOf(moduleId, unitId);
+    const now = this.calendarNow();
+    const message = String(error instanceof Error ? error.message : error).slice(0, 300);
+
+    const record = this.strikes.get(scope) ?? { at: [] };
+    record.at = record.at.filter((at) => now - at <= this.strikeWindowMs);
+    record.at.push(now);
+    this.strikes.set(scope, record);
+
+    const enough = kind === "slow" || record.at.length >= this.quarantineStrikes;
+    if (!enough) {
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        moduleId,
+        event: "unit.strike",
+        detail: { scope, strikes: record.at.length, kind, message },
+      });
+      return;
+    }
+
+    this.strikes.delete(scope);
+    // Волна считается, пока сбои идут подряд; час спокойной работы всё забывает.
+    const episode = this.episodes.get(scope);
+    const fresh = episode && now - episode.at <= EPISODE_WINDOW_MS ? episode.count : 0;
+    const failures = fresh + 1;
+    this.episodes.set(scope, { count: failures, at: now });
+    const backoff = this.quarantineBackoffMs[Math.min(failures - 1, this.quarantineBackoffMs.length - 1)] as number;
+    const needsOperator = failures > this.quarantineBackoffMs.length;
+    const entry = {
+      moduleId,
+      unitId,
+      failures,
+      until: needsOperator ? 0 : now + backoff,
+      needsOperator,
+      lastError: message,
+      atMs: now,
+    };
+    this.health.set(scope, entry);
+    this.quarantines += 1;
+
+    await this.db.pool.query(
+      `INSERT INTO unit_health (world_id, scope_key, module_id, unit_id, failures, until_ms, needs_operator, last_error, updated_at_ms)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (world_id, scope_key) DO UPDATE SET
+         failures = EXCLUDED.failures,
+         until_ms = EXCLUDED.until_ms,
+         needs_operator = EXCLUDED.needs_operator,
+         last_error = EXCLUDED.last_error,
+         updated_at_ms = EXCLUDED.updated_at_ms`,
+      [this.worldId, scope, moduleId, unitId, failures, entry.until, needsOperator, message, now],
+    );
+
+    this.journal.write({
+      channel: needsOperator ? "security" : "app",
+      worldId: this.worldId,
+      moduleId,
+      event: needsOperator ? "unit.quarantine.locked" : "unit.quarantine",
+      detail: {
+        scope,
+        failures,
+        kind,
+        message,
+        ...(needsOperator ? { call: "оператор" } : { releaseAtMs: entry.until }),
+      },
+    });
+    // Единица ушла с расчёта: состояния пересчитываются сразу.
+    this.switchesValidUntilMs = 0;
+  }
+
+  /** Снять карантин: срок вышел — ядро само, иначе оператор. */
+  private async releaseQuarantine(scope: string, by: "time" | "operator"): Promise<void> {
+    if (!this.health.has(scope)) return;
+    this.health.delete(scope);
+    this.strikes.delete(scope);
+    for (const note of [...this.postponedNoted]) {
+      if (note.startsWith(`${scope}|`)) this.postponedNoted.delete(note);
+    }
+    await this.db.pool.query(`DELETE FROM unit_health WHERE world_id = $1 AND scope_key = $2`, [this.worldId, scope]);
+    this.journal.write({ channel: "app", worldId: this.worldId, event: "unit.quarantine.release", detail: { scope, by } });
+    this.switchesValidUntilMs = 0;
+  }
+
+  /** Оператор вернул единицу или модуль в строй: карантин снимается его волей. */
+  private async clearQuarantineOf(moduleId: ModuleId, unitId?: string | null): Promise<void> {
+    await this.releaseQuarantine(this.scopeKeyOf(moduleId, unitId ?? null), "operator");
+    if (unitId) {
+      // Карантин модуля держит и его единицы: воля оператора снимает и его.
+      await this.releaseQuarantine(moduleId, "operator");
+    }
+    if (!unitId) {
+      // Модуль вернули целиком: снимаем и карантины его единиц.
+      for (const scope of [...this.health.keys()]) {
+        if (scope.startsWith(`${moduleId}.`)) await this.releaseQuarantine(scope, "operator");
+      }
+    }
+  }
+
+  /** Лечение по сроку: вышел отступ — единица возвращается сама. */
+  private async sweepQuarantine(): Promise<number> {
+    const now = this.calendarNow();
+    let released = 0;
+    for (const [scope, record] of [...this.health]) {
+      if (record.needsOperator) continue;
+      if (record.until > now) continue;
+      await this.releaseQuarantine(scope, "time");
+      released += 1;
+    }
+    if (released > 0) this.postponedNoted.clear();
+    return released;
   }
 
   /** Состояния модулей мира: смотр админа, панель и тесты. */
   statesOfModules(): { id: string; state: ModuleState; until?: number; reason?: string }[] {
-    const now = this.now();
+    const now = this.calendarNow();
     return this.order
       .filter((id) => this.byId.has(id))
       .map((id) => {
@@ -421,21 +699,182 @@ export class WorldService {
    * План окон расписания. Считается от якоря ядра, поэтому один и тот же день
    * всегда даёт один и тот же план; пересчитывается заранее, а не по концу.
    */
-  schedulePlan(): readonly PlannedWindow[] {
-    const now = this.now();
-    if (this.planWindows.length === 0 || !planIsFresh(this.planWindows, now, PLAN_REFRESH_MARGIN_MS)) {
+  schedulePlan(untilMs = 0): readonly PlannedWindow[] {
+    const now = this.calendarNow();
+    const wanted = Math.max(now + PLAN_HORIZON_DAYS * 86_400_000, untilMs);
+    const covered = planHorizon(this.planWindows) >= wanted;
+    if (this.planWindows.length === 0 || !covered || !planIsFresh(this.planWindows, now, PLAN_REFRESH_MARGIN_MS)) {
       const plan = planWindows({
         modules: [...this.byId.values()],
         from: now,
-        to: now + PLAN_HORIZON_DAYS * 86_400_000,
+        to: wanted,
         tzOffsetMin: this.tzOffsetMin(),
         seed: Number(this.world.seed),
       });
       this.planWindows = plan.windows;
+      this.planSkipped = plan.skipped;
       // Состояния пересчитываются вместе с планом: окна могли сдвинуться.
       this.switchesValidUntilMs = 0;
     }
     return this.planWindows;
+  }
+
+  /**
+   * Тот же расчёт, но на любом промежутке и без кэша: он нужен догону, чтобы
+   * увидеть окна, которых уже нет в плане от настоящего мига — те, что
+   * начались и кончились, пока мир стоял.
+   */
+  private planOver(fromMs: number, toMs: number): readonly PlannedWindow[] {
+    return planWindows({
+      modules: [...this.byId.values()],
+      from: fromMs,
+      to: toMs,
+      tzOffsetMin: this.tzOffsetMin(),
+      seed: Number(this.world.seed),
+    }).windows;
+  }
+
+  /**
+   * Догон расписания после простоя. Правила по полосам:
+   * точное окно (праздник, пора года) — догоняем, если оно ещё идёт;
+   * повседневное (`rotation`) — не догоняем: вчерашнего дня не бывает;
+   * кончившееся окно — пропуск, в журнал `schedule.skipped`.
+   */
+  async resumeSchedule(
+    fromMs: number,
+    toMs: number,
+  ): Promise<{ resumed: string[]; continued: string[]; missed: string[] }> {
+    // План от настоящего мига видит только идущие окна: окна, кончившиеся за
+    // простой, в него уже не попадают. Поэтому промежуток считается отдельно,
+    // и списки складываются по ключу окна.
+    const gapFrom = Math.min(fromMs, toMs) - 86_400_000;
+    const byKey = new Map<string, PlannedWindow>();
+    for (const window of [...this.planOver(gapFrom, toMs), ...this.schedulePlan(toMs + 86_400_000)]) {
+      byKey.set(window.key, window);
+    }
+    const windows = [...byKey.values()];
+    const started = windowsStartedBetween(windows, fromMs, toMs);
+    const ended = windowsEndedBetween(windows, fromMs, toMs);
+    const now = toMs;
+    const resumed: string[] = [];
+    const continued: string[] = [];
+    const missed: string[] = [];
+    /**
+     * Пропуски по единицам: за долгий простой их сотни, и построчный журнал
+     * утонул бы. В журнал идёт итог, а точные ключи — в ответе и счётчиках.
+     */
+    const skipped = new Map<
+      string,
+      { moduleId: ModuleId; unitId: string; lane: string | null; count: number; reason: string; firstKey: string; lastKey: string }
+    >();
+    const noteSkipped = (window: PlannedWindow, reason: string): void => {
+      missed.push(window.key);
+      this.scheduleMissed += 1;
+      const bucket = skipped.get(window.unitId) ?? {
+        moduleId: window.moduleId,
+        unitId: window.unitId,
+        lane: window.lane,
+        count: 0,
+        reason,
+        firstKey: window.key,
+        lastKey: window.key,
+      };
+      bucket.count += 1;
+      bucket.lastKey = window.key;
+      skipped.set(window.unitId, bucket);
+    };
+
+    for (const window of started) {
+      if (!this.moduleIsEnabled(window.moduleId)) {
+        // Модуль закрыт: окно прошло мимо — догонять нечего, пока его не вернут.
+        noteSkipped(window, "module.off");
+        continue;
+      }
+      const rolling = window.source === "rotation";
+      const remaining = window.stop - now;
+      if (remaining <= 0) {
+        // Окно началось и кончилось, пока мир стоял: игрок в нём не был.
+        noteSkipped(window, rolling ? "downtime.rotation" : "downtime.ended");
+        continue;
+      }
+      if (rolling) {
+        // Повседневное окно догонять нельзя: вчерашнего дня не бывает.
+        // Но если оно ещё идёт — оно просто продолжается, и игрок в нём участвует.
+        continued.push(window.key);
+        this.scheduleContinued += 1;
+        this.journal.write({
+          channel: "app",
+          worldId: this.worldId,
+          moduleId: window.moduleId,
+          event: "schedule.continue",
+          detail: { key: window.key, reason: "downtime.rotation", remainingMs: remaining },
+        });
+        continue;
+      }
+      resumed.push(window.key);
+      this.scheduleResumed += 1;
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        moduleId: window.moduleId,
+        event: "schedule.resume",
+        detail: { key: window.key, unit: window.unitId, lane: window.lane, remainingMs: remaining },
+      });
+    }
+
+    for (const window of ended) {
+      if (started.some((other) => other.key === window.key)) continue;
+      if (!this.moduleIsEnabled(window.moduleId)) continue;
+      noteSkipped(window, "downtime.ended");
+    }
+    // Журнал не заваливаем: по простою подводим итог на каждую единицу.
+    for (const note of [...skipped.values()]) {
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        moduleId: note.moduleId,
+        event: "schedule.skipped",
+        detail: {
+          unit: note.unitId,
+          lane: note.lane,
+          count: note.count,
+          reason: note.reason,
+          firstKey: note.firstKey,
+          lastKey: note.lastKey,
+        },
+      });
+    }
+
+    // Открытые окна берём на учёт: дальше ядро пишет старт и стоп как обычно.
+    this.activeWindowKeys = new Set(windowsActiveAt(windows, now).map((window) => window.key));
+    this.switchesValidUntilMs = 0;
+    return { resumed, continued, missed };
+  }
+
+  /**
+   * Журнал расписания: старт и стоп окон. Состояния считает ядро переключателей,
+   * а журнал нужен модулям и оператору: видно, что началось и что кончилось.
+   */
+  private refreshScheduleJournal(): void {
+    const now = this.calendarNow();
+    const active = windowsActiveAt(this.schedulePlan(), now);
+    const keys = new Set(active.map((window) => window.key));
+    for (const window of active) {
+      if (this.activeWindowKeys.has(window.key)) continue;
+      this.activeWindowKeys.add(window.key);
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        moduleId: window.moduleId,
+        event: "schedule.start",
+        detail: { key: window.key, unit: window.unitId, lane: window.lane, stop: window.stop },
+      });
+    }
+    for (const key of [...this.activeWindowKeys]) {
+      if (keys.has(key)) continue;
+      this.activeWindowKeys.delete(key);
+      this.journal.write({ channel: "app", worldId: this.worldId, event: "schedule.stop", detail: { key } });
+    }
   }
 
   /** Часовой сдвиг мира: у мира свои часы, расписание идёт по ним. */
@@ -449,11 +888,18 @@ export class WorldService {
    */
   switches(): readonly UnitState[] {
     const windows = this.schedulePlan();
-    const now = this.now();
+    const now = this.calendarNow();
     // Кэш живёт до ближайшего события: конца окна, срока запрета или срока свежести.
     if (this.switchStates.length > 0 && now < this.switchesValidUntilMs) return this.switchStates;
     const modules = this.moduleOverrideMap();
-    this.switchStates = unitStates({ definitions: [...this.byId.values()], windows, modules, units: this.unitOverrides, now });
+    this.switchStates = unitStates({
+      definitions: [...this.byId.values()],
+      windows,
+      modules,
+      units: this.unitOverrides,
+      quarantined: this.quarantineMap(),
+      now,
+    });
     this.switchesValidUntilMs = now + SWITCHES_FRESH_MS;
     for (const override of [...modules.values(), ...this.unitOverrides.values()]) {
       if (override.until && override.until > now) {
@@ -470,7 +916,7 @@ export class WorldService {
 
   private moduleOverrideMap(): Map<ModuleId, Override> {
     const map = new Map<ModuleId, Override>();
-    const now = this.now();
+    const now = this.calendarNow();
     for (const id of this.order) {
       if (!this.byId.has(id)) continue;
       // Истёкший запрет не отдаём: ядро переключателей и так считает его снятым,
@@ -546,6 +992,7 @@ export class WorldService {
     } else {
       this.unitOverrides.set(key, { state: value, ...(until > 0 ? { until } : {}), ...(options.reason ? { reason: options.reason } : {}) });
     }
+    if (value === "enabled") await this.clearQuarantineOf(moduleId, unitId);
     this.switchesValidUntilMs = 0;
     this.clearCaches();
     this.journal.write({
@@ -655,6 +1102,19 @@ export class WorldService {
     };
   }
 
+  /**
+   * Время сервера: по нему идёт календарь — окна событий, сроки оператора и
+   * карантин. Оно настоящее и не стоит: событие, назначенное на 1 марта, идёт
+   * 1 марта, даже если мир перед этим лежал сутки.
+   */
+  calendarNow(): number {
+    return this.calendar.now();
+  }
+
+  /**
+   * Ход мира: по нему идут сроки игроков (марш, стройка, сбор). Стоит, пока
+   * процесс не работает, поэтому оставшиеся минуты на простое не сгорают.
+   */
   now(): number {
     return this.clockValue.now();
   }
@@ -679,25 +1139,41 @@ export class WorldService {
     });
   }
 
-  private async applyDowntime(): Promise<void> {
+  private async applyDowntime(): Promise<number> {
     const pulse = await this.db.pool.query<{ real_at_ms: string; world_at_ms: string }>(
       `SELECT real_at_ms, world_at_ms FROM world_pulse WHERE world_id = $1`,
       [this.worldId],
     );
     const row = pulse.rows[0];
-    const nowReal = Date.now();
+    const nowReal = this.calendarNow();
+    let downtimeMs = 0;
     if (row) {
-      const downtime = Math.max(0, nowReal - Number(row.real_at_ms));
-      this.clockValue = new WorldClock({ offsetMs: this.world.clockOffsetMs, lastWorldAtMs: Number(row.world_at_ms) });
-      this.clockValue.applyDowntime(downtime);
+      const realAt = Number(row.real_at_ms);
+      const worldAt = Number(row.world_at_ms);
+      downtimeMs = Math.max(0, nowReal - realAt);
+      // Пульс — единственный источник правды: в нём сходятся и настоящие часы,
+      // и ход мира на один миг. Сдвиг считаем из него, а не копим в базе:
+      // испорченная запись не сдвинет мир назад и не заморозит его навсегда.
+      const sane = worldAt > 0 && worldAt <= nowReal;
+      if (sane) {
+        this.clockValue = new WorldClock({ offsetMs: nowReal - worldAt, lastWorldAtMs: worldAt });
+      } else {
+        this.clockValue = new WorldClock({ offsetMs: this.world.clockOffsetMs, lastWorldAtMs: nowReal });
+        this.journal.write({
+          channel: "app",
+          worldId: this.worldId,
+          event: "pulse.suspect",
+          detail: { realAtMs: realAt, worldAtMs: worldAt, downtimeMs },
+        });
+      }
       this.journal.write({
         channel: "app",
         worldId: this.worldId,
         event: "world.resume",
-        detail: { downtimeMs: downtime, worldAt: this.clockValue.now() },
+        detail: { downtimeMs, worldAt: this.clockValue.now(), calendarNow: nowReal },
       });
     } else {
-      this.clockValue = new WorldClock({ offsetMs: this.world.clockOffsetMs, lastWorldAtMs: nowReal });
+      this.clockValue = new WorldClock({ offsetMs: 0, lastWorldAtMs: nowReal });
     }
     this.world = { ...this.world, clockOffsetMs: this.clockValue.offset };
     await this.db.pool.query(`UPDATE worlds SET clock_offset_ms = $2 WHERE world_id = $1`, [
@@ -705,6 +1181,7 @@ export class WorldService {
       this.clockValue.offset,
     ]);
     await this.writePulse();
+    return downtimeMs;
   }
 
   /**
@@ -1038,7 +1515,7 @@ export class WorldService {
    * Записи не копятся и в базе не врут: «выключил и забыл» невозможно.
    */
   private async sweepExpiredOverrides(): Promise<number> {
-    const now = this.now();
+    const now = this.calendarNow();
     if (now - this.sweepAtMs < SWEEP_EVERY_MS) return 0;
     this.sweepAtMs = now;
     let restored = 0;
@@ -1053,10 +1530,13 @@ export class WorldService {
     if (expiredModules.length === 0 && expiredUnits.length === 0) return 0;
     await this.tx(async ({ client }) => {
       for (const id of expiredModules) {
+        // Возврат — в объявленное состояние, а не всегда во «включено»: модуль,
+        // рождённый закрытым, ждёт своего шага плана, и временная воля оператора
+        // не делает его вечным.
         await client.query(
-          `UPDATE module_states SET state = 'enabled', until_ms = 0, reason = NULL
+          `UPDATE module_states SET state = $3, until_ms = 0, reason = NULL
            WHERE world_id = $1 AND module_id = $2`,
-          [this.worldId, id],
+          [this.worldId, id, this.byId.get(id)?.defaultState ?? "enabled"],
         );
       }
       for (const key of expiredUnits) {
@@ -1070,9 +1550,16 @@ export class WorldService {
     });
     for (const id of expiredModules) {
       this.moduleOverrides.delete(id);
-      this.moduleStates.set(id, "enabled");
+      const declared = this.byId.get(id)?.defaultState ?? "enabled";
+      this.moduleStates.set(id, declared);
       restored += 1;
-      this.journal.write({ channel: "app", worldId: this.worldId, moduleId: id, event: "module.service.restored" });
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        moduleId: id,
+        event: "module.service.restored",
+        detail: { state: declared },
+      });
     }
     for (const key of expiredUnits) {
       this.unitOverrides.delete(key);
@@ -1089,6 +1576,10 @@ export class WorldService {
     this.clearCaches();
     // Просроченные запреты снимаются до работы шага: мир возвращается сам.
     await this.sweepExpiredOverrides();
+    // Лечение карантина: вышел отступ — единица вернулась в расчёт.
+    await this.sweepQuarantine();
+    // Журнал расписания: старт и стоп окон.
+    this.refreshScheduleJournal();
     const startedAt = performance.now();
     try {
       const stepEndsAt = startedAt + this.stepBudgetMs;
@@ -1097,8 +1588,11 @@ export class WorldService {
       while (!this.stopped && performance.now() < deadlineEndsAt) {
         const batch = await this.fetchDue(DEADLINE_BATCH);
         if (batch.length === 0) break;
+        const { runnable, postponed } = this.splitQuarantined(batch);
+        // Вся выборка ждёт лечения: крутить её в этом проходе нечего.
+        if (runnable.length === 0 && postponed > 0) break;
         let worked = false;
-        for (const row of batch) {
+        for (const row of runnable) {
           if (this.stopped || performance.now() >= deadlineEndsAt) break;
           await this.runDeadline(row);
           worked = true;
@@ -1162,7 +1656,9 @@ export class WorldService {
     for (;;) {
       const batch = await this.fetchDue(DEADLINE_BATCH);
       if (batch.length === 0) break;
-      for (const row of batch) {
+      const { runnable, postponed } = this.splitQuarantined(batch);
+      if (runnable.length === 0 && postponed > 0) break;
+      for (const row of runnable) {
         await this.runDeadline(row);
         this.clearCaches();
         taken += 1;
@@ -1182,17 +1678,49 @@ export class WorldService {
     }
   }
 
+  /** Срок ждёт возврата единицы: в журнал — один раз на карантин. */
+  private notePostponed(row: DeadlineRow, quarantine: Quarantine): void {
+    const scope = this.scopeKeyOf(row.owner, row.unitId ?? null);
+    const note = `${scope}|${row.key}`;
+    if (this.postponedNoted.has(note)) return;
+    this.postponedNoted.add(note);
+    this.journal.write({
+      channel: "app",
+      worldId: this.worldId,
+      moduleId: row.owner,
+      event: "deadline.postponed",
+      detail: { key: row.key, scope, until: quarantine.until, failures: quarantine.failures },
+    });
+  }
+
+  /** Сроки карантинных единиц в работу не берутся: они ждут возврата. */
+  private splitQuarantined(batch: DeadlineRow[]): { runnable: DeadlineRow[]; postponed: number } {
+    const runnable: DeadlineRow[] = [];
+    let postponed = 0;
+    for (const row of batch) {
+      const quarantine = this.quarantineFor(row.owner, row.unitId ?? null) ?? this.quarantineFor(row.owner, null);
+      if (quarantine) {
+        this.notePostponed(row, quarantine);
+        postponed += 1;
+      } else {
+        runnable.push(row);
+      }
+    }
+    return { runnable, postponed };
+  }
+
   private async fetchDue(limit: number): Promise<DeadlineRow[]> {
     const owners = this.enabled().map((def) => def.id);
     if (owners.length === 0) return [];
     const rows = await this.db.pool.query<{
       id: string;
       owner: string;
+      unit_id: string | null;
       wake_at_ms: string;
       key: string;
       payload: JsonValue | null;
     }>(
-      `SELECT id, owner, wake_at_ms, key, payload FROM deadlines
+      `SELECT id, owner, unit_id, wake_at_ms, key, payload FROM deadlines
        WHERE world_id = $1 AND wake_at_ms <= $2 AND owner = ANY($3)
        ORDER BY wake_at_ms ASC, id ASC
        LIMIT $4`,
@@ -1201,6 +1729,7 @@ export class WorldService {
     return rows.rows.map((row) => ({
       id: row.id,
       owner: row.owner,
+      ...(row.unit_id ? { unitId: row.unit_id } : {}),
       wakeAt: Number(row.wake_at_ms),
       key: row.key,
       payload: row.payload,
@@ -1213,6 +1742,12 @@ export class WorldService {
    */
   private async runDeadline(row: DeadlineRow): Promise<void> {
     const def = this.byId.get(row.owner);
+    // Карантин единицы или модуля: срок не пропадает, работа ждёт возврата.
+    const quarantine = this.quarantineFor(row.owner, row.unitId ?? null) ?? this.quarantineFor(row.owner, null);
+    if (quarantine) {
+      this.notePostponed(row, quarantine);
+      return;
+    }
     if (!def || !def.onDeadline) {
       await this.tx(async ({ client }) => {
         await client.query(`DELETE FROM deadlines WHERE world_id = $1 AND id = $2 AND wake_at_ms = $3`, [
@@ -1261,6 +1796,7 @@ export class WorldService {
       // снова, но не бесконечно: иначе один сломанный срок держит писателя.
       const abandon = !refused && attempts >= MAX_DEADLINE_ATTEMPTS;
       const reason = refused ? "deadline.refused" : abandon ? "deadline.abandoned" : "deadline.failed";
+      if (!refused) await this.recordFailure(def.id, row.unitId ?? null, error, "deadline");
       this.journal.write({
         channel: refused || abandon ? "sim" : "app",
         worldId: this.worldId,
@@ -1362,7 +1898,12 @@ export class WorldService {
         return { status: "error", key: KERNEL_KEYS.unknown };
       }
       if (unit.state === "disabled") {
-        const key = unit.reason === "between-windows" ? KERNEL_KEYS.betweenWindows : KERNEL_KEYS.disabled;
+        const key =
+          unit.reason === "between-windows"
+            ? KERNEL_KEYS.betweenWindows
+            : unit.reason === "quarantine"
+              ? KERNEL_KEYS.quarantine
+              : KERNEL_KEYS.disabled;
         this.journal.write({
           channel: "security",
           worldId: this.worldId,
@@ -1374,6 +1915,18 @@ export class WorldService {
         });
         return { status: "error", key };
       }
+    } else if (this.quarantineFor(moduleId, null)) {
+      // У команды нет своей единицы: её держит карантин модуля целиком.
+      this.journal.write({
+        channel: "security",
+        worldId: this.worldId,
+        actorId: queued.actor.id,
+        moduleId,
+        requestId: queued.requestId,
+        event: "command.unit.closed",
+        detail: { commandId: queued.commandId, reason: "quarantine" },
+      });
+      return { status: "error", key: KERNEL_KEYS.quarantine };
     }
     const parsed = this.parseInput(decl, queued.payload);
     if (!parsed.ok) {
@@ -1393,6 +1946,8 @@ export class WorldService {
     let outcome: CommandOutcome = { status: "ok", repeat: false };
     let applied: ApplyResult | null = null;
     const simFacts: SimFact[] = [];
+    /** Сколько занял обработчик: сторож судит по этому числу. */
+    let slowMs = 0;
     try {
       await this.tx(async ({ client }) => {
         const inserted = await client.query(
@@ -1448,7 +2003,22 @@ export class WorldService {
           client,
         });
         const ctx: CommandContext = base;
+        // Сторож: обработчик дольше порога — команда откатывается, единица лечится.
+        const handlerStartedAt = performance.now();
         const effects = await decl.handle(ctx, parsed.value as never);
+        slowMs = performance.now() - handlerStartedAt;
+        if (slowMs > this.slowCommandMs) {
+          this.journal.write({
+            channel: "sim",
+            worldId: this.worldId,
+            moduleId,
+            actorId: queued.actor.id,
+            requestId: queued.requestId,
+            event: "sim.command.slow",
+            detail: { commandId: queued.commandId, unit: decl.unit ?? null, ms: Math.round(slowMs) },
+          });
+          throw new CommandRejected(KERNEL_KEYS.busy, { channel: "sim" });
+        }
         applied = await this.applyInTx(client, moduleId, queued.actor, effects, {
           requestId: queued.requestId,
           idempotencyKey: queued.idempotencyKey,
@@ -1465,6 +2035,10 @@ export class WorldService {
       if (error instanceof StaleWriter) throw error;
       if (error instanceof CommandRejected) {
         await this.recordRejection(queued, moduleId, error, simFacts);
+        // Повисший обработчик — тоже сбой: единица идёт на лечение.
+        if (slowMs > this.slowCommandMs) {
+          await this.recordFailure(moduleId, decl.unit ?? null, `обработчик ${Math.round(slowMs)} мс`, "slow");
+        }
         return { status: "error", key: error.effectsKey, params: error.params };
       }
       // Клиент не получает след исключения: только ключ словаря.
@@ -1477,6 +2051,7 @@ export class WorldService {
         event: "command.failed",
         detail: String(error instanceof Error ? error.message : error),
       });
+      await this.recordFailure(moduleId, decl.unit ?? null, error, "throw");
       await this.recordRejection(queued, moduleId, new CommandRejected(KERNEL_KEYS.generic), simFacts);
       return { status: "error", key: KERNEL_KEYS.generic };
     }

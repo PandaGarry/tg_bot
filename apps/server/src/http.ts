@@ -131,6 +131,10 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
           world: options.worldId,
           ready: service !== null,
           net,
+          // Двое часов названы явно: календарь — настоящий (окна событий и сроки
+          // оператора), ход мира — игровой (он стоит, пока процесс не работает).
+          calendarNow: service?.calendarNow() ?? Date.now(),
+          worldNow: service?.now() ?? Date.now(),
           // Состояния модулей: видно, что выключено и что включено обратно.
           modules: service?.statesOfModules() ?? [],
           stats,
@@ -193,7 +197,15 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     }
     if (req.method === "GET") {
       res.writeHead(200, { "content-type": "application/json" });
-      res.end(JSON.stringify({ ok: true, modules: service.statesOfModules(), units: service.statesOfUnits() }));
+      res.end(
+        JSON.stringify({
+          ok: true,
+          modules: service.statesOfModules(),
+          units: service.statesOfUnits(),
+          // Карантин ядра: видно, что чинится и когда вернётся.
+          quarantines: service.quarantinesInForce(),
+        }),
+      );
       return;
     }
     if (req.method !== "POST") {
@@ -267,7 +279,8 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       return;
     }
     const days = Math.min(Math.max(Number(url.searchParams.get("days") ?? 30) || 30, 1), 120);
-    const now = Date.now();
+    // Окна расписания живут по календарю: сроки считаются в том же времени.
+    const now = service.calendarNow();
     const horizon = now + days * 86_400_000;
     const windows = service
       .schedulePlan()

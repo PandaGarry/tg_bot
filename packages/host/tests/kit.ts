@@ -118,6 +118,16 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
             { kind: "report", id: input.id, reportKind: input.kind, rows: [{ key: input.rowKey ?? "kit.note" }] },
           ],
         }),
+        // Сон в обработчике: сторож ловит повисшую команду.
+        defineCommand({
+          id: "_kit.slow",
+          unit: "gadget",
+          input: zCount,
+          handle: async (_, input) => {
+            await new Promise((done) => setTimeout(done, Math.max(0, input.count)));
+            return [{ kind: "patch", route: { kind: "actor" }, ops: [{ op: "set", path: "modules._kit.slow", value: input.count }] }];
+          },
+        }),
         // Команда принадлежит единице: выключенная единица её не пускает.
         defineCommand({
           id: "_kit.gadget",
@@ -127,8 +137,49 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
             { kind: "patch", route: { kind: "actor" }, ops: [{ op: "set", path: "modules._kit.gadget", value: 1 }] },
           ],
         }),
+        // Срок принадлежит единице: её карантин замораживает работу, а не весь модуль.
+        defineCommand({
+          id: "_kit.arm",
+          unit: "gadget",
+          input: zCount,
+          handle: (ctx, input) => [
+            {
+              kind: "deadline.set",
+              id: `kit-arm:${ctx.actor?.id ?? "world"}`,
+              wakeAt: ctx.now + input.count,
+              key: `kit-arm:${ctx.actor?.id ?? "world"}:${input.count}`,
+              unit: "gadget",
+              payload: { holderId: ctx.actor?.id ?? "world", mark: input.count },
+            },
+          ],
+        }),
+        // Срок со сбоем: проверка лечения владельца по сбою срока.
+        // Сбой кода модуля без единицы: карантин ложится на модуль целиком.
+        defineCommand({
+          id: "_kit.crash-module",
+          input: zNone,
+          handle: () => {
+            throw new Error("модуль сломался целиком");
+          },
+        }),
+        defineCommand({
+          id: "_kit.arm-bad",
+          unit: "gadget",
+          input: zNone,
+          handle: (ctx) => [
+            {
+              kind: "deadline.set",
+              id: `kit-bad:${ctx.actor?.id ?? "world"}`,
+              wakeAt: ctx.now + 5,
+              key: `kit-bad:${ctx.actor?.id ?? "world"}`,
+              unit: "gadget",
+              payload: { mode: "throw" },
+            },
+          ],
+        }),
         defineCommand({
           id: "_kit.crash",
+          unit: "gadget",
           input: zNone,
           handle: () => {
             throw new Error("модуль сломался");

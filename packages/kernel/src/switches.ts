@@ -21,6 +21,20 @@ export function splitUnitKey(key: string): { moduleId: ModuleId; unitId: UnitId 
   return { moduleId: key.slice(0, dot), unitId: key.slice(dot + 1) };
 }
 
+/**
+ * Карантин единицы: ядро само убрало её с расчёта после сбоя.
+ * `until` — когда ядро попробует вернуть; ноль и `needsOperator` — ждёт оператора.
+ */
+export interface Quarantine {
+  failures: number;
+  /** Когда ядро попробует вернуть единицу. Ноль — само не вернётся. */
+  until: number;
+  /** Нужен оператор: лечение не помогло, дальше только человек. */
+  needsOperator?: boolean;
+  /** Что случилось: строка для панели и журнала. */
+  lastError?: string;
+}
+
 /** Воля оператора: состояние, срок и причина. */
 export interface Override {
   state: ModuleState;
@@ -62,8 +76,14 @@ export interface UnitState {
   reason: SwitchReason;
   /** Идущее окно единицы, если оно есть: панель показывает даже закрытое событие. */
   window?: { key: string; start: number; stop: number };
-  /** Когда снимется операторский запрет. */
+  /** Когда снимется запрет: операторский или карантинный. */
   until?: number;
+  /** Записка оператора: короткая строка, почему он это сделал. */
+  note?: string;
+  /** Сколько сбоев привело к карантину. */
+  failures?: number;
+  /** Что случилось: короткая строка для панели оператора. */
+  lastError?: string;
 }
 
 export interface SwitchInput {
@@ -74,6 +94,8 @@ export interface SwitchInput {
   modules?: ReadonlyMap<ModuleId, Override>;
   /** Точечные запреты единиц: ключ «модуль.единица». */
   units?: ReadonlyMap<string, Override>;
+  /** Карантин ядра: ключ «модуль.единица» или имя модуля целиком. */
+  quarantined?: ReadonlyMap<string, Quarantine>;
   now: number;
 }
 
@@ -86,6 +108,13 @@ export function declaredUnits(
     for (const unit of definition.units ?? []) list.push({ moduleId: definition.id, kind: definition.kind, unit });
   }
   return list;
+}
+
+/** Карантин ещё держит единицу: срок не вышел или нужен оператор. */
+export function quarantineInForce(quarantine: Quarantine | undefined, now: number): boolean {
+  if (!quarantine) return false;
+  if (quarantine.needsOperator) return true;
+  return quarantine.until <= 0 || quarantine.until > now;
 }
 
 /** Переключатель ещё в силе: время снятия не наступило. */
@@ -139,20 +168,26 @@ export function unitStates(input: SwitchInput): UnitState[] {
       reason: "core",
     };
 
+    const quarantine = input.quarantined?.get(key) ?? input.quarantined?.get(moduleId);
     if (overrideInForce(override, now)) {
-      // 1. Точечный запрет: сильнее всего остального.
+      // 1. Воля оператора: сильнее всего остального.
       state.state = override!.state;
-      state.reason = override!.reason ? "quarantine" : "operator";
+      state.reason = "operator";
       if (override!.until) state.until = override!.until;
+      if (override!.reason) state.note = override!.reason;
+    } else if (quarantineInForce(quarantine, now)) {
+      // 2. Карантин: ядро убрало сбойную единицу с расчёта и лечит её само.
+      state.state = "disabled";
+      state.reason = "quarantine";
+      if (quarantine!.until > now) state.until = quarantine!.until;
+      state.failures = quarantine!.failures;
+      if (quarantine!.lastError) state.lastError = quarantine!.lastError;
     } else if (!moduleOn) {
       // 2. Модуль закрыт: его единицы молчат, но окно видно панели.
       state.state = "disabled";
-      state.reason = moduleOverride?.reason
-        ? "quarantine"
-        : moduleOverride?.fromDeclaration
-          ? "module-closed"
-          : "module-off";
+      state.reason = moduleOverride?.fromDeclaration ? "module-closed" : "module-off";
       if (moduleOverride?.until) state.until = moduleOverride.until;
+      if (moduleOverride?.reason) state.note = moduleOverride.reason;
     } else if (kind === "core") {
       // 3. Классика работает, пока оператор не сказал иначе.
       state.state = declared;

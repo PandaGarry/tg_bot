@@ -418,10 +418,11 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
           [params.worldId, effect.key, effect.id],
         );
         await params.client.query(
-          `INSERT INTO deadlines (id, world_id, owner, wake_at_ms, key, payload, created_at_ms)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO deadlines (id, world_id, owner, unit_id, wake_at_ms, key, payload, created_at_ms)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            ON CONFLICT (world_id, id) DO UPDATE SET
              owner = EXCLUDED.owner,
+             unit_id = EXCLUDED.unit_id,
              wake_at_ms = EXCLUDED.wake_at_ms,
              key = EXCLUDED.key,
              payload = EXCLUDED.payload`,
@@ -429,6 +430,7 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
             effect.id,
             params.worldId,
             params.moduleId,
+            effect.unit ?? null,
             wakeAt,
             effect.key,
             effect.payload === undefined ? null : JSON.stringify(effect.payload),

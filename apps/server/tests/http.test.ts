@@ -63,6 +63,8 @@ describe("порт мира", () => {
       ok: boolean;
       ready: boolean;
       net: { connections: number; slowClients: number };
+      calendarNow: number;
+      worldNow: number;
       stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number; dropped: number };
     };
     expect(response.status).toBe(200);
@@ -75,6 +77,9 @@ describe("порт мира", () => {
     expect(body.net).toEqual({ connections: 0, slowClients: 0 });
     expect(body.stats.failures).toBe(0);
     expect(body.stats.lastDeadlineMs).toBeGreaterThanOrEqual(0);
+    // Двое часов видны снаружи: календарь — настоящий, ход мира — свой.
+    expect(Math.abs(body.calendarNow - Date.now())).toBeLessThan(5_000);
+    expect(Math.abs(body.worldNow - Date.now())).toBeLessThan(60_000);
   });
 
   it("страница, файл сборки и адрес без файла", async () => {
@@ -178,10 +183,13 @@ describe("порт мира", () => {
       body: JSON.stringify({ id: "_kit", unitId: "gadget", state: "disabled", until, reason: "сломался" }),
     });
     expect(off.status).toBe(200);
-    const offBody = (await off.json()) as { units: { key: string; state: string; reason: string; until?: number }[] };
+    const offBody = (await off.json()) as {
+      units: { key: string; state: string; reason: string; until?: number; note?: string }[];
+    };
     const closed = offBody.units.find((unit) => unit.key === "_kit.gadget");
     expect(closed?.state).toBe("disabled");
-    expect(closed?.reason).toBe("quarantine");
+    expect(closed?.reason).toBe("operator");
+    expect(closed?.note).toBe("сломался");
     expect(closed?.until).toBe(until);
     expect(booted.records.some((record) => record.event === "admin.unit.disabled")).toBe(true);
 

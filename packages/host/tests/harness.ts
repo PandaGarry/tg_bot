@@ -11,6 +11,7 @@ import { createDb, type Db } from "../src/db/index.js";
 import { loadConfig, type HostConfig } from "../src/config.js";
 import { createJournal, type JournalRecord } from "../src/logger.js";
 import { WorldService, type ViewSink } from "../src/world/service.js";
+import type { Clock } from "../src/world/clock.js";
 import type { WorldRow } from "../src/db/schema.js";
 import { readTestDbUrl } from "../../../tools/devdb/testing.js";
 
@@ -78,6 +79,11 @@ export interface TestWorldOptions {
   sink?: ViewSink;
   /** Срок годности очереди: по умолчанию как у мира. */
   queueWaitMs?: number;
+  /** Карантин: тесты берут быстрые отступы, бой — значения из ядра. */
+  quarantineBackoffMs?: readonly number[];
+  slowCommandMs?: number;
+  quarantineStrikes?: number;
+  strikeWindowMs?: number;
 }
 
 export interface TestWorld {
@@ -130,6 +136,10 @@ export async function createTestWorld(options: TestWorldOptions = {}): Promise<T
     processId: `test-${randomUUID().slice(0, 6)}`,
     stepBudgetMs: 2_000,
     queueWaitMs: options.queueWaitMs,
+    quarantineBackoffMs: options.quarantineBackoffMs,
+    slowCommandMs: options.slowCommandMs,
+    quarantineStrikes: options.quarantineStrikes,
+    strikeWindowMs: options.strikeWindowMs,
   });
   return {
     id,
@@ -211,6 +221,39 @@ export async function drain(
   return steps;
 }
 
+/**
+ * Поднимает мир заново поверх той же базы: так проверяются простой, пульс и
+ * догон расписания. Часы сервера и ход мира можно подменить — тесту нужен
+ * свой миг, а не тот, что выпал на прогон.
+ */
+export async function reopenTestWorld(
+  world: TestWorld,
+  options: { calendar?: Clock; now?: () => number; pulse?: { realAtMs: number; worldAtMs: number } } = {},
+): Promise<WorldService> {
+  // Остановка сама пишет пульс, поэтому порча пульса идёт после неё: порядок важен.
+  await world.service.stop();
+  if (options.pulse) {
+    await world.db.pool.query(`UPDATE world_pulse SET real_at_ms = $2, world_at_ms = $3 WHERE world_id = $1`, [
+      world.id,
+      options.pulse.realAtMs,
+      options.pulse.worldAtMs,
+    ]);
+  }
+  const journal = createJournal((record) => world.records.push(record));
+  const service = await WorldService.open({
+    db: world.db,
+    journal,
+    registry: world.registry,
+    world: world.world,
+    sink: world.sink,
+    processId: `test-${randomUUID().slice(0, 6)}`,
+    ...(options.calendar ? { calendar: options.calendar } : {}),
+    ...(options.now ? { now: options.now } : {}),
+  });
+  world.service = service;
+  return service;
+}
+
 export async function stockOf(world: TestWorld, holderId: string): Promise<Record<string, number>> {
   const rows = await world.db.pool.query<{ resource_id: string; amount: string }>(
     `SELECT resource_id, amount FROM stock WHERE world_id = $1 AND holder_id = $2`,
@@ -221,14 +264,23 @@ export async function stockOf(world: TestWorld, holderId: string): Promise<Recor
   return stock;
 }
 
-export async function deadlinesOf(world: TestWorld, owner?: string): Promise<{ id: string; owner: string; wakeAt: number; key: string }[]> {
-  const rows = await world.db.pool.query<{ id: string; owner: string; wake_at_ms: string; key: string }>(
+export async function deadlinesOf(
+  world: TestWorld,
+  owner?: string,
+): Promise<{ id: string; owner: string; wakeAt: number; key: string; unitId?: string }[]> {
+  const rows = await world.db.pool.query<{ id: string; owner: string; unit_id: string | null; wake_at_ms: string; key: string }>(
     owner
-      ? `SELECT id, owner, wake_at_ms, key FROM deadlines WHERE world_id = $1 AND owner = $2 ORDER BY id`
-      : `SELECT id, owner, wake_at_ms, key FROM deadlines WHERE world_id = $1 ORDER BY id`,
+      ? `SELECT id, owner, unit_id, wake_at_ms, key FROM deadlines WHERE world_id = $1 AND owner = $2 ORDER BY id`
+      : `SELECT id, owner, unit_id, wake_at_ms, key FROM deadlines WHERE world_id = $1 ORDER BY id`,
     owner ? [world.id, owner] : [world.id],
   );
-  return rows.rows.map((row) => ({ id: row.id, owner: row.owner, wakeAt: Number(row.wake_at_ms), key: row.key }));
+  return rows.rows.map((row) => ({
+    id: row.id,
+    owner: row.owner,
+    ...(row.unit_id ? { unitId: row.unit_id } : {}),
+    wakeAt: Number(row.wake_at_ms),
+    key: row.key,
+  }));
 }
 
 export async function countRows(world: TestWorld, table: string, where = "1 = 1"): Promise<number> {

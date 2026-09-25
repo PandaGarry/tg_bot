@@ -460,7 +460,8 @@ describe("переключатели единиц", () => {
     });
     const easter = quarantined.find((unit) => unit.unitId === "easter")!;
     expect(easter.state).toBe("disabled");
-    expect(easter.reason).toBe("quarantine");
+    expect(easter.reason).toBe("operator");
+    expect(easter.note).toBe("сломался");
     expect(easter.until).toBe(until);
     expect(easter.window?.key).toContain("easter:");
 

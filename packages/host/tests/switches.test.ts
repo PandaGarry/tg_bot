@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { KERNEL_KEYS } from "@tdl/protocol";
 import { kitModule } from "./kit.js";
-import { createTestWorld, runCommand } from "./harness.js";
+import { createTestWorld, runCommand, type TestWorld } from "./harness.js";
 
 const GADGET = "_kit.gadget";
 
@@ -57,7 +57,8 @@ describe("переключатели единиц мира", () => {
       await world.service.setUnitState("day-window", unit.unitId, "disabled", { until, reason: "проверка" });
       const closed = world.service.unitStateOf(unit.key)!;
       expect(closed.state).toBe("disabled");
-      expect(closed.reason).toBe("quarantine");
+      expect(closed.reason).toBe("operator");
+      expect(closed.note).toBe("проверка");
       expect(closed.until).toBe(until);
 
       // Запись лежит в базе: после перезапуска мира запрет читается оттуда.
@@ -72,6 +73,7 @@ describe("переключатели единиц мира", () => {
       // Срок вышел — переключатель снялся, дальше снова решает расписание.
       await new Promise((done) => setTimeout(done, 90));
       const freed = world.service.unitStateOf(unit.key)!;
+      expect(freed.reason).not.toBe("operator");
       expect(freed.reason).not.toBe("quarantine");
     } finally {
       await world.close();
@@ -105,7 +107,8 @@ describe("переключатели единиц мира", () => {
   it("срок возврата возвращает модуль сам: и в ответе, и в базе", async () => {
     const world = await createTestWorld();
     try {
-      const until = world.service.now() + 60;
+      // Срок оператора живёт по календарю (время сервера), а не по ходу мира.
+      const until = world.service.calendarNow() + 60;
       await world.service.setModuleState("hour-window", "disabled", { until, reason: "тест срока" });
       expect(world.service.statesOfModules().find((item) => item.id === "hour-window")?.state).toBe("disabled");
 
@@ -130,12 +133,38 @@ describe("переключатели единиц мира", () => {
     }
   });
 
+  it("срок возврата возвращает модуль в рождённое состояние, а не просто во «включено»", async () => {
+    const world = await createTestWorld();
+    try {
+      // Большое событие месяца рождено закрытым: оно ждёт своего шага плана.
+      expect(world.service.statesOfModules().find((item) => item.id === "month-window")?.state).toBe("disabled");
+
+      // Оператор включает его на срок: по сроку оно возвращается к рождению.
+      await world.service.setModuleState("month-window", "enabled", {
+        until: world.service.calendarNow() + 50,
+        reason: "разрешил на час",
+      });
+      expect(world.service.statesOfModules().find((item) => item.id === "month-window")?.state).toBe("enabled");
+
+      await new Promise((done) => setTimeout(done, 90));
+      await world.service.pumpOnce();
+      expect(world.service.statesOfModules().find((item) => item.id === "month-window")?.state).toBe("disabled");
+      const row = await world.db.pool.query<{ state: string }>(
+        `SELECT state FROM module_states WHERE world_id = $1 AND module_id = $2`,
+        [world.id, "month-window"],
+      );
+      expect(row.rows[0]?.state).toBe("disabled");
+    } finally {
+      await world.close();
+    }
+  });
+
   it("срок возврата возвращает и единицу: окно снова решает само", async () => {
     const world = await createTestWorld();
     try {
       const unit = world.service.statesOfUnits("day-window")[0]!;
       await world.service.setUnitState("day-window", unit.unitId, "disabled", {
-        until: world.service.now() + 60,
+        until: world.service.calendarNow() + 60,
         reason: "тест срока",
       });
       expect(world.service.unitStateOf(unit.key)?.state).toBe("disabled");
@@ -149,6 +178,77 @@ describe("переключатели единиц мира", () => {
       // Снятый запрет не оставляет строки: таблица помнит только живые переключатели.
       expect(row.rowCount).toBe(0);
       expect(world.records.some((record) => record.event === "unit.restored")).toBe(true);
+    } finally {
+      await world.close();
+    }
+  });
+
+  it("простой мира: окна догоняются, а повседневное считается пропущенным", async () => {
+    const world = await createTestWorld();
+    try {
+      // Стояли с 1 декабря: зима началась во время простоя и догоняется,
+      // осень кончилась во время простоя и уходит в пропуск.
+      const from = Date.parse("2027-11-25T00:00:00Z");
+      const to = Date.parse("2027-12-02T00:00:00Z");
+      const result = await world.service.resumeSchedule(from, to);
+
+      expect(result.resumed.length).toBeGreaterThan(0);
+      const resumedUnits = result.resumed.map((key) => key.split(":")[0]);
+      expect(resumedUnits).toContain("winter");
+      // Модуль большого события рождён выключенным: его окно не догоняется.
+      expect(resumedUnits).not.toContain("capital-ten-day");
+      expect(result.missed.some((key) => key.startsWith("autumn:"))).toBe(true);
+      // Оборотное окно, которое ещё идёт, не догоняется, но и не пропадает:
+      // оно просто продолжается — игрок в нём участвует.
+      expect(result.continued.some((key) => key.startsWith("march-day:"))).toBe(true);
+      expect(result.resumed.some((key) => key.startsWith("march-day:"))).toBe(false);
+      // А оборотное окно, кончившееся во время простоя, уже не вернуть.
+      expect(result.missed.some((key) => key.startsWith("march-day:"))).toBe(true);
+
+      expect(world.records.some((record) => record.event === "schedule.resume")).toBe(true);
+      expect(world.records.some((record) => record.event === "schedule.skipped")).toBe(true);
+      expect(world.service.stats().scheduleResumed).toBeGreaterThan(0);
+      expect(world.service.stats().scheduleContinued).toBeGreaterThan(0);
+
+      // Часы мира после такой перемотки: план считает то же, что и догон.
+      const units = world.service.statesOfUnits("season-winter");
+      expect(units.some((unit) => unit.state === "enabled" || unit.reason === "between-windows")).toBe(true);
+    } finally {
+      await world.close();
+    }
+  });
+
+  it("журнал расписания пишет старт и стоп окон сами", async () => {
+    const world = await createTestWorld();
+    try {
+      await world.service.pumpOnce();
+      const started = world.records.filter((record) => record.event === "schedule.start");
+      // Пора года, окно дня, часовое окно, неделя — что-то из этого идёт всегда.
+      expect(started.length).toBeGreaterThan(0);
+      for (const record of started) {
+        expect(record.channel).toBe("app");
+        expect(typeof (record.detail as { key?: string })?.key).toBe("string");
+      }
+      // Второй проход не дублирует старт: ключ окна помнит, что оно уже шло.
+      const before = started.length;
+      await world.service.pumpOnce();
+      expect(world.records.filter((record) => record.event === "schedule.start").length).toBe(before);
+    } finally {
+      await world.close();
+    }
+  });
+
+  it("счётчики расписания видны оператору", async () => {
+    const world: TestWorld = await createTestWorld();
+    try {
+      const stats = world.service.stats();
+      expect(stats.windowsActive).toBeGreaterThan(0);
+      expect(typeof stats.windowsSkipped).toBe("number");
+      expect(stats.scheduleMissed).toBe(0);
+      expect(stats.unitsQuarantined).toBe(0);
+      expect(stats.unitsQuarantineLocked).toBe(0);
+      // План посчитан вперёд: горизонт больше сегодняшнего дня.
+      expect(stats.planHorizonMs).toBeGreaterThan(Date.now());
     } finally {
       await world.close();
     }

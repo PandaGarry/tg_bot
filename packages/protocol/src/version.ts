@@ -31,6 +31,7 @@ export const LIMITS = {
 export const KERNEL_KEYS = {
   disabled: "kernel.module.disabled",
   betweenWindows: "kernel.unit.between-windows",
+  quarantine: "kernel.unit.quarantine",
   stale: "kernel.command.stale",
   unknown: "kernel.command.unknown",
   badInput: "kernel.command.bad-input",

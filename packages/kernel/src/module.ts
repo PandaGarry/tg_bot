@@ -90,6 +90,8 @@ export interface DeadlineRow {
   wakeAt: number;
   key: string;
   payload: JsonValue;
+  /** Единица, которой принадлежит срок: по ней работает карантин. */
+  unitId?: UnitId;
 }
 
 export interface DeadlineContext extends HandlerBase {

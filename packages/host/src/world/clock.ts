@@ -5,6 +5,14 @@
 
 import { monotonicWorldNow } from "@tdl/kernel";
 
+/**
+ * Часы мира вообще: и настоящие, и игровые. Один договор — разные источники,
+ * чтобы подмена в тестах не расходилась с боем.
+ */
+export interface Clock {
+  now(): number;
+}
+
 export interface ClockInit {
   /** Сколько миллисекунд мир стоял всего до этого подъёма. */
   offsetMs: number;
@@ -12,7 +20,7 @@ export interface ClockInit {
   lastWorldAtMs: number;
 }
 
-export class WorldClock {
+export class WorldClock implements Clock {
   private offsetMs: number;
   private lastWorldAtMs: number;
 

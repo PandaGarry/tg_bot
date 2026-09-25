@@ -100,21 +100,29 @@ describe("срок и ошибка модуля", () => {
     expect((await simRows(world, "deadline.refused")).length).toBe(1);
   });
 
-  it("ошибка модуля на сроке пробуется снова, но не бесконечно", async () => {
+  it("ошибка модуля на сроке: срок ждёт лечения, а после возврата пробуется снова и снимается", async () => {
     const world = await makeWorld();
     const actor = world.actor();
     await runCommand(world, actor, "_kit.plan-mode", { mode: "throw" });
     await makeDue(world);
-    await drain(world);
-    expect(await deadlinesOf(world)).toHaveLength(0);
-    const failed = await simRows(world, "deadline.failed");
-    const abandoned = await simRows(world, "deadline.abandoned");
-    expect(failed.length).toBe(5);
-    expect(abandoned.length).toBe(1);
-    // Писатель не крутится на сломанном сроке.
+    // Три сбоя — карантин: срок не крутится в проходе, а ждёт возврата владельца.
+    await drain(world, { limit: 3 });
+    expect((await simRows(world, "deadline.failed")).length).toBe(3);
+    expect((await deadlinesOf(world))).toHaveLength(1);
+    expect(world.service.quarantineFor("_kit", null)).not.toBeNull();
+    expect(world.records.some((record) => record.event === "deadline.postponed")).toBe(true);
+
+    // Писатель не крутится на сломанном сроке: проход молчит.
     const before = world.records.length;
     await world.service.pumpOnce();
     expect(world.records.length).toBe(before);
+
+    // Оператор вернул модуль в строй: срок догоняет, пробы кончаются снятием.
+    await world.service.setUnitState("_kit", "gadget", "enabled");
+    await drain(world);
+    expect(await deadlinesOf(world)).toHaveLength(0);
+    expect((await simRows(world, "deadline.failed")).length).toBe(5);
+    expect((await simRows(world, "deadline.abandoned")).length).toBe(1);
   });
 });
 

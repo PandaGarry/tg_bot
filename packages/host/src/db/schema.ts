@@ -59,6 +59,8 @@ export const deadlines = pgTable(
     worldId: text("world_id").notNull(),
     id: text("id").notNull(),
     owner: text("owner").notNull(),
+    /** Единица владельца: карантин замораживает её сроки, а не весь модуль. */
+    unitId: text("unit_id"),
     wakeAtMs: bigint("wake_at_ms", { mode: "number" }).notNull(),
     key: text("key").notNull(),
     payload: jsonb("payload").$type<JsonValue>(),
@@ -124,6 +126,29 @@ export const moduleStates = pgTable(
     reason: text("reason"),
   },
   (table) => [primaryKey({ columns: [table.worldId, table.moduleId] })],
+);
+
+/**
+ * Здоровье единиц: следы сбоев и карантин. Ключ `scope_key` — «модуль.единица»
+ * для единицы или «модуль» целиком, когда сбой пришёл из кода без единицы.
+ */
+export const unitHealth = pgTable(
+  "unit_health",
+  {
+    worldId: text("world_id").notNull(),
+    scopeKey: text("scope_key").notNull(),
+    moduleId: text("module_id").notNull(),
+    unitId: text("unit_id"),
+    /** Сколько сбоев подряд привело к карантину. */
+    failures: integer("failures").notNull().default(0),
+    /** До какого времени ядро держит единицу вне расчёта. Ноль — нужен оператор. */
+    untilMs: bigint("until_ms", { mode: "number" }).notNull().default(0),
+    /** Лечение не помогло: дальше только человек. */
+    needsOperator: boolean("needs_operator").notNull().default(false),
+    lastError: text("last_error"),
+    updatedAtMs: bigint("updated_at_ms", { mode: "number" }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.worldId, table.scopeKey] })],
 );
 
 /**
