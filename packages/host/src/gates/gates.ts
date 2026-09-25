@@ -63,13 +63,35 @@ export function validateLordName(name: string): GateResult<string> {
   return { ok: true, value: trimmed };
 }
 
+/** Почта: одна «собака», точка в домене, без пробелов. Полная проверка — письмом. */
+export function validateEmail(email: string): GateResult<string> {
+  const value = email.trim();
+  if (value.length < 3 || value.length > LIMITS.emailMax) return { ok: false, key: KERNEL_KEYS.emailBad };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return { ok: false, key: KERNEL_KEYS.emailBad };
+  return { ok: true, value };
+}
+
+/** Логин: латиница, цифры, точка, дефис, подчёркивание. Русские буквы не проходят. */
+export function validateLogin(login: string): GateResult<string> {
+  const value = login.trim();
+  if (value.length < LIMITS.loginMin || value.length > LIMITS.loginMax) return { ok: false, key: KERNEL_KEYS.login };
+  if (!/^[A-Za-z0-9._-]+$/.test(value)) return { ok: false, key: KERNEL_KEYS.login };
+  return { ok: true, value };
+}
+
 export async function register(
   options: GatesOptions,
-  input: { login: string; password: string; lang: Locale },
+  input: { login: string; password: string; email: string; acceptRules: boolean; acceptMail: boolean; lang: Locale },
 ): Promise<GateResult<{ accountId: string }>> {
   if (!options.config.registrationOpen) {
     return { ok: false, key: KERNEL_KEYS.registration };
   }
+  // Правила обязательны: без согласия аккаунт не заводится.
+  if (!input.acceptRules) return { ok: false, key: KERNEL_KEYS.rules };
+  const login = validateLogin(input.login);
+  if (!login.ok) return login;
+  const email = validateEmail(input.email);
+  if (!email.ok) return email;
   const key = loginKey(input.login);
   const existing = await options.db.pool.query(`SELECT account_id FROM accounts WHERE login_key = $1`, [key]);
   if (existing.rowCount && existing.rowCount > 0) {
@@ -80,8 +102,18 @@ export async function register(
   const accountId = randomUUID();
   try {
     await options.db.pool.query(
-      `INSERT INTO accounts (account_id, login, login_key, password_hash, lang) VALUES ($1, $2, $3, $4, $5)`,
-      [accountId, input.login.trim(), key, passwordHash, input.lang],
+      `INSERT INTO accounts (account_id, login, login_key, email, email_key, password_hash, lang, accept_mail)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        accountId,
+        input.login.trim(),
+        key,
+        email.value,
+        email.value.toLowerCase(),
+        passwordHash,
+        input.lang,
+        input.acceptMail,
+      ],
     );
   } catch {
     return { ok: false, key: KERNEL_KEYS.login };
@@ -98,8 +130,9 @@ export async function login(
     return { ok: false, key: KERNEL_KEYS.protocol };
   }
   const key = loginKey(input.login);
+  // Вход принимает и логин, и почту: игрок помнит любое из двух.
   const rows = await options.db.pool.query<{ account_id: string; password_hash: string }>(
-    `SELECT account_id, password_hash FROM accounts WHERE login_key = $1`,
+    `SELECT account_id, password_hash FROM accounts WHERE login_key = $1 OR email_key = $1`,
     [key],
   );
   const account = rows.rows[0];

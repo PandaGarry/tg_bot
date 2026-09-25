@@ -45,6 +45,8 @@ export interface BootOptions {
   sendBufferBytes?: number;
   /** Добавочные модули сборки: тест проверяет край контракта на своём модуле. */
   extraModules?: readonly ModuleDefinition[];
+  /** Свой токен оператора: тест проверяет путь /api/modules. Иначе берётся из окружения. */
+  adminToken?: string;
 }
 
 export interface BootedServer {
@@ -104,6 +106,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     worldId: world.id,
     service: () => current,
     net: () => ({ connections: hub.connectionCount(), slowClients: hub.slowClientCount() }),
+    adminToken: options.adminToken ?? config.adminToken,
     server: options.server,
     clientDist: serveClient ? (options.clientDist ?? (config.isProduction ? paths.dist : undefined)) : undefined,
     // Своя папка сборки важнее режима разработки: так проверяется статика.

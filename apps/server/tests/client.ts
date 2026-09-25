@@ -122,7 +122,16 @@ export async function newLord(booted: BootedServer, login: string, name: string)
     if (message.t === "auth") tokens.set(client, message.token);
     return message;
   });
-  client.send({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login, password: "secret-12345", lang: "ru" });
+  client.send({
+    t: "auth.register",
+    protocolVersion: PROTOCOL_VERSION,
+    login,
+    password: "secret-12345",
+    email: `${login}@mail.test`,
+    acceptRules: true,
+    acceptMail: false,
+    lang: "ru",
+  });
   const first = await tokenPromise;
   if (!(first.t === "auth" && first.needsLord)) throw new Error("ворота не ответили ожиданием лорда");
   const ready = await client.next((message) => message.t === "ready");

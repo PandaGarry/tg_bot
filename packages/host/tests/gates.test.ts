@@ -55,12 +55,27 @@ async function stand(overrides: Record<string, string> = {}): Promise<Stand> {
 const login_ = () => `lord_${randomUUID().slice(0, 10)}`;
 const password = "secret-12345";
 
+/** Аккаунт в тесте: логин, почта, согласие с правилами. Письма — по желанию. */
+function account(
+  login: string,
+  over: Partial<{ password: string; email: string; acceptRules: boolean; acceptMail: boolean }> = {},
+) {
+  return {
+    login,
+    password: over.password ?? password,
+    email: over.email ?? `${login.toLowerCase()}@mail.test`,
+    acceptRules: over.acceptRules ?? true,
+    acceptMail: over.acceptMail ?? false,
+    lang: "ru" as const,
+  };
+}
+
 describe("регистрация", () => {
   it("закрытая регистрация не пускает и не трогает мир", async () => {
     const world = await stand({ REGISTRATION_OPEN: "0" });
     const name = login_();
 
-    const refused = await register(world.gates, { login: name, password, lang: "ru" });
+    const refused = await register(world.gates, account(name));
     expect(refused).toEqual({ ok: false, key: KERNEL_KEYS.registration });
 
     const accounts = await world.db.pool.query("SELECT account_id FROM accounts WHERE login_key = $1", [name.toLowerCase()]);
@@ -72,7 +87,7 @@ describe("регистрация", () => {
   it("пароль лежит хешем Argon2id, а не открытым текстом", async () => {
     const world = await stand();
     const name = login_();
-    const created = await register(world.gates, { login: name, password, lang: "ru" });
+    const created = await register(world.gates, account(name));
     expect(created.ok).toBe(true);
 
     const rows = await world.db.pool.query<{ password_hash: string }>(
@@ -90,12 +105,78 @@ describe("регистрация", () => {
     expect(world.records.some((record) => record.event === "gate.login.bad-password")).toBe(true);
   });
 
+  it("почта нужна и входит в ворота: без неё и с кривой — отказ", async () => {
+    const world = await stand();
+    const name = login_();
+
+    expect(await register(world.gates, account(name, { email: "" }))).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.emailBad,
+    });
+    expect(await register(world.gates, account(name, { email: "почта-без-собаки" }))).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.emailBad,
+    });
+    expect(await register(world.gates, account(name, { email: "кто-то@почта" }))).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.emailBad,
+    });
+    const rows = await world.db.pool.query("SELECT account_id FROM accounts WHERE login_key = $1", [name.toLowerCase()]);
+    expect(rows.rowCount).toBe(0);
+  });
+
+  it("без согласия с правилами аккаунт не заводится", async () => {
+    const world = await stand();
+    const name = login_();
+
+    expect(await register(world.gates, account(name, { acceptRules: false }))).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.rules,
+    });
+    const rows = await world.db.pool.query("SELECT account_id FROM accounts WHERE login_key = $1", [name.toLowerCase()]);
+    expect(rows.rowCount).toBe(0);
+  });
+
+  it("логин латиницей: русские буквы и пробелы не проходят", async () => {
+    const world = await stand();
+    expect(await register(world.gates, account("Лорд_Тьмы"))).toEqual({ ok: false, key: KERNEL_KEYS.login });
+    expect(await register(world.gates, account("lord of dark"))).toEqual({ ok: false, key: KERNEL_KEYS.login });
+    expect(await register(world.gates, account("lord.of-dark_2"))).toMatchObject({ ok: true });
+  });
+
+  it("вход принимает и логин, и почту: имя лорда при этом своё", async () => {
+    const world = await stand();
+    const name = login_();
+    const mail = `${name}@mail.test`;
+    const created = await register(world.gates, account(name, { email: mail }));
+    expect(created.ok).toBe(true);
+
+    const byLogin = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
+    const byMail = await login(world.gates, { login: mail.toUpperCase(), password, protocolVersion: PROTOCOL_VERSION });
+    expect(byLogin.ok).toBe(true);
+    expect(byMail.ok).toBe(true);
+    if (!byLogin.ok || !byMail.ok) return;
+    expect(byMail.value.accountId).toBe(byLogin.value.accountId);
+
+    // Логин и никнейм разные: имя лорда в аккаунте не занято, его вводит игрок.
+    const lord = await createLord(world.gates, {
+      accountId: byLogin.value.accountId,
+      worldId: world.config.WORLD_ID,
+      name: "Мёртвый Лорд",
+      portrait: "portrait-1",
+      bannerSign: "skull",
+      bannerColor: "bone",
+      type: "flesh",
+    });
+    expect(lord.ok).toBe(true);
+  });
+
   it("свой логин занимается один раз и в любом регистре", async () => {
     const world = await stand();
     const name = login_();
-    expect((await register(world.gates, { login: name, password, lang: "ru" })).ok).toBe(true);
+    expect((await register(world.gates, account(name))).ok).toBe(true);
 
-    const again = await register(world.gates, { login: name.toUpperCase(), password, lang: "ru" });
+    const again = await register(world.gates, account(name.toUpperCase()));
     expect(again).toEqual({ ok: false, key: KERNEL_KEYS.login });
     expect(world.records.some((record) => record.event === "gate.register.exists")).toBe(true);
   });
@@ -105,7 +186,7 @@ describe("сессия", () => {
   it("токен хранится хешем с секретом, а не как есть", async () => {
     const world = await stand();
     const name = login_();
-    await register(world.gates, { login: name, password, lang: "ru" });
+    await register(world.gates, account(name));
     const entered = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
     if (!entered.ok) throw new Error("вход не прошёл");
 
@@ -127,7 +208,7 @@ describe("сессия", () => {
   it("подделанный и протухший токен не пускает, живой пускает", async () => {
     const world = await stand();
     const name = login_();
-    await register(world.gates, { login: name, password, lang: "ru" });
+    await register(world.gates, account(name));
     const entered = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
     if (!entered.ok) throw new Error("вход не прошёл");
     const token = entered.value.token;
@@ -152,7 +233,7 @@ describe("сессия", () => {
   it("старая версия протокола не проходит ни на входе, ни в сессии", async () => {
     const world = await stand();
     const name = login_();
-    await register(world.gates, { login: name, password, lang: "ru" });
+    await register(world.gates, account(name));
     expect(
       await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION - 1 }),
     ).toEqual({ ok: false, key: KERNEL_KEYS.protocol });
@@ -174,7 +255,7 @@ describe("лорд", () => {
 
     const world = await stand();
     const name = login_();
-    await register(world.gates, { login: name, password, lang: "ru" });
+    await register(world.gates, account(name));
     const entered = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
     if (!entered.ok) throw new Error("вход не прошёл");
 
@@ -191,7 +272,7 @@ describe("лорд", () => {
     expect(first.ok).toBe(true);
 
     // Имя занято в любом регистре и с лишними пробелами.
-    const other = await register(world.gates, { login: login_(), password, lang: "ru" });
+    const other = await register(world.gates, account(login_()));
     if (!other.ok) throw new Error("второй вход не прошёл");
     const second = await createLord(world.gates, {
       accountId: other.value.accountId,
@@ -220,7 +301,7 @@ describe("лорд", () => {
   it("повторное создание лорда возвращает того же, второго не заводит", async () => {
     const world = await stand();
     const name = login_();
-    await register(world.gates, { login: name, password, lang: "ru" });
+    await register(world.gates, account(name));
     const entered = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
     if (!entered.ok) throw new Error("вход не прошёл");
 

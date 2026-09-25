@@ -13,8 +13,14 @@ export const zLocale = z.enum(["ru", "en"]).default(DEFAULT_LOCALE);
 export const zAuthRegister = z.object({
   t: z.literal("auth.register"),
   protocolVersion: z.number().int().nonnegative(),
-  login: z.string().min(3).max(24).regex(/^[A-Za-z0-9_-]+$/),
-  password: z.string().min(8).max(128),
+  login: z.string().min(3).max(24).regex(/^[A-Za-z0-9._-]+$/),
+  password: z.string().min(8).max(72),
+  /** Почта аккаунта: восстановление и письма. Не логин. */
+  email: z.string().min(3).max(120),
+  /** Согласие с правилами: без него регистрация не проходит. */
+  acceptRules: z.literal(true),
+  /** Разрешение на письма: необязательное, по умолчанию выключено. */
+  acceptMail: z.boolean().default(false),
   lang: zLocale,
 });
 
@@ -22,7 +28,7 @@ export const zAuthLogin = z.object({
   t: z.literal("auth.login"),
   protocolVersion: z.number().int().nonnegative(),
   login: z.string().min(3).max(24),
-  password: z.string().min(8).max(128),
+  password: z.string().min(8).max(72),
   lang: zLocale,
 });
 

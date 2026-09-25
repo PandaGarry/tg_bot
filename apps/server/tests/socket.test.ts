@@ -66,7 +66,17 @@ describe("сокет и ворота", () => {
 
     const second = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
     const auth = second.next((message) => message.t === "auth");
-    second.send({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login: `lord_${randomUUID().slice(0, 8)}`, password: "secret-12345", lang: "ru" });
+    const secondLogin = `lord_${randomUUID().slice(0, 8)}`;
+    second.send({
+      t: "auth.register",
+      protocolVersion: PROTOCOL_VERSION,
+      login: secondLogin,
+      password: "secret-12345",
+      email: `${secondLogin}@mail.test`,
+      acceptRules: true,
+      acceptMail: false,
+      lang: "ru",
+    });
     const message = await auth;
     expect(message.t).toBe("auth");
     const token = message.t === "auth" ? message.token : "";
@@ -201,7 +211,17 @@ describe("закрытая регистрация", () => {
 
   it("флаг закрывает ворота и не мешает живому миру", async () => {
     const client = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
-    client.send({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login: `lord_${randomUUID().slice(0, 8)}`, password: "secret-12345", lang: "ru" });
+    const lordLogin = `lord_${randomUUID().slice(0, 8)}`;
+    client.send({
+      t: "auth.register",
+      protocolVersion: PROTOCOL_VERSION,
+      login: lordLogin,
+      password: "secret-12345",
+      email: `${lordLogin}@mail.test`,
+      acceptRules: true,
+      acceptMail: false,
+      lang: "ru",
+    });
     const error = await client.next<{ t: "error"; key: string }>((message) => message.t === "error");
     expect(error.key).toBe(KERNEL_KEYS.registration);
     // Мир при этом жив: health отвечает, сроки идут.

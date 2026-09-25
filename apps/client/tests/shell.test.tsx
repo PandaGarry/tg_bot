@@ -7,6 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { INTRO_KEYS, chronicleEntries, clearChronicle } from "../src/shell/chronicle.js";
 import { introSeen } from "../src/shell/firstRun.js";
+import * as net from "../src/net.js";
+import { Boot } from "../src/ui/Boot.js";
+import { Register } from "../src/ui/Register.js";
 import { Slides } from "../src/ui/Slides.js";
 import { Chronicle } from "../src/ui/Chronicle.js";
 import { Create } from "../src/ui/Create.js";
@@ -132,3 +135,100 @@ describe("создание лорда", () => {
     expect(screen.getByRole("button", { name: "Занять двор" }).hasAttribute("disabled")).toBe(false);
   });
 });
+
+describe("вход и регистрация", () => {
+  it("вход — одно окно: логин или почта, пароль, кнопка на регистрацию", () => {
+    const toRegister = vi.fn();
+    render(<Boot lang="ru" statusKey="shell.status.online" onRegister={toRegister} />);
+
+    expect(screen.getByText("Логин или почта")).toBeTruthy();
+    expect(screen.getByText("Пароль")).toBeTruthy();
+    // Полей аккаунта тут нет: их спрашивают в отдельном окне.
+    expect(screen.queryByTestId("register-email")).toBeNull();
+    expect(screen.queryByTestId("register-rules")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("boot-to-register"));
+    // Окно входа лишь просит открыть регистрацию: само оно аккаунт не заводит.
+    expect(toRegister).toHaveBeenCalledTimes(1);
+  });
+
+  it("регистрация — отдельное окно: логин, почта, пароль дважды, согласия", () => {
+    render(<Register lang="ru" onLogin={() => {}} />);
+
+    expect(screen.getByText("Регистрация аккаунта")).toBeTruthy();
+    for (const id of ["register-login", "register-email", "register-password", "register-repeat"]) {
+      expect(screen.getByTestId(id)).toBeTruthy();
+    }
+    // Логин и никнейм — разные вещи: окно об этом говорит.
+    expect(screen.getByText(/Логин и имя лорда — разные вещи/)).toBeTruthy();
+    const submit = screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+  });
+
+  it("без согласия с правилами кнопка молчит и объясняет причину", () => {
+    render(<Register lang="ru" onLogin={() => {}} />);
+    fillRegister({ rules: false });
+
+    const submit = screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+    expect(screen.getByTestId("register-problem").textContent).toBe(
+      "Без согласия с правилами аккаунт не заводится",
+    );
+  });
+
+  it("пароль и повтор не совпали — отправки нет", () => {
+    render(<Register lang="ru" onLogin={() => {}} />);
+    fillRegister({ repeat: "другой-пароль-12345" });
+
+    expect((screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("register-problem").textContent).toBe("Пароли не совпадают");
+  });
+
+  it("кривая почта и русский логин не проходят до сервера", () => {
+    render(<Register lang="ru" onLogin={() => {}} />);
+    fillRegister({ email: "почта-без-собаки", login: "Лорд_Тьмы" });
+
+    expect((screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByTestId("register-problem").textContent).toBe(
+      "Логин: 3–24 знака, латиница, цифры, точка, дефис, подчёркивание",
+    );
+  });
+
+  it("верные поля включают кнопку и шлют регистрацию вместе с согласиями", async () => {
+    const sent = vi.spyOn(net, "register").mockImplementation(() => {});
+    render(<Register lang="ru" onLogin={() => {}} />);
+    fillRegister({ mail: true });
+
+    const submit = screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(false);
+    expect(screen.getByTestId("register-problem").textContent).toBe("");
+
+    fireEvent.click(submit);
+    expect(sent).toHaveBeenCalledWith("lord.dark", "пароль-из-теста", "lord.dark@mail.test", {
+      rules: true,
+      mail: true,
+    });
+    expect(screen.getByRole("button", { name: "Заводим вход…" })).toBeTruthy();
+  });
+
+  it("кнопка возврата ведёт ко входу", () => {
+    const toLogin = vi.fn();
+    render(<Register lang="ru" onLogin={toLogin} />);
+    fireEvent.click(screen.getByRole("button", { name: "Уже заведён вход — войти" }));
+    expect(toLogin).toHaveBeenCalledTimes(1);
+  });
+});
+
+/** Заполняет окно регистрации как игрок: поля по умолчанию верные. */
+function fillRegister(over: { login?: string; email?: string; repeat?: string; rules?: boolean; mail?: boolean } = {}) {
+  fireEvent.change(screen.getByTestId("register-login"), { target: { value: over.login ?? "lord.dark" } });
+  fireEvent.change(screen.getByTestId("register-email"), {
+    target: { value: over.email ?? "lord.dark@mail.test" },
+  });
+  fireEvent.change(screen.getByTestId("register-password"), { target: { value: "пароль-из-теста" } });
+  fireEvent.change(screen.getByTestId("register-repeat"), {
+    target: { value: over.repeat ?? "пароль-из-теста" },
+  });
+  if (over.rules !== false) fireEvent.click(screen.getByTestId("register-rules"));
+  if (over.mail) fireEvent.click(screen.getByTestId("register-mail"));
+}

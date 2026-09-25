@@ -197,12 +197,20 @@ export const accounts = pgTable(
     id: text("account_id").primaryKey(),
     login: text("login").notNull(),
     loginKey: text("login_key").notNull(),
+    /** Почта аккаунта: не логин. Вход принимает и её. */
+    email: text("email").notNull().default(""),
+    emailKey: text("email_key").notNull().default(""),
     passwordHash: text("password_hash").notNull(),
     lang: text("lang").notNull().default("ru"),
     roles: text("roles").array().notNull().default([]),
+    /** Согласие на письма: необязательное, по умолчанию выключено. */
+    acceptMail: boolean("accept_mail").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex("accounts_login_key_idx").on(table.loginKey)],
+  (table) => [
+    uniqueIndex("accounts_login_key_idx").on(table.loginKey),
+    uniqueIndex("accounts_email_key_idx").on(table.emailKey),
+  ],
 );
 
 /** Сессия. В базе лежит хеш токена, не токен. */

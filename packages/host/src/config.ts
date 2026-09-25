@@ -23,6 +23,11 @@ export const configSchema = z.object({
    * нагрузочного прогона; на боевом мира флага нет.
    */
   COMMAND_RATE: z.coerce.number().int().min(1).max(1_000).default(20),
+  /**
+   * Токен оператора: им включают и гасят модули до появления админской панели.
+   * Пусто — путь закрыт целиком, а не открыт всем.
+   */
+  ADMIN_TOKEN: z.string().default(""),
 });
 
 /**
@@ -50,6 +55,8 @@ export function loadEnvFile(startDir: string = process.cwd()): string | null {
 
 export type HostConfig = z.infer<typeof configSchema> & {
   registrationOpen: boolean;
+  /** Токен оператора: пустая строка — путь выключен. */
+  adminToken: string;
   /** Команд в секунду на соединение. */
   commandRate: number;
   isProduction: boolean;
@@ -71,6 +78,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
   return {
     ...parsed,
     registrationOpen: parsed.REGISTRATION_OPEN === "1",
+    adminToken: parsed.ADMIN_TOKEN,
     commandRate: parsed.COMMAND_RATE,
     isProduction: parsed.NODE_ENV === "production",
   };

@@ -116,8 +116,23 @@ export function connect(): void {
   });
 }
 
-export function register(login: string, password: string): void {
-  send({ t: "auth.register", protocolVersion: PROTOCOL_VERSION, login, password, lang: store.get().lang });
+export function register(
+  login: string,
+  password: string,
+  email: string,
+  /** Правила — только согласие: без него ядро регистрацию не берёт. */
+  consents: { rules: true; mail: boolean },
+): void {
+  send({
+    t: "auth.register",
+    protocolVersion: PROTOCOL_VERSION,
+    login,
+    password,
+    email,
+    acceptRules: consents.rules,
+    acceptMail: consents.mail,
+    lang: store.get().lang,
+  });
 }
 
 export function login(login: string, password: string): void {

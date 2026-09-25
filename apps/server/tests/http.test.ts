@@ -11,6 +11,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig, type HostConfig } from "@tdl/host";
 import { bootServer, type BootedServer } from "../src/boot.js";
+import { kitModule } from "../../../packages/host/tests/kit.js";
 import { readTestDbUrl } from "../../../tools/devdb/testing.js";
 
 function testConfig(): HostConfig {
@@ -41,7 +42,13 @@ describe("порт мира", () => {
     await writeFile(join(dist, "index.html"), "<!doctype html><title>мир</title>", "utf8");
     await writeFile(join(dist, "assets", "app.js"), "export const ok = true;", "utf8");
     await writeFile(join(tmpdir(), "tdl-secret.txt"), "секрет наружу не выходит", "utf8");
-    booted = await bootServer({ config: testConfig(), serveClient: true, clientDist: dist });
+    booted = await bootServer({
+      config: testConfig(),
+      serveClient: true,
+      clientDist: dist,
+      extraModules: [kitModule()],
+      adminToken: "operator-token-0123456789",
+    });
   }, 60_000);
 
   afterAll(async () => {
@@ -90,6 +97,56 @@ describe("порт мира", () => {
     const head = await fetch(`http://127.0.0.1:${booted.port}/`, { method: "HEAD" });
     expect(head.status).toBe(200);
     expect(await head.text()).toBe("");
+  });
+
+  it("переключатель модулей: без токена отказ, с токеном выключение и включение", async () => {
+    const base = `http://127.0.0.1:${booted.port}/api/modules`;
+    const token = { "x-admin-token": "operator-token-0123456789" };
+
+    // Токен не задан или не тот — наружу ничего.
+    expect((await fetch(base)).status).toBe(403);
+    expect((await fetch(base, { headers: { "x-admin-token": "wrong-token-000000000" } })).status).toBe(403);
+    expect(booted.records.some((record) => record.event === "admin.denied")).toBe(true);
+
+    const list = await fetch(base, { headers: token });
+    expect(list.status).toBe(200);
+    const before = (await list.json()) as { modules: { id: string; state: string }[] };
+    expect(before.modules.find((item) => item.id === "_kit")?.state).toBe("enabled");
+
+    // Выключаем: состояние меняется в базе и в памяти писателя.
+    const off = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "_kit", state: "disabled" }),
+    });
+    expect(off.status).toBe(200);
+    const offBody = (await off.json()) as { modules: { id: string; state: string }[] };
+    expect(offBody.modules.find((item) => item.id === "_kit")?.state).toBe("disabled");
+
+    // Включаем обратно: ядро принимает, модуль снова в расчёте.
+    const on = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "_kit", state: "enabled" }),
+    });
+    expect(on.status).toBe(200);
+    const onBody = (await on.json()) as { modules: { id: string; state: string }[] };
+    expect(onBody.modules.find((item) => item.id === "_kit")?.state).toBe("enabled");
+    expect(booted.records.some((record) => record.event === "admin.module.enabled")).toBe(true);
+
+    // Модуля нет в сборке мира — отказ, а не тишина.
+    const missing = await fetch(base, {
+      method: "POST",
+      headers: { ...token, "content-type": "application/json" },
+      body: JSON.stringify({ id: "court", state: "enabled" }),
+    });
+    expect(missing.status).toBe(404);
+
+    // Состояния видны и в здоровье мира.
+    const health = (await (await fetch(`http://127.0.0.1:${booted.port}/api/health`)).json()) as {
+      modules: { id: string; state: string }[];
+    };
+    expect(health.modules.map((item) => item.id).sort()).toEqual(["_kit", "_probe"]);
   });
 
   it("выход из папки сборки закрыт", async () => {

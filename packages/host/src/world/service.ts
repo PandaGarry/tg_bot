@@ -333,6 +333,13 @@ export class WorldService {
     this.journal.write({ channel: "app", worldId: this.worldId, event: `module.${value}`, detail: moduleId });
   }
 
+  /** Состояния модулей мира: смотр админа, панель и тесты. */
+  statesOfModules(): { id: string; state: ModuleState }[] {
+    return this.order
+      .filter((id) => this.byId.has(id))
+      .map((id) => ({ id, state: this.moduleStates.get(id) === "disabled" ? "disabled" : "enabled" }));
+  }
+
   private async reloadModuleStates(): Promise<void> {
     this.moduleStates.clear();
     const rows = await this.db.pool.query<{ module_id: string; state: string }>(

@@ -137,7 +137,12 @@ export interface RowsDeleteEffect {
   key: JsonObject;
 }
 
-/** Модуль гасит себя сам: так живёт сезонное событие. */
+/**
+ * Модуль гасит себя сам: так живёт сезонное событие. Только себя: чужой
+ * выключатель ядро отвергает, иначе один модуль правил бы расчёт другого.
+ * Включение обратно — дело оператора или админа, у модуля такого пути нет:
+ * выключенный модуль не получает ни команды, ни срока.
+ */
 export interface DisableModuleEffect {
   kind: "disable";
   module: ModuleId;
@@ -153,6 +158,7 @@ export interface FailEffect {
 export type Effect =
   | StockEffect
   | ReportEffect
+  | DisableModuleEffect
   | RowsUpsertEffect
   | RowsDeleteEffect
   | GatherStartEffect

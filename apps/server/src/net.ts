@@ -244,7 +244,14 @@ export class SocketHub implements ViewSink {
 
       case "auth.register": {
         state.lang = data.lang;
-        const created = await register(this.gates, { login: data.login, password: data.password, lang: data.lang });
+        const created = await register(this.gates, {
+          login: data.login,
+          password: data.password,
+          email: data.email,
+          acceptRules: data.acceptRules,
+          acceptMail: data.acceptMail,
+          lang: data.lang,
+        });
         if (!created.ok) {
           this.send(state, zServerError.parse({ t: "error", key: created.key }));
           return;

@@ -1,12 +1,24 @@
-/** Вход: язык, имя входа, пароль. Регистрация выключается флагом ворот. */
+/**
+ * Вход: язык, логин или почта, пароль. Регистрация — отдельное окно:
+ * аккаунт и персонаж заводятся врозь, логин не равен никнейму.
+ */
 
 import { useState } from "react";
 import type { Locale } from "@tdl/protocol";
-import { login, register } from "../net.js";
+import { login } from "../net.js";
 import { store } from "../store.js";
 import { translator } from "../i18n/index.js";
 
-export function Boot({ lang, statusKey: status }: { lang: Locale; statusKey: string }) {
+export function Boot({
+  lang,
+  statusKey: status,
+  onRegister,
+}: {
+  lang: Locale;
+  statusKey: string;
+  /** Перейти к окну регистрации аккаунта. */
+  onRegister: () => void;
+}) {
   const t = translator(lang);
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
@@ -67,9 +79,9 @@ export function Boot({ lang, statusKey: status }: { lang: Locale; statusKey: str
         </button>
         <button
           type="button"
-          disabled={!canSubmit}
-          onClick={() => register(loginName.trim(), password)}
-          className="min-h-[44px] rounded border border-stone-700 text-stone-300 disabled:opacity-40"
+          onClick={onRegister}
+          data-testid="boot-to-register"
+          className="min-h-[44px] rounded border border-stone-700 text-stone-300"
         >
           {t("shell.boot.register")}
         </button>

@@ -7,7 +7,7 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createTestWorld, runCommand, type TestWorld } from "./harness.js";
+import { createTestWorld, drain, runCommand, type TestWorld } from "./harness.js";
 import { kitModule } from "./kit.js";
 
 const open: TestWorld[] = [];
@@ -20,6 +20,15 @@ async function kitWorld(): Promise<TestWorld> {
   const world = await createTestWorld({ extraModules: [kitModule()] });
   open.push(world);
   return world;
+}
+
+/** Сколько строк в таблице модуля: проверка «мир не тронут». */
+async function countRows(world: TestWorld, table: string): Promise<number> {
+  const rows = await world.db.pool.query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM ${table} WHERE world_id = $1`,
+    [world.id],
+  );
+  return Number(rows.rows[0]?.count ?? 0);
 }
 
 async function reportRows(world: TestWorld, lordId: string): Promise<number> {
@@ -133,5 +142,67 @@ describe("видимость изменения", () => {
     expect(world.sink.reports(actor.id)).toHaveLength(0);
     expect(world.sink.reports("lord-far")).toHaveLength(1);
     expect(await reportRows(world, "lord-far")).toBe(1);
+  });
+});
+
+describe("выключатель модуля", () => {
+  it("модуль гасит себя сам, а чужой выключатель отвергается", async () => {
+    const world = await kitWorld();
+    const actor = world.actor();
+
+    // _kit пробует погасить _probe: это правка соседа, ядро не даёт.
+    await runCommand(world, actor, "_kit.off-probe", {}, `key-${randomUUID()}`);
+    const statesAfterForeign = world.service.statesOfModules();
+    expect(statesAfterForeign.find((item) => item.id === "_probe")?.state).toBe("enabled");
+
+    // Свой выключатель работает: _kit гасит себя.
+    const self = await runCommand(world, actor, "_kit.off", {}, `key-${randomUUID()}`);
+    expect(self.status).toBe("ok");
+    await drain(world);
+    expect(world.service.statesOfModules().find((item) => item.id === "_kit")?.state).toBe("disabled");
+
+    // Пока выключен, команды модуля получают отказ, а не тишину.
+    const whileOff = await runCommand(world, actor, "_kit.mark", { count: 1 }, `key-${randomUUID()}`);
+    expect(whileOff.status).toBe("error");
+    expect(whileOff.key).toBe("kernel.module.disabled");
+  });
+
+  it("включение оператором возвращает модуль и проводит просроченные сроки по разу", async () => {
+    const world = await createTestWorld({ extraModules: [kitModule()] });
+    open.push(world);
+    const actor = world.actor("lord-keeper");
+
+    // Сперва гасим модуль: пока он выключен, сроки его владельца не берутся.
+    await runCommand(world, actor, "_kit.off", {}, `key-${randomUUID()}`);
+    await drain(world);
+    expect(world.service.statesOfModules().find((item) => item.id === "_kit")?.state).toBe("disabled");
+
+    // Просроченный срок кладём прямо в базу: модуль его видеть не должен.
+    await world.db.pool.query(
+      `INSERT INTO deadlines (id, world_id, owner, wake_at_ms, key, payload, created_at_ms)
+       VALUES ($1, $2, '_kit', $3, $4, '{"mode":"count"}'::jsonb, $3)`,
+      ["kit.overdue", world.id, world.service.now() - 5_000, "kit.overdue"],
+    );
+    // Пока модуль выключен, срок висит и не берётся: ждём ограниченное число проходов.
+    await drain(world, { limit: 3 });
+    expect(await countRows(world, "kit_state")).toBe(0);
+
+    // Оператор включает обратно: просроченный срок проходит один раз.
+    await world.service.setModuleState("_kit", "enabled");
+    await drain(world);
+    expect(world.service.statesOfModules().find((item) => item.id === "_kit")?.state).toBe("enabled");
+    const rows = await world.db.pool.query<{ marks: number }>(
+      "SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = 'world'",
+      [world.id],
+    );
+    expect(Number(rows.rows[0]?.marks ?? 0)).toBe(1);
+
+    // Повторный проход его не удваивает: строка снята вместе с проведением.
+    await drain(world, { limit: 3 });
+    const again = await world.db.pool.query<{ marks: number }>(
+      "SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = 'world'",
+      [world.id],
+    );
+    expect(Number(again.rows[0]?.marks ?? 0)).toBe(1);
   });
 });

@@ -4,6 +4,7 @@
  */
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -18,6 +19,11 @@ export interface HttpOptions {
   service: () => WorldService | null;
   /** Смотр сети: соединения и медленные клиенты. Тесты могут не давать его. */
   net?: () => { connections: number; slowClients: number } | null;
+  /**
+   * Токен оператора: им включают и гасят модули, пока нет админской панели.
+   * Пусто — путь закрыт целиком.
+   */
+  adminToken?: string;
   /** Папка сборки клиента: на бою отдаётся статикой. */
   clientDist?: string;
   /** В разработке клиент отдаёт Vite. */
@@ -38,6 +44,9 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     const vite = await createViteServer({
       root: options.devClientRoot,
       appType: "spa",
+      // Конфиг клиента читает загрузчик Node, а не esbuild: иначе Vite пишет
+      // рядом временный файл конфига, tsx watch видит его и перезапускает мир по кругу.
+      configLoader: "runner",
       // Кеш уходит из репозитория: иначе tsx watch и Vite гоняют друг друга
       // перезапусками на временных файлах.
       cacheDir: join(tmpdir(), "tdl-vite-cache"),
@@ -122,6 +131,8 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
           world: options.worldId,
           ready: service !== null,
           net,
+          // Состояния модулей: видно, что выключено и что включено обратно.
+          modules: service?.statesOfModules() ?? [],
           stats,
         }),
       );
@@ -132,6 +143,10 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       const rows = service ? await service.rejections(100) : [];
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({ rows }));
+      return;
+    }
+    if (url.pathname === "/api/modules") {
+      await handleModules(req, res, url);
       return;
     }
     for (const middleware of middlewares) {
@@ -145,6 +160,66 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     }
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
     res.end("нет такого пути");
+  }
+
+  /**
+   * Переключатель модулей для оператора. До админской панели это единственный
+   * внешний путь: GET отдаёт список, POST меняет состояние. Без токена — отказ,
+   * пустой токен в настройках закрывает путь целиком.
+   */
+  async function handleModules(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
+    const token = options.adminToken ?? "";
+    if (token.length === 0) {
+      res.writeHead(403, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "путь выключен: ADMIN_TOKEN не задан" }));
+      return;
+    }
+    const given = req.headers["x-admin-token"];
+    if (typeof given !== "string" || given.length !== token.length || !timingSafeEqual(Buffer.from(given), Buffer.from(token))) {
+      options.journal.write({ channel: "security", worldId: options.worldId, event: "admin.denied", detail: { path: url.pathname } });
+      res.writeHead(403, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "нет доступа" }));
+      return;
+    }
+    const service = options.service();
+    if (!service) {
+      res.writeHead(503, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "мир ещё не открыт" }));
+      return;
+    }
+    if (req.method === "GET") {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, modules: service.statesOfModules() }));
+      return;
+    }
+    if (req.method !== "POST") {
+      res.writeHead(405, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "нужен GET или POST" }));
+      return;
+    }
+    const body = await readJson(req);
+    const id = typeof body?.id === "string" ? body.id : "";
+    const state = body?.state === "enabled" || body?.state === "disabled" ? body.state : "";
+    if (id.length === 0 || state === "") {
+      res.writeHead(400, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "нужны id и state: enabled или disabled" }));
+      return;
+    }
+    if (!service.statesOfModules().some((module) => module.id === id)) {
+      res.writeHead(404, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "такого модуля нет в сборке мира" }));
+      return;
+    }
+    await service.setModuleState(id, state);
+    options.journal.write({
+      channel: "access",
+      worldId: options.worldId,
+      moduleId: id,
+      event: `admin.module.${state}`,
+      detail: { path: url.pathname },
+    });
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ok: true, modules: service.statesOfModules() }));
   }
 
   return {
@@ -174,4 +249,22 @@ export function clientPaths(): { dist: string; devRoot: string } {
     dist: join(repoRoot, "apps", "client", "dist"),
     devRoot: join(repoRoot, "apps", "client"),
   };
+}
+
+/** Тело запроса: у админских точек только JSON и только небольшого размера. */
+async function readJson(req: IncomingMessage, limit = 4_096): Promise<Record<string, unknown> | null> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    const buffer = chunk as Buffer;
+    size += buffer.length;
+    if (size > limit) return null;
+    chunks.push(buffer);
+  }
+  try {
+    const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    return typeof parsed === "object" && parsed !== null ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
 }

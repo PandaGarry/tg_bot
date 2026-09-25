@@ -17,6 +17,14 @@ export const LIMITS = {
   /** Имя лорда: знаков. */
   lordNameMin: 2,
   lordNameMax: 18,
+  /** Логин аккаунта: латиница, цифры, точка, дефис, подчёркивание. */
+  loginMin: 3,
+  loginMax: 24,
+  /** Почта: знаков. Проверка полная — на сервере. */
+  emailMax: 120,
+  /** Пароль: знаков. */
+  passwordMin: 8,
+  passwordMax: 72,
 } as const;
 
 /** Ключи отказов ядра. Ключи модулей живут в словарях модулей. */
@@ -36,6 +44,8 @@ export const KERNEL_KEYS = {
   login: "kernel.login.failed",
   nameTaken: "kernel.lord.name-taken",
   nameBad: "kernel.lord.name-bad",
+  emailBad: "kernel.account.email-bad",
+  rules: "kernel.account.rules",
 } as const;
 
 export const DEFAULT_LOCALE = "ru";

@@ -501,6 +501,11 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
       }
 
       case "disable": {
+        if (effect.module !== params.moduleId) {
+          // Чужой выключатель — попытка править соседа: отказ, а не тихая запись.
+          noteSim(params, "module.foreign-switch", { claimed: effect.module, computed: params.moduleId });
+          throw new CommandRejected(KERNEL_KEYS.forbidden, { channel: "sim" });
+        }
         await params.client.query(
           `UPDATE module_states SET state = 'disabled' WHERE world_id = $1 AND module_id = $2`,
           [params.worldId, effect.module],

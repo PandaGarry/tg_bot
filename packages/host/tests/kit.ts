@@ -197,6 +197,12 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
             ];
           },
         }),
+        // Попытка погасить соседа: ядро обязано это отвергнуть.
+        defineCommand({
+          id: "_kit.off-probe",
+          input: zNone,
+          handle: () => [{ kind: "disable", module: "_probe" }],
+        }),
         defineCommand({
           id: "_kit.off",
           input: zNone,
