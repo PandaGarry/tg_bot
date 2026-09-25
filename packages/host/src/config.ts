@@ -28,6 +28,14 @@ export const configSchema = z.object({
    * Пусто — путь закрыт целиком, а не открыт всем.
    */
   ADMIN_TOKEN: z.string().default(""),
+  /**
+   * Кто может войти в мир. `public` — все, `admins` — только служебные логины:
+   * так поднимается параллельный мир для проверок и так же закрывается боевой
+   * на время работ. Регистрация в закрытом мире тоже только по списку.
+   */
+  ACCESS_MODE: z.enum(["public", "admins"]).default("public"),
+  /** Служебные логины через запятую: им открыт вход в закрытый мир. */
+  ADMIN_LOGINS: z.string().default(""),
 });
 
 /**
@@ -59,6 +67,10 @@ export type HostConfig = z.infer<typeof configSchema> & {
   adminToken: string;
   /** Команд в секунду на соединение. */
   commandRate: number;
+  /** Служебные логины: сравнение по ключу логина, как в воротах. */
+  adminLogins: readonly string[];
+  /** Мир открыт всем или только служебным аккаунтам. */
+  accessPublic: boolean;
   isProduction: boolean;
 };
 
@@ -79,6 +91,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
     ...parsed,
     registrationOpen: parsed.REGISTRATION_OPEN === "1",
     adminToken: parsed.ADMIN_TOKEN,
+    adminLogins: parsed.ADMIN_LOGINS.split(",")
+      .map((login) => login.trim().toLowerCase())
+      .filter((login) => login.length > 0),
+    accessPublic: parsed.ACCESS_MODE === "public",
     commandRate: parsed.COMMAND_RATE,
     isProduction: parsed.NODE_ENV === "production",
   };

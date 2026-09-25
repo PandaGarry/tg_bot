@@ -38,6 +38,8 @@ export const KERNEL_KEYS = {
   forbidden: "kernel.command.forbidden",
   insufficient: "kernel.stock.insufficient",
   protocol: "kernel.protocol.outdated",
+  /** Мир закрыт: вход только у служебных аккаунтов (параллельный мир, техработы). */
+  privateWorld: "kernel.world.private",
   session: "kernel.session.expired",
   rate: "kernel.session.rate",
   busy: "kernel.busy",

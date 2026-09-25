@@ -14,5 +14,6 @@ art/
 .env
 .env.*
 !.env.example
+!.env.parallel.example
 .devdb/
 .registry-check/

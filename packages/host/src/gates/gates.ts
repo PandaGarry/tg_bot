@@ -45,6 +45,12 @@ function tokenHash(token: string, secret: string): string {
   return createHash("sha256").update(`${secret}:${token}`).digest("hex");
 }
 
+/** Служебный ли логин: в закрытый мир пускаем только по списку из окружения. */
+export function isServiceLogin(config: HostConfig, login: string): boolean {
+  if (config.accessPublic) return true;
+  return config.adminLogins.includes(loginKey(login));
+}
+
 export function loginKey(login: string): string {
   return login.trim().toLowerCase();
 }
@@ -83,6 +89,12 @@ export async function register(
   options: GatesOptions,
   input: { login: string; password: string; email: string; acceptRules: boolean; acceptMail: boolean; lang: Locale },
 ): Promise<GateResult<{ accountId: string }>> {
+  // Закрытый мир: заводить аккаунты может только служебный логин — так
+  // параллельный мир остаётся виден разработке и не открывается игрокам.
+  if (!options.config.accessPublic && !isServiceLogin(options.config, input.login)) {
+    options.journal.write({ channel: "security", event: "gate.register.private", detail: { loginKey: loginKey(input.login) } });
+    return { ok: false, key: KERNEL_KEYS.privateWorld };
+  }
   if (!options.config.registrationOpen) {
     return { ok: false, key: KERNEL_KEYS.registration };
   }
@@ -131,8 +143,8 @@ export async function login(
   }
   const key = loginKey(input.login);
   // Вход принимает и логин, и почту: игрок помнит любое из двух.
-  const rows = await options.db.pool.query<{ account_id: string; password_hash: string }>(
-    `SELECT account_id, password_hash FROM accounts WHERE login_key = $1 OR email_key = $1`,
+  const rows = await options.db.pool.query<{ account_id: string; password_hash: string; login: string }>(
+    `SELECT account_id, password_hash, login FROM accounts WHERE login_key = $1 OR email_key = $1`,
     [key],
   );
   const account = rows.rows[0];
@@ -144,6 +156,12 @@ export async function login(
   if (!good) {
     options.journal.write({ channel: "security", event: "gate.login.bad-password", actorId: account.account_id });
     return { ok: false, key: KERNEL_KEYS.login };
+  }
+  // Пароль верный, но мир закрыт для этого аккаунта: отказ называет причину,
+  // а журнал хранит след — вход в закрытый мир это событие безопасности.
+  if (!options.config.accessPublic && !isServiceLogin(options.config, account.login)) {
+    options.journal.write({ channel: "security", event: "gate.login.private", actorId: account.account_id });
+    return { ok: false, key: KERNEL_KEYS.privateWorld };
   }
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + LIMITS.sessionDays * 24 * 3_600_000);
@@ -159,6 +177,21 @@ export async function login(
   );
   options.journal.write({ channel: "audit", event: "gate.login", actorId: account.account_id });
   return { ok: true, value: { token, accountId: account.account_id, worldId: options.config.WORLD_ID, lordId } };
+}
+
+/**
+ * Выход: сессия отзывается, а не просто забывается клиентом. Иначе украденный
+ * токен жил бы до срока, хотя игрок уже вышел.
+ */
+export async function logout(options: GatesOptions, input: { token: string }): Promise<GateResult<{ accountId: string }>> {
+  const removed = await options.db.pool.query<{ account_id: string }>(
+    `DELETE FROM sessions WHERE token_hash = $1 RETURNING account_id`,
+    [tokenHash(input.token, options.config.SESSION_SECRET)],
+  );
+  const accountId = removed.rows[0]?.account_id ?? null;
+  if (!accountId) return { ok: false, key: KERNEL_KEYS.login };
+  options.journal.write({ channel: "audit", event: "gate.logout", actorId: accountId });
+  return { ok: true, value: { accountId } };
 }
 
 export interface SessionInfo {

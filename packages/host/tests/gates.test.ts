@@ -70,6 +70,36 @@ function account(
   };
 }
 
+describe("закрытый мир", () => {
+  it("пускает только служебный логин, остальным отказывает с причиной", async () => {
+    const first = `adm_${randomUUID().slice(0, 8)}`;
+    const second = `dev_${randomUUID().slice(0, 8)}`;
+    const world = await stand({ ACCESS_MODE: "admins", ADMIN_LOGINS: ` ${first.toUpperCase()}, ${second} ` });
+
+    // Чужого не пускаем даже завести аккаунт: параллельный мир не открывается игрокам.
+    const stranger = await register(world.gates, account("сторонний"));
+    expect(stranger).toEqual({ ok: false, key: KERNEL_KEYS.privateWorld });
+
+    // Служебный логин регистрируется и входит; регистр и пробелы в списке не мешают.
+    const service = await register(world.gates, account(first));
+    expect(service.ok).toBe(true);
+    // Второй служебный логин из списка — тоже свой.
+    const second_ = await register(world.gates, account(second));
+    expect(second_.ok).toBe(true);
+
+    // Аккаунт, заведённый в открытом мире, в закрытый не войдёт: причина названа.
+    const other = await stand();
+    const outside = login_();
+    expect((await register(other.gates, account(outside))).ok).toBe(true);
+    const refused = await login(world.gates, { login: outside, password, protocolVersion: PROTOCOL_VERSION });
+    expect(refused).toEqual({ ok: false, key: KERNEL_KEYS.privateWorld });
+    expect(world.records.some((record) => record.event === "gate.login.private")).toBe(true);
+
+    // В закрытом мире свой вход работает как обычно.
+    expect((await login(world.gates, { login: first, password, protocolVersion: PROTOCOL_VERSION })).ok).toBe(true);
+  });
+});
+
 describe("регистрация", () => {
   it("закрытая регистрация не пускает и не трогает мир", async () => {
     const world = await stand({ REGISTRATION_OPEN: "0" });
