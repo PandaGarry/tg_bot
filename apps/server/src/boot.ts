@@ -25,6 +25,7 @@ import {
   type Journal,
   type JournalRecord,
 } from "@tdl/host";
+import type { ModuleDefinition } from "@tdl/kernel";
 import { PROTOCOL_VERSION } from "@tdl/protocol";
 import { clientPaths, createHttpServer, type HttpHandle } from "./http.js";
 import { SocketHub } from "./net.js";
@@ -40,6 +41,10 @@ export interface BootOptions {
   serveClient?: boolean;
   /** Своя папка сборки клиента: проверка статики и нестандартный выпуск. */
   clientDist?: string;
+  /** Предел буфера отправки: тест задаёт своё число и проверяет медленного клиента. */
+  sendBufferBytes?: number;
+  /** Добавочные модули сборки: тест проверяет край контракта на своём модуле. */
+  extraModules?: readonly ModuleDefinition[];
 }
 
 export interface BootedServer {
@@ -54,6 +59,10 @@ export interface BootedServer {
   /** Записи журнала: тесты читают их, приложение пишет в поток. */
   records: JournalRecord[];
   stop(reason: string): Promise<void>;
+  /** Сколько медленных клиентов отключено: смотр админа и тесты. */
+  slowClientCount(): number;
+  /** Сколько соединений держит мир. */
+  connections(): number;
 }
 
 export async function bootServer(options: BootOptions = {}): Promise<BootedServer> {
@@ -71,13 +80,19 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
 
   const db = createDb(config.DATABASE_URL);
   await applyKernelMigrations(db, journal);
-  const registry = loadRegistry();
+  const registry = loadRegistry(options.extraModules ?? []);
   const world = await ensureWorld(db, config, journal);
   await syncModuleStates(db, registry, world.id);
   await applyModuleMigrations(db, registry, world.id, journal);
 
   const gates: GatesOptions = { db, config, journal };
-  const hub = new SocketHub({ gates, journal, worldId: world.id, commandRate: config.commandRate });
+  const hub = new SocketHub({
+    gates,
+    journal,
+    worldId: world.id,
+    commandRate: config.commandRate,
+    sendBufferBytes: options.sendBufferBytes,
+  });
   const service = await WorldService.open({
     db,
     journal,
@@ -140,5 +155,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     port,
     records,
     stop,
+    slowClientCount: () => hub.slowClientCount(),
+    connections: () => hub.connectionCount(),
   };
 }

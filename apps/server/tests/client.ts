@@ -14,8 +14,11 @@ export class Client {
   private readonly waiters: { match: (message: ServerMessage) => boolean; resolve: (message: ServerMessage) => void }[] = [];
   /** Последний снимок вида: он же уходит клиенту при входе. */
   lastView: Record<string, unknown> | null = null;
+  /** Обещание кода закрытия: тесты ждут отключения медленного клиента. */
+  readonly closed: Promise<number>;
 
   constructor(private readonly socket: WebSocket) {
+    this.closed = new Promise<number>((resolve) => socket.once("close", (code) => resolve(code)));
     socket.on("message", (raw) => {
       const message = JSON.parse(raw.toString()) as ServerMessage;
       if (message.t === "state") this.lastView = message.view as Record<string, unknown>;
@@ -50,6 +53,16 @@ export class Client {
   /** Код закрытия соединения: null, пока оно живо. */
   closeCode(): number | null {
     return this.socket.readyState === WebSocket.CLOSED ? 1006 : null;
+  }
+
+  /** Перестаёт читать: так ведёт себя вкладка, ушедшая в фон. */
+  pauseReading(): void {
+    this.socket.pause();
+  }
+
+  /** Возвращается к чтению: клиент снова принимает патчи. */
+  resumeReading(): void {
+    this.socket.resume();
   }
 
   /** Ждёт сообщение по признаку. Тип ответа задаёт вызывающий: поля он знает сам. */

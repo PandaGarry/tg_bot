@@ -10,7 +10,8 @@ import { loadConfig, type HostConfig } from "@tdl/host";
 import { KERNEL_KEYS, PROTOCOL_VERSION } from "@tdl/protocol";
 import { bootServer, type BootedServer } from "../src/boot.js";
 import { readTestDbUrl } from "../../../tools/devdb/testing.js";
-import { Client, commandMessage, newLord, tokenOf, viewOf } from "./client.js";
+import { kitModule } from "../../../packages/host/tests/kit.js";
+import { Client, commandMessage, newLord, openWithToken, tokenOf, viewOf } from "./client.js";
 
 const booted: BootedServer[] = [];
 
@@ -35,8 +36,13 @@ function testConfig(worldId: string): HostConfig {
   });
 }
 
-async function boot(worldId: string): Promise<BootedServer> {
-  const server = await bootServer({ config: testConfig(worldId), serveClient: false });
+async function boot(worldId: string, sendBufferBytes?: number): Promise<BootedServer> {
+  const server = await bootServer({
+    config: testConfig(worldId),
+    serveClient: false,
+    sendBufferBytes,
+    extraModules: [kitModule()],
+  });
   booted.push(server);
   return server;
 }
@@ -104,6 +110,46 @@ describe("второй процесс на том же мире", () => {
     expect(second.service.stats().failures).toBe(0);
     fresh.close();
     client.close();
+  });
+});
+
+describe("медленный клиент", () => {
+  it("не копит память мира: соединение закрывается, клиент переподключается", async () => {
+    // Предел меньше одного большого патча: проверка не зависит от буферов ядра.
+    const server = await boot(`slow-${randomUUID().slice(0, 8)}`, 8_192);
+    const client = await newLord(server, `lord_${randomUUID().slice(0, 8)}`, "Медленный лорд");
+    const token = tokenOf(client);
+    client.pauseReading();
+
+    client.send(commandMessage("_kit.big-patch", { bytes: 64_000 }));
+    for (let step = 0; step < 100 && server.slowClientCount() === 0; step += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    // Мир закрыл медленное соединение и убрал его из своих.
+    expect(server.slowClientCount()).toBe(1);
+    expect(server.connections()).toBe(0);
+    const journal = server.records.filter((record) => record.event === "net.slow-client");
+    expect(journal).toHaveLength(1);
+    expect(journal[0]?.detail).toMatchObject({ limit: 8_192 });
+
+    // Клиент возвращается к чтению: он получил приказ закрыться и заходит заново.
+    client.resumeReading();
+    const code = await Promise.race([
+      client.closed,
+      new Promise<number>((resolve) => setTimeout(() => resolve(-1), 5_000)),
+    ]);
+    expect(code).toBe(1013);
+    const back = await openWithToken(server, token);
+    expect(viewOf(back).me?.name).toBe("Медленный лорд");
+
+    // Обычный патч в предел влезает: читающий клиент не отключается.
+    back.send(commandMessage("_kit.mark", { count: 1 }));
+    const patch = await back.next<{ t: "patch" }>((message) => message.t === "patch");
+    expect(patch.t).toBe("patch");
+    expect(server.slowClientCount()).toBe(1);
+    expect(server.connections()).toBe(1);
+    back.close();
   });
 });
 

@@ -3,9 +3,10 @@
  * ядро имён модулей не знает, хост берёт их из реестра.
  */
 
-import { buildRegistry, type ModuleRegistry } from "@tdl/kernel";
+import { buildRegistry, type ModuleDefinition, type ModuleRegistry } from "@tdl/kernel";
 import { modules } from "@tdl/modules";
 
-export function loadRegistry(): ModuleRegistry {
-  return buildRegistry(modules);
+/** Добавочные модули: тесты поднимают свой мир с проверочным модулем сборки. */
+export function loadRegistry(extra: readonly ModuleDefinition[] = []): ModuleRegistry {
+  return buildRegistry([...modules, ...extra]);
 }

@@ -40,6 +40,8 @@ export interface HubOptions {
   worldId: string;
   /** Команд в секунду на соединение. Тестовый мир поднимает флаг для прогона. */
   commandRate?: number;
+  /** Предел буфера отправки. Тест задаёт ноль и проверяет отключение медленного клиента. */
+  sendBufferBytes?: number;
 }
 
 export function containsTile(
@@ -60,6 +62,9 @@ export class SocketHub implements ViewSink {
   private readonly journal: Journal;
   private readonly worldId: string;
   private readonly commandRate: number;
+  private readonly sendBufferBytes: number;
+  /** Медленные клиенты: их отключают, чтобы память мира не росла. */
+  private slowClients = 0;
   private readonly states = new Set<SocketState>();
   private service: WorldService | null = null;
   private wss: WebSocketServer | null = null;
@@ -70,6 +75,7 @@ export class SocketHub implements ViewSink {
     this.journal = options.journal;
     this.worldId = options.worldId;
     this.commandRate = options.commandRate ?? LIMITS.commandsPerSecond;
+    this.sendBufferBytes = options.sendBufferBytes ?? LIMITS.sendBufferBytes;
   }
 
   setService(service: WorldService): void {
@@ -96,7 +102,7 @@ export class SocketHub implements ViewSink {
 
   patch(actorId: string, ops: PatchOp[], serverNow: number): void {
     const message = zServerPatch.parse({ t: "patch", serverNow, ops });
-    for (const state of this.byActor(actorId)) this.send(state, message);
+    for (const state of this.byActor(actorId)) this.send(state, message, true);
   }
 
   tiles(tiles: TileRef[], ops: PatchOp[], serverNow: number, actorId: string): void {
@@ -108,13 +114,13 @@ export class SocketHub implements ViewSink {
         seen.add(state);
       }
     }
-    for (const state of seen) this.send(state, message);
+    for (const state of seen) this.send(state, message, true);
   }
 
   clan(clanId: string, ops: PatchOp[], serverNow: number): void {
     const message = zServerPatch.parse({ t: "patch", serverNow, ops });
     for (const state of this.states) {
-      if (state.actor?.clanId === clanId) this.send(state, message);
+      if (state.actor?.clanId === clanId) this.send(state, message, true);
     }
   }
 
@@ -144,8 +150,38 @@ export class SocketHub implements ViewSink {
     return [...this.states].filter((state) => state.actor?.id === actorId);
   }
 
-  private send(state: SocketState, message: unknown): void {
-    if (state.socket.readyState === 1) state.socket.send(JSON.stringify(message));
+  /**
+   * Отправка с пределом. Клиент, который не читает, копит байты в памяти мира:
+   * такой соединение закрывается — игрок переподключится и получит свежий снимок.
+   * Предел стережёт рассылку вида: ответы на вход и ошибки маленькие, их не режем.
+   */
+  private send(state: SocketState, message: unknown, bulk = false): void {
+    if (state.socket.readyState !== 1) return;
+    const text = JSON.stringify(message);
+    if (bulk && state.socket.bufferedAmount + Buffer.byteLength(text) > this.sendBufferBytes) {
+      this.slowClients += 1;
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        actorId: state.actor?.id ?? undefined,
+        event: "net.slow-client",
+        detail: { buffered: state.socket.bufferedAmount, limit: this.sendBufferBytes, slowClients: this.slowClients },
+      });
+      state.socket.close(1013, "client too slow");
+      this.states.delete(state);
+      return;
+    }
+    state.socket.send(text);
+  }
+
+  /** Сколько медленных клиентов отключено за жизнь мира. */
+  slowClientCount(): number {
+    return this.slowClients;
+  }
+
+  /** Сколько соединений держит мир: смотр админа и тесты. */
+  connectionCount(): number {
+    return this.states.size;
   }
 
   private onConnection(socket: WebSocket): void {

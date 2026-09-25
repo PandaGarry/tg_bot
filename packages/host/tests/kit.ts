@@ -20,6 +20,16 @@ const zDeadline = z
   })
   .strict();
 const zDeadlineMode = z.object({ mode: z.enum(["ok", "throw", "refuse"]) }).strict();
+const zTiles = z.object({ tiles: z.array(z.object({ x: z.number().int(), y: z.number().int() })).min(1).max(10) }).strict();
+const zBigPatch = z.object({ bytes: z.number().int().min(1).max(200_000) }).strict();
+const zReport = z
+  .object({
+    id: z.string().min(1).max(64).optional(),
+    kind: z.string().min(1).max(32),
+    /** Ключ строки: пустая строка проверяет фильтр ядра. */
+    rowKey: z.string().max(64).optional(),
+  })
+  .strict();
 
 /** Модуль краёв: ошибки, отказы, чужие таблицы, сроки. */
 export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinition["onDeadline"] } = {}): ModuleDefinition {
@@ -65,6 +75,45 @@ export function kitModule(overrides: { id?: string; onDeadline?: ModuleDefinitio
               { kind: "patch", route: { kind: "actor" }, ops: [{ op: "set", path: "modules._kit.marks", value: input.count }] },
             ];
           },
+        }),
+        // Маршруты патчей: игроку, плиткам, клану. Ядро решает, кому что уходит.
+        defineCommand({
+          id: "_kit.tile-touch",
+          input: zTiles,
+          handle: (_, input) => [
+            { kind: "patch", route: { kind: "tiles", tiles: input.tiles }, ops: [{ op: "set", path: "tiles.kit", value: input.tiles.length }] },
+          ],
+        }),
+        defineCommand({
+          id: "_kit.clan-touch",
+          input: zNone,
+          handle: () => [{ kind: "patch", route: { kind: "clan" }, ops: [{ op: "set", path: "clan.kit", value: 1 }] }],
+        }),
+        // Большой патч: проверка предела буфера отправки у медленного клиента.
+        defineCommand({
+          id: "_kit.big-patch",
+          input: zBigPatch,
+          handle: (_, input) => [
+            {
+              kind: "patch",
+              route: { kind: "actor" },
+              ops: [{ op: "set", path: "modules._kit.blob", value: "x".repeat(input.bytes) }],
+            },
+          ],
+        }),
+        defineCommand({
+          id: "_kit.actor-touch",
+          input: zHolder,
+          handle: (_, input) => [
+            { kind: "patch", route: { kind: "actor", id: input.holder }, ops: [{ op: "set", path: "modules._kit.marks", value: 7 }] },
+          ],
+        }),
+        defineCommand({
+          id: "_kit.report",
+          input: zReport,
+          handle: (_, input) => [
+            { kind: "report", id: input.id, reportKind: input.kind, rows: [{ key: input.rowKey ?? "kit.note" }] },
+          ],
         }),
         defineCommand({
           id: "_kit.crash",
