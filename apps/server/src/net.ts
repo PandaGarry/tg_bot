@@ -12,6 +12,7 @@ import {
   zClientMessage,
   zServerAuth,
   zServerError,
+  zServerOut,
   zServerPatch,
   zServerPong,
   zServerReady,
@@ -21,7 +22,7 @@ import {
 import type { ActorFacts, PatchOp, ReportRow, TileRef } from "@tdl/kernel";
 import type { GatesOptions, Journal, ViewSink, WorldService } from "@tdl/host";
 import type { JsonValue } from "@tdl/protocol";
-import { createLord, login, lordProfile, register, resume } from "@tdl/host";
+import { createLord, login, logout, lordProfile, register, resume } from "@tdl/host";
 
 interface SocketState {
   socket: WebSocket;
@@ -295,6 +296,19 @@ export class SocketHub implements ViewSink {
       case "auth.token": {
         state.lang = data.lang;
         await this.enterWorld(state, data.token);
+        return;
+      }
+
+      case "auth.logout": {
+        // Сессия отзывается, сокет перестаёт быть чьим-либо: рассылка вида его
+        // больше не видит, а старый токен не пустят ни в мире, ни в сокете.
+        const out = await logout(this.gates, { token: data.token });
+        if (data.token === state.token) {
+          state.token = null;
+          state.accountId = null;
+          state.actor = null;
+        }
+        this.send(state, zServerOut.parse({ t: "out", serverNow: this.service?.now() ?? 0, ok: out.ok }));
         return;
       }
 

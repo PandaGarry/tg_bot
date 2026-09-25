@@ -39,6 +39,12 @@ export const zAuthToken = z.object({
   lang: zLocale,
 });
 
+export const zAuthLogout = z.object({
+  t: z.literal("auth.logout"),
+  protocolVersion: z.number().int().nonnegative(),
+  token: z.string().min(16).max(200),
+});
+
 export const zCommandMessage = z.object({
   t: z.literal("command"),
   protocolVersion: z.number().int().nonnegative(),
@@ -79,6 +85,7 @@ export const zClientMessage = z.discriminatedUnion("t", [
   zAuthRegister,
   zAuthLogin,
   zAuthToken,
+  zAuthLogout,
   zCommandMessage,
   zViewportMessage,
   zPing,
@@ -124,6 +131,13 @@ export const zServerReady = z.object({
 
 export const zServerPong = z.object({ t: z.literal("pong"), serverNow: z.number() });
 
+/** Выход подтверждён: клиент возвращается к окну входа. */
+export const zServerOut = z.object({
+  t: z.literal("out"),
+  serverNow: z.number(),
+  ok: z.boolean(),
+});
+
 export const zServerAuth = z.object({
   t: z.literal("auth"),
   serverNow: z.number(),
@@ -140,6 +154,7 @@ export const zServerMessage = z.discriminatedUnion("t", [
   zServerError,
   zServerReport,
   zServerPong,
+  zServerOut,
   zServerAuth,
   zServerReady,
 ]);

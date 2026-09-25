@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { Locale, SlotId, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 import { Slot, hasSlot } from "../slots.js";
+import { logout } from "../net.js";
 import { store } from "../store.js";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
 import { Chronicle } from "./Chronicle.js";
@@ -140,6 +141,18 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               extra={{ opened: sheetOpen, open: () => setSheetOpen(true), close: () => setSheetOpen(false) }}
               empty={<Panel>пусто</Panel>}
             />
+            {/* Аккаунт: пока нет экрана настроек, выход живёт здесь. */}
+            <div className="mt-3 border-t border-stone-800 pt-3">
+              <div className="mb-1 text-xs uppercase tracking-wide text-stone-500">{t("shell.account.title")}</div>
+              <p className="mb-2 text-xs leading-relaxed text-stone-400">{t("shell.account.note")}</p>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="min-h-[44px] w-full rounded border border-stone-700 px-3 text-sm text-bone"
+              >
+                {t("shell.account.logout")}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

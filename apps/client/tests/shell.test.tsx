@@ -15,6 +15,7 @@ import { Chronicle } from "../src/ui/Chronicle.js";
 import { Create } from "../src/ui/Create.js";
 import { World } from "../src/ui/World.js";
 import { shellStrings } from "../src/i18n/shell.js";
+import { store } from "../src/store.js";
 
 beforeEach(() => {
   localStorage.clear();
@@ -117,6 +118,22 @@ describe("двор", () => {
     cleanup();
     render(<World view={view()} lang="ru" serverNow={2} />);
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
+  });
+});
+
+describe("аккаунт", () => {
+  it("выход из игры стирает сессию и возвращает окно входа с регистрацией", () => {
+    store.setAuth({ needsLord: false, token: "токен-из-теста-0123456789", accountId: "acc-1" }, "токен-из-теста-0123456789");
+    expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
+
+    render(<World view={view()} lang="ru" serverNow={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Модули" }));
+    fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
+
+    // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном
+    // увидит окно входа, а не двор ушедшего.
+    expect(store.get().auth).toBe(null);
+    expect(localStorage.getItem("tdl.token")).toBe(null);
   });
 });
 

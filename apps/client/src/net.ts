@@ -99,6 +99,10 @@ export function connect(): void {
         // Способности мира: клиент показывает только открытые узлы.
         store.setReady({ modules: data.modules, resources: data.resources });
         break;
+      case "out":
+        // Сервер подтвердил отзыв сессии: окно входа открыто.
+        store.setAuth(null, null);
+        break;
       case "pong":
         break;
     }
@@ -137,6 +141,16 @@ export function register(
 
 export function login(login: string, password: string): void {
   send({ t: "auth.login", protocolVersion: PROTOCOL_VERSION, login, password, lang: store.get().lang });
+}
+
+/**
+ * Выход: локально выходим сразу, чтобы окно откликалось, а сервер отзывает
+ * сессию — украденный токен после выхода не живёт.
+ */
+export function logout(): void {
+  const token = store.get().auth?.token;
+  if (token) send({ t: "auth.logout", protocolVersion: PROTOCOL_VERSION, token });
+  store.setAuth(null, null);
 }
 
 export function createLord(input: {
