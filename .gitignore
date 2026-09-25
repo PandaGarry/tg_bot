@@ -10,3 +10,9 @@ coverage/
 ashfall-standalone.html
 world-*.png
 art/
+.turbo/
+.env
+.env.*
+!.env.example
+.devdb/
+.registry-check/

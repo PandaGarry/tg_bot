@@ -1,0 +1,23 @@
+{
+  "name": "@tdl/modules",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./registry.gen.ts",
+  "types": "./registry.gen.ts",
+  "exports": {
+    ".": "./registry.gen.ts",
+    "./views": "./views.gen.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tdl/kernel": "workspace:*",
+    "@tdl/module-probe": "workspace:*",
+    "@tdl/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

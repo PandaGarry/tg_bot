@@ -7,3 +7,20 @@
 Документы игры: [docs/game/README.md](docs/game/README.md).
 
 Код ещё не начат. Порядок работ: [docs/game/06-plan.md](docs/game/06-plan.md).
+
+## Разработка
+
+```bash
+cp .env.example .env      # адрес базы, порт, секрет сессий
+pnpm dev:db               # местный Postgres на 55432 (первый раз — инициализация)
+pnpm dev                  # мир: API, сокет и клиент через Vite на PORT из .env
+pnpm db:reset             # снести схему базы разработки и поднять мир заново
+```
+
+Проверки: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`.
+Тесты идут на настоящем Postgres: каждый пакет сносит схему своей базы
+`tdl_test_<пакет>` и не трогает рабочую. Адрес можно задать явно —
+`TDL_TEST_DB_URL` (тогда имя базы обязано содержать `test`).
+
+Файлы `.env` и `.devdb/` в репозиторий не попадают: после переноса окружения
+их нужно создать заново (`cp .env.example .env`, `pnpm dev:db`).
