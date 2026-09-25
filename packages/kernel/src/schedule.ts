@@ -54,6 +54,12 @@ export interface PlanOptions {
   /** Зерно мира: выбор повседневных окон. */
   seed: number;
   anchorMs?: number;
+  /**
+   * Примерка поры года: пока оператор держит включённой не ту пору, что на
+   * календаре, содержимое повседневных окон берётся по его поре. Дни вне
+   * промежутка живут по календарю — это примерка, а не новый календарь.
+   */
+  seasonOverride?: { season: SeasonId; fromMs: number; toMs: number };
 }
 
 export interface SkipNote {
@@ -311,7 +317,7 @@ export function planWindows(options: PlanOptions): { windows: PlannedWindow[]; s
       if (monthCountWithin(state, month) >= LANES[lane].maxPerMonth) continue;
       const dayIndexValue = index;
       const parts4 = parts;
-      const season = seasonOfMonth(parts4.month);
+      const season = seasonForDay(parts4.month, dayStartMs(index, tz), options.seasonOverride);
       const fits = ({ unit }: { unit: UnitDecl }): boolean => {
         const rotation = unit.rotation as RotationDecl;
         if (rotation.weekdays && !rotation.weekdays.includes(parts4.weekday)) return false;
@@ -450,9 +456,27 @@ export function planProblems(options: PlanOptions, year: number): string[] {
   return problems;
 }
 
+/** Начало суток мира, в которые попадает миг: нужно примерке поры года. */
+export function dayStartOf(ms: number, tzOffsetMin: number): number {
+  return dayStartMs(dayIndex(ms, tzOffsetMin), tzOffsetMin);
+}
+
 /** Поры года по дате: нужна модулям вида и наполнению пулов. */
 export function seasonAt(ms: number, tzOffsetMin: number): SeasonId {
   return seasonOfMonth(partsOf(dayIndex(ms, tzOffsetMin), tzOffsetMin).month);
+}
+
+/**
+ * Пора года для дня плана: календарь, а на время примерки — пора оператора.
+ * Считается по началу суток, поэтому день не может попасть в две поры.
+ */
+function seasonForDay(
+  month: number,
+  dayStart: number,
+  override?: { season: SeasonId; fromMs: number; toMs: number },
+): SeasonId {
+  if (override && dayStart >= override.fromMs && dayStart < override.toMs) return override.season;
+  return seasonOfMonth(month);
 }
 
 export function daysInMonthOf(month: number): number {

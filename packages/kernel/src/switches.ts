@@ -7,7 +7,7 @@
 
 import type { ModuleDefinition } from "./module.js";
 import type { ModuleId, ModuleState } from "./types.js";
-import type { LaneId, UnitDecl, UnitId, UnitRole } from "./units.js";
+import { LANES, type LaneId, type UnitDecl, type UnitId, type UnitRole } from "./units.js";
 import type { PlannedWindow } from "./schedule.js";
 
 /** Полное имя единицы: «модуль.единица». Оно же ключ переключателя. */
@@ -61,6 +61,8 @@ export type SwitchReason =
   | "module-off"
   /** Оператор закрыл с причиной и сроком: карантин. */
   | "quarantine"
+  /** Уступила место: в полосе «ровно одна» сейчас включена другая единица. */
+  | "yielded"
   /** Модуль закрыт по рождению мира: ждёт своего шага плана. */
   | "module-closed";
 
@@ -84,6 +86,10 @@ export interface UnitState {
   failures?: number;
   /** Что случилось: короткая строка для панели оператора. */
   lastError?: string;
+  /** Кому уступила: ключ единицы, которая сейчас включена в полосе. */
+  yieldedTo?: string;
+  /** Живёт по этой единице модуля: состояние взято у неё, а не своё. */
+  followsKey?: string;
 }
 
 export interface SwitchInput {
@@ -149,6 +155,26 @@ export function unitStates(input: SwitchInput): UnitState[] {
     if (!existing || window.stop > existing.stop) active.set(key, window);
   }
 
+  // Полоса «ровно одна единица»: если оператор включил в ней единицу, соседи
+  // уступают, пока его воля в силе. Мир не спорит сам с собой, а примерка сезона
+  // не оставляет две поры года разом.
+  const winners = new Map<LaneId, { key: string; until?: number }>();
+  for (const { moduleId, kind, unit } of declaredUnits(definitions)) {
+    if (kind !== "seasonal" && !unit.lane) continue;
+    if (!unit.lane || !LANES[unit.lane].exactlyOne) continue;
+    const override = input.units?.get(unitKey(moduleId, unit.id));
+    if (!override || override.state !== "enabled" || !overrideInForce(override, now)) continue;
+    const key = unitKey(moduleId, unit.id);
+    const existing = winners.get(unit.lane);
+    // Сильнее та воля, что дольше: без срока — навсегда, иначе поздний срок.
+    const weight = override.until === undefined || override.until <= 0 ? Number.POSITIVE_INFINITY : override.until;
+    const existingWeight = existing === undefined ? -1 : (existing.until ?? Number.POSITIVE_INFINITY);
+    if (!existing || weight > existingWeight || (weight === existingWeight && key < existing.key)) {
+      winners.set(unit.lane, { key, ...(override.until ? { until: override.until } : {}) });
+    }
+  }
+
+  const byKey = new Map<string, UnitState>();
   for (const { moduleId, kind, unit } of declaredUnits(definitions)) {
     const key = unitKey(moduleId, unit.id);
     const declared = unit.defaultState ?? "enabled";
@@ -169,21 +195,35 @@ export function unitStates(input: SwitchInput): UnitState[] {
     };
 
     const quarantine = input.quarantined?.get(key) ?? input.quarantined?.get(moduleId);
-    if (overrideInForce(override, now)) {
-      // 1. Воля оператора: сильнее всего остального.
+    const winner = unit.lane && LANES[unit.lane].exactlyOne ? winners.get(unit.lane) : undefined;
+    // Уступает только тот, кто без перебивки был бы включён: «лето зимой» — это
+    // законный отдых по календарю, а не уступка, и панель не должна звать его уступкой.
+    const wouldBeOn =
+      (override !== undefined && override.state === "enabled" && overrideInForce(override, now)) ||
+      window !== undefined ||
+      (unit.window === undefined && unit.rotation === undefined && (unit.defaultState ?? "enabled") === "enabled");
+    if (winner && winner.key !== key && wouldBeOn) {
+      // 1. Полоса «ровно одна»: сосед уступил воле оператора и виден панели.
+      //    Это сильнее даже собственной воли: две поры года разом мир не показывает.
+      state.state = "disabled";
+      state.reason = "yielded";
+      state.yieldedTo = winner.key;
+      if (winner.until) state.until = winner.until;
+    } else if (overrideInForce(override, now)) {
+      // 2. Воля оператора: сильнее календаря и вида модуля.
       state.state = override!.state;
       state.reason = "operator";
       if (override!.until) state.until = override!.until;
       if (override!.reason) state.note = override!.reason;
     } else if (quarantineInForce(quarantine, now)) {
-      // 2. Карантин: ядро убрало сбойную единицу с расчёта и лечит её само.
+      // 3. Карантин: ядро убрало сбойную единицу с расчёта и лечит её само.
       state.state = "disabled";
       state.reason = "quarantine";
       if (quarantine!.until > now) state.until = quarantine!.until;
       state.failures = quarantine!.failures;
       if (quarantine!.lastError) state.lastError = quarantine!.lastError;
     } else if (!moduleOn) {
-      // 2. Модуль закрыт: его единицы молчат, но окно видно панели.
+      // 4. Модуль закрыт: его единицы молчат, но окно видно панели.
       state.state = "disabled";
       state.reason = moduleOverride?.fromDeclaration ? "module-closed" : "module-off";
       if (moduleOverride?.until) state.until = moduleOverride.until;
@@ -204,6 +244,25 @@ export function unitStates(input: SwitchInput): UnitState[] {
 
     if (window) state.window = { key: window.key, start: window.start, stop: window.stop };
     states.push(state);
+    byKey.set(key, state);
+  }
+
+  // Спутники: вид поры года повторяет саму пору, а не решает сам.
+  for (const { moduleId, unit } of declaredUnits(definitions)) {
+    if (!unit.follows) continue;
+    const key = unitKey(moduleId, unit.id);
+    const own = byKey.get(key);
+    const source = byKey.get(unitKey(moduleId, unit.follows));
+    if (!own || !source) continue;
+    own.state = source.state;
+    own.reason = source.reason;
+    own.followsKey = source.key;
+    own.until = source.until;
+    own.note = source.note;
+    own.window = source.window;
+    own.yieldedTo = source.yieldedTo;
+    own.failures = source.failures;
+    own.lastError = source.lastError;
   }
 
   return states.sort((left, right) => left.key.localeCompare(right.key));

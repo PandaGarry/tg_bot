@@ -30,16 +30,20 @@ import {
   type StockSnapshot,
   type TileRef,
   type UnitState,
+  dayStartOf,
+  LANES,
   moduleIsOn,
   planHorizon,
   planIsFresh,
   planWindows,
+  overrideInForce,
   quarantineInForce,
   unitStates,
   windowsActiveAt,
   windowsEndedBetween,
   windowsStartedBetween,
   type Quarantine,
+  type SeasonId,
   type SkipNote,
 } from "@tdl/kernel";
 import { KERNEL_KEYS } from "@tdl/protocol";
@@ -121,6 +125,11 @@ const DEADLINE_BATCH = 16;
 
 /** После стольких ошибок срок снимается: сломанный модуль не держит писателя. */
 const MAX_DEADLINE_ATTEMPTS = 5;
+
+/** Сколько живёт примерка поры года без срока: одна пора, дальше снова календарь. */
+const SEASON_REHEARSAL_MS = 92 * 86_400_000;
+
+const SEASON_IDS: readonly SeasonId[] = ["spring", "summer", "autumn", "winter"];
 
 interface TxContext {
   client: PoolClient;
@@ -215,6 +224,12 @@ export class WorldService {
   private scheduleResumed = 0;
   private scheduleContinued = 0;
   private scheduleMissed = 0;
+  /** Что примеряет оператор: включённая не по календарю пора года. */
+  private seasonRehearsal: { season: SeasonId; toMs: number } | null = null;
+  /** Ключ последней записи в журнал о примерке: не повторяем одну и ту же. */
+  private lastRehearsalKey: string | null = null;
+  /** По какой примерке посчитан текущий план: сменилась — план пересчитывается. */
+  private planRehearsalKey = "";
   private quarantines = 0;
   /** Пропуски полос из последнего плана: видны в /api/health. */
   private planSkipped: SkipNote[] = [];
@@ -371,6 +386,8 @@ export class WorldService {
     scheduleResumed: number;
     scheduleContinued: number;
     scheduleMissed: number;
+    /** Что примеряет оператор: пора года, взятая не по календарю. */
+    seasonRehearsal: { season: SeasonId; toMs: number } | null;
     planHorizonMs: number;
   } {
     return {
@@ -399,6 +416,7 @@ export class WorldService {
       scheduleResumed: this.scheduleResumed,
       scheduleContinued: this.scheduleContinued,
       scheduleMissed: this.scheduleMissed,
+      seasonRehearsal: this.seasonRehearsal,
       planHorizonMs: planHorizon(this.planWindows),
     };
   }
@@ -439,10 +457,22 @@ export class WorldService {
    */
   async setModuleState(
     moduleId: ModuleId,
-    state: ModuleState,
+    state: ModuleState | "auto",
     options: { until?: number; reason?: string } = {},
   ): Promise<void> {
     if (!this.byId.has(moduleId)) throw new Error(`модуль ${moduleId} не в сборке`);
+    // «Вернуть календарю»: запись оператора стирается, дальше решает объявление
+    // модуля и расписание. Работает и для модуля, и для единицы — см. доки.
+    if (state === "auto") {
+      await this.tx(async ({ client }) => {
+        await client.query(`DELETE FROM module_states WHERE world_id = $1 AND module_id = $2`, [this.worldId, moduleId]);
+      });
+      await this.reloadModuleStates();
+      this.switchesValidUntilMs = 0;
+      this.clearCaches();
+      this.journal.write({ channel: "app", worldId: this.worldId, event: "module.auto", detail: { moduleId } });
+      return;
+    }
     const value = state === "disabled" ? "disabled" : "enabled";
     const until = options.until && options.until > 0 ? Math.round(options.until) : 0;
     // Вернули модуль в строй без причины и срока — запись остаётся, но пустой:
@@ -703,16 +733,23 @@ export class WorldService {
     const now = this.calendarNow();
     const wanted = Math.max(now + PLAN_HORIZON_DAYS * 86_400_000, untilMs);
     const covered = planHorizon(this.planWindows) >= wanted;
-    if (this.planWindows.length === 0 || !covered || !planIsFresh(this.planWindows, now, PLAN_REFRESH_MARGIN_MS)) {
+    const rehearsal = this.rehearsalNow();
+    const rehearsalKey = rehearsal ? `${rehearsal.season}:${rehearsal.toMs}` : "";
+    // Примерка сменилась — план пересчитывается сразу, иначе окна остались бы
+    // от прежней поры: примерка была бы видна в панели, но не в мире.
+    const stale = rehearsalKey !== this.planRehearsalKey;
+    if (this.planWindows.length === 0 || !covered || stale || !planIsFresh(this.planWindows, now, PLAN_REFRESH_MARGIN_MS)) {
       const plan = planWindows({
         modules: [...this.byId.values()],
         from: now,
         to: wanted,
         tzOffsetMin: this.tzOffsetMin(),
         seed: Number(this.world.seed),
+        ...(rehearsal ? { seasonOverride: { season: rehearsal.season, fromMs: rehearsal.fromMs, toMs: rehearsal.toMs } } : {}),
       });
       this.planWindows = plan.windows;
       this.planSkipped = plan.skipped;
+      this.planRehearsalKey = rehearsalKey;
       // Состояния пересчитываются вместе с планом: окна могли сдвинуться.
       this.switchesValidUntilMs = 0;
     }
@@ -725,13 +762,48 @@ export class WorldService {
    * начались и кончились, пока мир стоял.
    */
   private planOver(fromMs: number, toMs: number): readonly PlannedWindow[] {
+    const rehearsal = this.rehearsalNow();
     return planWindows({
       modules: [...this.byId.values()],
       from: fromMs,
       to: toMs,
       tzOffsetMin: this.tzOffsetMin(),
       seed: Number(this.world.seed),
+      ...(rehearsal ? { seasonOverride: { season: rehearsal.season, fromMs: rehearsal.fromMs, toMs: rehearsal.toMs } } : {}),
     }).windows;
+  }
+
+  /**
+   * Примерка поры года: оператор включил не ту пору, что на календаре, — значит
+   * он готовится к ней и хочет видеть её содержимое. Пока его воля в силе,
+   * повседневные окна берутся по его поре; дальше снова решает календарь.
+   */
+  private rehearsalNow(): { season: SeasonId; fromMs: number; toMs: number } | null {
+    const now = this.calendarNow();
+    let found: { season: SeasonId; fromMs: number; toMs: number } | null = null;
+    for (const [key, override] of this.unitOverrides) {
+      if (override.state !== "enabled" || !overrideInForce(override, now)) continue;
+      const dot = key.indexOf(".");
+      const unit = this.byId.get(key.slice(0, dot))?.units?.find((item) => item.id === key.slice(dot + 1));
+      if (!unit || unit.role !== "season" || !SEASON_IDS.includes(unit.id as SeasonId)) continue;
+      const toMs = override.until && override.until > now ? override.until : now + SEASON_REHEARSAL_MS;
+      // Примерка идёт с начала текущих суток: иначе окно дня, начавшееся утром,
+      // осталось бы от прежней поры, и содержимое не сменилось бы до завтра.
+      found = { season: unit.id as SeasonId, fromMs: dayStartOf(now, this.tzOffsetMin()), toMs };
+      break;
+    }
+    this.seasonRehearsal = found ? { season: found.season, toMs: found.toMs } : null;
+    const key = found ? `${found.season}:${found.toMs}` : null;
+    if (key !== null && key !== this.lastRehearsalKey) {
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        event: "schedule.rehearsal",
+        detail: { season: found!.season, fromMs: found!.fromMs, toMs: found!.toMs },
+      });
+    }
+    this.lastRehearsalKey = key;
+    return found;
   }
 
   /**
@@ -937,6 +1009,45 @@ export class WorldService {
     return map;
   }
 
+  /**
+   * Примерка одна за раз: в полосе «ровно одна» новая воля оператора снимает
+   * прежнюю. Снятие видно в журнале, а база не копит чужие записи.
+   */
+  private async replaceLaneOverride(moduleId: ModuleId, unitId: string): Promise<void> {
+    const lane = this.byId.get(moduleId)?.units?.find((unit) => unit.id === unitId)?.lane;
+    if (!lane || !LANES[lane].exactlyOne) return;
+    const key = `${moduleId}.${unitId}`;
+    const removed: string[] = [];
+    for (const [otherKey, override] of [...this.unitOverrides]) {
+      if (otherKey === key) continue;
+      const dot = otherKey.indexOf(".");
+      const otherLane = this.byId.get(otherKey.slice(0, dot))?.units?.find((unit) => unit.id === otherKey.slice(dot + 1))?.lane;
+      if (otherLane !== lane) continue;
+      if (override.state !== "enabled") continue;
+      this.unitOverrides.delete(otherKey);
+      removed.push(otherKey);
+    }
+    if (removed.length === 0) return;
+    await this.tx(async ({ client }) => {
+      for (const otherKey of removed) {
+        const dot = otherKey.indexOf(".");
+        await client.query(`DELETE FROM unit_states WHERE world_id = $1 AND module_id = $2 AND unit_id = $3`, [
+          this.worldId,
+          otherKey.slice(0, dot),
+          otherKey.slice(dot + 1),
+        ]);
+      }
+    });
+    for (const otherKey of removed) {
+      this.journal.write({
+        channel: "app",
+        worldId: this.worldId,
+        event: "unit.replaced",
+        detail: { key: otherKey, by: key, lane },
+      });
+    }
+  }
+
   /** Состояние единицы на этот миг: null — единицы нет в сборке. */
   unitStateOf(key: string): UnitState | null {
     return this.switches().find((unit) => unit.key === key) ?? null;
@@ -955,13 +1066,31 @@ export class WorldService {
   async setUnitState(
     moduleId: ModuleId,
     unitId: string,
-    state: ModuleState,
+    state: ModuleState | "auto",
     options: { until?: number; reason?: string } = {},
   ): Promise<void> {
     const def = this.byId.get(moduleId);
     if (!def) throw new Error(`модуль ${moduleId} не в сборке`);
     if (!(def.units ?? []).some((unit) => unit.id === unitId)) {
       throw new Error(`единицы ${unitId} нет в модуле ${moduleId}`);
+    }
+    // «Вернуть календарю»: примерка снимается целиком, а не превращается в
+    // бессрочный запрет. Важно для сезонов: снятая примерка не должна помешать
+    // поре года включиться в свой день.
+    if (state === "auto") {
+      const key = `${moduleId}.${unitId}`;
+      await this.tx(async ({ client }) => {
+        await client.query(`DELETE FROM unit_states WHERE world_id = $1 AND module_id = $2 AND unit_id = $3`, [
+          this.worldId,
+          moduleId,
+          unitId,
+        ]);
+      });
+      this.unitOverrides.delete(key);
+      this.switchesValidUntilMs = 0;
+      this.clearCaches();
+      this.journal.write({ channel: "app", worldId: this.worldId, moduleId, event: "unit.auto", detail: { key } });
+      return;
     }
     const value = state === "disabled" ? "disabled" : "enabled";
     const until = options.until && options.until > 0 ? Math.round(options.until) : 0;
@@ -992,7 +1121,12 @@ export class WorldService {
     } else {
       this.unitOverrides.set(key, { state: value, ...(until > 0 ? { until } : {}), ...(options.reason ? { reason: options.reason } : {}) });
     }
-    if (value === "enabled") await this.clearQuarantineOf(moduleId, unitId);
+    if (value === "enabled") {
+      await this.clearQuarantineOf(moduleId, unitId);
+      // Полоса «ровно одна»: примерка идёт по одной. Включая новую пору, оператор
+      // снимает прежнюю — иначе пришлось бы угадывать, чья воля сильнее.
+      await this.replaceLaneOverride(moduleId, unitId);
+    }
     this.switchesValidUntilMs = 0;
     this.clearCaches();
     this.journal.write({

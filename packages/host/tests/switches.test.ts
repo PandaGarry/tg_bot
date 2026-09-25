@@ -254,6 +254,86 @@ describe("переключатели единиц мира", () => {
     }
   });
 
+  it("примерка зимы: пора включается вне календаря, осень уступает, вид идёт следом", async () => {
+    const world = await createTestWorld();
+    try {
+      const seasonOf = (key: string): { state: string; reason: string; follows?: string } => {
+        const unit = world.service.unitStateOf(key);
+        return { state: unit?.state ?? "", reason: unit?.reason ?? "", ...(unit?.followsKey ? { follows: unit.followsKey } : {}) };
+      };
+      // Календарь сегодня: осень включена, вид осени идёт за ней.
+      expect(seasonOf("season-autumn.autumn").state).toBe("enabled");
+      expect(seasonOf("season-autumn.look")).toMatchObject({ state: "enabled", follows: "season-autumn.autumn" });
+      expect(seasonOf("season-winter.look").state).toBe("disabled");
+
+      // Сперва оператор включил осень вручную: её воля тоже лежит в базе.
+      await world.service.setUnitState("season-autumn", "autumn", "enabled", {
+        until: world.service.calendarNow() + 600_000,
+        reason: "ручная осень",
+      });
+
+      // Оператор примеряет зиму: включаем единицу поры на срок для подготовки.
+      await world.service.setUnitState("season-winter", "winter", "enabled", {
+        until: world.service.calendarNow() + 60_000,
+        reason: "подготовка к зиме",
+      });
+
+      // Осень уступила, но её окно видно панели; зима и её вид включены.
+      expect(seasonOf("season-winter.winter")).toMatchObject({ state: "enabled", reason: "operator" });
+      expect(seasonOf("season-winter.look")).toMatchObject({ state: "enabled", follows: "season-winter.winter" });
+      expect(seasonOf("season-autumn.autumn")).toMatchObject({ state: "disabled", reason: "yielded" });
+      expect(seasonOf("season-autumn.look").state).toBe("disabled");
+      // Ровно одна пора включена — тот же инвариант, что держит календарь.
+      const seasons = world.service.statesOfUnits().filter((unit) => unit.role === "season");
+      expect(seasons.filter((unit) => unit.state === "enabled").map((unit) => unit.key)).toEqual(["season-winter.winter"]);
+
+      // Примерка видна снаружи и в журнале: оператор понимает, что мир живёт не по календарю.
+      expect(world.service.stats().seasonRehearsal?.season).toBe("winter");
+      expect(world.records.some((record) => record.event === "schedule.rehearsal")).toBe(true);
+
+      // Содержимое повседневных окон берётся по примеряемой поре: зимние окна
+      // выпадают, летние — нет. Иначе примерка была бы видна в панели, но не в мире.
+      const daily = new Set(
+        world.service
+          .schedulePlan()
+          .filter((window) => window.moduleId === "day-window")
+          .map((window) => window.unitId),
+      );
+      expect(daily.has("wall-day")).toBe(true);
+      expect(daily.has("build-day")).toBe(false);
+      // В журнал о примерке сказано один раз, а не на каждом проходе.
+      expect(world.records.filter((record) => record.event === "schedule.rehearsal")).toHaveLength(1);
+      // Примерка одна за раз: прежняя воля оператора снята и не копится в базе.
+      expect(world.records.some((record) => record.event === "unit.replaced")).toBe(true);
+      const rows = await world.db.pool.query<{ unit_id: string; state: string }>(
+        `SELECT unit_id, state FROM unit_states WHERE world_id = $1 AND state = 'enabled'`,
+        [world.id],
+      );
+      expect(rows.rows.map((row) => row.unit_id)).toEqual(["winter"]);
+
+      // Снимаем примерку явно: «вернуть календарю». Календарь возвращается сам,
+      // и записи о зиме в базе не остаётся — иначе 1 декабря зима не наступила бы.
+      await world.service.setUnitState("season-winter", "winter", "auto");
+      expect(seasonOf("season-autumn.autumn")).toMatchObject({ state: "enabled", reason: "window" });
+      expect(seasonOf("season-winter.winter").state).toBe("disabled");
+      expect(world.service.stats().seasonRehearsal).toBeNull();
+      const leftovers = await world.db.pool.query(
+        `SELECT 1 FROM unit_states WHERE world_id = $1 AND module_id = 'season-winter'`,
+        [world.id],
+      );
+      expect(leftovers.rowCount).toBe(0);
+
+      // А выключение обычным путём оставляет волю оператора: это не примерка,
+      // а решение, и оно честно видно панели.
+      await world.service.setUnitState("season-winter", "winter", "disabled");
+      expect(seasonOf("season-winter.winter")).toMatchObject({ state: "disabled", reason: "operator" });
+      await world.service.setUnitState("season-winter", "winter", "auto");
+      expect(seasonOf("season-winter.winter")).toMatchObject({ state: "disabled", reason: "between-windows" });
+    } finally {
+      await world.close();
+    }
+  });
+
   it("чужая единица не переключается: отказ вместо тишины", async () => {
     const world = await createTestWorld();
     try {

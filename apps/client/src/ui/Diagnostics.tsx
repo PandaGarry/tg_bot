@@ -10,8 +10,15 @@ import { store } from "../store.js";
 
 interface Health {
   ok: boolean;
+  world: string;
   ready: boolean;
-  stats: { epoch: number; pending: number; rejections: number; modulesEnabled: number } | null;
+  stats: {
+    epoch: number;
+    pending: number;
+    rejections: number;
+    modulesEnabled: number;
+    seasonRehearsal: { season: string; toMs: number } | null;
+  } | null;
 }
 
 export function Diagnostics({ lang }: { lang: Locale }) {
@@ -55,9 +62,19 @@ export function Diagnostics({ lang }: { lang: Locale }) {
             {t("shell.diag.patches")}: {state.patches} · {t("shell.diag.errors")}: {state.errors.length}
           </span>
           <span>
+            {t("shell.diag.world")}: {health?.world ?? "—"}
+            {world ? ` (${world.name})` : ""}
+          </span>
+          <span>
             {t("shell.world.now")}: {world ? new Date(world.now).toISOString().slice(11, 19) : "—"} ·{" "}
             {t("shell.world.downtime")}: {world ? Math.round(world.downtimeMs / 1000) : 0}с
           </span>
+          {health?.stats?.seasonRehearsal ? (
+            // Примерка: мир живёт не по календарю, и это видно в служебной полосе.
+            <span className="text-amber-500">
+              {t("shell.diag.rehearsal")}: {health.stats.seasonRehearsal.season}
+            </span>
+          ) : null}
           {state.errors.slice(0, 5).map((error, index) => (
             <span key={`${error.at}-${index}`} className="text-amber-600">
               {t(error.key, error.params)}

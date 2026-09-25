@@ -59,6 +59,75 @@ console.log("");
 console.log("окон по единицам:");
 for (const [key, count] of [...byUnit.entries()].sort()) console.log(`  ${pad(key, 34)}${count}`);
 
+// Нагрузка по суткам: сколько окон начинается и сколько идёт разом.
+// Один взгляд — и видно, не захламлён ли день событиями.
+{
+  const startsByDay = new Map<string, number>();
+  const lanesByDay = new Map<string, Set<string>>();
+  for (const window of windows) {
+    if (window.start < from || window.start >= to) continue;
+    const day = dayOf(window.start);
+    startsByDay.set(day, (startsByDay.get(day) ?? 0) + 1);
+    const lanes = lanesByDay.get(day) ?? new Set<string>();
+    lanes.add(window.lane ?? "—");
+    lanesByDay.set(day, lanes);
+  }
+  const totalDays = Math.max(1, Math.round((to - from) / 86_400_000));
+  let emptyDays = 0;
+  let maxDay = 0;
+  let sum = 0;
+  const histogram = new Map<number, number>();
+  for (let index = 0; index < totalDays; index += 1) {
+    const day = dayOf(from + index * 86_400_000);
+    const count = startsByDay.get(day) ?? 0;
+    if (count === 0) emptyDays += 1;
+    maxDay = Math.max(maxDay, count);
+    sum += count;
+    histogram.set(count, (histogram.get(count) ?? 0) + 1);
+  }
+  // Одновременность: разворачиваем окна в края и считаем накопление.
+  const edges: { at: number; delta: number; lane: string }[] = [];
+  for (const window of windows) {
+    edges.push({ at: window.start, delta: 1, lane: window.lane ?? "—" });
+    edges.push({ at: window.stop, delta: -1, lane: window.lane ?? "—" });
+  }
+  edges.sort((left, right) => left.at - right.at || left.delta - right.delta);
+  let live = 0;
+  let maxLive = 0;
+  let maxLiveAt = from;
+  const liveByLane = new Map<string, number>();
+  const maxByLane = new Map<string, number>();
+  for (const edge of edges) {
+    live += edge.delta;
+    liveByLane.set(edge.lane, (liveByLane.get(edge.lane) ?? 0) + edge.delta);
+    const lanePeak = liveByLane.get(edge.lane) ?? 0;
+    if (lanePeak > (maxByLane.get(edge.lane) ?? 0)) maxByLane.set(edge.lane, lanePeak);
+    if (live > maxLive) {
+      maxLive = live;
+      maxLiveAt = edge.at;
+    }
+  }
+  console.log("");
+  console.log("нагрузка:");
+  console.log(`  окон начинается за сутки: в среднем ${(sum / totalDays).toFixed(1)}, самое большее ${maxDay}`);
+  console.log(`  дней без начала окна: ${emptyDays} из ${totalDays} (законный день без событий)`);
+  console.log(`  одновременно идёт окон: не больше ${maxLive} (${local(maxLiveAt)})`);
+  console.log(
+    "  по числу окон в сутки: " +
+      [...histogram.entries()]
+        .sort((left, right) => left[0] - right[0])
+        .map(([count, daysCount]) => `${count} — ${daysCount} дн.`)
+        .join(", "),
+  );
+  console.log(
+    "  полос разом не больше: " +
+      [...maxByLane.entries()]
+        .sort()
+        .map(([lane, peak]) => `${lane} ${peak}`)
+        .join(", "),
+  );
+}
+
 if (skipped.length > 0) {
   const reasons = new Map<string, number>();
   for (const note of skipped) reasons.set(note.reason, (reasons.get(note.reason) ?? 0) + 1);

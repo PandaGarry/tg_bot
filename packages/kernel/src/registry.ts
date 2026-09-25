@@ -59,6 +59,15 @@ export function registryProblems(definitions: readonly ModuleDefinition[]): stri
       seenUnits.add(unit.id);
       if (unit.id === def.id) problems.push(`${def.id}: единица не может зваться как модуль`);
     }
+    // Спутник живёт по одной единице своего модуля и не тянет цепочку: иначе
+    // состояние считалось бы по кругу, а панель не сказала бы, кто виноват.
+    for (const unit of units) {
+      if (!unit.follows) continue;
+      const target = units.find((other) => other.id === unit.follows);
+      if (!target) problems.push(`${def.id}.${unit.id}: спутник ссылается на единицу ${unit.follows}, которой в модуле нет`);
+      else if (target.id === unit.id) problems.push(`${def.id}.${unit.id}: единица не может жить по себе`);
+      else if (target.follows) problems.push(`${def.id}.${unit.id}: цепочка спутников не поддерживается — ${target.id} сам идёт за другой`);
+    }
     // Каждая полоса объявляется один раз: правила пробелов живут в одном месте.
     // Исключение — полоса пор года: в ней четыре модуля, и правило у неё «ровно одна».
     for (const unit of units) {

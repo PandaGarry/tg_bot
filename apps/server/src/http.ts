@@ -215,10 +215,12 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     }
     const body = await readJson(req);
     const id = typeof body?.id === "string" ? body.id : "";
-    const state = body?.state === "enabled" || body?.state === "disabled" ? body.state : "";
+    // auto — «вернуть календарю»: снять примерку без следа (см. 10-modules-kinds.md).
+    const state =
+      body?.state === "enabled" || body?.state === "disabled" || body?.state === "auto" ? body.state : "";
     if (id.length === 0 || state === "") {
       res.writeHead(400, { "content-type": "application/json" });
-      res.end(JSON.stringify({ ok: false, error: "нужны id и state: enabled или disabled" }));
+      res.end(JSON.stringify({ ok: false, error: "нужны id и state: enabled, disabled или auto" }));
       return;
     }
     if (!service.statesOfModules().some((module) => module.id === id)) {

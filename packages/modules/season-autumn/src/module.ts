@@ -38,11 +38,13 @@ export const season_autumnModule = defineModule({
       },
     },
     {
-      // Вид поры: гнёзда оболочки и палитра. Расписания у вида нет.
+      // Вид поры: гнёзда оболочки и палитра. Расписания у вида нет, и своей
+      // воли тоже: он идёт за самой порой — включили зиму, включился и вид.
       id: "look",
       role: "look",
       titleKey: "season-autumn.look",
       defaultState: "disabled",
+      follows: "autumn",
     },
   ],
 });
