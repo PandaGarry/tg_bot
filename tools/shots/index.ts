@@ -1,5 +1,6 @@
 /**
- * Снимки рабочего интерфейса: `pnpm shots [--only часть-имени] [--out каталог]`.
+ * Снимки рабочего интерфейса: `pnpm shots [--only часть-имени] [--out каталог]`,
+ * контактный лист концептов: `pnpm shots --sheet concepts/<каталог>`.
  *
  * Поднимает локальный статический сервер над `docs/game/ui`, открывает страницы в Chromium
  * (см. browser.ts) и складывает JPG в `docs/game/ui/shots/`:
@@ -10,7 +11,7 @@
  */
 
 import { createServer } from "node:http";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AddressInfo } from "node:net";
@@ -231,6 +232,45 @@ const started = Date.now();
 const { origin, close } = await serveUi();
 const browser = await launchBrowser();
 console.log(`Chromium ${await browser.version()} · сервер ${origin} · вывод ${outDir}`);
+
+/** `pnpm shots --sheet concepts/<каталог>`: контактный лист из нумерованных картинок каталога. */
+const sheetDir = argValue("--sheet");
+if (sheetDir) {
+  const dir = resolve(uiDir, sheetDir);
+  const pictures = readdirSync(dir)
+    .filter((name) => /^\d\d-.*\.jpe?g$/i.test(name))
+    .sort();
+  if (pictures.length === 0) throw new Error(`в ${dir} нет картинок вида NN-имя.jpg`);
+  const page = await openPage(browser, origin);
+  await page.setViewport({ width: 1600, height: 1000, deviceScaleFactor: 1 });
+  const relDir = dir.replace(`${uiDir}/`, "");
+  const cards = pictures
+    .map((name) => `<figure><img src="${origin}/${relDir}/${name}"><figcaption>${name.replace(/\.jpe?g$/i, "")}</figcaption></figure>`)
+    .join("");
+  await page.setContent(
+    `<!doctype html><html lang="ru"><meta charset="utf-8"><style>
+      body{margin:0;background:#e9e5dc;font:13px/1.3 "Open Sans",Arial,sans-serif;color:#2b2a26}
+      #sheet{display:inline-block;padding:18px 20px 14px}
+      h1{margin:0 0 12px;font:600 18px Georgia,serif}
+      .grid{display:grid;grid-template-columns:repeat(2,760px);gap:16px}
+      figure{margin:0}img{display:block;width:760px;border-radius:6px}
+      figcaption{margin-top:6px;font-weight:600}
+    </style><div id="sheet"><h1>${relDir}</h1><div class="grid">${cards}</div></div></html>`,
+    { waitUntil: "load" },
+  );
+  await page.evaluate(() => Promise.all([...document.images].map((img) => (img.complete ? null : new Promise((done) => img.addEventListener("load", done, { once: true }))))));
+  await settle(page);
+  const sheet = await page.$("#sheet");
+  if (!sheet) throw new Error("лист не собрался");
+  const file = join(dir, "contact-sheet.jpg");
+  await sheet.screenshot({ path: file, ...JPEG });
+  console.log(`  ${file.replace(`${root}/`, "")} (${pictures.length} картинок)`);
+  await page.close();
+  await browser.close();
+  close();
+  process.exit(0);
+}
+
 const made: string[] = [];
 try {
   for (const [name, shot] of Object.entries(shots)) {
