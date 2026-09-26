@@ -41,6 +41,7 @@
 | [ui/concepts/bone-wood-round-08/index.html](ui/concepts/bone-wood-round-08/index.html) | Единая Bone-Wood-концепция после проверки лора; пять полноэкранных генераций с общей системой ячеек, иконок и свободной постройки. [Контактный лист](ui/concepts/bone-wood-round-08/contact-sheet.jpg); [дизайн-предложение](ui/concepts/bone-wood-round-08/design-brief.md). |
 | [ui/concepts/bone-wood-main-screen/index.html](ui/concepts/bone-wood-main-screen/index.html) | Доработка выбранного варианта №08: idle-экран двора, отдельно от строительства. [Полноразмерный эскиз](ui/concepts/bone-wood-main-screen/01-main-screen-idle.jpg); [предложения](ui/concepts/bone-wood-main-screen/design-brief.md). |
 | [ui/mockup.html](ui/mockup.html) | Предыдущий живой макет двора (функциональный скелет). Запуск: `cd docs/game/ui && python3 -m http.server 8080 --bind 0.0.0.0` |
+| [ui/shots/](ui/shots/README.md) | Снимки галереи, десяти направлений (двор · карта/марш · отчёт), макета двора и страниц концептов. Пересобираются командой `pnpm shots` |
 
 ## Уже решено
 

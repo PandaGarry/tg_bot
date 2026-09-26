@@ -19,7 +19,8 @@
     "typecheck": "turbo run typecheck",
     "db:generate": "pnpm --filter @tdl/host db:generate",
     "load": "tsx tools/load/index.ts",
-    "schedule": "tsx tools/schedule.ts"
+    "schedule": "tsx tools/schedule.ts",
+    "shots": "tsx tools/shots/index.ts"
   },
   "devDependencies": {
     "@types/node": "22.18.12",
