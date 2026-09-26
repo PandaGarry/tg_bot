@@ -32,8 +32,15 @@
 | [14-genre-core.md](14-genre-core.md) | Разбор жанра: расчёты, поселение, персонаж, сезоны |
 | [15-genre-deep.md](15-genre-deep.md) | Разбор 14 игр: даты войн и слияний, награды, таблицы зданий 10 игр |
 | [16-money.md](16-money.md) | Прибыль, удержание и долгая дистанция: слои покупок, показатели, догоняющая лестница |
-| [17-ui.md](17-ui.md) | Вид игры: план разбора, разбор партии 1, макет, тестовые генерации |
-| [ui/mockup.html](ui/mockup.html) | Живой макет двора (скелет в коде). Запуск: `python3 -m http.server 8080` из `ui/` |
+| [17-ui.md](17-ui.md) | Вид игры: план разбора, разборы партий, макет и ссылки на доказательства |
+| [17-ui-real-screens.md](17-ui-real-screens.md) | Подтверждённые игровые UI-кадры; непроверенные official assets вынесены отдельно |
+| [18-ui-deep-dive.md](18-ui-deep-dive.md) | Полевые заметки: экраны, компоненты, переходы и неизвестные |
+| [19-ui-research-tz.md](19-ui-research-tz.md) | Единое ТЗ: оценка конкурентов, доказательства, план исследования и функциональная UI-спецификация TDL |
+| [20-ui-style-variants.md](20-ui-style-variants.md) | Первые 10 направлений UI-skin: общий каркас, три экранных примера и критерии выбора |
+| [ui/index.html](ui/index.html) | Десять интерактивных CSS-макетов общего сценария и preview карты/марша/отчёта. Ни один skin не выбран. |
+| [ui/concepts/bone-wood-round-08/index.html](ui/concepts/bone-wood-round-08/index.html) | Единая Bone-Wood-концепция после проверки лора; пять полноэкранных генераций с общей системой ячеек, иконок и свободной постройки. [Контактный лист](ui/concepts/bone-wood-round-08/contact-sheet.jpg); [дизайн-предложение](ui/concepts/bone-wood-round-08/design-brief.md). |
+| [ui/concepts/bone-wood-main-screen/index.html](ui/concepts/bone-wood-main-screen/index.html) | Доработка выбранного варианта №08: idle-экран двора, отдельно от строительства. [Полноразмерный эскиз](ui/concepts/bone-wood-main-screen/01-main-screen-idle.jpg); [предложения](ui/concepts/bone-wood-main-screen/design-brief.md). |
+| [ui/mockup.html](ui/mockup.html) | Предыдущий живой макет двора (функциональный скелет). Запуск: `cd docs/game/ui && python3 -m http.server 8080 --bind 0.0.0.0` |
 
 ## Уже решено
 
