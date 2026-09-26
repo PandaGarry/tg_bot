@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TDL — главный экран: раскладка HUD (круг 3)</title>
+<title>TDL — главный экран: раскладка HUD (круг 4)</title>
 <style>
-/* Раскладка главного экрана по замечаниям заказчика 26.09.2026 (10 пунктов).
-   Стадия 1376×768 — ландшафт телефона; сцена — AI-подложка без интерфейса, весь HUD — HTML/CSS. */
+/* Раскладка главного экрана: 10 замечаний заказчика (круг 3) + разбор 12 кадров Rise of Kingdoms (круг 4, 21-rok-reference.md).
+   Стадия 1376×768 — ландшафт телефона; сцена — AI-подложка без интерфейса, весь HUD — HTML/CSS.
+   Состояния: ?annotate=1 — выноски; ?quests=1 — раскрытый список заданий. */
 :root{
   --bone:#efe3c6;--bone-2:#e2d2ad;--bone-3:#cfbb8f;--wood:#3b2416;--wood-2:#5a3a26;--wood-3:#7a5236;
   --ink:#2a1e14;--muted:#6f5b45;--ochre:#b98a3c;--gold:#e0b04a;--green:#5fb64d;--red:#d24b3f;--white:#f7f0e2;
@@ -77,7 +78,7 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .collapse{width:44px;height:16px;display:grid;place-items:center;font-size:12px;color:var(--bone);opacity:.9}
 
 /* 6. Чат — слева снизу, прозрачный */
-.chat{position:absolute;left:14px;bottom:14px;width:330px;height:118px;display:grid;grid-template-rows:auto 1fr auto;padding:5px 8px 6px;font-size:11px}
+.chat{position:absolute;left:92px;bottom:14px;width:330px;height:118px;display:grid;grid-template-rows:auto 1fr auto;padding:5px 8px 6px;font-size:11px}
 .chat .tabs{display:flex;gap:4px}
 .chat .tabs span{padding:1px 7px;border-radius:9px;background:rgba(255,255,255,.1);opacity:.7;font-size:10px}
 .chat .tabs span.on{background:rgba(224,176,74,.35);opacity:1;font-weight:700}
@@ -89,11 +90,9 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .chat .input svg{font-size:13px}
 
 /* 9. Нижняя навигация */
-.nav{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:6px;margin-left:110px}
+.nav{position:absolute;right:14px;bottom:14px;display:flex;align-items:flex-end;gap:6px}
 .tab{position:relative;width:84px;height:56px;display:grid;grid-template-rows:1fr auto;justify-items:center;align-items:center;padding:5px 0 4px;font-weight:800;font-size:10.5px;color:var(--ink)}
 .tab svg{font-size:22px;color:var(--wood-2)}
-.tab.big{width:96px;height:66px;margin-left:8px}
-.tab.big svg{font-size:28px}
 .tab .badge{position:absolute;top:-5px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center}
 
 /* 10. Бейджи над зданиями */
@@ -103,6 +102,42 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .pin .t{position:absolute;top:100%;left:50%;transform:translate(-50%,6px);padding:0 4px;border-radius:3px;background:var(--glass);color:var(--white);font-size:9px;white-space:nowrap}
 .pin.green{background:linear-gradient(180deg,#8fd47c,#57a746);color:#fff;border-color:#2f6b25}
 .pin.alert{color:var(--red)}
+
+/* 1b. Активные баффы — только когда есть */
+.buffs{position:absolute;left:258px;top:48px;display:flex;gap:5px}
+.buff{height:22px;display:flex;align-items:center;gap:4px;padding:0 6px 0 4px;font-size:9.5px;font-weight:700;color:var(--white)}
+.buff svg{font-size:13px;color:#8fd47c}
+.buff.speed svg{color:#f0c866}
+
+/* 5b. Список заданий — выезжает из правой колонки (?quests=1) */
+.sbtn .tabch{position:absolute;left:-11px;top:13px;width:11px;height:18px;border-radius:4px 0 0 4px;background:linear-gradient(180deg,#5c3b26,#3b2416);border:1px solid #23150c;border-right:0;font-size:10px;line-height:16px;text-align:center;color:var(--bone);opacity:.9}
+.quests{display:none;position:absolute;right:66px;top:184px;width:252px;padding:5px 8px 6px;z-index:2}
+.quests::after{content:"";position:absolute;right:-7px;top:19px;border:7px solid transparent;border-right:0;border-left-color:var(--wood)}
+.quests .qh{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.quests .qi{display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:3px 0;border-top:1px solid rgba(59,36,22,.15)}
+.quests .qi b{grid-column:1;grid-row:1;font-size:11px;color:var(--ink)}
+.quests .qi span{grid-column:1;grid-row:2;font-size:9.5px;color:var(--muted)}
+.quests .qi em{grid-column:2;grid-row:1/3;align-self:center;font-style:normal;font-size:9.5px;font-weight:800;color:#3f7a33;white-space:nowrap}
+.quests-open .quests{display:block}
+
+/* 6b/9b. Слева внизу — «Строить» над «Картой», как у RoK */
+.rbtn{position:absolute;border-radius:50% !important;display:grid;place-items:center;color:var(--bone)}
+.rbtn.build{left:20px;top:628px;width:52px;height:52px;font-size:22px}
+.rbtn.map{left:14px;top:690px;width:64px;height:64px;font-size:30px;box-shadow:inset 0 1px 0 rgba(255,220,180,.18),0 0 0 2px var(--bone-3),0 2px 5px rgba(0,0,0,.45)}
+.rbtn .badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.rbtn .lbl{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:8.5px;font-weight:800;opacity:.9}
+
+/* 10b. Простой и сбор */
+.pin.idle{width:auto;height:18px;padding:0 6px;border-radius:9px;background:rgba(40,32,26,.55);border:1px solid rgba(255,240,210,.18);color:#e8ddc4;font-size:10px;font-weight:800;letter-spacing:.5px}
+.pin.idle::after{border-top-color:rgba(40,32,26,.7)}
+.pin.collect{width:30px;height:26px;border-radius:9px 9px 9px 2px;background:linear-gradient(180deg,#fff9ea,#efe3c6);color:var(--wood-2);font-size:16px;animation:bob 1.6s ease-in-out infinite}
+.pin.collect::after{left:7px;transform:none;border-top-color:var(--wood)}
+@keyframes bob{50%{margin-top:-3px}}
+
+/* чат: чёрточка канала */
+.chat .lines .ln{display:flex;gap:5px;align-items:baseline}
+.chat .lines .ln::before{content:"";flex:none;width:3px;height:9px;border-radius:1px;background:var(--c,#6fa9d8);align-self:center}
+.chat .lines .ln.clan{--c:#8fd47c}.chat .lines .ln.sys{--c:#e0b04a}
 
 /* Выноски для обсуждения (?annotate=1) */
 .callout{display:none;position:absolute;z-index:5;padding:2px 7px 2px 3px;border-radius:11px;background:#111;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none}
@@ -157,9 +192,14 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
     <div class="rows">
       <div class="name"><span>Ярик</span><small>[ТДЛ]</small></div>
       <div class="xp"><b>Ур. 7</b><div class="bar" style="--v:58%"><i></i></div><small>до уровня 1 250</small></div>
-      <div class="vip"><span class="vipb"><svg class="i"><use href="#i-vip"/></svg>VIP 3</span><span class="power"><svg class="i"><use href="#i-power"/></svg> 12,4 тыс.</span></div>
+      <div class="vip"><span class="vipb"><svg class="i"><use href="#i-vip"/></svg>VIP 3</span><span class="power"><svg class="i"><use href="#i-power"/></svg> 12 400</span></div>
     </div>
   </section>
+  <!-- 1b. Активные баффы (показываются только при наличии) -->
+  <div class="buffs" aria-label="Активные баффы">
+    <div class="buff glass" title="Добыча +10 % · осталось 1:59:00"><svg class="i"><use href="#i-plus"/></svg>добыча · 1:59</div>
+    <div class="buff glass speed" title="Скорость марша +20 % · осталось 0:42:10"><svg class="i"><use href="#i-march"/></svg>марш · 0:42</div>
+  </div>
 
   <!-- 2/7. Очереди -->
   <nav class="queues" aria-label="Очереди">
@@ -192,18 +232,30 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
   <nav class="side" aria-label="Действия">
     <button class="sbtn wood" title="Почта и отчёты"><svg class="i"><use href="#i-mail"/></svg><span class="badge">3</span></button>
     <button class="sbtn wood" title="События"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
-    <button class="sbtn wood" title="Задания"><svg class="i"><use href="#i-quest"/></svg><span class="badge">1</span></button>
+    <button class="sbtn wood" title="Задания — стрелка раскрывает ближайшие дела"><span class="tabch">‹</span><svg class="i"><use href="#i-quest"/></svg><span class="badge">1</span></button>
     <button class="sbtn wood" title="Настройки"><svg class="i"><use href="#i-gear"/></svg></button>
     <button class="collapse wood" title="Свернуть колонку"><svg class="i"><use href="#i-chevron-r"/></svg></button>
   </nav>
+
+  <!-- 5b. Ближайшие дела (?quests=1) -->
+  <aside class="quests plaque" aria-label="Ближайшие дела">
+    <div class="qh"><span>Ближайшие дела</span><span>1 / 3</span></div>
+    <div class="qi"><b>Частокол держит</b><span>улучшить частокол до 3 ур.</span><em>готово ›</em></div>
+    <div class="qi"><b>Первый отряд</b><span>обучить 20 ополченцев в казарме</span><em>12 / 20</em></div>
+    <div class="qi"><b>Тихий погреб</b><span>собрать 50 грибов с фермы</span><em>24 / 50</em></div>
+  </aside>
+
+  <!-- 6b. Слева внизу: «Строить» и «Карта» -->
+  <button class="rbtn wood build" title="Строить — доступно 3 постройки"><svg class="i"><use href="#i-hammer"/></svg><span class="badge">3</span></button>
+  <button class="rbtn wood map" title="Карта (на карте — «Двор»)"><svg class="i"><use href="#i-map"/></svg></button>
 
   <!-- 6. Чат -->
   <section class="chat glass" aria-label="Чат">
     <div class="tabs"><span class="on">Мир</span><span>Клан</span><span>Личные</span></div>
     <div class="lines">
-      <div><b>[ТДЛ] Мирон:</b> кто идёт на ополчение II у реки?</div>
-      <div><b>Дарья:</b> лесопилка спорит третий день, дрова не спорят</div>
-      <div class="sys">Клан «Тихий двор» получил печать столицы</div>
+      <div class="ln clan"><span><b>[ТДЛ] Мирон:</b> кто идёт на ополчение II у реки?</span></div>
+      <div class="ln"><span><b>Дарья:</b> лесопилка спорит третий день, дрова не спорят</span></div>
+      <div class="ln sys"><span>Клан «Тихий двор» получил печать столицы</span></div>
     </div>
     <div class="input"><span>Написать…</span><svg class="i"><use href="#i-expand"/></svg></div>
   </section>
@@ -214,15 +266,16 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
     <button class="tab plaque"><svg class="i"><use href="#i-shield"/></svg><span>Клан</span></button>
     <button class="tab plaque"><svg class="i"><use href="#i-bag"/></svg><span>Предметы</span></button>
     <button class="tab plaque"><svg class="i"><use href="#i-shop"/></svg><span>Магазин</span></button>
-    <button class="tab plaque big"><svg class="i"><use href="#i-map"/></svg><span>Карта</span></button>
   </nav>
 
   <!-- 10. Бейджи над зданиями -->
   <div class="pin plaque green" style="left:318px;top:262px" title="Лесопилка: можно улучшить"><svg class="i"><use href="#i-plus"/></svg></div>
   <div class="pin plaque" style="left:432px;top:338px" title="Казармы: идёт тренировка"><svg class="i"><use href="#i-swords"/></svg><span class="t">12:40</span></div>
   <div class="pin plaque alert" style="left:568px;top:428px" title="Лазарет: раненые"><svg class="i"><use href="#i-cross"/></svg><span class="n">12</span></div>
-  <div class="pin plaque" style="left:756px;top:176px" title="Академия: идёт исследование"><svg class="i"><use href="#i-flask"/></svg><span class="t">3:40:00</span></div>
-  <div class="pin plaque" style="left:900px;top:186px" title="Зал командиров: можно нанять"><svg class="i"><use href="#i-helmet"/></svg><span class="n">!</span></div>
+  <div class="pin plaque" style="left:756px;top:176px" title="Паутина: идёт исследование"><svg class="i"><use href="#i-flask"/></svg><span class="t">3:40:00</span></div>
+  <div class="pin plaque" style="left:900px;top:186px" title="Зал командиров (рабочее имя): можно нанять"><svg class="i"><use href="#i-helmet"/></svg><span class="n">!</span></div>
+  <div class="pin idle" style="left:1044px;top:238px" title="Стрельбище: простаивает — нет тренировки">zZz</div>
+  <div class="pin collect" style="left:1006px;top:318px" title="Загон: мясо накопилось — забрать тапом"><svg class="i"><use href="#i-meat"/></svg></div>
 
   <!-- Выноски -->
   <span class="callout" style="left:258px;top:22px"><b>1</b>лорд: портрет · ник · ур. · опыт · VIP · сила</span>
@@ -231,13 +284,19 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
   <span class="callout" style="left:1050px;top:100px"><b>3</b>ресурсы растут влево · золото справа</span>
   <span class="callout" style="left:1050px;top:122px"><b>8</b>лента хрониста: тише, под ресурсами</span>
   <span class="callout" style="left:1060px;top:250px"><b>5</b>колонка действий · настройки · свернуть</span>
-  <span class="callout" style="left:352px;top:640px"><b>6</b>чат: прозрачный, не мешает</span>
-  <span class="callout" style="left:700px;top:660px"><b>9</b>навигация без дублей</span>
+  <span class="callout" style="left:430px;top:640px"><b>6</b>чат: прозрачный, правее кнопок</span>
+  <span class="callout" style="left:860px;top:700px"><b>9</b>четыре вкладки, как у RoK</span>
   <span class="callout" style="left:600px;top:388px"><b>10</b>бейджи: лазарет · наука · найм · тренировка · улучшение</span>
   <span class="callout" style="left:1000px;top:560px"><b>4</b>года нет · камера дальше, место под стройку</span>
+  <span class="callout" style="left:84px;top:606px"><b>11</b>Строить (счётчик) над Картой — столбик RoK</span>
+  <span class="callout" style="left:352px;top:46px"><b>12</b>баффы — только когда есть</span>
+  <span class="callout" style="left:1060px;top:300px"><b>13</b>zZz — простой · пузырь — забрать</span>
+  <span class="callout" style="left:1010px;top:176px"><b>14</b>‹ раскрывает три ближайших дела</span>
 </div>
 <script>
-if(new URLSearchParams(location.search).get('annotate')==='1')document.getElementById('stage').classList.add('annotate');
+const q=new URLSearchParams(location.search),st=document.getElementById('stage');
+if(q.get('annotate')==='1')st.classList.add('annotate');
+if(q.get('quests')==='1')st.classList.add('quests-open');
 </script>
 </body>
 </html>
