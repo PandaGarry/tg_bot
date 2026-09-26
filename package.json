@@ -1,0 +1,32 @@
+{
+  "name": "tdl",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "gen": "node tools/gen-registry.mjs",
+    "check": "node tools/gen-registry.mjs && tsx tools/check/registry.ts && tsx tools/check/boundaries.ts && tsx tools/check/i18n.ts && tsx tools/check/schedule.ts",
+    "dev": "pnpm --filter @tdl/server dev",
+    "dev:db": "tsx tools/devdb/run.ts",
+    "dev:parallel": "node tools/parallel-world.mjs",
+    "db:reset": "TDL_ALLOW_DB_RESET=1 tsx tools/devdb/reset.ts",
+    "build": "pnpm check && turbo run build",
+    "start": "node apps/server/dist/index.mjs",
+    "test": "turbo run test --concurrency=1",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @tdl/host db:generate",
+    "load": "tsx tools/load/index.ts",
+    "schedule": "tsx tools/schedule.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.12",
+    "embedded-postgres": "18.4.0-beta.17",
+    "tsx": "4.23.15",
+    "turbo": "2.11.4",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
+  }
+}

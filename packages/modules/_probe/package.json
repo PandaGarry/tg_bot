@@ -1,0 +1,23 @@
+{
+  "name": "@tdl/module-probe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./module": "./src/module.ts",
+    "./view": "./src/view.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tdl/kernel": "workspace:*",
+    "@tdl/protocol": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}

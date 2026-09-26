@@ -1,0 +1,15 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/modules/*"
+  - "tools"
+
+# Сборка бинарных зависимостей, которым она нужна.
+allowBuilds:
+  '@embedded-postgres/linux-x64': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+
+# Свежесть пакетов: только те, что в реестре дольше двух часов.
+# На бою перед сборкой это значение поднимается до суток.
+minimumReleaseAge: 60

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e7e5de">
+<title>TDL — Bone-Wood · единая концепция</title>
+<style>
+:root{color-scheme:light;--bg:#e7e5de;--paper:#fbf7e9;--ink:#29251f;--muted:#686157;--line:#c9bd9e;--wood:#4a3021;--ochre:#9d7440;--blue:#e7edf3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1480px,calc(100% - 36px));margin-inline:auto}
+header{padding:30px 0 21px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:#78603c;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{max-width:1040px;margin:0;font:600 clamp(31px,4vw,51px)/1.03 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:1090px;margin:13px 0 0;color:#50483c;font-size:15px}
+.note{max-width:1190px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,252,240,.72);color:#514a3e;font-size:12px}
+.note b{color:var(--ink)}.note.ref{border-left:3px solid var(--wood)}.note.lore{border-left:3px solid #758081;background:var(--blue)}.note.proposal{border-left:3px solid var(--ochre)}
+a{color:#57432d}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #a99b7b;border-radius:4px;background:var(--paper);color:#382c20;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:var(--wood);background:var(--wood);color:#fbf7e9}.actions a:hover{transform:translateY(-1px)}
+main{padding:20px 0 36px}
+.system{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0 0 20px}
+.system article{padding:13px 14px;border:1px solid var(--line);border-radius:5px;background:rgba(255,252,240,.65)}
+.system h2{margin:0 0 5px;font:600 18px/1.12 Georgia,"Times New Roman",serif}.system p{margin:0;color:var(--muted);font-size:12px}
+.gallery-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 13px;padding:0 3px 10px;border-bottom:1px solid var(--line)}
+.gallery-head h2{margin:0;font:600 clamp(23px,2.5vw,31px)/1.08 Georgia,"Times New Roman",serif}.gallery-head p{max-width:840px;margin:6px 0 0;color:var(--muted);font-size:12px}
+.stamp{flex:0 0 auto;padding:7px 9px;border:1px solid #a99b7b;border-radius:3px;color:#5c4931;font-size:9px;font-weight:900;letter-spacing:.1em}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 22px rgba(40,32,22,.08)}
+.image-link{display:block;overflow:hidden;background:#28303a}.image-link img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .18s ease}.image-link:hover img{transform:scale(1.012)}
+.copy{padding:12px 14px 14px}.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:#78674d;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.meta .tag{padding:3px 6px;border:1px solid #d5c7a5;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 5px;font:600 20px/1.12 Georgia,"Times New Roman",serif}.card p{margin:0;color:var(--muted);font-size:12px}
+footer{padding:0 0 30px;color:#70695d;font-size:11px}
+@media(max-width:900px){.system{grid-template-columns:1fr}.gallery{grid-template-columns:1fr}}
+@media(max-width:640px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.intro{font-size:13px}.note{font-size:11px}.gallery-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · Bone-Wood · unified concept 08</p>
+  <h1>Одна ясная система: сцена, ячейка, постройка</h1>
+  <p class="intro">Сверил выбранные варианты с лором и собрал повторяющиеся сильные идеи в <b>один рабочий Bone-Wood-концепт</b>. Пять генераций ниже проверяют его ключевые части и их общий экран; это не пять несвязанных стилей и не утверждённая спецификация.</p>
+  <div class="note ref"><b>Что объединено:</b> открытая зимняя сцена и нижняя строительная полка; единое состояние ячеек; один и тот же силуэт здания в каталоге, инспекторе и на поле. Для этого раунда как референсы использованы только пять изображений предыдущего набора <a href="../bone-wood-round-07/01-drawer-unified.jpg">01</a>, <a href="../bone-wood-round-07/02-city-first-system.jpg">02</a>, <a href="../bone-wood-round-07/03-catalog-states.jpg">03</a>, <a href="../bone-wood-round-07/04-one-building-three-views.jpg">04</a> и <a href="../bone-wood-round-07/05-cohesive-bone-wood.jpg">05</a> — по одному за генерацию.</div>
+  <div class="note lore"><b>Лор-проверка:</b> конец 1541 года, первая зима; деревянный славянский двор, снег и грязь; мёртвые бледные и спокойные, в обычной одежде. Ресурсов ровно пять: мясо, дерево, камень, металл, грибы. Грибы — тихий отдельный ресурс исследований/навыков: не пища, не голос, не неоновая магия. Кость в Bone-Wood — цвет вставки интерфейса, не ресурс. Убраны skull-портреты, человеческие поля, живущая/говорящая Мать и посторонние фантазийные мотивы. Старую идею «свечения грибницы как награды» исключил и отметил в <a href="../../../17-ui.md">17-ui.md</a>.</div>
+  <div class="note proposal"><b>Моё предложение по композиции:</b> сверху — одна строка пяти ресурсов; центр — максимально открытый двор; снизу — основная навигация; в режиме строительства над ней появляется неглубокая полка зданий; справа открывается только контекстный инспектор выбранного объекта. Не держать одновременно постоянный левый каталог, тяжёлую нижнюю панель и большой инспектор — это перекрывает сцену.</div>
+  <nav class="actions" aria-label="Навигация">
+    <a class="primary" href="../bone-wood-main-screen/index.html">Выбранный №08 · главный экран отдельно</a>
+    <a href="contact-sheet.jpg">Открыть все пять генераций</a>
+    <a href="design-brief.md">Открыть лор-проверку и дизайн-предложение</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="system" aria-label="Правила общей системы">
+  <article><h2>Одна геометрия ячейки</h2><p>Ресурсная ячейка: глиф, запас и маленький маркер производства. Ячейка постройки: миниатюра, зона имени/уровня и компактная стоимость теми же глифами.</p></article>
+  <article><h2>Один набор состояний</h2><p>Обычная, выбранная и недоступная карточки сохраняют одинаковую форму; состояние задают небольшой знак и рамка, а не новый цветовой язык.</p></article>
+  <article><h2>Один объект в трёх местах</h2><p>Миниатюра, карточка инспектора и призрак на карте должны сохранять один изометрический силуэт, масштаб, свет и направление контура.</p></article>
+</section>
+<section aria-labelledby="gallery-title">
+  <div class="gallery-head"><div><h2 id="gallery-title">Пять проверок единого концепта</h2><p>Каждая картинка — полный игровой экран. Кликните для просмотра в исходном размере. AI-текст и числа внутри изображений считать заглушками, не данными игры.</p></div><span class="stamp">5 КОНЦЕПТУАЛЬНЫХ ЭКРАНОВ</span></div>
+  <div class="gallery">
+    <article class="card"><a class="image-link" href="01-unified-yard-ui.jpg"><img src="01-unified-yard-ui.jpg" alt="01: открытый зимний двор, пять ресурсных ячеек, строительная полка и контекстный инспектор" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 05</span><span class="tag">основная композиция</span></div><h3>Двор без перегруза</h3><p>Открытая сцена, ресурсная строка, компактный инспектор и строительная полка — базовый каркас.</p></div></article>
+    <article class="card"><a class="image-link" href="02-resource-cell-grammar.jpg"><img src="02-resource-cell-grammar.jpg" alt="02: строка из пяти ресурсных ячеек и открытая строительная сцена" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 05</span><span class="tag">грамматика ячеек</span></div><h3>Ресурс читается в один взгляд</h3><p>Пять одинаковых ячеек с иконкой, местом под запас и небольшим маркером состояния.</p></div></article>
+    <article class="card"><a class="image-link" href="03-building-cell-states.jpg"><img src="03-building-cell-states.jpg" alt="03: строительство с обычными, выбранными и недоступными ячейками" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 05</span><span class="tag">состояния построек</span></div><h3>Выбор без нового языка</h3><p>Одна и та же карточка показывает доступность, выбор и блокировку через сдержанные маркеры.</p></div></article>
+    <article class="card"><a class="image-link" href="04-one-model-one-language.jpg"><img src="04-one-model-one-language.jpg" alt="04: одна постройка связана между ячейкой, инспектором и открытым игровым полем" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 05</span><span class="tag">связь с полем</span></div><h3>Один силуэт — одно здание</h3><p>Карточка, инспектор и призрак размещения относятся к одной модели, которую игрок свободно ставит во двор.</p></div></article>
+    <article class="card"><a class="image-link" href="05-complete-bone-wood-concept.jpg"><img src="05-complete-bone-wood-concept.jpg" alt="05: полный Bone-Wood интерфейс с пятью ресурсами и режимом свободной постройки" loading="lazy"></a><div class="copy"><div class="meta"><span>05 / 05</span><span class="tag">синтез</span></div><h3>Собранная концепция</h3><p>Проверка полного экрана: выбранный Bone-Wood, свободный двор и общая система ячеек и построек.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>Сетка и footprint в генерациях — только визуальная подсказка, не заранее назначенные места и не спецификация коллизий. Каждое здание позже нужно генерировать/вырезать как отдельный ассет: альфа-фон, общая камера/масштаб; снег, грунт, тень и UI — раздельно. Точные размеры, подписи и числовые значения не утверждаются.</footer>
+</body>
+</html>

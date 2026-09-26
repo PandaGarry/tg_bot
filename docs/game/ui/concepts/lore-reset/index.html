@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e8e8e3">
+<title>TDL — новый арт-поиск по лору</title>
+<style>
+:root{color-scheme:light;--bg:#e8e8e3;--paper:#fbfaf6;--ink:#252824;--muted:#656a63;--line:#cfcec5;--accent:#7d765c;--note:#f4f1e8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1540px,calc(100% - 36px));margin-inline:auto}
+header{padding:32px 0 22px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:#777257;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font:600 clamp(32px,4vw,54px)/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:1000px;margin:13px 0 0;color:#50554f;font-size:15px}
+.source,.status{max-width:1160px;margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.55);color:#50554f;font-size:12px}
+.source{border-left:3px solid #827c61}
+.status{border-left:3px solid #9a7644;background:#f4efe4}
+.source b,.status b{color:var(--ink)}
+a{color:#454b42}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #b8b5a9;border-radius:4px;background:var(--paper);color:#34372f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:#34372f;background:#34372f;color:#fbfaf6}
+.actions a:hover{transform:translateY(-1px)}
+main{padding:20px 0 38px}
+.study{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 22px}
+.study article{padding:13px 15px;border:1px solid var(--line);border-radius:5px;background:rgba(255,255,255,.48)}
+.study h2{margin:0 0 5px;font:600 18px/1.15 Georgia,"Times New Roman",serif}
+.study p{margin:0;color:#5d625b;font-size:12px}
+.gallery-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 13px;padding:0 3px 10px;border-bottom:1px solid var(--line)}
+.gallery-head h2{margin:0;font:600 clamp(23px,2.5vw,31px)/1.08 Georgia,"Times New Roman",serif}
+.gallery-head p{margin:6px 0 0;color:var(--muted);font-size:12px}
+.stamp{flex:0 0 auto;padding:7px 9px;border:1px solid #aaa995;border-radius:3px;color:#555848;font-size:9px;font-weight:900;letter-spacing:.1em}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 22px rgba(30,34,28,.07)}
+.image-link{display:block;overflow:hidden;background:#252a27}
+.image-link img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .18s ease}
+.image-link:hover img{transform:scale(1.012)}
+.copy{padding:12px 14px 14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:#777762;font-size:10px;font-weight:850;letter-spacing:.11em;text-transform:uppercase}
+.meta .tag{padding:3px 6px;border:1px solid #d8d5c8;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 5px;font:600 20px/1.12 Georgia,"Times New Roman",serif}
+.card p{margin:0;color:var(--muted);font-size:12px}
+footer{padding:0 0 30px;color:#74776f;font-size:11px}
+@media(max-width:1000px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.gallery{grid-template-columns:1fr;gap:12px}.study{grid-template-columns:1fr}.intro{font-size:13px}.source,.status{font-size:11px}.gallery-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · новый арт-поиск · 10 концептов</p>
+  <h1>Город лорда-зомби: 10 свежих UI-направлений</h1>
+  <p class="intro">Здесь новая серия, созданная <b>только по канону TDL и материалам Udonis о Rise of Kingdoms</b>. Предыдущие AI-изображения и их палитры не использовались как референсы. Все десять вариантов показывают один игровой момент — зимний двор лорда, ресурсы и выбранную защитную стену — чтобы сравнивать именно подачу.</p>
+  <div class="source"><b>Что взято из статьи:</b> Udonis описывает у RoK стилизованную 3D-сцену, высокий ракурс города и выразительные персонажи; на игровых кадрах видны городская сцена и плоский HUD по краям. В генерации использованы именно городские/UI-кадры, не рекламные ролики. Встроенные изображения ведут к файлам 2021 года, поэтому это исторический пример, а не подтверждение вида текущей версии игры. <a href="https://www.blog.udonis.co/mobile-marketing/mobile-games/rise-of-kingdoms-monetization">Статья Udonis</a>.</div>
+  <div class="status"><b>Канон TDL:</b> конец 1541 года, первая зима охоты; игрок — мёртвый лорд своего двора. Славянская средневековая постройка, снег, грязь, дерево и повседневные хозяйственные дворы. Мать уже мертва; грибы — отдельный тихий ресурс, не еда и не магия. Зомби остаются людьми в своей одежде: бледные и спокойные, без крови и хоррора. В проекте пять ресурсов — мясо, дерево, камень, металл и грибы; в изображениях мелкие иконки/надписи могут быть неточными заглушками.</div>
+  <nav class="actions" aria-label="Навигация">
+    <a class="primary" href="contact-sheet.jpg">Открыть все десять на одном листе</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="study" aria-label="Основа визуального поиска">
+  <article><h2>Наблюдение по RoK</h2><p>Объёмный город остаётся сценой, а HUD накладывается поверх 3D. Высокий угол камеры помогает видеть весь город; выразительность дают модели и силуэты, а не перегруженная рамка. Использованы скриншоты игрового города/интерфейса из статьи — не рекламные креативы.</p></article>
+  <article><h2>Перевод на TDL</h2><p>Изометрический 3D-двор + плоский быстрый HUD. Своя архитектура и холодная первая зима; пять ресурсов вместо чужого набора; никакой цивилизации, фракции или чужого героя. Мягкость формы есть, но война и утрата остаются серьёзными.</p></article>
+</section>
+<section aria-labelledby="gallery-title">
+  <div class="gallery-head"><div><h2 id="gallery-title">Десять вариантов главного экрана</h2><p>Откройте картинку в полном размере. Ни один вариант не объявлен финальным.</p></div><span class="stamp">НОВЫЙ НАБОР · 16:9 · НЕ ВЫБРАНО</span></div>
+  <div class="gallery">
+    <article class="card"><a class="image-link" href="01-winter-court-parchment.jpg"><img src="01-winter-court-parchment.jpg" alt="01: зимний деревянный двор с пергаментной панелью" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 10</span><span class="tag">пергамент · дерево</span></div><h3>Светлое дерево и пергамент</h3><p>Тёплая панель на фоне холодного двора; спокойная рамка и крупные иконки.</p></div></article>
+    <article class="card"><a class="image-link" href="02-bone-wood-bright-hud.jpg"><img src="02-bone-wood-bright-hud.jpg" alt="02: светлый снежный двор, деревянная крепость и чистый HUD" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 10</span><span class="tag">кость · снег · дерево</span></div><h3>Ясная зима</h3><p>Самая светлая подача: сцена остаётся заметной, HUD разбит на простые блоки.</p></div></article>
+    <article class="card"><a class="image-link" href="03-charcoal-bone-ledger.jpg"><img src="03-charcoal-bone-ledger.jpg" alt="03: монохромный изометрический двор и контрастные тёмные панели" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 10</span><span class="tag">графит · кость</span></div><h3>Графит и кость</h3><p>Чёткие границы, ровные ряды ресурсов и более строгая подача города.</p></div></article>
+    <article class="card"><a class="image-link" href="04-winter-yard-soft-ochre.jpg"><img src="04-winter-yard-soft-ochre.jpg" alt="04: мягко стилизованный зимний двор с крупным портретом лорда" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 10</span><span class="tag">охра · дерево · снег</span></div><h3>Зимний двор с охрой</h3><p>Округлённые панели и мягкие силуэты добавляют дружелюбия без пародии на войну.</p></div></article>
+    <article class="card"><a class="image-link" href="05-timber-court-friendly-3d.jpg"><img src="05-timber-court-friendly-3d.jpg" alt="05: стилизованный 3D-двор, деревянные стены и снежные крыши" loading="lazy"></a><div class="copy"><div class="meta"><span>05 / 10</span><span class="tag">мягкий 3D</span></div><h3>Тёплый деревянный двор</h3><p>Игровая миниатюра с читаемыми зданиями, запасами и хозяйственными зонами.</p></div></article>
+    <article class="card"><a class="image-link" href="06-painted-northern-city.jpg"><img src="06-painted-northern-city.jpg" alt="06: двор в рисованной северной палитре" loading="lazy"></a><div class="copy"><div class="meta"><span>06 / 10</span><span class="tag">гуашь · олива</span></div><h3>Северная гуашь</h3><p>Чуть заметная живописность в материале зданий и панелей; общий экран остаётся игровым.</p></div></article>
+    <article class="card"><a class="image-link" href="07-inked-isometric-court.jpg"><img src="07-inked-isometric-court.jpg" alt="07: изометрический двор с тушевыми контурами и строгими панелями" loading="lazy"></a><div class="copy"><div class="meta"><span>07 / 10</span><span class="tag">тушь · контур</span></div><h3>Тушь и дерево</h3><p>Более графичный вариант: контуры и панели строже, а город остаётся объёмным.</p></div></article>
+    <article class="card"><a class="image-link" href="08-soft-sculpted-city-ui.jpg"><img src="08-soft-sculpted-city-ui.jpg" alt="08: мягко объёмный двор со снежными крышами и каменными стенами" loading="lazy"></a><div class="copy"><div class="meta"><span>08 / 10</span><span class="tag">мягкая форма</span></div><h3>Мягкая сцена</h3><p>Округлённые объёмы в городе и иконках; панели остаются плоскими и понятными.</p></div></article>
+    <article class="card"><a class="image-link" href="09-dusk-lantern-court.jpg"><img src="09-dusk-lantern-court.jpg" alt="09: зимний двор в сумерках с тёплыми фонарями и верхним HUD" loading="lazy"></a><div class="copy"><div class="meta"><span>09 / 10</span><span class="tag">сумерки · тёплый свет</span></div><h3>Фонари и снег</h3><p>Сумеречный свет добавляет настроения, но сохраняет видимость зданий и интерфейса.</p></div></article>
+    <article class="card"><a class="image-link" href="10-calm-lord-bright-diorama.jpg"><img src="10-calm-lord-bright-diorama.jpg" alt="10: светлый изометрический двор и заметный портрет лорда-зомби" loading="lazy"></a><div class="copy"><div class="meta"><span>10 / 10</span><span class="tag">выразительный лорд</span></div><h3>Лорд и его двор</h3><p>Самая явная мультяшная форма в наборе: персонаж читается сразу, а город и HUD остаются главными.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>AI-концепты для сравнения визуального языка; это не фактические игровые скриншоты, финальный UI, карта экономики или утверждённая ориентация клиента. Кадр 16:9 взят как исследовательская гипотеза по материалам RoK, а не как решение для TDL.</footer>
+</body>
+</html>
