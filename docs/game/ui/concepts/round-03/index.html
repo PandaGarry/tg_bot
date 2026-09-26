@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ece9e2">
+<title>TDL — лёгкая мультяшность · раунд 3</title>
+<style>
+:root{color-scheme:light;--bg:#ece9e2;--paper:#fbfaf7;--ink:#292a27;--muted:#686a63;--line:#d5d0c5;--accent:#776b55;--warm:#f2eee5;--warn:#f5eee4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1500px,calc(100% - 36px));margin-inline:auto}
+header{padding:34px 0 24px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font:600 clamp(32px,4.2vw,56px)/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:960px;margin:14px 0 0;color:#555851;font-size:15px}
+.reference,.notice{max-width:1120px;margin:15px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.55);color:#555851;font-size:12px}
+.reference{border-left:3px solid #857454}
+.notice{border-left:3px solid #a07a43;background:var(--warn)}
+.reference b,.notice b{color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #bdb6a8;border-radius:4px;background:var(--paper);color:#34352f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:#34352f;background:#34352f;color:#fbfaf7}
+.actions a:hover{transform:translateY(-1px)}
+main{padding:23px 0 40px}
+.group{margin:0 0 30px}
+.group-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 14px;padding:0 3px 11px;border-bottom:1px solid var(--line)}
+.group-head h2{margin:0;font:600 clamp(22px,2.6vw,31px)/1.1 Georgia,"Times New Roman",serif}
+.group-head p{max-width:670px;margin:6px 0 0;color:var(--muted);font-size:12px}
+.count{flex:0 0 auto;padding:7px 9px;border:1px solid #bcb3a3;border-radius:3px;color:#635d50;font-size:9px;font-weight:900;letter-spacing:.1em}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:7px;background:var(--paper);box-shadow:0 8px 24px rgba(39,35,28,.07)}
+.image-link{display:block;overflow:hidden;background:#282a27}
+.image-link img{display:block;width:100%;height:auto;aspect-ratio:768/1376;object-fit:cover;transition:transform .18s ease}
+.image-link:hover img{transform:scale(1.015)}
+.copy{padding:13px 15px 15px}
+.meta{display:flex;flex-wrap:wrap;gap:5px 7px;align-items:center;color:#898477;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.meta .tag{padding:3px 6px;border:1px solid #ded8cc;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 6px;font:600 21px/1.12 Georgia,"Times New Roman",serif}
+.card p{margin:0;color:var(--muted);font-size:12px}
+.pending-art{display:grid;place-items:center;min-height:0;aspect-ratio:768/1376;padding:22px;background:#f3f0e8;color:#69665e;text-align:center}
+.pending-frame{display:grid;place-items:center;gap:9px;width:100%;height:100%;padding:25px;border:1px solid #c7beb0;border-radius:14px}
+.pending-number{color:#786b57;font:700 clamp(58px,8vw,96px)/1 Georgia,"Times New Roman",serif}
+.pending-art strong{color:#393a35;font-size:15px}
+.pending-art span{font-size:11px}
+.pending .copy{background:#f8f6f1}
+.pending .meta{color:#8b7250}
+footer{padding:0 0 30px;color:#797971;font-size:11px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.grid{grid-template-columns:1fr;gap:13px}.intro{font-size:13px}.reference,.notice{font-size:11px}.group-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · UI study · round 03</p>
+  <h1>Лёгкая мультяшность для игрового UI</h1>
+  <p class="intro">Вы отметили концепты <b>03 и 09</b> прошлого раунда. Здесь четыре готовых варианта развивают их камень, графит и бордовые акценты, а пять новых направлений пробуют мягкую иллюстративную подачу: гуашь, бумажные формы, тактильные панели, контурный рисунок и книжную иллюстрацию.</p>
+  <div class="reference"><b>Опорные варианты:</b> № 03 и № 09 раунда 2. Это ориентир для новых сравнений, не окончательный выбор визуального стиля.</div>
+  <div class="notice"><b>Статус:</b> готовы 9 из запрошенных 10 изображений: 4 варианта на основе № 03/09 и все 5 новых направлений. Пятое изображение первой группы не удалось создать: лимит генерации на этот ход исчерпан. Я оставил слот открытым, а не подменял его копией. Надписи и числа внутри концептов могут быть AI-заглушками, а не текстом игры.</div>
+  <nav class="actions" aria-label="Навигация по концептам">
+    <a class="primary" href="contact-sheet.jpg">Открыть контакт-лист</a>
+    <a href="../round-02/index.html">К раунду 2</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="group" aria-labelledby="reference-group">
+  <div class="group-head"><div><h2 id="reference-group">01–05 · На основе концептов 03 и 09</h2><p>Сочетание светлых каменных карточек, графитовых панелей и небольшого бордового акцента; формы слегка мягче и дружелюбнее.</p></div><span class="count">4 ИЗ 5 ГОТОВЫ</span></div>
+  <div class="grid">
+    <article class="card"><a class="image-link" href="01-ivory-burgundy-soft.jpg"><img src="01-ivory-burgundy-soft.jpg" alt="Вариант 01: светлая панель, тёмная рамка и бордовые акценты" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 05</span><span class="tag">№ 03 + 09</span></div><h3>Айвори и бордо</h3><p>Светлая панель на тёмном фоне; мягкие края добавляют тепла строгой основе.</p></div></article>
+    <article class="card"><a class="image-link" href="02-charcoal-cream-rounded.jpg"><img src="02-charcoal-cream-rounded.jpg" alt="Вариант 02: угольный HUD и кремовые панели со скруглениями" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 05</span><span class="tag">№ 03 + 09</span></div><h3>Уголь и кремовый камень</h3><p>Плотный тёмный HUD, светлые блоки и округлённые ресурсные ячейки.</p></div></article>
+    <article class="card"><a class="image-link" href="03-parchment-window.jpg"><img src="03-parchment-window.jpg" alt="Вариант 03: центральное пергаментное окно поверх игрового двора" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 05</span><span class="tag">№ 03 + 09</span></div><h3>Окно на пергаменте</h3><p>Центральная карточка сохраняет двор на виду и собирает улучшение в одном месте.</p></div></article>
+    <article class="card"><a class="image-link" href="04-wine-red-slate-friendly.jpg"><img src="04-wine-red-slate-friendly.jpg" alt="Вариант 04: боковая панель на фоне сланцевого интерфейса с бордовыми метками" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 05</span><span class="tag">№ 03 + 09</span></div><h3>Сланец и бордо</h3><p>Боковые статусы и отдельная панель улучшения; скругления смягчают плотный экран.</p></div></article>
+    <article class="card pending" aria-label="Вариант 05 ожидает генерации"><div class="pending-art"><div class="pending-frame"><strong>Ожидает изображения</strong><div class="pending-number">05</div><span>Опорные палитры № 03 и № 09</span><span>Лимит генерации исчерпан на этот ход</span></div></div><div class="copy"><div class="meta"><span>05 / 05</span><span class="tag">не создан</span></div><h3>Пятый вариант</h3><p>Ещё один самостоятельный концепт на основе выбранных вами цветовых и UI-ориентиров.</p></div></article>
+  </div>
+</section>
+<section class="group" aria-labelledby="new-group">
+  <div class="group-head"><div><h2 id="new-group">06–10 · Пять новых мультяшных направлений</h2><p>Новые палитры и способы рисовки: лёгкая мультяшность здесь проявляется в форме панелей, иконках и иллюстрации, а не в детском тоне.</p></div><span class="count">5 ИЗ 5 ГОТОВЫ</span></div>
+  <div class="grid">
+    <article class="card"><a class="image-link" href="06-gouache-warm-olive.jpg"><img src="06-gouache-warm-olive.jpg" alt="Новое направление 06: гуашевая иллюстрация, оливковые и тёплые оттенки" loading="lazy"></a><div class="copy"><div class="meta"><span>06 / 10</span><span class="tag">новая палитра</span></div><h3>Тёплая гуашь и олива</h3><p>Мягкая живописная подача, бумажные карточки и нарисованные ресурсные значки.</p></div></article>
+    <article class="card"><a class="image-link" href="07-cut-paper-forest.jpg"><img src="07-cut-paper-forest.jpg" alt="Новое направление 07: слоистые бумажные формы и лесная палитра" loading="lazy"></a><div class="copy"><div class="meta"><span>07 / 10</span><span class="tag">новая палитра</span></div><h3>Бумага и лесной цвет</h3><p>Слоистые формы, зелёный и коралловый акценты; двор выглядит как иллюстрация.</p></div></article>
+    <article class="card"><a class="image-link" href="08-soft-clay-indigo.jpg"><img src="08-soft-clay-indigo.jpg" alt="Новое направление 08: индиго, песочный камень и мягкие объёмные формы" loading="lazy"></a><div class="copy"><div class="meta"><span>08 / 10</span><span class="tag">новая палитра</span></div><h3>Мягкая глина и индиго</h3><p>Тактильные панели и объёмные иконки без глянцевого или игрушечного эффекта.</p></div></article>
+    <article class="card"><a class="image-link" href="09-outline-bright-amber.jpg"><img src="09-outline-bright-amber.jpg" alt="Новое направление 09: контурная иллюстрация с янтарными акцентами" loading="lazy"></a><div class="copy"><div class="meta"><span>09 / 10</span><span class="tag">новая палитра</span></div><h3>Контур и янтарь</h3><p>Чистые обводки, холодный фон и тёплый акцент на главном действии.</p></div></article>
+    <article class="card"><a class="image-link" href="10-storybook-rust-moss.jpg"><img src="10-storybook-rust-moss.jpg" alt="Новое направление 10: книжная иллюстрация, мох и ржаво-красные оттенки" loading="lazy"></a><div class="copy"><div class="meta"><span>10 / 10</span><span class="tag">новая палитра</span></div><h3>Тушь, мох и ржавчина</h3><p>Книжная иллюстрация и тёплые контуры сохраняют серьёзную основу, но делают подачу живее.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>Это концепты для выбора направления, а не финальные игровые экраны и не подтверждённые интерфейсы существующих игр. Ни один стиль не выбран.</footer>
+</body>
+</html>
