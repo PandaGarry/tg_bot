@@ -1,0 +1,194 @@
+/* HUD главного экрана TDL — круг 5 (материалы варианта №05: резное дерево + кость, рисованные иконки).
+   Стадия 1376×768, ландшафт. Сцена — AI-подложка без интерфейса (scene-high-camera.jpg, камера выше и дальше),
+   слой .world масштабируется (зум игрока), весь HUD — HTML/CSS и PNG-иконки из icons/. */
+:root{
+  --bone:#efe3c6;--bone-2:#e3d3ad;--bone-3:#cbb58a;--bone-4:#b59c72;
+  --wood-0:#22130b;--wood-1:#3a2114;--wood-2:#4a2c1a;--wood-3:#6b4128;--wood-4:#8a5a3a;
+  --ink:#2a1e14;--muted:#6f5b45;--ochre:#b98a3c;--gold:#e0b04a;--gold-2:#f0c866;--green:#5fb64d;--green-2:#8fd47c;--red:#d24b3f;--white:#f7f0e2;
+  --glass:rgba(16,11,8,.46);--glass-2:rgba(16,11,8,.3);
+  --sans:"Open Sans",Inter,Arial,sans-serif;
+  --z:1;--ox:50%;--oy:50%;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#141a24;color:var(--ink);font:12px/1.25 var(--sans)}
+.stage{position:relative;width:1376px;height:768px;overflow:hidden;background:#10151d;margin:0 auto}
+.world{position:absolute;inset:0;transform-origin:var(--ox) var(--oy);transform:scale(var(--z))}
+.scene{position:absolute;inset:0;background:url(scene-high-camera.jpg) center/1376px 768px no-repeat}
+img.ic{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45));pointer-events:none}
+button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inherit}
+
+/* ---------- материалы ---------- */
+.frame{background:linear-gradient(180deg,var(--wood-3),var(--wood-2) 55%,var(--wood-1));border:2px solid var(--wood-0);border-radius:10px;
+  box-shadow:inset 0 1px 0 rgba(255,225,190,.28),inset 0 -2px 0 rgba(0,0,0,.35),0 3px 6px rgba(0,0,0,.45)}
+.inset{background:linear-gradient(180deg,#f4ead2,#e2d1aa);border-radius:6px;box-shadow:inset 0 0 0 1px rgba(90,58,38,.35),inset 0 2px 3px rgba(0,0,0,.16)}
+.plaque{background:linear-gradient(180deg,#f3e9d0,#e3d2ab);border:2px solid var(--wood-1);border-radius:8px;
+  box-shadow:inset 0 0 0 1px rgba(255,248,230,.6),inset 0 -2px 0 rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.4)}
+.glass{background:var(--glass);border:1px solid rgba(255,240,210,.16);border-radius:6px;color:var(--white);backdrop-filter:blur(2px)}
+.rb{position:relative;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 50% 32%,#f5ecd6,#dcc9a0 72%,#cbb58a);
+  border:3px solid var(--wood-2);box-shadow:0 0 0 2px var(--wood-0),inset 0 -3px 4px rgba(0,0,0,.18),inset 0 2px 2px rgba(255,255,255,.5),0 3px 6px rgba(0,0,0,.5)}
+.rb .ic{width:58%;height:58%}
+.rb.primary{border-color:#b9843a;box-shadow:0 0 0 2px var(--wood-0),0 0 0 4px rgba(224,176,74,.35),inset 0 -3px 4px rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.55)}
+.badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:linear-gradient(180deg,#e2604f,#b93a2e);color:#fff;font-size:10px;font-weight:800;line-height:15px;text-align:center;border:1px solid #5a1a12;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.dot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--green);border:1px solid var(--wood-0)}
+.bar{position:relative;height:9px;border-radius:5px;background:#6a5a43;border:1px solid var(--wood-1);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.bar i{position:absolute;inset:0;width:var(--v,50%);border-radius:4px;background:linear-gradient(180deg,#9be27f,#4f9f3d);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.bar.ochre i{background:linear-gradient(180deg,#f0c866,#b98a3c)}
+.bar.blue i{background:linear-gradient(180deg,#8ec5ea,#4a86b5)}
+
+/* ---------- 1. блок лорда ---------- */
+.lord{position:absolute;left:12px;top:10px;width:246px;height:66px;display:grid;grid-template-columns:56px 1fr;gap:8px;padding:3px 6px 3px 3px}
+.lord .portrait{width:56px;height:56px;border-radius:6px;background:url(../concepts/main-screen-round-02/05-cellar-and-banner-blue-hour.jpg) -32px -24px/940px auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);align-self:center}
+.lord .rows{display:grid;grid-template-rows:auto auto auto;align-content:center;gap:3px;font-size:11px}
+.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:13px;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.lord .name small{font-weight:700;color:var(--muted);font-size:10px}
+.lord .xp{display:flex;align-items:center;gap:5px}
+.lord .xp b{font-size:10.5px;white-space:nowrap}
+.lord .xp .bar{flex:1}
+.lord .xp small{font-size:9.5px;color:var(--muted);white-space:nowrap}
+.lord .vip{display:flex;align-items:center;gap:6px;font-size:10.5px}
+.vipb{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;height:15px;border-radius:8px;background:linear-gradient(180deg,#f0c866,#c8952e);color:#3b2416;font-weight:800;font-size:9.5px;box-shadow:0 1px 1px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.5);position:relative}
+.vipb .ic{width:13px;height:13px}
+.vipb .dot{top:-3px;right:-3px;width:8px;height:8px;background:var(--red)}
+.lord .power{margin-left:auto;display:inline-flex;align-items:center;gap:3px;color:var(--ink);font-weight:800;font-size:11px}
+.lord .power .ic{width:14px;height:14px}
+
+/* 1b. баффы */
+.buffs{position:absolute;left:266px;top:50px;display:flex;gap:5px}
+.buff{height:24px;display:flex;align-items:center;gap:4px;padding:0 7px 0 3px;font-size:9.5px;font-weight:700;color:var(--white)}
+.buff .ic{width:17px;height:17px}
+
+/* ---------- 2/7. очереди ---------- */
+.queues{position:absolute;left:14px;top:88px;display:grid;gap:7px}
+.qbtn{position:relative;width:46px;height:46px;border-radius:10px;display:grid;place-items:center;padding:0;
+  background:radial-gradient(circle at 50% 30%,#f3e9d0,#dcc9a0 80%);border:2px solid var(--wood-2);box-shadow:0 0 0 1px var(--wood-0),inset 0 -3px 3px rgba(0,0,0,.16),0 2px 4px rgba(0,0,0,.45)}
+.qbtn .ic{width:28px;height:28px;margin-top:-5px}
+.qbtn .cnt{position:absolute;top:-6px;right:-7px;min-width:20px;height:15px;padding:0 4px;border-radius:8px;background:var(--wood-1);color:var(--bone);font-size:9px;font-weight:800;line-height:13px;text-align:center;border:1px solid var(--wood-0)}
+.qbtn .bar{position:absolute;left:5px;right:5px;bottom:4px;height:5px}
+.qbtn.active{box-shadow:0 0 0 1px var(--wood-0),0 0 0 3px var(--ochre),0 2px 4px rgba(0,0,0,.45)}
+.submenu{position:absolute;left:70px;top:141px;height:56px;display:flex;align-items:center;gap:6px;padding:4px 6px}
+.submenu::before{content:"";position:absolute;left:-8px;top:20px;border:8px solid transparent;border-left:0;border-right-color:var(--wood-1)}
+.slot{position:relative;width:98px;height:44px;border-radius:5px;background:rgba(255,250,236,.6);border:1px solid var(--bone-4);display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;align-content:start;align-items:center;column-gap:3px;padding:4px 4px 8px;font-size:9px;color:var(--ink)}
+.slot .ic{grid-row:1/3;width:22px;height:22px}
+.slot b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot span{font-size:8.5px;color:var(--muted);white-space:nowrap}
+.slot .bar{position:absolute;left:30px;right:4px;bottom:4px;height:4px}
+.slot.locked{opacity:.6}.slot.free b{color:#3f7a33}
+.slot .lk{position:absolute;right:3px;bottom:3px;width:11px;height:11px}
+
+/* ---------- 3. ресурсы ---------- */
+.resources{position:absolute;right:12px;top:12px;display:flex;gap:8px}
+.res{position:relative;width:116px;height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 9px 0 36px;font-weight:800;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+.res .ic{position:absolute;left:-6px;top:-6px;width:40px;height:40px}
+.res.gold{width:118px;background:linear-gradient(180deg,var(--wood-3),var(--wood-1));color:var(--gold-2);border-color:var(--wood-0);text-shadow:0 1px 1px rgba(0,0,0,.6);padding-right:6px;gap:6px}
+.res.gold .plus{width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#8fd47c,#4f9f3d);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:900;flex:none;border:1px solid #2f6b25;box-shadow:0 1px 1px rgba(0,0,0,.4);text-shadow:none}
+
+/* ---------- 8. лента хрониста ---------- */
+.chronicle{position:absolute;right:12px;top:52px;height:24px;width:470px;display:flex;align-items:center;gap:7px;padding:0 8px 0 6px;font-size:11.5px}
+.chronicle .ic{width:16px;height:16px;flex:none}
+.chronicle em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+.chronicle .more{margin-left:auto;opacity:.65;font-size:13px}
+
+/* ---------- 5. колонка справа ---------- */
+.side{position:absolute;right:12px;top:88px;display:grid;gap:8px;justify-items:center}
+.side .rb{width:46px;height:46px}
+.side .tabch{position:absolute;left:-14px;top:14px;width:12px;height:18px;border-radius:4px 0 0 4px;background:linear-gradient(180deg,var(--wood-3),var(--wood-1));border:1px solid var(--wood-0);border-right:0;font-size:10px;line-height:16px;text-align:center;color:var(--bone)}
+.collapse{width:44px;height:16px;border-radius:5px;display:grid;place-items:center;font-size:12px;color:var(--bone);background:linear-gradient(180deg,var(--wood-3),var(--wood-1));border:1px solid var(--wood-0);opacity:.92}
+
+/* 5b. ближайшие дела (?quests=1) */
+.quests{display:none;position:absolute;right:70px;top:196px;width:256px;padding:5px 8px 6px;z-index:2}
+.quests::after{content:"";position:absolute;right:-8px;top:18px;border:8px solid transparent;border-right:0;border-left-color:var(--wood-1)}
+.quests .qh{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.quests .qi{display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:3px 0;border-top:1px solid rgba(59,36,22,.15)}
+.quests .qi b{grid-column:1;grid-row:1;font-size:11px;color:var(--ink)}
+.quests .qi span{grid-column:1;grid-row:2;font-size:9.5px;color:var(--muted)}
+.quests .qi em{grid-column:2;grid-row:1/3;align-self:center;font-style:normal;font-size:9.5px;font-weight:800;color:#3f7a33;white-space:nowrap}
+.quests-open .quests{display:block}
+
+/* ---------- 6b. слева внизу: строить и карта ---------- */
+.rbtn{position:absolute}
+.rbtn.build{left:22px;top:626px;width:54px;height:54px}
+.rbtn.map{left:14px;top:688px;width:68px;height:68px}
+.rbtn .lbl{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);font-size:9px;font-weight:800;color:var(--bone);text-shadow:0 1px 2px #000,0 0 3px #000;white-space:nowrap}
+
+/* ---------- 6. чат ---------- */
+.chat{position:absolute;left:94px;bottom:14px;width:330px;height:108px;display:grid;grid-template-rows:auto 1fr auto;row-gap:4px;padding:5px 8px 6px;font-size:10.5px}
+.chat .tabs{display:flex;gap:4px}
+.chat .tabs span{padding:1px 7px;border-radius:9px;background:rgba(255,255,255,.1);opacity:.7;font-size:10px}
+.chat .tabs span.on{background:rgba(224,176,74,.4);opacity:1;font-weight:700}
+.chat .lines{display:grid;align-content:end;gap:2px;overflow:hidden;text-shadow:0 1px 1px rgba(0,0,0,.7)}
+.chat .lines .ln{display:flex;gap:5px;align-items:baseline}
+.chat .lines .ln::before{content:"";flex:none;width:3px;height:9px;border-radius:1px;background:var(--c,#6fa9d8);align-self:center}
+.chat .lines .ln.clan{--c:#8fd47c}.chat .lines .ln.sys{--c:#e0b04a}
+.chat .lines b{color:#f0c866;font-weight:700}
+.chat .lines .sys{opacity:.7}
+.chat .input{display:flex;align-items:center;gap:6px;opacity:.8;font-size:10.5px}
+.chat .input span{flex:1;padding:2px 8px;border-radius:9px;background:rgba(255,255,255,.08)}
+
+/* ---------- 9. навигация ---------- */
+.nav{position:absolute;right:12px;bottom:12px;display:flex;align-items:flex-end;gap:6px;padding:6px 8px 5px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(74,44,26,.9),rgba(34,19,11,.92));border:2px solid var(--wood-0);box-shadow:inset 0 1px 0 rgba(255,225,190,.22),0 3px 8px rgba(0,0,0,.5)}
+.tab{position:relative;width:78px;display:grid;justify-items:center;gap:3px;color:var(--bone)}
+.tab .face{width:52px;height:46px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(180deg,#f3e9d0,#dcc9a0);border:2px solid var(--wood-1);box-shadow:inset 0 0 0 1px rgba(255,248,230,.6),inset 0 -3px 0 rgba(0,0,0,.1),0 2px 3px rgba(0,0,0,.4)}
+.tab .face .ic{width:34px;height:34px}
+.tab span.t{font-size:10.5px;font-weight:800;text-shadow:0 1px 2px #000;letter-spacing:.2px}
+.tab .badge{top:-5px;right:8px}
+
+/* ---------- 10. знаки над зданиями ---------- */
+.pins{position:absolute;inset:0;pointer-events:none}
+.pin{position:absolute;transform:translate(-50%,-100%) scale(calc(1/var(--z)));transform-origin:50% 100%}
+.pin .disc{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#f5ecd6,#dcc9a0 78%);border:2px solid var(--wood-2);box-shadow:0 0 0 1px var(--wood-0),0 2px 3px rgba(0,0,0,.45);position:relative}
+.pin .disc::after{content:"";position:absolute;left:50%;bottom:-8px;border:5px solid transparent;border-top-color:var(--wood-2);border-bottom:0;transform:translateX(-50%)}
+.pin .disc .ic{width:21px;height:21px}
+.pin .raw{width:34px;height:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.pin .n{position:absolute;top:-6px;right:-9px;min-width:16px;height:15px;padding:0 3px;border-radius:8px;background:linear-gradient(180deg,#e2604f,#b93a2e);color:#fff;font-size:9px;font-weight:800;line-height:14px;text-align:center;border:1px solid #5a1a12}
+.pin .t{position:absolute;top:100%;left:50%;transform:translate(-50%,7px);padding:1px 5px;border-radius:4px;background:var(--glass);color:var(--white);font-size:9.5px;font-weight:700;white-space:nowrap;border:1px solid rgba(255,240,210,.15)}
+.pin.idle .z{height:18px;padding:0 7px;border-radius:9px;background:rgba(40,32,26,.6);border:1px solid rgba(255,240,210,.2);color:#e8ddc4;font-size:10px;font-weight:800;letter-spacing:.5px;line-height:16px}
+.pin.collect .bub{width:34px;height:30px;border-radius:10px 10px 10px 2px;background:linear-gradient(180deg,#fff9ea,#efe3c6);border:2px solid var(--wood-2);display:grid;place-items:center;animation:bob 1.6s ease-in-out infinite;box-shadow:0 2px 3px rgba(0,0,0,.45)}
+.pin.collect .bub .ic{width:24px;height:24px}
+@keyframes bob{50%{margin-top:-3px}}
+
+/* ---------- режим стройки (?mode=build) ---------- */
+.grid{position:absolute;left:0;top:0;width:600px;height:600px;transform-origin:0 0;display:none;grid-template-columns:repeat(12,50px);grid-template-rows:repeat(12,50px)}
+.grid .cell{border:1.5px solid rgba(255,246,222,.78);background:rgba(239,227,198,.13);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.grid .cell.occ{visibility:hidden}
+.grid .cell.wall{visibility:hidden}
+.grid.debug .cell{visibility:visible;font-size:14px;color:#fff;display:grid;place-items:center;text-shadow:0 0 3px #000}
+.grid.debug .cell.occ{background:rgba(210,75,63,.35)}
+.grid .fp{position:absolute;border:2px solid;display:grid;place-items:center}
+.grid .fp.ok{background:rgba(95,182,77,.38);border-color:#8fd47c;box-shadow:0 0 18px rgba(143,212,124,.6)}
+.grid .fp.bad{background:rgba(210,75,63,.35);border-color:#e2604f}
+.stage:not(.build) .build-ui{display:none !important}
+.build .grid{display:grid}
+.build .queues,.build .submenu,.build .buffs,.build .chronicle,.build .side,.build .chat,.build .nav,.build .rbtn,.build .pins,.build .quests{display:none}
+.build .stage-dim{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,.05) 35%,rgba(0,0,0,.55) 100%);pointer-events:none}
+.build .stage-bg{position:absolute;inset:-20px;background:url(scene-high-camera.jpg) center/cover;filter:blur(8px) brightness(.55)}
+.build-close{position:absolute;left:22px;top:626px;width:54px;height:54px;font-size:22px;font-weight:900;color:var(--wood-1)}
+.btabs{position:absolute;left:14px;top:92px;display:grid;gap:6px;padding:6px;width:66px}
+.btab{position:relative;display:grid;justify-items:center;gap:2px;padding:4px 2px 3px;border-radius:7px;background:rgba(255,250,236,.12);color:var(--bone);font-size:8.5px;font-weight:800;text-align:center;line-height:1.05}
+.btab .ic{width:26px;height:26px}
+.btab.on{background:linear-gradient(180deg,#f3e9d0,#dcc9a0);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(90,58,38,.35)}
+.cards{position:absolute;left:96px;right:12px;bottom:12px;display:flex;gap:10px;align-items:flex-end}
+.card{width:196px;height:172px;display:grid;grid-template-rows:72px auto 1fr auto;gap:3px;padding:4px 6px 6px;position:relative}
+.card .img{border-radius:5px;background:url(scene-high-camera.jpg) var(--bx) var(--by)/1376px 768px no-repeat;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.card h4{margin:0;font-size:12.5px;display:flex;justify-content:space-between;align-items:baseline}
+.card h4 small{font-size:9px;color:var(--muted);font-weight:700}
+.card p{margin:0;font-size:9.5px;color:var(--muted);line-height:1.2}
+.card .cost{display:flex;gap:8px;align-items:center;font-size:10.5px;font-weight:800}
+.card .cost i{display:inline-flex;align-items:center;gap:2px;font-style:normal}
+.card .cost .ic{width:16px;height:16px}
+.card .cost .time{margin-left:auto;font-weight:700;color:var(--muted);font-size:9.5px}
+.card .go{position:absolute;right:6px;top:52px;height:22px;padding:0 9px;border-radius:6px;background:linear-gradient(180deg,#9be27f,#4f9f3d);color:#fff;font-size:10px;font-weight:800;border:1px solid #2f6b25;box-shadow:0 1px 2px rgba(0,0,0,.4);display:grid;place-items:center}
+.card.locked .img{filter:grayscale(1) brightness(.75)}
+.card.locked h4,.card.locked p{opacity:.65}
+.card.locked .lockrow{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;color:#8a3b2f}
+.card.locked .lockrow .ic{width:15px;height:15px}
+.editor{position:absolute;right:12px;top:52px;height:24px;display:flex;align-items:center;gap:6px;padding:0 9px 0 5px;font-size:10.5px;font-weight:700}
+.editor .ic{width:16px;height:16px}
+.build-title{position:absolute;left:50%;top:52px;transform:translateX(-50%);height:26px;display:flex;align-items:center;gap:6px;padding:0 12px;font-size:12px;font-weight:800;letter-spacing:.3px;white-space:pre}
+.build-title .ic{width:18px;height:18px}
+
+/* ---------- выноски (?annotate=1) ---------- */
+.callout{display:none;position:absolute;z-index:5;padding:2px 7px 2px 3px;border-radius:11px;background:#111;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none}
+.callout b{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:5px;border-radius:50%;background:#ffcf4d;color:#111;font-size:10px}
+.annotate .callout{display:inline-flex;align-items:center}

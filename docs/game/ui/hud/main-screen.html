@@ -3,241 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TDL — главный экран: раскладка HUD (круг 4)</title>
-<style>
-/* Раскладка главного экрана: 10 замечаний заказчика (круг 3) + разбор 12 кадров Rise of Kingdoms (круг 4, 21-rok-reference.md).
-   Стадия 1376×768 — ландшафт телефона; сцена — AI-подложка без интерфейса, весь HUD — HTML/CSS.
-   Состояния: ?annotate=1 — выноски; ?quests=1 — раскрытый список заданий. */
-:root{
-  --bone:#efe3c6;--bone-2:#e2d2ad;--bone-3:#cfbb8f;--wood:#3b2416;--wood-2:#5a3a26;--wood-3:#7a5236;
-  --ink:#2a1e14;--muted:#6f5b45;--ochre:#b98a3c;--gold:#e0b04a;--green:#5fb64d;--red:#d24b3f;--white:#f7f0e2;
-  --glass:rgba(16,11,8,.42);--glass-2:rgba(16,11,8,.28);
-  --sans:"Open Sans",Inter,Arial,sans-serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:#1a1d24;color:var(--ink);font:12px/1.25 var(--sans)}
-.stage{position:relative;width:1376px;height:768px;overflow:hidden;background:#243244 url(scene-blue-hour-wide.jpg) center/cover no-repeat;margin:0 auto}
-svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:-.15em}
-
-/* Материалы */
-.plaque{background:linear-gradient(180deg,#f3e9d0,#e5d4ae);border:2px solid var(--wood);box-shadow:inset 0 0 0 1px rgba(255,248,230,.55),0 2px 4px rgba(0,0,0,.35);border-radius:6px}
-.wood{background:linear-gradient(180deg,#5c3b26,#3b2416);border:1px solid #23150c;box-shadow:inset 0 1px 0 rgba(255,220,180,.18),0 2px 4px rgba(0,0,0,.4);border-radius:6px;color:var(--bone)}
-.nail{position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#8a8378,#2a2622)}
-.glass{background:var(--glass);border:1px solid rgba(255,240,210,.14);border-radius:5px;color:var(--white);backdrop-filter:blur(2px)}
-
-/* 1. Блок лорда — компактный */
-.lord{position:absolute;left:14px;top:12px;width:236px;height:60px;display:grid;grid-template-columns:52px 1fr;gap:8px;padding:2px}
-.lord .portrait{width:52px;height:52px;border-radius:5px;background:url(../concepts/main-screen-round-02/05-cellar-and-banner-blue-hour.jpg) -30px -22px/880px auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-.lord .rows{display:grid;grid-template-rows:1fr 1fr 1fr;align-content:center;padding-right:6px;font-size:11px}
-.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:12.5px}
-.lord .name small{font-weight:600;color:var(--muted);font-size:10px}
-.lord .xp{display:flex;align-items:center;gap:5px}
-.lord .xp b{font-size:10.5px;white-space:nowrap}
-.bar{position:relative;flex:1;height:8px;border-radius:4px;background:#8b7a5b;box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
-.bar i{position:absolute;inset:0;width:var(--v,50%);border-radius:4px;background:linear-gradient(180deg,#8fd47c,#57a746)}
-.bar.ochre i{background:linear-gradient(180deg,#e2b65c,#b98a3c)}
-.lord .xp small{font-size:9.5px;color:var(--muted);white-space:nowrap}
-.lord .vip{display:flex;align-items:center;gap:6px;font-size:10.5px}
-.vipb{display:inline-flex;align-items:center;gap:3px;padding:0 6px;height:14px;border-radius:7px;background:linear-gradient(180deg,#f0c866,#c8952e);color:#3b2416;font-weight:800;font-size:9.5px;box-shadow:0 1px 1px rgba(0,0,0,.35)}
-.lord .power{margin-left:auto;color:var(--muted);font-weight:700;font-size:10px}
-
-/* 2/7. Очереди слева и подменю */
-.queues{position:absolute;left:14px;top:82px;display:grid;gap:6px}
-.qbtn{position:relative;width:44px;height:44px;display:grid;place-items:center;font-size:20px;color:var(--bone)}
-.qbtn .cnt{position:absolute;top:-5px;right:-6px;min-width:18px;height:14px;padding:0 4px;border-radius:7px;background:var(--bone);color:var(--ink);font-size:9px;font-weight:800;line-height:14px;text-align:center;border:1px solid var(--wood)}
-.qbtn .bar{position:absolute;left:5px;right:5px;bottom:4px;height:4px;flex:none}
-.qbtn.active{box-shadow:0 0 0 2px var(--ochre),0 2px 4px rgba(0,0,0,.4)}
-.submenu{position:absolute;left:66px;top:132px;height:52px;display:flex;align-items:center;gap:6px;padding:4px 6px}
-.submenu::before{content:"";position:absolute;left:-7px;top:19px;border:7px solid transparent;border-left:0;border-right-color:var(--wood)}
-.slot{width:72px;height:42px;border-radius:4px;background:rgba(255,250,236,.55);border:1px solid var(--bone-3);display:grid;grid-template-rows:auto auto auto;align-content:center;justify-items:center;gap:1px;font-size:9px;color:var(--ink)}
-.slot svg{font-size:14px}
-.slot b{font-size:9px}
-.slot .bar{width:56px;height:4px;flex:none}
-.slot.locked{opacity:.55}.slot.free b{color:#3f7a33}
-
-/* 3. Ресурсы и золото */
-.resources{position:absolute;right:14px;top:12px;display:flex;gap:6px}
-.res{width:118px;height:34px;display:flex;align-items:center;gap:6px;padding:0 8px 0 6px;font-weight:800;font-size:12.5px}
-.res svg{font-size:20px;color:var(--wood-2);flex:none}
-.res span{margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
-.res.gold{width:118px;color:var(--gold)}
-.res.gold span{color:#fff2cf}
-.res.gold .plus{margin-left:0;width:16px;height:16px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px;flex:none;box-shadow:0 1px 1px rgba(0,0,0,.4)}
-
-/* 8. Лента хрониста — тише */
-.chronicle{position:absolute;right:14px;top:52px;height:22px;width:462px;display:flex;align-items:center;gap:7px;padding:0 8px;font-size:11.5px}
-.chronicle svg{font-size:13px;opacity:.8}
-.chronicle em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
-.chronicle .more{margin-left:auto;opacity:.6;font-size:12px}
-
-/* 5. Колонка действий справа: под ресурсами, сворачивается, настройки */
-.side{position:absolute;right:14px;top:84px;display:grid;gap:6px;justify-items:center}
-.sbtn{position:relative;width:44px;height:44px;display:grid;place-items:center;font-size:20px;color:var(--bone)}
-.sbtn .badge{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.5)}
-.sbtn .dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--green);border:1px solid #23150c}
-.collapse{width:44px;height:16px;display:grid;place-items:center;font-size:12px;color:var(--bone);opacity:.9}
-
-/* 6. Чат — слева снизу, прозрачный */
-.chat{position:absolute;left:92px;bottom:14px;width:330px;height:118px;display:grid;grid-template-rows:auto 1fr auto;padding:5px 8px 6px;font-size:11px}
-.chat .tabs{display:flex;gap:4px}
-.chat .tabs span{padding:1px 7px;border-radius:9px;background:rgba(255,255,255,.1);opacity:.7;font-size:10px}
-.chat .tabs span.on{background:rgba(224,176,74,.35);opacity:1;font-weight:700}
-.chat .lines{display:grid;align-content:end;gap:2px;overflow:hidden;text-shadow:0 1px 1px rgba(0,0,0,.6)}
-.chat .lines b{color:#f0c866;font-weight:700}
-.chat .lines .sys{opacity:.65}
-.chat .input{display:flex;align-items:center;gap:6px;opacity:.75;font-size:10.5px}
-.chat .input span{flex:1;padding:2px 8px;border-radius:9px;background:rgba(255,255,255,.08)}
-.chat .input svg{font-size:13px}
-
-/* 9. Нижняя навигация */
-.nav{position:absolute;right:14px;bottom:14px;display:flex;align-items:flex-end;gap:6px}
-.tab{position:relative;width:84px;height:56px;display:grid;grid-template-rows:1fr auto;justify-items:center;align-items:center;padding:5px 0 4px;font-weight:800;font-size:10.5px;color:var(--ink)}
-.tab svg{font-size:22px;color:var(--wood-2)}
-.tab .badge{position:absolute;top:-5px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center}
-
-/* 10. Бейджи над зданиями */
-.pin{position:absolute;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:15px;color:var(--wood);transform:translate(-50%,-100%)}
-.pin::after{content:"";position:absolute;left:50%;bottom:-6px;border:5px solid transparent;border-top-color:var(--wood);border-bottom:0;transform:translateX(-50%)}
-.pin .n{position:absolute;top:-6px;right:-8px;min-width:15px;height:14px;padding:0 3px;border-radius:7px;background:var(--red);color:#fff;font-size:9px;font-weight:800;line-height:14px;text-align:center}
-.pin .t{position:absolute;top:100%;left:50%;transform:translate(-50%,6px);padding:0 4px;border-radius:3px;background:var(--glass);color:var(--white);font-size:9px;white-space:nowrap}
-.pin.green{background:linear-gradient(180deg,#8fd47c,#57a746);color:#fff;border-color:#2f6b25}
-.pin.alert{color:var(--red)}
-
-/* 1b. Активные баффы — только когда есть */
-.buffs{position:absolute;left:258px;top:48px;display:flex;gap:5px}
-.buff{height:22px;display:flex;align-items:center;gap:4px;padding:0 6px 0 4px;font-size:9.5px;font-weight:700;color:var(--white)}
-.buff svg{font-size:13px;color:#8fd47c}
-.buff.speed svg{color:#f0c866}
-
-/* 5b. Список заданий — выезжает из правой колонки (?quests=1) */
-.sbtn .tabch{position:absolute;left:-11px;top:13px;width:11px;height:18px;border-radius:4px 0 0 4px;background:linear-gradient(180deg,#5c3b26,#3b2416);border:1px solid #23150c;border-right:0;font-size:10px;line-height:16px;text-align:center;color:var(--bone);opacity:.9}
-.quests{display:none;position:absolute;right:66px;top:184px;width:252px;padding:5px 8px 6px;z-index:2}
-.quests::after{content:"";position:absolute;right:-7px;top:19px;border:7px solid transparent;border-right:0;border-left-color:var(--wood)}
-.quests .qh{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
-.quests .qi{display:grid;grid-template-columns:1fr auto;gap:0 6px;padding:3px 0;border-top:1px solid rgba(59,36,22,.15)}
-.quests .qi b{grid-column:1;grid-row:1;font-size:11px;color:var(--ink)}
-.quests .qi span{grid-column:1;grid-row:2;font-size:9.5px;color:var(--muted)}
-.quests .qi em{grid-column:2;grid-row:1/3;align-self:center;font-style:normal;font-size:9.5px;font-weight:800;color:#3f7a33;white-space:nowrap}
-.quests-open .quests{display:block}
-
-/* 6b/9b. Слева внизу — «Строить» над «Картой», как у RoK */
-.rbtn{position:absolute;border-radius:50% !important;display:grid;place-items:center;color:var(--bone)}
-.rbtn.build{left:20px;top:628px;width:52px;height:52px;font-size:22px}
-.rbtn.map{left:14px;top:690px;width:64px;height:64px;font-size:30px;box-shadow:inset 0 1px 0 rgba(255,220,180,.18),0 0 0 2px var(--bone-3),0 2px 5px rgba(0,0,0,.45)}
-.rbtn .badge{position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;font-weight:800;line-height:16px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.5)}
-.rbtn .lbl{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:8.5px;font-weight:800;opacity:.9}
-
-/* 10b. Простой и сбор */
-.pin.idle{width:auto;height:18px;padding:0 6px;border-radius:9px;background:rgba(40,32,26,.55);border:1px solid rgba(255,240,210,.18);color:#e8ddc4;font-size:10px;font-weight:800;letter-spacing:.5px}
-.pin.idle::after{border-top-color:rgba(40,32,26,.7)}
-.pin.collect{width:30px;height:26px;border-radius:9px 9px 9px 2px;background:linear-gradient(180deg,#fff9ea,#efe3c6);color:var(--wood-2);font-size:16px;animation:bob 1.6s ease-in-out infinite}
-.pin.collect::after{left:7px;transform:none;border-top-color:var(--wood)}
-@keyframes bob{50%{margin-top:-3px}}
-
-/* чат: чёрточка канала */
-.chat .lines .ln{display:flex;gap:5px;align-items:baseline}
-.chat .lines .ln::before{content:"";flex:none;width:3px;height:9px;border-radius:1px;background:var(--c,#6fa9d8);align-self:center}
-.chat .lines .ln.clan{--c:#8fd47c}.chat .lines .ln.sys{--c:#e0b04a}
-
-/* Выноски для обсуждения (?annotate=1) */
-.callout{display:none;position:absolute;z-index:5;padding:2px 7px 2px 3px;border-radius:11px;background:#111;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none}
-.callout b{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:5px;border-radius:50%;background:#ffcf4d;color:#111;font-size:10px}
-.annotate .callout{display:inline-flex;align-items:center}
-</style>
+<title>TDL — главный экран: HUD (круг 5)</title>
+<link rel="stylesheet" href="hud.css">
+<!-- Состояния: ?zoom=near — камера приближена (слой .world ×1.5, HUD не меняется);
+     ?mode=build — режим стройки (камера выше, сетка клеток, вкладки и карточки);
+     ?quests=1 — раскрыт список «Ближайшие дела»; ?annotate=1 — выноски. -->
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-  <defs>
-    <symbol id="i-swords" viewBox="0 0 24 24"><path d="M4 20 15 9m0 0 3-6 2 2-6 3M4 20l-1-1m1 1 3 1M20 20 9 9m0 0L6 3 4 5l3 6m13 9 1-1m-1 1-3 1"/></symbol>
-    <symbol id="i-horse" viewBox="0 0 24 24"><path d="M5 20v-6l2-5 4-3 3-3 4 1 1 4-3 1-1 3v8M9 20v-4"/></symbol>
-    <symbol id="i-bow" viewBox="0 0 24 24"><path d="M6 3c8 2 13 7 15 15M6 3 3 6m3-3 15 15m0 0-3 3M5 19 19 5"/></symbol>
-    <symbol id="i-siege" viewBox="0 0 24 24"><path d="M3 20h18M6 20l4-9 4 9M10 11 18 4m0 0 2 2m-2-2-2 2M7 20v-3"/></symbol>
-    <symbol id="i-hammer" viewBox="0 0 24 24"><path d="M14 4l6 6-3 3-6-6zM12 7 4 15l3 3 8-8M15 3l3-1 3 3-1 3"/></symbol>
-    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M7 16h10"/></symbol>
-    <symbol id="i-march" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-3 4 3 4H5M10 21h-5"/></symbol>
-    <symbol id="i-cross" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></symbol>
-    <symbol id="i-helmet" viewBox="0 0 24 24"><path d="M4 14a8 8 0 0 1 16 0v6H4zM12 6v14M8 14h8"/></symbol>
-    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 6l9 7 9-7"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/></symbol>
-    <symbol id="i-quest" viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></symbol>
-    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2m10-10 2-2"/></symbol>
-    <symbol id="i-chevron-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
-    <symbol id="i-chevron-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
-    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></symbol>
-    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14m6-12v14"/></symbol>
-    <symbol id="i-house" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M6 10v10h12V10M10 20v-6h4v6"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 4 8 8 9 4-1 8-4 8-9V6z"/></symbol>
-    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></symbol>
-    <symbol id="i-shop" viewBox="0 0 24 24"><path d="M3 9h18l-2 11H5zM3 9l2-5h14l2 5M9 13v3m6-3v3"/></symbol>
-    <symbol id="i-quill" viewBox="0 0 24 24"><path d="M4 20c2-8 8-14 16-16-1 8-6 14-14 15M6 18l8-8"/></symbol>
-    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 10V4h6M20 14v6h-6M4 4l6 6m10 10-6-6"/></symbol>
-    <symbol id="i-meat" viewBox="0 0 24 24"><path d="M14 4a6 6 0 0 1 6 6c0 3-3 5-6 5l-5 5-2-2 5-5c0-3 0-9 2-9zM5 19l-1 1"/></symbol>
-    <symbol id="i-wood" viewBox="0 0 24 24"><circle cx="8" cy="15" r="3"/><circle cx="16" cy="15" r="3"/><circle cx="12" cy="9" r="3"/></symbol>
-    <symbol id="i-stone" viewBox="0 0 24 24"><path d="M4 16l3-8 7-3 6 5-2 8H7z"/></symbol>
-    <symbol id="i-metal" viewBox="0 0 24 24"><path d="M6 9h12l3 6H3zM6 9l-1 6m13-6 1 6"/></symbol>
-    <symbol id="i-mushroom" viewBox="0 0 24 24"><path d="M3 11a9 6 0 0 1 18 0zM9 11l1 9h4l1-9"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4v10m0 4v1"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24"><path d="M6 11h12v10H6zM9 11V7a3 3 0 0 1 6 0v4"/></symbol>
-    <symbol id="i-vip" viewBox="0 0 24 24"><path d="M3 8l4 9h10l4-9-5 4-4-7-4 7z"/></symbol>
-    <symbol id="i-power" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
-  </defs>
-</svg>
 <div class="stage" id="stage">
 
+  <!-- Мир: сцена + сетка стройки + знаки над зданиями. Масштабируется зумом игрока, HUD — нет. -->
+  <div class="build-ui stage-bg"></div>
+  <div class="world">
+    <div class="scene" role="img" aria-label="Двор: частокол, здания, мёртвые жители"></div>
+    <div class="grid" id="grid" aria-hidden="true"></div>
+    <div class="pins" aria-label="Состояния зданий">
+      <div class="pin" style="left:640px;top:150px" title="Лесопилка: можно улучшить"><img class="ic raw" src="icons/arrow-up.png" alt=""></div>
+      <div class="pin" style="left:845px;top:148px" title="Казарма: идёт тренировка"><div class="disc"><img class="ic" src="icons/swords.png" alt=""></div><span class="t">12:40</span></div>
+      <div class="pin" style="left:565px;top:298px" title="Паутина: идёт исследование"><div class="disc"><img class="ic" src="icons/web.png" alt=""></div><span class="t">3:40:00</span></div>
+      <div class="pin" style="left:452px;top:372px" title="Лазарет: раненые"><img class="ic raw" src="icons/cross.png" alt=""><span class="n">12</span></div>
+      <div class="pin" style="left:705px;top:232px" title="Зал командиров (рабочее имя): можно нанять"><div class="disc"><img class="ic" src="icons/helmet.png" alt=""></div><span class="n">!</span></div>
+      <div class="pin collect" style="left:1000px;top:298px" title="Загон: мясо накопилось — забрать"><div class="bub"><img class="ic" src="icons/meat.png" alt=""></div></div>
+      <div class="pin collect" style="left:690px;top:398px" title="Ферма: грибы накопились — забрать"><div class="bub"><img class="ic" src="icons/mushroom.png" alt=""></div></div>
+      <div class="pin idle" style="left:1122px;top:290px" title="Стрельбище: простаивает"><div class="z">zZz</div></div>
+    </div>
+  </div>
+  <div class="build-ui stage-dim"></div>
+
   <!-- 1. Блок лорда -->
-  <section class="lord plaque" aria-label="Лорд">
+  <section class="lord frame" aria-label="Лорд">
     <div class="portrait" role="img" aria-label="Портрет лорда"></div>
     <div class="rows">
       <div class="name"><span>Ярик</span><small>[ТДЛ]</small></div>
-      <div class="xp"><b>Ур. 7</b><div class="bar" style="--v:58%"><i></i></div><small>до уровня 1 250</small></div>
-      <div class="vip"><span class="vipb"><svg class="i"><use href="#i-vip"/></svg>VIP 3</span><span class="power"><svg class="i"><use href="#i-power"/></svg> 12 400</span></div>
+      <div class="xp"><b>Ур. 7</b><div class="bar"><i style="--v:58%"></i></div><small>до уровня 1 250</small></div>
+      <div class="vip"><span class="vipb"><img class="ic" src="icons/crown.png" alt="">VIP 3<span class="dot" title="Есть ежедневная награда"></span></span><span class="power" title="Сила"><img class="ic" src="icons/sword.png" alt="">12 400</span></div>
     </div>
   </section>
-  <!-- 1b. Активные баффы (показываются только при наличии) -->
   <div class="buffs" aria-label="Активные баффы">
-    <div class="buff glass" title="Добыча +10 % · осталось 1:59:00"><svg class="i"><use href="#i-plus"/></svg>добыча · 1:59</div>
-    <div class="buff glass speed" title="Скорость марша +20 % · осталось 0:42:10"><svg class="i"><use href="#i-march"/></svg>марш · 0:42</div>
+    <div class="buff glass" title="Добыча +10 % · осталось 1:59:00"><img class="ic" src="icons/arrow-up.png" alt="">добыча · 1:59</div>
+    <div class="buff glass" title="Скорость марша +20 % · осталось 0:42:10"><img class="ic" src="icons/banner.png" alt="">марш · 0:42</div>
   </div>
 
-  <!-- 2/7. Очереди -->
+  <!-- 2/7. Очереди и подменю -->
   <nav class="queues" aria-label="Очереди">
-    <button class="qbtn wood" title="Марши"><svg class="i"><use href="#i-march"/></svg><span class="cnt">1/2</span><div class="bar" style="--v:35%"><i></i></div></button>
-    <button class="qbtn wood active" title="Тренировка"><svg class="i"><use href="#i-swords"/></svg><span class="cnt">1/3</span><div class="bar" style="--v:62%"><i></i></div></button>
-    <button class="qbtn wood" title="Строительство"><svg class="i"><use href="#i-hammer"/></svg><span class="cnt">1/1</span><div class="bar ochre" style="--v:80%"><i></i></div></button>
-    <button class="qbtn wood" title="Исследования"><svg class="i"><use href="#i-flask"/></svg><span class="cnt">1/1</span><div class="bar" style="--v:20%"><i></i></div></button>
+    <button class="qbtn" title="Марши 1/2"><img class="ic" src="icons/banner.png" alt=""><span class="cnt">1/2</span><div class="bar blue"><i style="--v:35%"></i></div></button>
+    <button class="qbtn active" title="Тренировка 1/3"><img class="ic" src="icons/swords.png" alt=""><span class="cnt">1/3</span><div class="bar"><i style="--v:62%"></i></div></button>
+    <button class="qbtn" title="Стройка 1/1"><img class="ic" src="icons/hammer.png" alt=""><span class="cnt">1/1</span><div class="bar ochre"><i style="--v:80%"></i></div></button>
+    <button class="qbtn" title="Исследования 1/1"><img class="ic" src="icons/web.png" alt=""><span class="cnt">1/1</span><div class="bar"><i style="--v:20%"></i></div></button>
   </nav>
   <div class="submenu plaque" aria-label="Тренировка: ячейки">
-    <div class="slot"><svg class="i"><use href="#i-swords"/></svg><b>Пехота · 12:40</b><div class="bar" style="--v:62%"><i></i></div></div>
-    <div class="slot free"><svg class="i"><use href="#i-horse"/></svg><b>Всадники</b><span>свободно</span></div>
-    <div class="slot free"><svg class="i"><use href="#i-bow"/></svg><b>Лучники</b><span>свободно</span></div>
-    <div class="slot locked"><svg class="i"><use href="#i-siege"/></svg><b>Осадные</b><span><svg class="i"><use href="#i-lock"/></svg> заперто</span></div>
+    <div class="slot"><img class="ic" src="icons/infantry.png" alt=""><b>Пехота ×20</b><span>ещё 12:40</span><div class="bar"><i style="--v:62%"></i></div></div>
+    <div class="slot free"><img class="ic" src="icons/cavalry.png" alt=""><b>Всадники</b><span>свободно</span></div>
+    <div class="slot free"><img class="ic" src="icons/archers.png" alt=""><b>Лучники</b><span>свободно</span></div>
+    <div class="slot locked"><img class="ic" src="icons/siege.png" alt=""><b>Осадные</b><span>заперто</span><img class="ic lk" src="icons/lock.png" alt=""></div>
   </div>
 
-  <!-- 3. Ресурсы -->
+  <!-- 3. Ресурсы: ряд прижат вправо, растёт влево; золото отдельно -->
   <section class="resources" aria-label="Ресурсы">
-    <div class="res plaque" title="Мясо — точное число по нажатию"><svg class="i"><use href="#i-meat"/></svg><span>12,4 млн</span></div>
-    <div class="res plaque" title="Дерево"><svg class="i"><use href="#i-wood"/></svg><span>1,25 млрд</span></div>
-    <div class="res plaque" title="Камень"><svg class="i"><use href="#i-stone"/></svg><span>860 тыс.</span></div>
-    <div class="res plaque" title="Металл"><svg class="i"><use href="#i-metal"/></svg><span>92 тыс.</span></div>
-    <div class="res plaque" title="Грибы — погреб"><svg class="i"><use href="#i-mushroom"/></svg><span>24</span></div>
-    <div class="res wood gold" title="Золото"><svg class="i" style="color:var(--gold)"><use href="#i-coin"/></svg><span>1 250</span><span class="plus">+</span></div>
+    <div class="res plaque" title="Мясо — точное число по нажатию"><img class="ic" src="icons/meat.png" alt="">12,4 млн</div>
+    <div class="res plaque" title="Дерево"><img class="ic" src="icons/wood.png" alt="">1,25 млрд</div>
+    <div class="res plaque" title="Камень"><img class="ic" src="icons/stone.png" alt="">860 тыс.</div>
+    <div class="res plaque" title="Металл"><img class="ic" src="icons/metal.png" alt="">92 тыс.</div>
+    <div class="res plaque" title="Грибы — погреб"><img class="ic" src="icons/mushroom.png" alt="">24</div>
+    <div class="res plaque gold" title="Золото"><img class="ic" src="icons/gold.png" alt=""><span>1 250</span><span class="plus">+</span></div>
   </section>
 
   <!-- 8. Лента хрониста -->
-  <div class="chronicle glass" role="status"><svg class="i"><use href="#i-quill"/></svg><em>Живые у частокола. Пирогов не принесли.</em><span class="more">›</span></div>
+  <div class="chronicle glass" role="status"><img class="ic" src="icons/quill.png" alt=""><em>Живые у частокола. Пирогов не принесли.</em><span class="more">›</span></div>
 
-  <!-- 5. Колонка действий -->
+  <!-- 5. Колонка справа -->
   <nav class="side" aria-label="Действия">
-    <button class="sbtn wood" title="Почта и отчёты"><svg class="i"><use href="#i-mail"/></svg><span class="badge">3</span></button>
-    <button class="sbtn wood" title="События"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
-    <button class="sbtn wood" title="Задания — стрелка раскрывает ближайшие дела"><span class="tabch">‹</span><svg class="i"><use href="#i-quest"/></svg><span class="badge">1</span></button>
-    <button class="sbtn wood" title="Настройки"><svg class="i"><use href="#i-gear"/></svg></button>
-    <button class="collapse wood" title="Свернуть колонку"><svg class="i"><use href="#i-chevron-r"/></svg></button>
+    <button class="rb" title="Почта и отчёты"><img class="ic" src="icons/mail.png" alt=""><span class="badge">3</span></button>
+    <button class="rb" title="События"><img class="ic" src="icons/bell.png" alt=""><span class="dot"></span></button>
+    <button class="rb" title="Задания — стрелка раскрывает ближайшие дела"><span class="tabch">‹</span><img class="ic" src="icons/scroll.png" alt=""><span class="badge">1</span></button>
+    <button class="rb" title="Настройки"><img class="ic" src="icons/gear.png" alt=""></button>
+    <button class="collapse" title="Свернуть колонку">›</button>
   </nav>
-
-  <!-- 5b. Ближайшие дела (?quests=1) -->
   <aside class="quests plaque" aria-label="Ближайшие дела">
     <div class="qh"><span>Ближайшие дела</span><span>1 / 3</span></div>
     <div class="qi"><b>Частокол держит</b><span>улучшить частокол до 3 ур.</span><em>готово ›</em></div>
@@ -245,9 +86,9 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
     <div class="qi"><b>Тихий погреб</b><span>собрать 50 грибов с фермы</span><em>24 / 50</em></div>
   </aside>
 
-  <!-- 6b. Слева внизу: «Строить» и «Карта» -->
-  <button class="rbtn wood build" title="Строить — доступно 3 постройки"><svg class="i"><use href="#i-hammer"/></svg><span class="badge">3</span></button>
-  <button class="rbtn wood map" title="Карта (на карте — «Двор»)"><svg class="i"><use href="#i-map"/></svg></button>
+  <!-- 6b. Слева внизу: «Строить» над «Картой» -->
+  <button class="rb rbtn build" title="Строить — доступно 3 постройки"><img class="ic" src="icons/hammer.png" alt=""><span class="badge">3</span></button>
+  <button class="rb rbtn map primary" title="Карта (на карте — «Двор»)"><img class="ic" src="icons/map.png" alt=""></button>
 
   <!-- 6. Чат -->
   <section class="chat glass" aria-label="Чат">
@@ -257,46 +98,118 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke
       <div class="ln"><span><b>Дарья:</b> лесопилка спорит третий день, дрова не спорят</span></div>
       <div class="ln sys"><span>Клан «Тихий двор» получил печать столицы</span></div>
     </div>
-    <div class="input"><span>Написать…</span><svg class="i"><use href="#i-expand"/></svg></div>
+    <div class="input"><span>Написать…</span><span>⤢</span></div>
   </section>
 
   <!-- 9. Навигация -->
   <nav class="nav" aria-label="Навигация">
-    <button class="tab plaque"><svg class="i"><use href="#i-helmet"/></svg><span>Командиры</span><span class="badge">!</span></button>
-    <button class="tab plaque"><svg class="i"><use href="#i-shield"/></svg><span>Клан</span></button>
-    <button class="tab plaque"><svg class="i"><use href="#i-bag"/></svg><span>Предметы</span></button>
-    <button class="tab plaque"><svg class="i"><use href="#i-shop"/></svg><span>Магазин</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/helmet.png" alt=""></span><span class="t">Командиры</span><span class="badge">!</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/clan.png" alt=""></span><span class="t">Клан</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/bag.png" alt=""></span><span class="t">Предметы</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/shop.png" alt=""></span><span class="t">Магазин</span></button>
   </nav>
 
-  <!-- 10. Бейджи над зданиями -->
-  <div class="pin plaque green" style="left:318px;top:262px" title="Лесопилка: можно улучшить"><svg class="i"><use href="#i-plus"/></svg></div>
-  <div class="pin plaque" style="left:432px;top:338px" title="Казармы: идёт тренировка"><svg class="i"><use href="#i-swords"/></svg><span class="t">12:40</span></div>
-  <div class="pin plaque alert" style="left:568px;top:428px" title="Лазарет: раненые"><svg class="i"><use href="#i-cross"/></svg><span class="n">12</span></div>
-  <div class="pin plaque" style="left:756px;top:176px" title="Паутина: идёт исследование"><svg class="i"><use href="#i-flask"/></svg><span class="t">3:40:00</span></div>
-  <div class="pin plaque" style="left:900px;top:186px" title="Зал командиров (рабочее имя): можно нанять"><svg class="i"><use href="#i-helmet"/></svg><span class="n">!</span></div>
-  <div class="pin idle" style="left:1044px;top:238px" title="Стрельбище: простаивает — нет тренировки">zZz</div>
-  <div class="pin collect" style="left:1006px;top:318px" title="Загон: мясо накопилось — забрать тапом"><svg class="i"><use href="#i-meat"/></svg></div>
+  <!-- Режим стройки (?mode=build) -->
+  <div class="build-ui build-title glass"><img class="ic" src="icons/hammer.png" alt="">Стройка · свободных клеток&nbsp;<span id="free-cells">0</span>&nbsp;· строитель занят 1/1</div>
+  <button class="build-ui editor glass" title="Перестроить двор целиком"><img class="ic" src="icons/map.png" alt="">Перестроить двор</button>
+  <nav class="build-ui btabs frame" aria-label="Разделы построек">
+    <button class="btab on"><img class="ic" src="icons/wood.png" alt="">Хозяйство</button>
+    <button class="btab"><img class="ic" src="icons/swords.png" alt="">Война</button>
+    <button class="btab"><img class="ic" src="icons/web.png" alt="">Наука</button>
+    <button class="btab"><img class="ic" src="icons/badge.png" alt="">Украшения</button>
+  </nav>
+  <div class="build-ui cards" aria-label="Постройки раздела">
+    <article class="card plaque"><div class="img" style="--bx:-548px;--by:-150px"></div><h4>Лесопилка <small>1 / 2</small></h4><p>Дерево. +40 в час на 1-м уровне, 2×2 клетки</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">300</i><i><img class="ic" src="icons/stone.png" alt="">120</i><span class="time">12 мин</span></div><span class="go">Поставить</span></article>
+    <article class="card plaque"><div class="img" style="--bx:-1040px;--by:-125px"></div><h4>Каменоломня <small>0 / 1</small></h4><p>Камень. +30 в час, 2×2 клетки</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">400</i><span class="time">20 мин</span></div><span class="go">Поставить</span></article>
+    <article class="card plaque"><div class="img" style="--bx:-600px;--by:-392px"></div><h4>Ферма <small>1 / 1</small></h4><p>Грибы для паутины и навыков лорда. Медленно, своим ходом</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">700</i><i><img class="ic" src="icons/stone.png" alt="">200</i><span class="time">40 мин</span></div><span class="go">Улучшить</span></article>
+    <article class="card plaque locked"><div class="img" style="--bx:-520px;--by:-465px"></div><h4>Рудник <small>0 / 1</small></h4><p>Металл для войска и стройки</p><div class="lockrow"><img class="ic" src="icons/lock.png" alt="">Нужен двор 6-го уровня</div></article>
+    <article class="card plaque locked"><div class="img" style="--bx:-900px;--by:-430px"></div><h4>Пункт марша <small>1 / 5</small></h4><p>Второй марш. Уровень задаёт, сколько войска уходит</p><div class="lockrow"><img class="ic" src="icons/lock.png" alt="">Нужен двор 5-го уровня</div></article>
+  </div>
+  <button class="build-ui rb build-close" title="Закрыть стройку">✕</button>
 
-  <!-- Выноски -->
-  <span class="callout" style="left:258px;top:22px"><b>1</b>лорд: портрет · ник · ур. · опыт · VIP · сила</span>
-  <span class="callout" style="left:66px;top:88px"><b>2</b>очереди: марш · тренировка · стройка · наука</span>
-  <span class="callout" style="left:414px;top:140px"><b>7</b>подменю раскрывается вправо, над чатом</span>
-  <span class="callout" style="left:1050px;top:100px"><b>3</b>ресурсы растут влево · золото справа</span>
-  <span class="callout" style="left:1050px;top:122px"><b>8</b>лента хрониста: тише, под ресурсами</span>
-  <span class="callout" style="left:1060px;top:250px"><b>5</b>колонка действий · настройки · свернуть</span>
-  <span class="callout" style="left:430px;top:640px"><b>6</b>чат: прозрачный, правее кнопок</span>
-  <span class="callout" style="left:860px;top:700px"><b>9</b>четыре вкладки, как у RoK</span>
-  <span class="callout" style="left:600px;top:388px"><b>10</b>бейджи: лазарет · наука · найм · тренировка · улучшение</span>
-  <span class="callout" style="left:1000px;top:560px"><b>4</b>года нет · камера дальше, место под стройку</span>
-  <span class="callout" style="left:84px;top:606px"><b>11</b>Строить (счётчик) над Картой — столбик RoK</span>
-  <span class="callout" style="left:352px;top:46px"><b>12</b>баффы — только когда есть</span>
-  <span class="callout" style="left:1060px;top:300px"><b>13</b>zZz — простой · пузырь — забрать</span>
-  <span class="callout" style="left:1010px;top:176px"><b>14</b>‹ раскрывает три ближайших дела</span>
+  <!-- Выноски (?annotate=1) -->
+  <span class="callout" style="left:266px;top:14px"><b>1</b>лорд: портрет · ник · ур. · опыт · VIP · сила</span>
+  <span class="callout" style="left:474px;top:100px"><b>12</b>баффы — только когда есть</span>
+  <span class="callout" style="left:72px;top:96px"><b>2</b>очереди: марш · тренировка · стройка · наука</span>
+  <span class="callout" style="left:440px;top:150px"><b>7</b>подменю раскрывается вправо, над чатом</span>
+  <span class="callout" style="left:880px;top:100px"><b>3</b>ресурсы растут влево · золото справа</span>
+  <span class="callout" style="left:606px;top:56px"><b>8</b>лента хрониста: тише, под ресурсами</span>
+  <span class="callout" style="left:1090px;top:150px"><b>5</b>колонка действий · настройки · свернуть</span>
+  <span class="callout" style="left:1040px;top:206px"><b>14</b>‹ раскрывает три ближайших дела</span>
+  <span class="callout" style="left:1010px;top:330px"><b>13</b>пузырь — забрать · zZz — простой</span>
+  <span class="callout" style="left:590px;top:330px"><b>10</b>знаки: улучшить · тренировка · наука · лазарет · найм</span>
+  <span class="callout" style="left:980px;top:600px"><b>4</b>года нет · камера выше и дальше · место под стройку</span>
+  <span class="callout" style="left:88px;top:610px"><b>11</b>Строить (счётчик) над Картой</span>
+  <span class="callout" style="left:430px;top:650px"><b>6</b>чат: прозрачный, правее кнопок</span>
+  <span class="callout" style="left:790px;top:706px"><b>9</b>четыре вкладки, как у RoK</span>
 </div>
 <script>
-const q=new URLSearchParams(location.search),st=document.getElementById('stage');
-if(q.get('annotate')==='1')st.classList.add('annotate');
-if(q.get('quests')==='1')st.classList.add('quests-open');
+const q = new URLSearchParams(location.search), st = document.getElementById('stage');
+if (q.get('annotate') === '1') st.classList.add('annotate');
+if (q.get('quests') === '1') st.classList.add('quests-open');
+if (q.get('mode') === 'build') { st.classList.add('build'); st.style.setProperty('--z', '.94'); st.style.setProperty('--oy', '52%'); }
+if (q.get('zoom') === 'near') { st.style.setProperty('--z', '1.5'); st.style.setProperty('--ox', '50%'); st.style.setProperty('--oy', '32%'); }
+if (q.get('zoom') === 'far') { st.style.setProperty('--z', '.8'); }
+
+// Сетка клеток лежит на земле двора: гомография из квадрата 600×600 в четыре угла площадки на подложке.
+function homography(src, dst) {
+  const M = [];
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = src[i], [X, Y] = dst[i];
+    M.push([x, y, 1, 0, 0, 0, -X * x, -X * y, X]);
+    M.push([0, 0, 0, x, y, 1, -Y * x, -Y * y, Y]);
+  }
+  for (let c = 0; c < 8; c++) {
+    let p = c;
+    for (let r = c + 1; r < 8; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    for (let r = 0; r < 8; r++) {
+      if (r === c) continue;
+      const f = M[r][c] / M[c][c];
+      for (let k = c; k <= 8; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  const h = M.map((row, i) => row[8] / row[i]);
+  return `matrix3d(${h[0]},${h[3]},0,${h[6]},${h[1]},${h[4]},0,${h[7]},0,0,1,0,${h[2]},${h[5]},0,1)`;
+}
+// Углы площадки внутри частокола на подложке (левый, верхний, правый, нижний).
+const grid = document.getElementById('grid');
+grid.style.transform = homography(
+  [[0, 0], [600, 0], [600, 600], [0, 600]],
+  [[235, 262], [703, 122], [1170, 285], [668, 560]],
+);
+// 12×12 клеток. Клетки под зданиями (по подложке) скрыты — сетка видна только на свободной земле, как в RoK.
+const OCC_RECTS = [ // [ряд, столбец, рядов, столбцов]
+  [0, 0, 5, 4],  // Двор (каменный донжон со знаменем)
+  [1, 4, 2, 2],  // брёвна у лесопилки
+  [0, 6, 3, 3],  // лесопилка
+  [2, 9, 4, 3],  // казарма
+  [6, 10, 2, 2], // сарай у загона
+  [5, 5, 3, 3],  // зал командиров (домик с фонарями)
+  [5, 1, 4, 3],  // паутина
+  [6, 0, 4, 2],  // лазарет
+  [9, 0, 3, 2],  // погреб
+  [8, 1, 4, 4],  // ферма — грибные грядки
+  [8, 8, 4, 4],  // загон
+  [10, 6, 2, 2], // ворота
+];
+const OCC = new Set();
+for (const [r0, c0, nr, nc] of OCC_RECTS) for (let r = r0; r < r0 + nr; r++) for (let c = c0; c < c0 + nc; c++) OCC.add(r + '-' + c);
+if (q.get('debug') === '1') grid.classList.add('debug');
+for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) {
+  const d = document.createElement('div');
+  d.className = 'cell' + (OCC.has(r + '-' + c) ? ' occ' : '');
+  if (grid.classList.contains('debug')) d.textContent = r + '-' + c;
+  grid.appendChild(d);
+}
+document.getElementById('free-cells').textContent = String(144 - OCC.size);
+// Примеры: зелёный след 2×2 — сюда можно поставить лесопилку; красный — занято загоном.
+for (const [cls, r, c, w, h, title] of [['ok', 3, 7, 2, 2, 'Лесопилка 2×2 — можно поставить'], ['bad', 8, 9, 1, 2, 'Занято — загон']]) {
+  const d = document.createElement('div');
+  d.className = 'fp ' + cls; d.title = title;
+  d.style.cssText = `left:${c * 50}px;top:${r * 50}px;width:${w * 50}px;height:${h * 50}px`;
+  grid.appendChild(d);
+}
 </script>
 </body>
 </html>

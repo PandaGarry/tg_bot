@@ -3,121 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TDL — очереди слева: четыре подменю (п. 7)</title>
+<title>TDL — очереди: четыре подменю (круг 5)</title>
+<link rel="stylesheet" href="hud.css">
 <style>
-:root{
-  --bone:#efe3c6;--bone-3:#cfbb8f;--wood:#3b2416;--wood-2:#5a3a26;--ink:#2a1e14;--muted:#6f5b45;--ochre:#b98a3c;--gold:#e0b04a;--green:#5fb64d;--red:#d24b3f;--white:#f7f0e2;
-  --sans:"Open Sans",Inter,Arial,sans-serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:#2b3442;color:var(--ink);font:12px/1.25 var(--sans)}
-.sheet{width:1376px;margin:0 auto;padding:18px 16px 16px;background:#2b3442 url(scene-blue-hour-wide.jpg) center/cover;position:relative}
-.sheet::before{content:"";position:absolute;inset:0;background:rgba(20,26,36,.55)}
-.sheet>*{position:relative}
-h1{margin:0 0 4px;color:var(--white);font:600 20px Georgia,serif}
-p.lead{margin:0 0 14px;color:#d8d0bf;font-size:12px;max-width:900px}
-svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:-.15em}
-.plaque{background:linear-gradient(180deg,#f3e9d0,#e5d4ae);border:2px solid var(--wood);box-shadow:inset 0 0 0 1px rgba(255,248,230,.55),0 2px 4px rgba(0,0,0,.35);border-radius:6px}
-.wood{background:linear-gradient(180deg,#5c3b26,#3b2416);border:1px solid #23150c;box-shadow:inset 0 1px 0 rgba(255,220,180,.18),0 2px 4px rgba(0,0,0,.4);border-radius:6px;color:var(--bone)}
-.bar{position:relative;height:4px;border-radius:4px;background:#8b7a5b;box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
-.bar i{position:absolute;inset:0;width:var(--v,50%);border-radius:4px;background:linear-gradient(180deg,#8fd47c,#57a746)}
-.bar.ochre i{background:linear-gradient(180deg,#e2b65c,#b98a3c)}
-.row{display:grid;grid-template-columns:44px 1fr 300px;gap:14px;align-items:center;margin:0 0 12px}
-.qbtn{position:relative;width:44px;height:44px;display:grid;place-items:center;font-size:20px;box-shadow:0 0 0 2px var(--ochre),0 2px 4px rgba(0,0,0,.4)}
-.qbtn .cnt{position:absolute;top:-5px;right:-6px;min-width:18px;height:14px;padding:0 4px;border-radius:7px;background:var(--bone);color:var(--ink);font-size:9px;font-weight:800;line-height:14px;text-align:center;border:1px solid var(--wood)}
-.qbtn .bar{position:absolute;left:5px;right:5px;bottom:4px}
-.submenu{position:relative;height:52px;display:inline-flex;align-items:center;gap:6px;padding:4px 6px;justify-self:start}
-.submenu::before{content:"";position:absolute;left:-7px;top:19px;border:7px solid transparent;border-left:0;border-right-color:var(--wood)}
-.slot{width:96px;height:42px;border-radius:4px;background:rgba(255,250,236,.55);border:1px solid var(--bone-3);display:grid;align-content:center;justify-items:center;gap:1px;font-size:9px;color:var(--ink);text-align:center}
-.slot svg{font-size:14px}.slot b{font-size:9.5px}.slot .bar{width:76px}
-.slot.locked{opacity:.55}.slot.free b{color:#3f7a33}.slot.buy{border-color:var(--gold);background:rgba(255,236,190,.6)}
-.slot.buy b{color:#8a5f14}
-.note{color:#efe6d3;font-size:11.5px;line-height:1.35;text-shadow:0 1px 1px rgba(0,0,0,.6)}
-.note b{color:#ffd76a}
+  body{background:#1b2431}
+  .sheet{width:1376px;margin:0 auto;padding:18px 24px 22px;color:var(--bone)}
+  h1{margin:0 0 4px;font-size:18px}
+  .lead{margin:0 0 14px;font-size:12px;opacity:.85;max-width:1100px}
+  .row{position:relative;display:grid;grid-template-columns:46px 1fr;gap:0 24px;align-items:center;margin:0 0 14px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.25)}
+  .row .submenu{position:static;height:56px;width:max-content}
+  .row .submenu::before{display:none}
+  .row .note{grid-column:1/3;margin-top:8px;font-size:11.5px;opacity:.85;max-width:1000px}
+  .row .note b{color:var(--gold-2)}
+  .slot.buy b{color:#8a5a12}
+  .slot .ic.lk{position:absolute;right:3px;bottom:3px;width:11px;height:11px}
 </style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-  <defs>
-    <symbol id="i-swords" viewBox="0 0 24 24"><path d="M4 20 15 9m0 0 3-6 2 2-6 3M4 20l-1-1m1 1 3 1M20 20 9 9m0 0L6 3 4 5l3 6m13 9 1-1m-1 1-3 1"/></symbol>
-    <symbol id="i-horse" viewBox="0 0 24 24"><path d="M5 20v-6l2-5 4-3 3-3 4 1 1 4-3 1-1 3v8M9 20v-4"/></symbol>
-    <symbol id="i-bow" viewBox="0 0 24 24"><path d="M6 3c8 2 13 7 15 15M6 3 3 6m3-3 15 15m0 0-3 3M5 19 19 5"/></symbol>
-    <symbol id="i-siege" viewBox="0 0 24 24"><path d="M3 20h18M6 20l4-9 4 9M10 11 18 4m0 0 2 2m-2-2-2 2M7 20v-3"/></symbol>
-    <symbol id="i-hammer" viewBox="0 0 24 24"><path d="M14 4l6 6-3 3-6-6zM12 7 4 15l3 3 8-8M15 3l3-1 3 3-1 3"/></symbol>
-    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M7 16h10"/></symbol>
-    <symbol id="i-march" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-3 4 3 4H5M10 21h-5"/></symbol>
-    <symbol id="i-cross" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></symbol>
-    <symbol id="i-helmet" viewBox="0 0 24 24"><path d="M4 14a8 8 0 0 1 16 0v6H4zM12 6v14M8 14h8"/></symbol>
-    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 6l9 7 9-7"/></symbol>
-    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/></symbol>
-    <symbol id="i-quest" viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></symbol>
-    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2m10-10 2-2"/></symbol>
-    <symbol id="i-chevron-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
-    <symbol id="i-chevron-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
-    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></symbol>
-    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14m6-12v14"/></symbol>
-    <symbol id="i-house" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M6 10v10h12V10M10 20v-6h4v6"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 4 8 8 9 4-1 8-4 8-9V6z"/></symbol>
-    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/></symbol>
-    <symbol id="i-shop" viewBox="0 0 24 24"><path d="M3 9h18l-2 11H5zM3 9l2-5h14l2 5M9 13v3m6-3v3"/></symbol>
-    <symbol id="i-quill" viewBox="0 0 24 24"><path d="M4 20c2-8 8-14 16-16-1 8-6 14-14 15M6 18l8-8"/></symbol>
-    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 10V4h6M20 14v6h-6M4 4l6 6m10 10-6-6"/></symbol>
-    <symbol id="i-meat" viewBox="0 0 24 24"><path d="M14 4a6 6 0 0 1 6 6c0 3-3 5-6 5l-5 5-2-2 5-5c0-3 0-9 2-9zM5 19l-1 1"/></symbol>
-    <symbol id="i-wood" viewBox="0 0 24 24"><circle cx="8" cy="15" r="3"/><circle cx="16" cy="15" r="3"/><circle cx="12" cy="9" r="3"/></symbol>
-    <symbol id="i-stone" viewBox="0 0 24 24"><path d="M4 16l3-8 7-3 6 5-2 8H7z"/></symbol>
-    <symbol id="i-metal" viewBox="0 0 24 24"><path d="M6 9h12l3 6H3zM6 9l-1 6m13-6 1 6"/></symbol>
-    <symbol id="i-mushroom" viewBox="0 0 24 24"><path d="M3 11a9 6 0 0 1 18 0zM9 11l1 9h4l1-9"/></symbol>
-    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4v10m0 4v1"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24"><path d="M6 11h12v10H6zM9 11V7a3 3 0 0 1 6 0v4"/></symbol>
-    <symbol id="i-vip" viewBox="0 0 24 24"><path d="M3 8l4 9h10l4-9-5 4-4-7-4 7z"/></symbol>
-    <symbol id="i-power" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
-  </defs>
-</svg>
 <div class="sheet">
   <h1>Очереди слева: четыре подменю</h1>
-  <p class="lead">Кнопка очереди показывает счётчик «занято/доступно» и полосу самого близкого к завершению дела. Нажатие раскрывает ячейки вправо, в один ряд высотой 52 px — ряд всегда выше чата (чат начинается на 634 px, самое нижнее подменю заканчивается на 284 px). Открыто одно подменю за раз; повторное нажатие или тап по сцене закрывает.</p>
+  <p class="lead">Кнопка очереди показывает счётчик «занято/доступно» и полосу самого близкого к завершению дела. Нажатие раскрывает ячейки вправо, в один ряд высотой 56 px — ряд всегда выше чата (чат начинается на 646 px, самое нижнее подменю заканчивается на 300 px). Открыто одно подменю за раз; повторное нажатие или тап по сцене закрывает.</p>
 
   <div class="row">
-    <button class="qbtn wood"><svg class="i"><use href="#i-march"/></svg><span class="cnt">1/2</span><div class="bar" style="--v:35%"><i></i></div></button>
+    <button class="qbtn active"><img class="ic" src="icons/banner.png" alt=""><span class="cnt">1/2</span><div class="bar blue"><i style="--v:35%"></i></div></button>
     <div class="submenu plaque">
-      <div class="slot"><svg class="i"><use href="#i-march"/></svg><b>Ополчение II · 04:12</b><div class="bar" style="--v:35%"><i></i></div></div>
-      <div class="slot free"><svg class="i"><use href="#i-march"/></svg><b>Марш 2</b><span>свободно</span></div>
-      <div class="slot locked"><svg class="i"><use href="#i-lock"/></svg><b>Марш 3</b><span>двор ур. 10</span></div>
-      <div class="slot locked"><svg class="i"><use href="#i-lock"/></svg><b>Марш 4</b><span>двор ур. 16</span></div>
-      <div class="slot locked"><svg class="i"><use href="#i-lock"/></svg><b>Марш 5</b><span>двор ур. 22</span></div>
+      <div class="slot"><img class="ic" src="icons/banner.png" alt=""><b>Ополчение II</b><span>туда 04:12</span><div class="bar blue"><i style="--v:35%"></i></div></div>
+      <div class="slot free"><img class="ic" src="icons/banner.png" alt=""><b>Марш 2</b><span>свободно</span></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 3</b><span>двор ур. 10</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 4</b><span>двор ур. 16</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 5</b><span>двор ур. 22</span><img class="ic lk" src="icons/lock.png" alt=""></div>
     </div>
-    <div class="note"><b>Марши · 5.</b> Открываются прокачкой (пороги — заглушка). В ячейке: цель, таймер туда/обратно, тап — к маршу на карте; нажатие на идущий марш даёт «отозвать».</div>
+    <div class="note"><b>Марши · 5.</b> Открываются прокачкой двора (пороги — заглушка). В ячейке: цель, таймер туда/обратно, тап — к маршу на карте; нажатие на идущий марш даёт «отозвать».</div>
   </div>
 
   <div class="row">
-    <button class="qbtn wood"><svg class="i"><use href="#i-swords"/></svg><span class="cnt">1/3</span><div class="bar" style="--v:62%"><i></i></div></button>
+    <button class="qbtn active"><img class="ic" src="icons/swords.png" alt=""><span class="cnt">1/3</span><div class="bar"><i style="--v:62%"></i></div></button>
     <div class="submenu plaque">
-      <div class="slot"><svg class="i"><use href="#i-swords"/></svg><b>Пехота · 12:40</b><div class="bar" style="--v:62%"><i></i></div></div>
-      <div class="slot free"><svg class="i"><use href="#i-horse"/></svg><b>Всадники</b><span>свободно</span></div>
-      <div class="slot free"><svg class="i"><use href="#i-bow"/></svg><b>Лучники</b><span>свободно</span></div>
-      <div class="slot locked"><svg class="i"><use href="#i-siege"/></svg><b>Осадные</b><span><svg class="i"><use href="#i-lock"/></svg> заперто</span></div>
+      <div class="slot"><img class="ic" src="icons/infantry.png" alt=""><b>Пехота ×20</b><span>ещё 12:40</span><div class="bar"><i style="--v:62%"></i></div></div>
+      <div class="slot free"><img class="ic" src="icons/cavalry.png" alt=""><b>Всадники</b><span>свободно</span></div>
+      <div class="slot free"><img class="ic" src="icons/archers.png" alt=""><b>Лучники</b><span>свободно</span></div>
+      <div class="slot locked"><img class="ic" src="icons/siege.png" alt=""><b>Осадные</b><span>заперто</span><img class="ic lk" src="icons/lock.png" alt=""></div>
     </div>
     <div class="note"><b>Тренировка · 4 вида.</b> Пехота, всадники, лучники, осадные — по одной ячейке на здание; заперта, пока здание не построено. Тап по свободной ячейке ведёт к зданию с открытой панелью найма.</div>
   </div>
 
   <div class="row">
-    <button class="qbtn wood"><svg class="i"><use href="#i-hammer"/></svg><span class="cnt">1/1</span><div class="bar ochre" style="--v:80%"><i></i></div></button>
+    <button class="qbtn active"><img class="ic" src="icons/hammer.png" alt=""><span class="cnt">1/1</span><div class="bar ochre"><i style="--v:80%"></i></div></button>
     <div class="submenu plaque">
-      <div class="slot"><svg class="i"><use href="#i-hammer"/></svg><b>Частокол ур. 8 · 1:12:05</b><div class="bar ochre" style="--v:80%"><i></i></div></div>
-      <div class="slot buy"><svg class="i"><use href="#i-hammer"/></svg><b>Второй строитель</b><span>нанять · 2 дня</span></div>
+      <div class="slot"><img class="ic" src="icons/hammer.png" alt=""><b>Частокол ур. 8</b><span>ещё 1:12:05</span><div class="bar ochre"><i style="--v:80%"></i></div></div>
+      <div class="slot buy"><img class="ic" src="icons/gold.png" alt=""><b>2-й строитель</b><span>нанять · 2 дня</span></div>
     </div>
     <div class="note"><b>Строители · 2.</b> Основной всегда есть. Временный выдаётся за золото, задания и события на срок; в ячейке виден остаток срока найма, а после — кнопка «нанять».</div>
   </div>
 
   <div class="row">
-    <button class="qbtn wood"><svg class="i"><use href="#i-flask"/></svg><span class="cnt">1/1</span><div class="bar" style="--v:20%"><i></i></div></button>
+    <button class="qbtn active"><img class="ic" src="icons/web.png" alt=""><span class="cnt">1/1</span><div class="bar"><i style="--v:20%"></i></div></button>
     <div class="submenu plaque">
-      <div class="slot"><svg class="i"><use href="#i-flask"/></svg><b>Лесопилка II · 3:40:00</b><div class="bar" style="--v:20%"><i></i></div></div>
-      <div class="slot buy"><svg class="i"><use href="#i-flask"/></svg><b>Второй писарь</b><span>за золото</span></div>
+      <div class="slot"><img class="ic" src="icons/web.png" alt=""><b>Лесопилка II</b><span>ещё 3:40:00</span><div class="bar"><i style="--v:20%"></i></div></div>
+      <div class="slot buy"><img class="ic" src="icons/gold.png" alt=""><b>2-й писарь</b><span>за золото</span></div>
     </div>
-    <div class="note"><b>Исследования · 2.</b> Вторая ячейка — постоянная покупка за золото. Названия исследований и цены — заглушки до утверждения чисел.</div>
+    <div class="note"><b>Исследования (Паутина) · 2.</b> Вторая ячейка — постоянная покупка за золото. Названия исследований и цены — заглушки до утверждения чисел.</div>
   </div>
 </div>
 </body>

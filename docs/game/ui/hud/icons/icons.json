@@ -1,0 +1,365 @@
+{
+ "note": "Иконки нарезаны из sheet-a.png / sheet-b.png скриптом pnpm icons (tools/shots/icons.ts); фон #FF00FF убран, края расшиты.",
+ "icons": {
+  "meat": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    43,
+    20,
+    177,
+    167
+   ]
+  },
+  "wood": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    255,
+    15,
+    188,
+    175
+   ]
+  },
+  "stone": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    481,
+    23,
+    173,
+    159
+   ]
+  },
+  "metal": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    697,
+    23,
+    186,
+    158
+   ]
+  },
+  "chest": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    1147,
+    16,
+    174,
+    173
+   ]
+  },
+  "mushroom": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    50,
+    202,
+    159,
+    176
+   ]
+  },
+  "gold": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    268,
+    211,
+    160,
+    159
+   ]
+  },
+  "crown": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    473,
+    213,
+    191,
+    154
+   ]
+  },
+  "sword": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    697,
+    195,
+    184,
+    190
+   ]
+  },
+  "sword-tall": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    948,
+    15,
+    122,
+    370
+   ]
+  },
+  "badge": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    1157,
+    204,
+    153,
+    172
+   ]
+  },
+  "lock": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    58,
+    392,
+    140,
+    181
+   ]
+  },
+  "quill": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    265,
+    389,
+    174,
+    184
+   ]
+  },
+  "bell": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    485,
+    387,
+    159,
+    188
+   ]
+  },
+  "mail": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    697,
+    412,
+    184,
+    139
+   ]
+  },
+  "bag-dark": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    926,
+    398,
+    165,
+    168
+   ]
+  },
+  "bag-brown": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    1151,
+    411,
+    162,
+    146
+   ]
+  },
+  "scroll": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    49,
+    580,
+    159,
+    180
+   ]
+  },
+  "gear": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    253,
+    580,
+    186,
+    182
+   ]
+  },
+  "map": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    474,
+    583,
+    188,
+    162
+   ]
+  },
+  "cross": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    703,
+    582,
+    172,
+    178
+   ]
+  },
+  "cross-2": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    918,
+    579,
+    181,
+    183
+   ]
+  },
+  "cross-3": {
+   "sheet": "hud/icons/sheet-a.png",
+   "box": [
+    1147,
+    581,
+    170,
+    178
+   ]
+  },
+  "banner": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    179,
+    7,
+    163,
+    200
+   ]
+  },
+  "swords": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    482,
+    22,
+    175,
+    171
+   ]
+  },
+  "hammer": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    771,
+    18,
+    165,
+    179
+   ]
+  },
+  "web": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    1056,
+    21,
+    187,
+    185
+   ]
+  },
+  "infantry": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    162,
+    209,
+    199,
+    182
+   ]
+  },
+  "cavalry": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    489,
+    209,
+    166,
+    176
+   ]
+  },
+  "archers": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    774,
+    212,
+    155,
+    179
+   ]
+  },
+  "siege": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    1055,
+    218,
+    210,
+    167
+   ]
+  },
+  "helmet": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    173,
+    412,
+    172,
+    159
+   ]
+  },
+  "clan": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    474,
+    407,
+    197,
+    167
+   ]
+  },
+  "bag": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    753,
+    411,
+    193,
+    160
+   ]
+  },
+  "shop": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    1059,
+    402,
+    179,
+    176
+   ]
+  },
+  "arrow-up": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    30,
+    590,
+    162,
+    162
+   ]
+  },
+  "hand": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    241,
+    590,
+    147,
+    161
+   ]
+  },
+  "hand-2": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    510,
+    590,
+    142,
+    162
+   ]
+  },
+  "hourglass": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    794,
+    591,
+    109,
+    160
+   ]
+  },
+  "search": {
+   "sheet": "hud/icons/sheet-b.png",
+   "box": [
+    1189,
+    589,
+    159,
+    163
+   ]
+  }
+ }
+}
