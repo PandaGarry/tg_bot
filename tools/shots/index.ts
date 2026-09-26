@@ -271,6 +271,26 @@ if (sheetDir) {
   process.exit(0);
 }
 
+/** `pnpm shots --page hud/main-screen.html?annotate=1 --size 1376x768 --scale 1.5 --file docs/game/ui/hud/x.jpg [--full]` */
+const pagePath = argValue("--page");
+if (pagePath) {
+  const [w, h] = (argValue("--size") ?? "1376x768").split("x").map(Number);
+  const scale = Number(argValue("--scale") ?? 1.5);
+  const file = resolve(root, argValue("--file") ?? join(outDir, `${pagePath.replace(/[/?=&.]+/g, "-")}.jpg`));
+  const page = await openPage(browser, origin);
+  await page.setViewport({ width: w ?? 1376, height: h ?? 768, deviceScaleFactor: scale });
+  await page.goto(`${origin}/${pagePath}`, { waitUntil: "load" });
+  await page.evaluate(() => Promise.all([...document.images].map((img) => (img.complete ? null : new Promise((done) => img.addEventListener("load", done, { once: true }))))));
+  await settle(page, 500);
+  mkdirSync(dirname(file), { recursive: true });
+  await page.screenshot({ path: file, fullPage: args.includes("--full"), ...JPEG });
+  console.log(`  ${file.replace(`${root}/`, "")}`);
+  await page.close();
+  await browser.close();
+  close();
+  process.exit(0);
+}
+
 const made: string[] = [];
 try {
   for (const [name, shot] of Object.entries(shots)) {
