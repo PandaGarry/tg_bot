@@ -20,7 +20,7 @@ pnpm db:reset             # снести схему базы разработк�
 Проверки: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`.
 `pnpm check` вместе с прочим считает календарь сборки за три года: полосы, пробелы, покрытие пор года.
 Печать расписания: `pnpm schedule --days 90 [--from 2026-12-01] [--tz 180]` — окна и состояния единиц по часам мира.
-Снимки интерфейса: `pnpm shots [--only style-08]`, страница макета — `pnpm shots --page hud/main-screen.html --size 1376x768 --scale 1.5 --file docs/game/ui/hud/main-screen.jpg` (состояния: `?zoom=near`, `?mode=build`, `?annotate=1`, `?quests=1`), нарезка иконок из AI-листа по цветовому ключу — `pnpm icons hud/icons/sheet-a.png --prefix a`, контактный лист — `pnpm shots --sheet concepts/<каталог>` — Chromium из npm-пакета снимает макеты и страницы концептов
+Снимки интерфейса: `pnpm shots [--only style-08]`, страница макета — `pnpm shots --page hud/main-screen.html --size 1376x768 --scale 1.5 --file docs/game/ui/hud/main-screen.jpg` (состояния: `?zoom=near`, `?mode=build`, `?annotate=1`, `?quests=1`), нарезка иконок и спрайтов зданий из AI-листа по цветовому ключу — `pnpm icons hud/icons/sheet-a.png --prefix a` (для зданий `--merge-gap -1`), прототип двора-конструктора — `docs/game/ui/court/index.html` (снимки `pnpm shots --page "court/index.html?state=built"`), контактный лист — `pnpm shots --sheet concepts/<каталог>` — Chromium из npm-пакета снимает макеты и страницы концептов
 из `docs/game/ui/` в `docs/game/ui/shots/` (для просмотра файлами, без живого предпросмотра).
 Тесты идут на настоящем Postgres: каждый пакет сносит схему своей базы
 `tdl_test_<пакет>` и не трогает рабочую. Адрес можно задать явно —

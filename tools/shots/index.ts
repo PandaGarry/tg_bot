@@ -280,6 +280,8 @@ if (pagePath) {
   const page = await openPage(browser, origin);
   await page.setViewport({ width: w ?? 1376, height: h ?? 768, deviceScaleFactor: scale });
   await page.goto(`${origin}/${pagePath}`, { waitUntil: "load" });
+  // Страница может объявить window.__ready — промис, который ждём (макет двора подгружает HUD и спрайты сам).
+  await page.evaluate(() => (window as unknown as { __ready?: Promise<unknown> }).__ready ?? null);
   await page.evaluate(() => Promise.all([...document.images].map((img) => (img.complete ? null : new Promise((done) => img.addEventListener("load", done, { once: true }))))));
   await settle(page, 500);
   mkdirSync(dirname(file), { recursive: true });

@@ -1,5 +1,5 @@
 /**
- * Нарезка листа иконок: `pnpm icons hud/icons/sheet-a.png --prefix a [--pad 3]`.
+ * Нарезка листа иконок: `pnpm icons hud/icons/sheet-a.png --prefix a [--pad 3] [--merge-gap 6|-1]`.
  *
  * Лист сгенерирован на ровном пурпурном фоне (#FF00FF). Скрипт открывает его в Chromium,
  * убирает фон по цвету (с расшивкой полупрозрачных краёв), находит связные пятна — отдельные
@@ -29,6 +29,9 @@ if (!sheet) {
 }
 const prefix = argValue("--prefix") ?? basename(sheet, ".png");
 const pad = Number(argValue("--pad") ?? 3);
+// --merge-gap N: соседние рамки ближе N px склеиваются (по умолчанию 6); -1 — не склеивать вовсе
+// (нужно для листов зданий, где рамки соседей перекрываются по диагонали).
+const mergeGap = Number(argValue("--merge-gap") ?? 6);
 const outDir = join(uiDir, dirname(sheet));
 
 const types: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".html": "text/html; charset=utf-8" };
@@ -61,7 +64,7 @@ await page.goto(`${origin}/`, { waitUntil: "load" }).catch(() => undefined);
 await page.setContent("<!doctype html><title>icons</title>");
 
 const result = await page.evaluate(
-  async (src: string, padPx: number): Promise<{ w: number; h: number; key: number[]; items: Item[] }> => {
+  async (src: string, padPx: number, mergeGapPx: number): Promise<{ w: number; h: number; key: number[]; items: Item[] }> => {
     const img = new Image();
     img.src = src;
     await img.decode();
@@ -117,12 +120,12 @@ const result = await page.evaluate(
 
     // Связные области (4-связность).
     const label = new Int32Array(W * H);
-    const boxes: Array<{ x0: number; y0: number; x1: number; y1: number; count: number }> = [];
+    const boxes: Array<{ x0: number; y0: number; x1: number; y1: number; count: number; ids: number[] }> = [];
     const stack: number[] = [];
     for (let s = 0; s < W * H; s++) {
       if (!mask[s] || label[s]) continue;
       const id = boxes.length + 1;
-      const box = { x0: W, y0: H, x1: 0, y1: 0, count: 0 };
+      const box = { x0: W, y0: H, x1: 0, y1: 0, count: 0, ids: [id] };
       stack.push(s);
       label[s] = id;
       while (stack.length) {
@@ -149,8 +152,8 @@ const result = await page.evaluate(
 
     // Мусор — прочь; соседние рамки (ближе 6 px) — вместе.
     let items = boxes.filter((b) => b.count >= 150);
-    const gap = 6;
-    let merged = true;
+    const gap = mergeGapPx;
+    let merged = gap >= 0;
     while (merged) {
       merged = false;
       outer: for (let a = 0; a < items.length; a++) {
@@ -158,7 +161,7 @@ const result = await page.evaluate(
           const A = items[a]!;
           const B = items[b]!;
           if (A.x0 - gap <= B.x1 && B.x0 - gap <= A.x1 && A.y0 - gap <= B.y1 && B.y0 - gap <= A.y1) {
-            items[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), count: A.count + B.count };
+            items[a] = { x0: Math.min(A.x0, B.x0), y0: Math.min(A.y0, B.y0), x1: Math.max(A.x1, B.x1), y1: Math.max(A.y1, B.y1), count: A.count + B.count, ids: [...A.ids, ...B.ids] };
             items.splice(b, 1);
             merged = true;
             break outer;
@@ -191,13 +194,31 @@ const result = await page.evaluate(
       const c2 = document.createElement("canvas");
       c2.width = w;
       c2.height = h;
-      c2.getContext("2d")!.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+      const ctx2 = c2.getContext("2d")!;
+      ctx2.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+      // В рамку могут попасть пиксели соседних пятен (на листах зданий рамки перекрываются по диагонали):
+      // оставляем только свои пятна плюс мягкий край в 2 px вокруг них.
+      const own = new Set(b.ids);
+      let keep = new Uint8Array(w * h);
+      for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) if (own.has(label[(y + yy) * W + (x + xx)]!)) keep[yy * w + xx] = 1;
+      for (let pass = 0; pass < 2; pass++) {
+        const grown = new Uint8Array(keep);
+        for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+          if (keep[yy * w + xx]) continue;
+          if ((xx > 0 && keep[yy * w + xx - 1]) || (xx < w - 1 && keep[yy * w + xx + 1]) || (yy > 0 && keep[(yy - 1) * w + xx]) || (yy < h - 1 && keep[(yy + 1) * w + xx])) grown[yy * w + xx] = 1;
+        }
+        keep = grown;
+      }
+      const crop = ctx2.getImageData(0, 0, w, h);
+      for (let i = 0, j = 3; i < w * h; i++, j += 4) if (!keep[i]) crop.data[j] = 0;
+      ctx2.putImageData(crop, 0, 0);
       out.push({ x, y, w, h, png: c2.toDataURL("image/png") });
     }
     return { w: W, h: H, key: [Math.round(kr), Math.round(kg), Math.round(kb)], items: out };
   },
   `${origin}/${sheet}`,
   pad,
+  mergeGap,
 );
 
 mkdirSync(outDir, { recursive: true });
