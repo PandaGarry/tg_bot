@@ -1,0 +1,35 @@
+run = "bash tools/replit-dev.sh"
+entrypoint = "tools/replit-dev.sh"
+modules = ["nodejs-24"]
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "TDL dev server"
+
+[[workflows.workflow]]
+name = "TDL dev server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash tools/replit-dev.sh"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[nix]
+channel = "stable-25_05"
+packages = ["postgresql", "icu", "icu60"]
