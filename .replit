@@ -1,6 +1,6 @@
 run = "bash tools/replit-dev.sh"
 entrypoint = "tools/replit-dev.sh"
-modules = ["nodejs-24", "python-base-3.13"]
+modules = ["nodejs-24"]
 
 [[ports]]
 localPort = 3000
@@ -8,7 +8,6 @@ externalPort = 80
 
 [[ports]]
 localPort = 5000
-externalPort = 5000
 
 [workflows]
 runButton = "Project"
@@ -26,13 +25,13 @@ args = "TDL dev server"
 name = "TDL dev server"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash tools/replit-dev.sh"
-waitForPort = 5000
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [nix]
 channel = "stable-25_05"
