@@ -6,7 +6,7 @@
 <title>TDL — главный экран: HUD (круг 5)</title>
 <link rel="stylesheet" href="hud.css">
 <!-- Состояния: ?zoom=near — камера приближена (слой .world ×1.5, HUD не меняется);
-     ?mode=build — режим стройки (камера выше, сетка клеток, вкладки и карточки);
+     ?mode=build — режим стройки (камера отъезжает, сетка клеток на земле — scene-build-grid.jpg, вкладки и карточки);
      ?quests=1 — раскрыт список «Ближайшие дела»; ?annotate=1 — выноски. -->
 </head>
 <body>
@@ -17,6 +17,11 @@
   <div class="world">
     <div class="scene" role="img" aria-label="Двор: частокол, здания, мёртвые жители"></div>
     <div class="grid" id="grid" aria-hidden="true"></div>
+    <!-- Режим стройки: след здания на клетках подложки (ромбы в перспективе земли) -->
+    <div class="fpx ok" style="left:790px;top:342px;width:118px;height:60px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" title="Лесопилка 2×2 — можно поставить"></div>
+    <div class="fpx ok lbl-only" style="left:790px;top:342px;width:118px;height:60px;background:none;box-shadow:none;animation:none"><span class="lbl">Лесопилка · 2×2 · можно</span></div>
+    <div class="fpx bad" style="left:948px;top:300px;width:60px;height:30px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" title="Занято — загон"></div>
+    <div class="fpx bad lbl-only" style="left:948px;top:300px;width:60px;height:30px;background:none;box-shadow:none"><span class="lbl">занято · загон</span></div>
     <div class="pins" aria-label="Состояния зданий">
       <div class="pin" style="left:640px;top:150px" title="Лесопилка: можно улучшить"><img class="ic raw" src="icons/arrow-up.png" alt=""></div>
       <div class="pin" style="left:845px;top:148px" title="Казарма: идёт тренировка"><div class="disc"><img class="ic" src="icons/swords.png" alt=""></div><span class="t">12:40</span></div>
@@ -25,7 +30,7 @@
       <div class="pin" style="left:705px;top:232px" title="Зал командиров (рабочее имя): можно нанять"><div class="disc"><img class="ic" src="icons/helmet.png" alt=""></div><span class="n">!</span></div>
       <div class="pin collect" style="left:1000px;top:298px" title="Загон: мясо накопилось — забрать"><div class="bub"><img class="ic" src="icons/meat.png" alt=""></div></div>
       <div class="pin collect" style="left:690px;top:398px" title="Ферма: грибы накопились — забрать"><div class="bub"><img class="ic" src="icons/mushroom.png" alt=""></div></div>
-      <div class="pin idle" style="left:1122px;top:290px" title="Стрельбище: простаивает"><div class="z">zZz</div></div>
+      <div class="pin idle" style="left:1092px;top:288px" title="Стрельбище: простаивает"><div class="z">zZz</div></div>
     </div>
   </div>
   <div class="build-ui stage-dim"></div>

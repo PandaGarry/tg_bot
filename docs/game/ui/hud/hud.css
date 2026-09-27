@@ -40,17 +40,17 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .lord{position:absolute;left:12px;top:10px;width:246px;height:66px;display:grid;grid-template-columns:56px 1fr;gap:8px;padding:3px 6px 3px 3px}
 .lord .portrait{width:56px;height:56px;border-radius:6px;background:url(../concepts/main-screen-round-02/05-cellar-and-banner-blue-hour.jpg) -32px -24px/940px auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);align-self:center}
 .lord .rows{display:grid;grid-template-rows:auto auto auto;align-content:center;gap:3px;font-size:11px}
-.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:13px;text-shadow:0 1px 0 rgba(255,255,255,.4)}
-.lord .name small{font-weight:700;color:var(--muted);font-size:10px}
+.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:13px;color:#f7efdc;text-shadow:0 1px 1px rgba(0,0,0,.6)}
+.lord .name small{font-weight:700;color:#d8c7a0;font-size:10px}
 .lord .xp{display:flex;align-items:center;gap:5px}
-.lord .xp b{font-size:10.5px;white-space:nowrap}
+.lord .xp b{font-size:10.5px;white-space:nowrap;color:#f7efdc;text-shadow:0 1px 1px rgba(0,0,0,.6)}
 .lord .xp .bar{flex:1}
-.lord .xp small{font-size:9.5px;color:var(--muted);white-space:nowrap}
+.lord .xp small{font-size:9.5px;color:#d8c7a0;white-space:nowrap}
 .lord .vip{display:flex;align-items:center;gap:6px;font-size:10.5px}
 .vipb{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;height:15px;border-radius:8px;background:linear-gradient(180deg,#f0c866,#c8952e);color:#3b2416;font-weight:800;font-size:9.5px;box-shadow:0 1px 1px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.5);position:relative}
 .vipb .ic{width:13px;height:13px}
 .vipb .dot{top:-3px;right:-3px;width:8px;height:8px;background:var(--red)}
-.lord .power{margin-left:auto;display:inline-flex;align-items:center;gap:3px;color:var(--ink);font-weight:800;font-size:11px}
+.lord .power{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:#f7efdc;font-weight:800;font-size:11.5px;text-shadow:0 1px 1px rgba(0,0,0,.6)}
 .lord .power .ic{width:14px;height:14px}
 
 /* 1b. баффы */
@@ -159,7 +159,17 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .grid .fp.ok{background:rgba(95,182,77,.38);border-color:#8fd47c;box-shadow:0 0 18px rgba(143,212,124,.6)}
 .grid .fp.bad{background:rgba(210,75,63,.35);border-color:#e2604f}
 .stage:not(.build) .build-ui{display:none !important}
-.build .grid{display:grid}
+/* Режим стройки: сетка клеток нарисована на самой подложке (scene-build-grid.jpg — правка сцены: линии лежат на земле
+   и уходят под здания); CSS-сетка остаётся только для отладки (?debug=1) и как основа для клиента. */
+.build .scene{background-image:url(scene-build-grid.jpg)}
+.build .grid{display:none}.build .grid.debug{display:grid}
+.fpx{position:absolute;display:none;pointer-events:none}
+.build .fpx{display:block}
+.fpx.ok{background:rgba(95,182,77,.42);box-shadow:0 0 22px rgba(143,212,124,.55);animation:pulse 1.4s ease-in-out infinite}
+.fpx.bad{background:rgba(210,75,63,.42);box-shadow:0 0 16px rgba(226,96,79,.5)}
+.fpx .lbl{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;padding:2px 8px;border-radius:10px;background:rgba(16,11,8,.7);color:#f7f0e2;font:700 10.5px/1.4 "Open Sans",Arial,sans-serif;border:1px solid rgba(255,240,210,.18)}
+.fpx.ok .lbl{color:#c9f2bd}.fpx.bad .lbl{color:#ffc7bf}
+@keyframes pulse{50%{filter:brightness(1.25)}}
 .build .queues,.build .submenu,.build .buffs,.build .chronicle,.build .side,.build .chat,.build .nav,.build .rbtn,.build .pins,.build .quests{display:none}
 .build .stage-dim{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,.05) 35%,rgba(0,0,0,.55) 100%);pointer-events:none}
 .build .stage-bg{position:absolute;inset:-20px;background:url(scene-high-camera.jpg) center/cover;filter:blur(8px) brightness(.55)}
