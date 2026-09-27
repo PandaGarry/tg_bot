@@ -6,6 +6,7 @@
 <title>TDL — главный экран: HUD (круг 5)</title>
 <link rel="stylesheet" href="hud.css">
 <!-- Состояния: ?zoom=near — камера приближена (слой .world ×1.5, HUD не меняется);
+     ?scene=day|summer|day1 — подложка: зимний день / летний день / пустой двор первого дня (концепты раунда 6);
      ?mode=build — режим стройки (камера отъезжает, сетка клеток на земле — scene-build-grid.jpg, вкладки и карточки);
      ?quests=1 — раскрыт список «Ближайшие дела»; ?annotate=1 — выноски. -->
 </head>
@@ -30,13 +31,14 @@
       <div class="pin" style="left:705px;top:232px" title="Зал командиров (рабочее имя): можно нанять"><div class="disc"><img class="ic" src="icons/helmet.png" alt=""></div><span class="n">!</span></div>
       <div class="pin collect" style="left:1000px;top:298px" title="Загон: мясо накопилось — забрать"><div class="bub"><img class="ic" src="icons/meat.png" alt=""></div></div>
       <div class="pin collect" style="left:690px;top:398px" title="Ферма: грибы накопились — забрать"><div class="bub"><img class="ic" src="icons/mushroom.png" alt=""></div></div>
+      <div class="pin pin-keep" style="left:378px;top:230px" title="Двор: можно улучшить (концепт первого дня)"><img class="ic raw" src="icons/arrow-up.png" alt=""></div>
       <div class="pin idle" style="left:1092px;top:288px" title="Стрельбище: простаивает"><div class="z">zZz</div></div>
     </div>
   </div>
   <div class="build-ui stage-dim"></div>
 
   <!-- 1. Блок лорда -->
-  <section class="lord frame" aria-label="Лорд">
+  <section class="lord plaque" aria-label="Лорд">
     <div class="portrait" role="img" aria-label="Портрет лорда"></div>
     <div class="rows">
       <div class="name"><span>Ярик</span><small>[ТДЛ]</small></div>
@@ -155,6 +157,10 @@ if (q.get('quests') === '1') st.classList.add('quests-open');
 if (q.get('mode') === 'build') { st.classList.add('build'); st.style.setProperty('--z', '.94'); st.style.setProperty('--oy', '52%'); }
 if (q.get('zoom') === 'near') { st.style.setProperty('--z', '1.5'); st.style.setProperty('--ox', '50%'); st.style.setProperty('--oy', '32%'); }
 if (q.get('zoom') === 'far') { st.style.setProperty('--z', '.8'); }
+// ?scene=day|summer|day1 — другая подложка (концепты времени суток / сезона / пустого двора, раунд 6).
+const scenes = { day: 'scene-day-winter.jpg', summer: 'scene-day-summer.jpg', day1: 'scene-day-one.jpg' };
+if (scenes[q.get('scene')]) { st.classList.add('alt-scene'); st.querySelector('.scene').style.backgroundImage = `url(${scenes[q.get('scene')]})`; }
+if (q.get('scene') === 'day1') st.classList.add('day1');
 
 // Сетка клеток лежит на земле двора: гомография из квадрата 600×600 в четыре угла площадки на подложке.
 function homography(src, dst) {

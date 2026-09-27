@@ -27,7 +27,7 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .rb{position:relative;border-radius:50%;display:grid;place-items:center;
   background:radial-gradient(circle at 50% 32%,#f5ecd6,#dcc9a0 72%,#cbb58a);
   border:3px solid var(--wood-2);box-shadow:0 0 0 2px var(--wood-0),inset 0 -3px 4px rgba(0,0,0,.18),inset 0 2px 2px rgba(255,255,255,.5),0 3px 6px rgba(0,0,0,.5)}
-.rb .ic{width:58%;height:58%}
+.rb .ic{width:74%;height:74%}
 .rb.primary{border-color:#b9843a;box-shadow:0 0 0 2px var(--wood-0),0 0 0 4px rgba(224,176,74,.35),inset 0 -3px 4px rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.55)}
 .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:linear-gradient(180deg,#e2604f,#b93a2e);color:#fff;font-size:10px;font-weight:800;line-height:15px;text-align:center;border:1px solid #5a1a12;box-shadow:0 1px 2px rgba(0,0,0,.5)}
 .dot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--green);border:1px solid var(--wood-0)}
@@ -37,24 +37,24 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .bar.blue i{background:linear-gradient(180deg,#8ec5ea,#4a86b5)}
 
 /* ---------- 1. блок лорда ---------- */
-.lord{position:absolute;left:12px;top:10px;width:246px;height:66px;display:grid;grid-template-columns:56px 1fr;gap:8px;padding:3px 6px 3px 3px}
-.lord .portrait{width:56px;height:56px;border-radius:6px;background:url(../concepts/main-screen-round-02/05-cellar-and-banner-blue-hour.jpg) -32px -24px/940px auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);align-self:center}
+.lord{position:absolute;left:14px;top:12px;width:236px;height:60px;display:grid;grid-template-columns:52px 1fr;gap:8px;padding:2px 6px 2px 2px}
+.lord .portrait{width:52px;height:52px;border-radius:5px;background:url(../concepts/main-screen-round-02/05-cellar-and-banner-blue-hour.jpg) -30px -22px/880px auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);align-self:center}
 .lord .rows{display:grid;grid-template-rows:auto auto auto;align-content:center;gap:3px;font-size:11px}
-.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:13px;color:#f7efdc;text-shadow:0 1px 1px rgba(0,0,0,.6)}
-.lord .name small{font-weight:700;color:#d8c7a0;font-size:10px}
+.lord .name{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:12.5px;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.lord .name small{font-weight:700;color:var(--muted);font-size:10px}
 .lord .xp{display:flex;align-items:center;gap:5px}
-.lord .xp b{font-size:10.5px;white-space:nowrap;color:#f7efdc;text-shadow:0 1px 1px rgba(0,0,0,.6)}
+.lord .xp b{font-size:10.5px;white-space:nowrap;color:var(--ink)}
 .lord .xp .bar{flex:1}
-.lord .xp small{font-size:9.5px;color:#d8c7a0;white-space:nowrap}
+.lord .xp small{font-size:9.5px;color:var(--muted);white-space:nowrap}
 .lord .vip{display:flex;align-items:center;gap:6px;font-size:10.5px}
 .vipb{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;height:15px;border-radius:8px;background:linear-gradient(180deg,#f0c866,#c8952e);color:#3b2416;font-weight:800;font-size:9.5px;box-shadow:0 1px 1px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.5);position:relative}
 .vipb .ic{width:13px;height:13px}
 .vipb .dot{top:-3px;right:-3px;width:8px;height:8px;background:var(--red)}
-.lord .power{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:#f7efdc;font-weight:800;font-size:11.5px;text-shadow:0 1px 1px rgba(0,0,0,.6)}
+.lord .power{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:var(--ink);font-weight:800;font-size:11.5px}
 .lord .power .ic{width:14px;height:14px}
 
 /* 1b. баффы */
-.buffs{position:absolute;left:266px;top:50px;display:flex;gap:5px}
+.buffs{position:absolute;left:258px;top:48px;display:flex;gap:5px}
 .buff{height:24px;display:flex;align-items:center;gap:4px;padding:0 7px 0 3px;font-size:9.5px;font-weight:700;color:var(--white)}
 .buff .ic{width:17px;height:17px}
 
@@ -62,7 +62,7 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .queues{position:absolute;left:14px;top:88px;display:grid;gap:7px}
 .qbtn{position:relative;width:46px;height:46px;border-radius:10px;display:grid;place-items:center;padding:0;
   background:radial-gradient(circle at 50% 30%,#f3e9d0,#dcc9a0 80%);border:2px solid var(--wood-2);box-shadow:0 0 0 1px var(--wood-0),inset 0 -3px 3px rgba(0,0,0,.16),0 2px 4px rgba(0,0,0,.45)}
-.qbtn .ic{width:28px;height:28px;margin-top:-5px}
+.qbtn .ic{width:34px;height:34px;margin-top:-5px}
 .qbtn .cnt{position:absolute;top:-6px;right:-7px;min-width:20px;height:15px;padding:0 4px;border-radius:8px;background:var(--wood-1);color:var(--bone);font-size:9px;font-weight:800;line-height:13px;text-align:center;border:1px solid var(--wood-0)}
 .qbtn .bar{position:absolute;left:5px;right:5px;bottom:4px;height:5px}
 .qbtn.active{box-shadow:0 0 0 1px var(--wood-0),0 0 0 3px var(--ochre),0 2px 4px rgba(0,0,0,.45)}
@@ -91,7 +91,8 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 
 /* ---------- 5. колонка справа ---------- */
 .side{position:absolute;right:12px;top:88px;display:grid;gap:8px;justify-items:center}
-.side .rb{width:46px;height:46px}
+.side .rb{width:46px;height:46px;border-width:2px}
+.side .rb .ic{width:80%;height:80%}
 .side .tabch{position:absolute;left:-14px;top:14px;width:12px;height:18px;border-radius:4px 0 0 4px;background:linear-gradient(180deg,var(--wood-3),var(--wood-1));border:1px solid var(--wood-0);border-right:0;font-size:10px;line-height:16px;text-align:center;color:var(--bone)}
 .collapse{width:44px;height:16px;border-radius:5px;display:grid;place-items:center;font-size:12px;color:var(--bone);background:linear-gradient(180deg,var(--wood-3),var(--wood-1));border:1px solid var(--wood-0);opacity:.92}
 
@@ -128,11 +129,12 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 /* ---------- 9. навигация ---------- */
 .nav{position:absolute;right:12px;bottom:12px;display:flex;align-items:flex-end;gap:6px;padding:6px 8px 5px;border-radius:12px;
   background:linear-gradient(180deg,rgba(74,44,26,.9),rgba(34,19,11,.92));border:2px solid var(--wood-0);box-shadow:inset 0 1px 0 rgba(255,225,190,.22),0 3px 8px rgba(0,0,0,.5)}
-.tab{position:relative;width:78px;display:grid;justify-items:center;gap:3px;color:var(--bone)}
-.tab .face{width:52px;height:46px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(180deg,#f3e9d0,#dcc9a0);border:2px solid var(--wood-1);box-shadow:inset 0 0 0 1px rgba(255,248,230,.6),inset 0 -3px 0 rgba(0,0,0,.1),0 2px 3px rgba(0,0,0,.4)}
-.tab .face .ic{width:34px;height:34px}
+.tab{position:relative;width:78px;display:grid;justify-items:center;gap:2px;color:var(--bone);padding:2px 0 0}
+.tab .face{width:56px;height:52px;display:grid;place-items:center;background:none;border:0;box-shadow:none}
+.tab .face .ic{width:54px;height:54px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55))}
+.tab.on .face{background:radial-gradient(ellipse at 50% 70%,rgba(224,176,74,.35),transparent 70%)}
 .tab span.t{font-size:10.5px;font-weight:800;text-shadow:0 1px 2px #000;letter-spacing:.2px}
-.tab .badge{top:-5px;right:8px}
+.tab .badge{top:-2px;right:8px}
 
 /* ---------- 10. знаки над зданиями ---------- */
 .pins{position:absolute;inset:0;pointer-events:none}
@@ -176,7 +178,7 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .build-close{position:absolute;left:22px;top:626px;width:54px;height:54px;font-size:22px;font-weight:900;color:var(--wood-1)}
 .btabs{position:absolute;left:14px;top:92px;display:grid;gap:6px;padding:6px;width:66px}
 .btab{position:relative;display:grid;justify-items:center;gap:2px;padding:4px 2px 3px;border-radius:7px;background:rgba(255,250,236,.12);color:var(--bone);font-size:8.5px;font-weight:800;text-align:center;line-height:1.05}
-.btab .ic{width:26px;height:26px}
+.btab .ic{width:32px;height:32px}
 .btab.on{background:linear-gradient(180deg,#f3e9d0,#dcc9a0);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(90,58,38,.35)}
 .cards{position:absolute;left:96px;right:12px;bottom:12px;display:flex;gap:10px;align-items:flex-end}
 .card{width:196px;height:172px;display:grid;grid-template-rows:72px auto 1fr auto;gap:3px;padding:4px 6px 6px;position:relative}
@@ -202,3 +204,8 @@ button{font:inherit;cursor:pointer;padding:0;border:0;background:none;color:inhe
 .callout{display:none;position:absolute;z-index:5;padding:2px 7px 2px 3px;border-radius:11px;background:#111;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none}
 .callout b{display:inline-grid;place-items:center;width:17px;height:17px;margin-right:5px;border-radius:50%;background:#ffcf4d;color:#111;font-size:10px}
 .annotate .callout{display:inline-flex;align-items:center}
+
+/* Раунд 6, концепты: на пустом дворе первого дня пины зданий и очередей не показываем — только пин Двора и подсказка */
+.pin-keep{display:none}
+.day1 .pin:not(.pin-keep),.day1 .fpx,.day1 .submenu{display:none}
+.day1 .pin-keep{display:block}
