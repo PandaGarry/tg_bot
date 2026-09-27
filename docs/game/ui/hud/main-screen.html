@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDL — главный экран: HUD (круг 5)</title>
+<link rel="stylesheet" href="hud.css">
+<!-- Состояния: ?zoom=near — камера приближена (слой .world ×1.5, HUD не меняется);
+     ?scene=day|summer|day1 — подложка: зимний день / летний день / пустой двор первого дня (концепты раунда 6);
+     ?mode=build — режим стройки (камера отъезжает, сетка клеток на земле — scene-build-grid.jpg, вкладки и карточки);
+     ?quests=1 — раскрыт список «Ближайшие дела»; ?annotate=1 — выноски. -->
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- Мир: сцена + сетка стройки + знаки над зданиями. Масштабируется зумом игрока, HUD — нет. -->
+  <div class="build-ui stage-bg"></div>
+  <div class="world">
+    <div class="scene" role="img" aria-label="Двор: частокол, здания, мёртвые жители"></div>
+    <div class="grid" id="grid" aria-hidden="true"></div>
+    <!-- Режим стройки: след здания на клетках подложки (ромбы в перспективе земли) -->
+    <div class="fpx ok" style="left:790px;top:342px;width:118px;height:60px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" title="Лесопилка 2×2 — можно поставить"></div>
+    <div class="fpx ok lbl-only" style="left:790px;top:342px;width:118px;height:60px;background:none;box-shadow:none;animation:none"><span class="lbl">Лесопилка · 2×2 · можно</span></div>
+    <div class="fpx bad" style="left:948px;top:300px;width:60px;height:30px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)" title="Занято — загон"></div>
+    <div class="fpx bad lbl-only" style="left:948px;top:300px;width:60px;height:30px;background:none;box-shadow:none"><span class="lbl">занято · загон</span></div>
+    <div class="pins" aria-label="Состояния зданий">
+      <div class="pin" style="left:640px;top:150px" title="Лесопилка: можно улучшить"><img class="ic raw" src="icons/arrow-up.png" alt=""></div>
+      <div class="pin" style="left:845px;top:148px" title="Казарма: идёт тренировка"><div class="disc"><img class="ic" src="icons/swords.png" alt=""></div><span class="t">12:40</span></div>
+      <div class="pin" style="left:565px;top:298px" title="Паутина: идёт исследование"><div class="disc"><img class="ic" src="icons/web.png" alt=""></div><span class="t">3:40:00</span></div>
+      <div class="pin" style="left:452px;top:372px" title="Лазарет: раненые"><img class="ic raw" src="icons/cross.png" alt=""><span class="n">12</span></div>
+      <div class="pin" style="left:705px;top:232px" title="Зал командиров (рабочее имя): можно нанять"><div class="disc"><img class="ic" src="icons/helmet.png" alt=""></div><span class="n">!</span></div>
+      <div class="pin collect" style="left:1000px;top:298px" title="Загон: мясо накопилось — забрать"><div class="bub"><img class="ic" src="icons/meat.png" alt=""></div></div>
+      <div class="pin collect" style="left:690px;top:398px" title="Ферма: грибы накопились — забрать"><div class="bub"><img class="ic" src="icons/mushroom.png" alt=""></div></div>
+      <div class="pin pin-keep" style="left:378px;top:230px" title="Двор: можно улучшить (концепт первого дня)"><img class="ic raw" src="icons/arrow-up.png" alt=""></div>
+      <div class="pin idle" style="left:1092px;top:288px" title="Стрельбище: простаивает"><div class="z">zZz</div></div>
+    </div>
+  </div>
+  <div class="build-ui stage-dim"></div>
+
+  <!-- 1. Блок лорда -->
+  <section class="lord plaque" aria-label="Лорд">
+    <div class="portrait" role="img" aria-label="Портрет лорда"></div>
+    <div class="rows">
+      <div class="name"><span>Ярик</span><small>[ТДЛ]</small></div>
+      <div class="xp"><b>Ур. 7</b><div class="bar"><i style="--v:58%"></i></div><small>до уровня 1 250</small></div>
+      <div class="vip"><span class="vipb"><img class="ic" src="icons/crown.png" alt="">VIP 3<span class="dot" title="Есть ежедневная награда"></span></span><span class="power" title="Сила"><img class="ic" src="icons/sword.png" alt="">12 400</span></div>
+    </div>
+  </section>
+  <div class="buffs" aria-label="Активные баффы">
+    <div class="buff glass" title="Добыча +10 % · осталось 1:59:00"><img class="ic" src="icons/arrow-up.png" alt="">добыча · 1:59</div>
+    <div class="buff glass" title="Скорость марша +20 % · осталось 0:42:10"><img class="ic" src="icons/banner.png" alt="">марш · 0:42</div>
+  </div>
+
+  <!-- 2/7. Очереди и подменю -->
+  <nav class="queues" aria-label="Очереди">
+    <button class="qbtn" title="Марши 1/2"><img class="ic" src="icons/banner.png" alt=""><span class="cnt">1/2</span><div class="bar blue"><i style="--v:35%"></i></div></button>
+    <button class="qbtn active" title="Тренировка 1/3"><img class="ic" src="icons/swords.png" alt=""><span class="cnt">1/3</span><div class="bar"><i style="--v:62%"></i></div></button>
+    <button class="qbtn" title="Стройка 1/1"><img class="ic" src="icons/hammer.png" alt=""><span class="cnt">1/1</span><div class="bar ochre"><i style="--v:80%"></i></div></button>
+    <button class="qbtn" title="Исследования 1/1"><img class="ic" src="icons/web.png" alt=""><span class="cnt">1/1</span><div class="bar"><i style="--v:20%"></i></div></button>
+  </nav>
+  <div class="submenu plaque" aria-label="Тренировка: ячейки">
+    <div class="slot"><img class="ic" src="icons/infantry.png" alt=""><b>Пехота ×20</b><span>ещё 12:40</span><div class="bar"><i style="--v:62%"></i></div></div>
+    <div class="slot free"><img class="ic" src="icons/cavalry.png" alt=""><b>Всадники</b><span>свободно</span></div>
+    <div class="slot free"><img class="ic" src="icons/archers.png" alt=""><b>Лучники</b><span>свободно</span></div>
+    <div class="slot locked"><img class="ic" src="icons/siege.png" alt=""><b>Осадные</b><span>заперто</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+  </div>
+
+  <!-- 3. Ресурсы: ряд прижат вправо, растёт влево; золото отдельно -->
+  <section class="resources" aria-label="Ресурсы">
+    <div class="res plaque" title="Мясо — точное число по нажатию"><img class="ic" src="icons/meat.png" alt="">12,4 млн</div>
+    <div class="res plaque" title="Дерево"><img class="ic" src="icons/wood.png" alt="">1,25 млрд</div>
+    <div class="res plaque" title="Камень"><img class="ic" src="icons/stone.png" alt="">860 тыс.</div>
+    <div class="res plaque" title="Металл"><img class="ic" src="icons/metal.png" alt="">92 тыс.</div>
+    <div class="res plaque" title="Грибы — погреб"><img class="ic" src="icons/mushroom.png" alt="">24</div>
+    <div class="res plaque gold" title="Золото"><img class="ic" src="icons/gold.png" alt=""><span>1 250</span><span class="plus">+</span></div>
+  </section>
+
+  <!-- 8. Лента хрониста -->
+  <div class="chronicle glass" role="status"><img class="ic" src="icons/quill.png" alt=""><em>Живые у частокола. Пирогов не принесли.</em><span class="more">›</span></div>
+
+  <!-- 5. Колонка справа -->
+  <nav class="side" aria-label="Действия">
+    <button class="rb" title="Почта и отчёты"><img class="ic" src="icons/mail.png" alt=""><span class="badge">3</span></button>
+    <button class="rb" title="События"><img class="ic" src="icons/bell.png" alt=""><span class="dot"></span></button>
+    <button class="rb" title="Задания — стрелка раскрывает ближайшие дела"><span class="tabch">‹</span><img class="ic" src="icons/scroll.png" alt=""><span class="badge">1</span></button>
+    <button class="rb" title="Настройки"><img class="ic" src="icons/gear.png" alt=""></button>
+    <button class="collapse" title="Свернуть колонку">›</button>
+  </nav>
+  <aside class="quests plaque" aria-label="Ближайшие дела">
+    <div class="qh"><span>Ближайшие дела</span><span>1 / 3</span></div>
+    <div class="qi"><b>Частокол держит</b><span>улучшить частокол до 3 ур.</span><em>готово ›</em></div>
+    <div class="qi"><b>Первый отряд</b><span>обучить 20 ополченцев в казарме</span><em>12 / 20</em></div>
+    <div class="qi"><b>Тихий погреб</b><span>собрать 50 грибов с фермы</span><em>24 / 50</em></div>
+  </aside>
+
+  <!-- 6b. Слева внизу: «Строить» над «Картой» -->
+  <button class="rb rbtn build" title="Строить — доступно 3 постройки"><img class="ic" src="icons/hammer.png" alt=""><span class="badge">3</span></button>
+  <button class="rb rbtn map primary" title="Карта (на карте — «Двор»)"><img class="ic" src="icons/map.png" alt=""></button>
+
+  <!-- 6. Чат -->
+  <section class="chat glass" aria-label="Чат">
+    <div class="tabs"><span class="on">Мир</span><span>Клан</span><span>Личные</span></div>
+    <div class="lines">
+      <div class="ln clan"><span><b>[ТДЛ] Мирон:</b> кто идёт на ополчение II у реки?</span></div>
+      <div class="ln"><span><b>Дарья:</b> лесопилка спорит третий день, дрова не спорят</span></div>
+      <div class="ln sys"><span>Клан «Тихий двор» получил печать столицы</span></div>
+    </div>
+    <div class="input"><span>Написать…</span><span>⤢</span></div>
+  </section>
+
+  <!-- 9. Навигация -->
+  <nav class="nav" aria-label="Навигация">
+    <button class="tab"><span class="face"><img class="ic" src="icons/helmet.png" alt=""></span><span class="t">Командиры</span><span class="badge">!</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/clan.png" alt=""></span><span class="t">Клан</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/bag.png" alt=""></span><span class="t">Предметы</span></button>
+    <button class="tab"><span class="face"><img class="ic" src="icons/shop.png" alt=""></span><span class="t">Магазин</span></button>
+  </nav>
+
+  <!-- Режим стройки (?mode=build) -->
+  <div class="build-ui build-title glass"><img class="ic" src="icons/hammer.png" alt="">Стройка · свободных клеток&nbsp;<span id="free-cells">0</span>&nbsp;· строитель занят 1/1</div>
+  <button class="build-ui editor glass" title="Перестроить двор целиком"><img class="ic" src="icons/map.png" alt="">Перестроить двор</button>
+  <nav class="build-ui btabs frame" aria-label="Разделы построек">
+    <button class="btab on"><img class="ic" src="icons/wood.png" alt="">Хозяйство</button>
+    <button class="btab"><img class="ic" src="icons/swords.png" alt="">Война</button>
+    <button class="btab"><img class="ic" src="icons/web.png" alt="">Наука</button>
+    <button class="btab"><img class="ic" src="icons/badge.png" alt="">Украшения</button>
+  </nav>
+  <div class="build-ui cards" aria-label="Постройки раздела">
+    <article class="card plaque"><div class="img" style="--bx:-548px;--by:-150px"></div><h4>Лесопилка <small>1 / 2</small></h4><p>Дерево. +40 в час на 1-м уровне, 2×2 клетки</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">300</i><i><img class="ic" src="icons/stone.png" alt="">120</i><span class="time">12 мин</span></div><span class="go">Поставить</span></article>
+    <article class="card plaque"><div class="img" style="--bx:-1040px;--by:-125px"></div><h4>Каменоломня <small>0 / 1</small></h4><p>Камень. +30 в час, 2×2 клетки</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">400</i><span class="time">20 мин</span></div><span class="go">Поставить</span></article>
+    <article class="card plaque"><div class="img" style="--bx:-600px;--by:-392px"></div><h4>Ферма <small>1 / 1</small></h4><p>Грибы для паутины и навыков лорда. Медленно, своим ходом</p><div class="cost"><i><img class="ic" src="icons/wood.png" alt="">700</i><i><img class="ic" src="icons/stone.png" alt="">200</i><span class="time">40 мин</span></div><span class="go">Улучшить</span></article>
+    <article class="card plaque locked"><div class="img" style="--bx:-520px;--by:-465px"></div><h4>Рудник <small>0 / 1</small></h4><p>Металл для войска и стройки</p><div class="lockrow"><img class="ic" src="icons/lock.png" alt="">Нужен двор 6-го уровня</div></article>
+    <article class="card plaque locked"><div class="img" style="--bx:-900px;--by:-430px"></div><h4>Пункт марша <small>1 / 5</small></h4><p>Второй марш. Уровень задаёт, сколько войска уходит</p><div class="lockrow"><img class="ic" src="icons/lock.png" alt="">Нужен двор 5-го уровня</div></article>
+  </div>
+  <button class="build-ui rb build-close" title="Закрыть стройку">✕</button>
+
+  <!-- Выноски (?annotate=1) -->
+  <span class="callout" style="left:266px;top:14px"><b>1</b>лорд: портрет · ник · ур. · опыт · VIP · сила</span>
+  <span class="callout" style="left:474px;top:100px"><b>12</b>баффы — только когда есть</span>
+  <span class="callout" style="left:72px;top:96px"><b>2</b>очереди: марш · тренировка · стройка · наука</span>
+  <span class="callout" style="left:440px;top:150px"><b>7</b>подменю раскрывается вправо, над чатом</span>
+  <span class="callout" style="left:880px;top:100px"><b>3</b>ресурсы растут влево · золото справа</span>
+  <span class="callout" style="left:606px;top:56px"><b>8</b>лента хрониста: тише, под ресурсами</span>
+  <span class="callout" style="left:1090px;top:150px"><b>5</b>колонка действий · настройки · свернуть</span>
+  <span class="callout" style="left:1040px;top:206px"><b>14</b>‹ раскрывает три ближайших дела</span>
+  <span class="callout" style="left:1010px;top:330px"><b>13</b>пузырь — забрать · zZz — простой</span>
+  <span class="callout" style="left:590px;top:330px"><b>10</b>знаки: улучшить · тренировка · наука · лазарет · найм</span>
+  <span class="callout" style="left:980px;top:600px"><b>4</b>года нет · камера выше и дальше · место под стройку</span>
+  <span class="callout" style="left:88px;top:610px"><b>11</b>Строить (счётчик) над Картой</span>
+  <span class="callout" style="left:430px;top:650px"><b>6</b>чат: прозрачный, правее кнопок</span>
+  <span class="callout" style="left:790px;top:706px"><b>9</b>четыре вкладки, как у RoK</span>
+</div>
+<script>
+const q = new URLSearchParams(location.search), st = document.getElementById('stage');
+if (q.get('annotate') === '1') st.classList.add('annotate');
+if (q.get('quests') === '1') st.classList.add('quests-open');
+if (q.get('mode') === 'build') { st.classList.add('build'); st.style.setProperty('--z', '.94'); st.style.setProperty('--oy', '52%'); }
+if (q.get('zoom') === 'near') { st.style.setProperty('--z', '1.5'); st.style.setProperty('--ox', '50%'); st.style.setProperty('--oy', '32%'); }
+if (q.get('zoom') === 'far') { st.style.setProperty('--z', '.8'); }
+// ?scene=day|summer|day1 — другая подложка (концепты времени суток / сезона / пустого двора, раунд 6).
+const scenes = { day: 'scene-day-winter.jpg', summer: 'scene-day-summer.jpg', day1: 'scene-day-one.jpg' };
+if (scenes[q.get('scene')]) { st.classList.add('alt-scene'); st.querySelector('.scene').style.backgroundImage = `url(${scenes[q.get('scene')]})`; }
+if (q.get('scene') === 'day1') st.classList.add('day1');
+
+// Сетка клеток лежит на земле двора: гомография из квадрата 600×600 в четыре угла площадки на подложке.
+function homography(src, dst) {
+  const M = [];
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = src[i], [X, Y] = dst[i];
+    M.push([x, y, 1, 0, 0, 0, -X * x, -X * y, X]);
+    M.push([0, 0, 0, x, y, 1, -Y * x, -Y * y, Y]);
+  }
+  for (let c = 0; c < 8; c++) {
+    let p = c;
+    for (let r = c + 1; r < 8; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    for (let r = 0; r < 8; r++) {
+      if (r === c) continue;
+      const f = M[r][c] / M[c][c];
+      for (let k = c; k <= 8; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  const h = M.map((row, i) => row[8] / row[i]);
+  return `matrix3d(${h[0]},${h[3]},0,${h[6]},${h[1]},${h[4]},0,${h[7]},0,0,1,0,${h[2]},${h[5]},0,1)`;
+}
+// Углы площадки внутри частокола на подложке (левый, верхний, правый, нижний).
+const grid = document.getElementById('grid');
+grid.style.transform = homography(
+  [[0, 0], [600, 0], [600, 600], [0, 600]],
+  [[235, 262], [703, 122], [1170, 285], [668, 560]],
+);
+// 12×12 клеток. Клетки под зданиями (по подложке) скрыты — сетка видна только на свободной земле, как в RoK.
+const OCC_RECTS = [ // [ряд, столбец, рядов, столбцов]
+  [0, 0, 5, 4],  // Двор (каменный донжон со знаменем)
+  [1, 4, 2, 2],  // брёвна у лесопилки
+  [0, 6, 3, 3],  // лесопилка
+  [2, 9, 4, 3],  // казарма
+  [6, 10, 2, 2], // сарай у загона
+  [5, 5, 3, 3],  // зал командиров (домик с фонарями)
+  [5, 1, 4, 3],  // паутина
+  [6, 0, 4, 2],  // лазарет
+  [9, 0, 3, 2],  // погреб
+  [8, 1, 4, 4],  // ферма — грибные грядки
+  [8, 8, 4, 4],  // загон
+  [10, 6, 2, 2], // ворота
+];
+const OCC = new Set();
+for (const [r0, c0, nr, nc] of OCC_RECTS) for (let r = r0; r < r0 + nr; r++) for (let c = c0; c < c0 + nc; c++) OCC.add(r + '-' + c);
+if (q.get('debug') === '1') grid.classList.add('debug');
+for (let r = 0; r < 12; r++) for (let c = 0; c < 12; c++) {
+  const d = document.createElement('div');
+  d.className = 'cell' + (OCC.has(r + '-' + c) ? ' occ' : '');
+  if (grid.classList.contains('debug')) d.textContent = r + '-' + c;
+  grid.appendChild(d);
+}
+document.getElementById('free-cells').textContent = String(144 - OCC.size);
+// Примеры: зелёный след 2×2 — сюда можно поставить лесопилку; красный — занято загоном.
+for (const [cls, r, c, w, h, title] of [['ok', 3, 7, 2, 2, 'Лесопилка 2×2 — можно поставить'], ['bad', 8, 9, 1, 2, 'Занято — загон']]) {
+  const d = document.createElement('div');
+  d.className = 'fp ' + cls; d.title = title;
+  d.style.cssText = `left:${c * 50}px;top:${r * 50}px;width:${w * 50}px;height:${h * 50}px`;
+  grid.appendChild(d);
+}
+</script>
+</body>
+</html>

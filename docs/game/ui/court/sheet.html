@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>ТДЛ — двор-конструктор: состояния (круг 7)</title>
+<!-- Рендер: pnpm shots - -page court/sheet.html - -size 1376x900 - -scale 1.5 - -full - -file docs/game/ui/court/court-sheet.jpg -->
+<style>
+  body{margin:0;background:#1b1712;color:#e9dcc3;font:14px/1.35 "Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{width:1376px;margin:0 auto;padding:16px 18px 22px;box-sizing:border-box}
+  h1{font-size:19px;margin:0 0 4px;color:#f2e6cc}
+  .sub{margin:0 0 14px;color:#b7a68a;font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  figure{margin:0;background:#26201a;border:1px solid #4a3b2c;border-radius:6px;overflow:hidden}
+  figure img{display:block;width:100%;aspect-ratio:1376/768;object-fit:cover}
+  figcaption{padding:8px 10px 10px}
+  figcaption b{display:block;font-size:14px;color:#f2e6cc}
+  figcaption span{display:block;color:#b7a68a;font-size:12px;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Круг 7 · двор как конструктор: земля отдельно, здания отдельно, камера свободная</h1>
+  <p class="sub">Один и тот же прототип <code>court/index.html</code> в разных состояниях. Земля — день/ночь; каждое здание — свой спрайт с дневной и ночной версией; сетка 14×14; всё перетаскивается.</p>
+  <div class="grid">
+    <figure><img src="court-empty-day.jpg" alt=""><figcaption><b>1 · Площадка без строений, день</b><span>С этого начинает игрок. Ни фонарей, ни огней — днём гореть нечему.</span></figcaption></figure>
+    <figure><img src="court-empty-night.jpg" alt=""><figcaption><b>2 · Та же площадка, ночь</b><span>Отдельная ночная земля. Интерфейс тот же.</span></figcaption></figure>
+    <figure><img src="court-day1-day.jpg" alt=""><figcaption><b>3 · Первый день: только Двор</b><span>Двор — единственное, что стоит с начала. Остальное игрок ставит сам.</span></figcaption></figure>
+    <figure><img src="court-build-ghost.jpg" alt=""><figcaption><b>4 · Стройка: призрак лесопилки</b><span>Карточка «Поставить» → призрак на сетке, зелёный след, ✓ ставит. Клетки одинаковые по всей площадке.</span></figcaption></figure>
+    <figure><img src="court-build-move.jpg" alt=""><figcaption><b>5 · Стройка: перестановка</b><span>Здание тянется пальцем; красный след и цвет — место занято, ✓ погашена.</span></figcaption></figure>
+    <figure><img src="court-built-night.jpg" alt=""><figcaption><b>6 · Обжитой двор, ночь</b><span>Окна и фонари горят только в ночных спрайтах; стройка Склада с костром и таймером.</span></figcaption></figure>
+    <figure><img src="court-built-day.jpg" alt=""><figcaption><b>7 · Обжитой двор, день</b><span>Те же здания, дневной набор. Пины состояний над зданиями.</span></figcaption></figure>
+    <figure><img src="court-select.jpg" alt=""><figcaption><b>8 · Тап по зданию</b><span>Пузырь «Улучшить · Переставить · Инфо». «Переставить» запускает то же перетаскивание.</span></figcaption></figure>
+    <figure><img src="court-near.jpg" alt=""><figcaption><b>9 · Свободная камера, приближение ×1,7</b><span>Панорама перетаскиванием, зум колесом/щипком в пределах площадки. Спрайты остаются чёткими.</span></figcaption></figure>
+  </div>
+</div>
+</body>
+</html>

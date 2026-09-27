@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDL — очереди: четыре подменю (круг 5)</title>
+<link rel="stylesheet" href="hud.css">
+<style>
+  body{background:#1b2431}
+  .sheet{width:1376px;margin:0 auto;padding:18px 24px 22px;color:var(--bone)}
+  h1{margin:0 0 4px;font-size:18px}
+  .lead{margin:0 0 14px;font-size:12px;opacity:.85;max-width:1100px}
+  .row{position:relative;display:grid;grid-template-columns:46px 1fr;gap:0 24px;align-items:center;margin:0 0 14px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.25)}
+  .row .submenu{position:static;height:56px;width:max-content}
+  .row .submenu::before{display:none}
+  .row .note{grid-column:1/3;margin-top:8px;font-size:11.5px;opacity:.85;max-width:1000px}
+  .row .note b{color:var(--gold-2)}
+  .slot.buy b{color:#8a5a12}
+  .slot .ic.lk{position:absolute;right:3px;bottom:3px;width:11px;height:11px}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Очереди слева: четыре подменю</h1>
+  <p class="lead">Кнопка очереди показывает счётчик «занято/доступно» и полосу самого близкого к завершению дела. Нажатие раскрывает ячейки вправо, в один ряд высотой 56 px — ряд всегда выше чата (чат начинается на 646 px, самое нижнее подменю заканчивается на 300 px). Открыто одно подменю за раз; повторное нажатие или тап по сцене закрывает.</p>
+
+  <div class="row">
+    <button class="qbtn active"><img class="ic" src="icons/banner.png" alt=""><span class="cnt">1/2</span><div class="bar blue"><i style="--v:35%"></i></div></button>
+    <div class="submenu plaque">
+      <div class="slot"><img class="ic" src="icons/banner.png" alt=""><b>Ополчение II</b><span>туда 04:12</span><div class="bar blue"><i style="--v:35%"></i></div></div>
+      <div class="slot free"><img class="ic" src="icons/banner.png" alt=""><b>Марш 2</b><span>свободно</span></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 3</b><span>двор ур. 10</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 4</b><span>двор ур. 16</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+      <div class="slot locked"><img class="ic" src="icons/banner.png" alt=""><b>Марш 5</b><span>двор ур. 22</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+    </div>
+    <div class="note"><b>Марши · 5.</b> Открываются прокачкой двора (пороги — заглушка). В ячейке: цель, таймер туда/обратно, тап — к маршу на карте; нажатие на идущий марш даёт «отозвать».</div>
+  </div>
+
+  <div class="row">
+    <button class="qbtn active"><img class="ic" src="icons/swords.png" alt=""><span class="cnt">1/3</span><div class="bar"><i style="--v:62%"></i></div></button>
+    <div class="submenu plaque">
+      <div class="slot"><img class="ic" src="icons/infantry.png" alt=""><b>Пехота ×20</b><span>ещё 12:40</span><div class="bar"><i style="--v:62%"></i></div></div>
+      <div class="slot free"><img class="ic" src="icons/cavalry.png" alt=""><b>Всадники</b><span>свободно</span></div>
+      <div class="slot free"><img class="ic" src="icons/archers.png" alt=""><b>Лучники</b><span>свободно</span></div>
+      <div class="slot locked"><img class="ic" src="icons/siege.png" alt=""><b>Осадные</b><span>заперто</span><img class="ic lk" src="icons/lock.png" alt=""></div>
+    </div>
+    <div class="note"><b>Тренировка · 4 вида.</b> Пехота, всадники, лучники, осадные — по одной ячейке на здание; заперта, пока здание не построено. Тап по свободной ячейке ведёт к зданию с открытой панелью найма.</div>
+  </div>
+
+  <div class="row">
+    <button class="qbtn active"><img class="ic" src="icons/hammer.png" alt=""><span class="cnt">1/1</span><div class="bar ochre"><i style="--v:80%"></i></div></button>
+    <div class="submenu plaque">
+      <div class="slot"><img class="ic" src="icons/hammer.png" alt=""><b>Частокол ур. 8</b><span>ещё 1:12:05</span><div class="bar ochre"><i style="--v:80%"></i></div></div>
+      <div class="slot buy"><img class="ic" src="icons/gold.png" alt=""><b>2-й строитель</b><span>нанять · 2 дня</span></div>
+    </div>
+    <div class="note"><b>Строители · 2.</b> Основной всегда есть. Временный выдаётся за золото, задания и события на срок; в ячейке виден остаток срока найма, а после — кнопка «нанять».</div>
+  </div>
+
+  <div class="row">
+    <button class="qbtn active"><img class="ic" src="icons/web.png" alt=""><span class="cnt">1/1</span><div class="bar"><i style="--v:20%"></i></div></button>
+    <div class="submenu plaque">
+      <div class="slot"><img class="ic" src="icons/web.png" alt=""><b>Лесопилка II</b><span>ещё 3:40:00</span><div class="bar"><i style="--v:20%"></i></div></div>
+      <div class="slot buy"><img class="ic" src="icons/gold.png" alt=""><b>2-й писарь</b><span>за золото</span></div>
+    </div>
+    <div class="note"><b>Исследования (Паутина) · 2.</b> Вторая ячейка — постоянная покупка за золото. Названия исследований и цены — заглушки до утверждения чисел.</div>
+  </div>
+</div>
+</body>
+</html>

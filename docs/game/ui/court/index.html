@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ТДЛ — двор как конструктор (прототип сцены, круг 7)</title>
+<!--
+  Прототип сцены главного экрана: двор собирается из отдельных слоёв и спрайтов, а не из одной картинки.
+    земля       ground-day.jpg / ground-night.jpg — пустая площадка, день и ночь (фонарей днём нет, окон тоже);
+    сетка       14×14 клеток, ортографическая диметрия (ромб клетки ≈1,72:1), рисуется SVG поверх земли;
+    здания      sprites/*.png — каждое здание отдельный спрайт на хромакее, у каждого дневная и ночная версия,
+                стоит на своих клетках (след 2×2, 3×2, 3×3), сортируется по глубине, перетаскивается;
+    камера      свободная: перетаскивание — панорама, колесо/щипок — зум ×0,85…×2,2, границы — край площадки;
+    стройка     кнопка «Строить»: камера отъезжает, сетка включается, карточки внизу; «Поставить» — призрак здания
+                (зелёный/красный след), тянем пальцем, ✓ ставит; готовые здания в стройке тоже тянутся;
+    выбор       тап по зданию — пузырь «Улучшить · Переставить · Инфо»; «Переставить» — то же перетаскивание.
+  HUD берётся из hud/main-screen.html как есть (один источник правды), иконки из hud/icons.
+  Параметры: ?state=empty|day1|built · ?time=day|night (иначе по часам устройства) · ?mode=build ·
+             ?ghost=<тип>@x,y (призрак в стройке) · ?select=<id> (пузырь выбора) · ?move=<id> (перестановка) ·
+             ?cam=z,cx,cy (зум и точка мира в центре экрана) · ?grid=1 (сетка и следы всегда — отладка).
+  Снимки: pnpm shots - -page "court/index.html?state=empty" - -size 1376x768 - -scale 1.5 - -file docs/game/ui/court/court-empty-day.jpg
+-->
+<link rel="stylesheet" href="../hud/hud.css">
+<link rel="stylesheet" href="court.css">
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="build-ui stage-bg"></div>
+  <div class="viewport" id="viewport">
+    <div class="court" id="court">
+      <img class="ground" id="ground" src="ground-day.jpg" alt="" draggable="false">
+      <svg class="grid-svg" id="gridsvg" width="1376" height="768" viewBox="0 0 1376 768"></svg>
+      <div class="buildings" id="buildings"></div>
+    </div>
+  </div>
+  <div class="build-ui stage-dim"></div>
+  <div class="hud" id="hud"></div>
+  <div class="sel-bubble plaque" id="selbub" hidden>
+    <b id="selname">Лесопилка</b><span id="sellvl">ур. 1</span>
+    <div class="row">
+      <button data-act="upgrade" class="go">Улучшить</button>
+      <button data-act="move">Переставить</button>
+      <button data-act="info">Инфо</button>
+    </div>
+  </div>
+  <div class="ghost-ctl" id="ghostctl" hidden>
+    <button data-act="ok" class="ok" title="Поставить">✓</button>
+    <button data-act="cancel" class="cancel" title="Отмена">✕</button>
+  </div>
+  <div class="cards build-ui" id="cards"></div>
+  <button class="rb time-toggle" id="timetoggle" title="Прототип: день/ночь вручную (в игре — по часам устройства)"><span id="timeic">☾</span></button>
+  <div class="hint glass" id="hint"></div>
+</div>
+<script src="court.js"></script>
+</body>
+</html>

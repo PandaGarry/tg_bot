@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e7e5de">
+<title>TDL — Bone-Wood · 5 refinements</title>
+<style>
+:root{color-scheme:light;--bg:#e7e5de;--paper:#fbf7e9;--ink:#29251f;--muted:#686157;--line:#c9bd9e;--wood:#4a3021;--ochre:#9d7440;--blue:#e7edf3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1480px,calc(100% - 36px));margin-inline:auto}
+header{padding:30px 0 21px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:#78603c;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{max-width:1000px;margin:0;font:600 clamp(31px,4vw,51px)/1.03 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:1060px;margin:13px 0 0;color:#50483c;font-size:15px}
+.note{max-width:1180px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,252,240,.72);color:#514a3e;font-size:12px}
+.note b{color:var(--ink)}.note.ref{border-left:3px solid var(--wood)}.note.system{border-left:3px solid var(--ochre)}.note.assets{border-left:3px solid #6c7e8d;background:var(--blue)}
+a{color:#57432d}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #a99b7b;border-radius:4px;background:var(--paper);color:#382c20;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:var(--wood);background:var(--wood);color:#fbf7e9}.actions a:hover{transform:translateY(-1px)}
+main{padding:20px 0 36px}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0 0 20px}
+.rules article{padding:13px 14px;border:1px solid var(--line);border-radius:5px;background:rgba(255,252,240,.65)}
+.rules h2{margin:0 0 5px;font:600 18px/1.12 Georgia,"Times New Roman",serif}.rules p{margin:0;color:var(--muted);font-size:12px}
+.gallery-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 13px;padding:0 3px 10px;border-bottom:1px solid var(--line)}
+.gallery-head h2{margin:0;font:600 clamp(23px,2.5vw,31px)/1.08 Georgia,"Times New Roman",serif}.gallery-head p{max-width:840px;margin:6px 0 0;color:var(--muted);font-size:12px}
+.stamp{flex:0 0 auto;padding:7px 9px;border:1px solid #a99b7b;border-radius:3px;color:#5c4931;font-size:9px;font-weight:900;letter-spacing:.1em}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 22px rgba(40,32,22,.08)}
+.image-link{display:block;overflow:hidden;background:#28303a}.image-link img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .18s ease}.image-link:hover img{transform:scale(1.012)}
+.copy{padding:12px 14px 14px}.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:#78674d;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.meta .tag{padding:3px 6px;border:1px solid #d5c7a5;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 5px;font:600 20px/1.12 Georgia,"Times New Roman",serif}.card p{margin:0;color:var(--muted);font-size:12px}
+footer{padding:0 0 30px;color:#70695d;font-size:11px}
+@media(max-width:900px){.rules{grid-template-columns:1fr}.gallery{grid-template-columns:1fr}}
+@media(max-width:640px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.intro{font-size:13px}.note{font-size:11px}.gallery-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · Bone-Wood · refinement 06</p>
+  <h1>Пять экранов — одна система деталей</h1>
+  <p class="intro">Новый раунд уточняет понравившиеся вам <b>№ 04</b> и <b>№ 06</b> из предыдущей серии. Это пять полноэкранных игровых интерфейсов, а не набор разных стилей: я унифицировал рамки, штрих иконок, масштаб миниатюр зданий, состояния карточек и детали режима постройки.</p>
+  <div class="note ref"><b>Использованы как визуальные опоры:</b> только <a href="../bone-wood-round-05/04-bottom-build-drawer.jpg">№ 04 · нижняя строительная панель</a> и <a href="../bone-wood-round-05/06-stateful-building-cells.jpg">№ 06 · состояния ячеек</a>. По одному референсу на генерацию; сохраняется Bone-Wood — светлая костяная вставка, тёмное тёплое дерево, сдержанная охра и мягкая зимняя 3D-сцена.</div>
+  <div class="note system"><b>Что централизовано:</b> единая толщина тёмного контура и направление света; одинаковая геометрия костяной ячейки; ресурсные и строительные пиктограммы используют общий масштаб; состояния «обычная / выбрана / недоступна» различаются одной системой рамок и знаков. Ресурсов ровно пять: мясо, дерево, камень, металл и грибы.</div>
+  <div class="note assets"><b>Свободная постройка:</b> здания не должны сливаться крышами или фоном; выбранный объект связан с отдельной миниатюрой, призраком размещения и подсказкой footprint. Эти мокапы не являются готовыми спрайтами: каждое здание нужно будет генерировать/вырезать отдельно, с общей камерой и масштабом; земля, снег, тень и UI — раздельными слоями. Точные footprint и коллизии не заданы.</div>
+  <nav class="actions" aria-label="Навигация">
+    <a class="primary" href="../bone-wood-round-07/index.html">К пяти уточнениям вариантов 04–06</a>
+    <a href="contact-sheet.jpg">Контакт-лист пяти вариантов</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="rules" aria-label="Общие элементы системы">
+  <article><h2>Пиктограммы</h2><p>Единая толщина контура, схожая детализация и фиксированный размер оптической массы; ни один значок не выглядит случайно более реалистичным или более мультяшным.</p></article>
+  <article><h2>Постройки</h2><p>Читаемые силуэты в общем изометрическом ракурсе, без слипшихся стен и крыш. В ячейке — тот же объект, что в инспекторе и на свободном поле.</p></article>
+  <article><h2>Мелкие детали</h2><p>Одинаковые углы, отступы, тени, плашки и маркеры выбора. AI-надписи и цифры в самих картинках не считать игровыми данными.</p></article>
+</section>
+<section aria-labelledby="gallery-title">
+  <div class="gallery-head"><div><h2 id="gallery-title">Пять полноэкранных генераций</h2><p>Все варианты сохраняют Bone-Wood и строительный сценарий. Сравнивайте чистоту иконок и зданий, последовательность деталей и читаемость карточек.</p></div><span class="stamp">5 НОВЫХ ЭКРАНОВ</span></div>
+  <div class="gallery">
+    <article class="card"><a class="image-link" href="01-unified-glyph-language.jpg"><img src="01-unified-glyph-language.jpg" alt="01: Bone-Wood экран с унифицированными пиктограммами и нижним каталогом" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 05</span><span class="tag">единый язык значков</span></div><h3>Один контур</h3><p>Ресурсы, статусы и здания подчинены одной толщине линии, масштабу и логике ячейки.</p></div></article>
+    <article class="card"><a class="image-link" href="02-building-silhouette-system.jpg"><img src="02-building-silhouette-system.jpg" alt="02: полный строительный экран с последовательными миниатюрами зданий" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 05</span><span class="tag">силуэты зданий</span></div><h3>Постройки одной семьи</h3><p>Миниатюры каталога и здания на поле сближены по ракурсу, толщине контура и масштабу.</p></div></article>
+    <article class="card"><a class="image-link" href="03-resource-cell-refinement.jpg"><img src="03-resource-cell-refinement.jpg" alt="03: пять ресурсных ячеек и унифицированные состояния строительных карточек" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 05</span><span class="tag">ячейки и состояния</span></div><h3>Состояния без разнобоя</h3><p>Одинаковая рамка различает обычную, выбранную и недоступную постройку; cost-значки повторяют ресурсные.</p></div></article>
+    <article class="card"><a class="image-link" href="04-inspector-and-placement.jpg"><img src="04-inspector-and-placement.jpg" alt="04: правый инспектор выбранного здания связан с его призраком размещения" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 05</span><span class="tag">инспектор и размещение</span></div><h3>Та же постройка на поле</h3><p>Карточка, миниатюра и призрак размещения связаны; footprint остаётся подсказкой, а не фиксированным слотом.</p></div></article>
+    <article class="card"><a class="image-link" href="05-centralized-bone-wood.jpg"><img src="05-centralized-bone-wood.jpg" alt="05: собранный Bone-Wood интерфейс со стройкой, пятью ресурсами и единым набором деталей" loading="lazy"></a><div class="copy"><div class="meta"><span>05 / 05</span><span class="tag">синтез</span></div><h3>Bone-Wood, собранный вместе</h3><p>Наиболее цельная проверка: общий язык пиктограмм, карточек, миниатюр зданий и панели свободной постройки.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>Это AI-концепты интерфейса для сравнения и выбора, а не финальный UI и не готовый production asset pack. Широкий кадр — только сравнительный формат, ориентация клиента не утверждается.</footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>ТДЛ — концепты: время суток, сезоны, первый день (раунд 6)</title>
+<!--
+  Лист концептов к обсуждению «день/вечер, сезоны, стадии зданий, пустой двор».
+  Плашки 1–3 и 5 — правки подложки scene-high-camera.jpg генератором («та же сцена, поменять только X»).
+  Плашки 4 и 6 — НЕ нарисованы: это дневная подложка + цветокоррекция CSS + слой «светящихся окон» поверх.
+  Так проверяется главный тезис плана: вечер не надо перерисовывать — это градация + эмиссия поверх дневного набора.
+  Рендер: pnpm shots - -page hud/seasons.html - -size 1376x900 - -scale 1.5 - -full - -file docs/game/ui/hud/seasons-sheet.jpg
+-->
+<style>
+  body{margin:0;background:#1b1712;color:#e9dcc3;font:14px/1.35 "Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{width:1376px;margin:0 auto;padding:16px 18px 22px;box-sizing:border-box}
+  h1{font-size:19px;margin:0 0 4px;color:#f2e6cc}
+  .sub{margin:0 0 14px;color:#b7a68a;font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 14px}
+  figure{margin:0;background:#26201a;border:1px solid #4a3b2c;border-radius:6px;overflow:hidden}
+  .shot{position:relative;width:100%;aspect-ratio:1376/768;overflow:hidden;background:#000}
+  .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  figcaption{padding:8px 10px 10px}
+  figcaption b{display:block;font-size:14px;color:#f2e6cc}
+  figcaption span{display:block;color:#b7a68a;font-size:12px;margin-top:2px}
+  .tag{position:absolute;left:8px;top:8px;background:rgba(20,16,12,.72);color:#f2e6cc;font-size:11px;padding:3px 7px;border-radius:3px;letter-spacing:.2px}
+  .tag.rt{background:rgba(150,60,30,.82)}
+  /* Вечер «на лету»: дневная подложка + цветокоррекция + синева в тенях (multiply) + подъём чёрного в синий (screen) + эмиссия окон и факелов */
+  .evening img{filter:brightness(.84) saturate(1.05) contrast(1.02)}
+  .evening .tint{position:absolute;inset:0;background:linear-gradient(180deg,#6f8fdc 0%,#7a9ae2 55%,#86a6e6 100%);mix-blend-mode:multiply;opacity:.8}
+  .evening .lift{position:absolute;inset:0;background:#16357a;mix-blend-mode:screen;opacity:.42}
+  .evening .warm{position:absolute;inset:0;background:radial-gradient(55% 40% at 50% 60%,rgba(255,180,110,.12),transparent 70%)}
+  .evening .glow{position:absolute;width:0;height:0}
+  .evening .glow i{position:absolute;left:0;top:0;width:var(--s,4%);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle,rgba(255,205,130,1) 0%,rgba(255,165,75,.85) 30%,rgba(255,120,40,0) 68%);mix-blend-mode:screen}
+  .evening .glow.win i{background:radial-gradient(circle,rgba(255,225,160,1) 0%,rgba(255,180,90,.75) 24%,rgba(255,140,60,0) 64%)}
+  .row2{margin-top:16px}
+  .strip{background:#26201a;border:1px solid #4a3b2c;border-radius:6px;overflow:hidden}
+  .strip img{display:block;width:100%}
+  .strip figcaption{padding:8px 10px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Раунд 6 · концепты к обсуждению: время суток, сезоны, первый день</h1>
+  <p class="sub">Один и тот же двор. Плашки с меткой «нарисовано» — правки подложки генератором; с меткой «на лету» — дневная подложка + цветокоррекция CSS + слой светящихся окон. Никакой перерисовки.</p>
+  <div class="grid">
+    <figure>
+      <div class="shot"><img src="scene-high-camera.jpg" alt=""><span class="tag">нарисовано · база №05</span></div>
+      <figcaption><b>1 · Зима, синий час</b><span>Текущая рабочая подложка главного экрана (раунд 5).</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot"><img src="scene-day-winter.jpg" alt=""><span class="tag">нарисовано · правка сцены</span></div>
+      <figcaption><b>2 · Зима, день</b><span>Та же сцена, поменяли только свет: солнце, факелы потушены, окна тёмные.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot evening">
+        <img src="scene-day-winter.jpg" alt="">
+        <div class="tint"></div><div class="lift"></div><div class="warm"></div>
+        <div class="glow win" style="left:54.2%;top:44%;--s:7.1%"><i></i></div>
+        <div class="glow win" style="left:51%;top:44.5%;--s:5.9%"><i></i></div>
+        <div class="glow win" style="left:62.5%;top:34%;--s:6.7%"><i></i></div>
+        <div class="glow win" style="left:41.5%;top:47%;--s:5.9%"><i></i></div>
+        <div class="glow" style="left:51.3%;top:9%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:13.3%;top:32%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:88.2%;top:34%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:48%;top:73%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:67.8%;top:78%;--s:9.0%"><i></i></div>
+        <div class="glow" style="left:75.2%;top:71%;--s:8.1%"><i></i></div>
+        <div class="glow win" style="left:30%;top:40%;--s:4.9%"><i></i></div>
+        <span class="tag rt">на лету · CSS-градация + эмиссия</span>
+      </div>
+      <figcaption><b>3 · Зима, вечер — из плашки №2</b><span>Сравнить с №1: тот же эффект без отдельного набора «вечерних» картинок.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot"><img src="scene-day-summer.jpg" alt=""><span class="tag">нарисовано · правка сцены</span></div>
+      <figcaption><b>4 · Лето, день</b><span>Снег снят, земля и трава, лес зелёный, река открыта. Постройки те же.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot evening">
+        <img src="scene-day-summer.jpg" alt="">
+        <div class="tint"></div><div class="lift"></div><div class="warm"></div>
+        <div class="glow win" style="left:54.2%;top:44%;--s:7.1%"><i></i></div>
+        <div class="glow win" style="left:51%;top:44.5%;--s:5.9%"><i></i></div>
+        <div class="glow win" style="left:62.5%;top:34%;--s:6.7%"><i></i></div>
+        <div class="glow win" style="left:41.5%;top:47%;--s:5.9%"><i></i></div>
+        <div class="glow" style="left:51.3%;top:9%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:13.3%;top:32%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:88.2%;top:34%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:48%;top:73%;--s:7.6%"><i></i></div>
+        <div class="glow" style="left:67.8%;top:78%;--s:9.0%"><i></i></div>
+        <div class="glow" style="left:75.2%;top:71%;--s:8.1%"><i></i></div>
+        <div class="glow win" style="left:30%;top:40%;--s:4.9%"><i></i></div>
+        <span class="tag rt">на лету · CSS-градация + эмиссия</span>
+      </div>
+      <figcaption><b>5 · Лето, вечер — из плашки №4</b><span>Тот же приём: одна дневная картинка на сезон, вечер считается в рантайме.</span></figcaption>
+    </figure>
+    <figure>
+      <div class="shot"><img src="scene-day-one.jpg" alt=""><span class="tag">нарисовано · правка сцены</span></div>
+      <figcaption><b>6 · Первый день</b><span>Двор + один сарай, низкий кривой тын, пустая земля. Отсюда игрок начинает.</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="grid row2" style="grid-template-columns:1fr 1fr">
+    <figure class="strip">
+      <img src="stages-keep.jpg" alt="">
+      <figcaption><b>Двор · 5 визуальных стадий</b><span>Хижина → башня → башня с галереей → двор с двумя башнями → большой замок со шпилем. Стадии привязываются к уровням (1–4, 5–9, 10–15, 16–20, 21–25).</span></figcaption>
+    </figure>
+    <figure class="strip">
+      <img src="stages-sawmill.jpg" alt="">
+      <figcaption><b>Лесопилка · стадии (генератор дал шесть вместо пяти)</b><span>Козлы и брёвна → навес → изба с пилой → мельница с пандусом → большая лесопильня с трубой. Для продакшена оставим пять.</span></figcaption>
+    </figure>
+  </div>
+</div>
+</body>
+</html>

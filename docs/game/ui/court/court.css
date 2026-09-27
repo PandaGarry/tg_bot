@@ -1,0 +1,73 @@
+/* Прототип двора-конструктора. Материалы и HUD — из ../hud/hud.css; здесь только сцена. */
+.viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.viewport.panning{cursor:grabbing}
+.court{position:absolute;left:0;top:0;width:1376px;height:768px;transform-origin:0 0;will-change:transform}
+.court .ground{position:absolute;left:0;top:0;width:1376px;height:768px;display:block;pointer-events:none;-webkit-user-drag:none}
+.grid-svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.grid-svg .lines{display:none;fill:none}
+.grid-svg .lines .back{stroke:rgba(255,255,255,.28);stroke-width:3}
+.grid-svg .lines .front{stroke:rgba(40,26,14,.42);stroke-width:1}
+.grid-svg .lines .front .edge{stroke:rgba(120,70,20,.85);stroke-width:1.5}
+.grid-svg .lines .back .edge{stroke:rgba(255,236,190,.6);stroke-width:4}
+.build .grid-svg .lines,.show-grid .grid-svg .lines{display:block}
+.grid-svg .occ{display:none;fill:rgba(255,255,255,.08);stroke:rgba(255,255,255,.28);stroke-width:1}
+.build .grid-svg .occ{display:block}
+.grid-svg .ghostfp{fill:rgba(95,182,77,.45);stroke:#a9f090;stroke-width:2;filter:drop-shadow(0 0 8px rgba(143,212,124,.8))}
+.grid-svg .ghostfp.bad{fill:rgba(210,75,63,.45);stroke:#ff9a8c;filter:drop-shadow(0 0 8px rgba(226,96,79,.7))}
+.grid-svg .hover{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.5);stroke-width:1}
+
+.buildings{position:absolute;left:0;top:0;width:0;height:0}
+.b{position:absolute;pointer-events:none}
+.b img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none}
+.b .hit{position:absolute;pointer-events:auto;cursor:pointer}
+.b.selected img{filter:drop-shadow(0 0 6px rgba(255,236,170,.95)) drop-shadow(0 0 2px #fff)}
+.b.ghost{opacity:.82;pointer-events:none;z-index:9000 !important}
+.b.ghost img{filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.b.ghost.bad img{filter:sepia(1) hue-rotate(-40deg) saturate(2.2) drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.b.moving{opacity:.35}
+.b .lbl{position:absolute;left:50%;bottom:calc(100% - 6px);transform:translateX(-50%);white-space:nowrap;padding:2px 8px;border-radius:10px;
+  background:rgba(16,11,8,.72);color:#f7f0e2;font:700 10.5px/1.4 "Open Sans",Arial,sans-serif;border:1px solid rgba(255,240,210,.18);pointer-events:none}
+.b .lbl.site{color:#ffd98a}
+.b .lbl .bar{display:block;width:100%;height:3px;margin-top:2px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+.b .lbl .bar i{display:block;height:100%;width:var(--v,40%);background:linear-gradient(90deg,#f0b53c,#ffd76a)}
+.b .pin{position:absolute;left:50%;top:-6px;transform:translate(-50%,-100%);width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#f6ecd4,#d9c59a);border:2px solid #4a3220;box-shadow:0 2px 4px rgba(0,0,0,.45);display:grid;place-items:center;pointer-events:none}
+.b .pin img{width:22px;height:22px}
+
+/* пузырь выбора (обычный режим) */
+.sel-bubble{position:absolute;z-index:40;padding:6px 8px 7px;min-width:196px;transform:translate(-50%,-100%);margin-top:-14px}
+.sel-bubble::after{content:"";position:absolute;left:50%;bottom:-8px;width:12px;height:12px;background:#e6d5ae;border-right:2px solid var(--wood-1);border-bottom:2px solid var(--wood-1);transform:translateX(-50%) rotate(45deg)}
+.sel-bubble b{font-size:12.5px}
+.sel-bubble>span{margin-left:6px;font-size:10.5px;color:var(--muted);font-weight:700}
+.sel-bubble .row{display:flex;gap:5px;margin-top:5px}
+.sel-bubble .row button{flex:1;height:24px;border-radius:6px;font-size:10.5px;font-weight:800;background:linear-gradient(180deg,#fff8e8,#e3d2ab);border:1px solid var(--wood-1);color:var(--ink)}
+.sel-bubble .row button.go{background:linear-gradient(180deg,#9be27f,#4f9f3d);color:#fff;border-color:#2f6b25}
+
+/* ✓ / ✕ над призраком */
+.ghost-ctl{position:absolute;z-index:41;display:flex;gap:10px;transform:translate(-50%,-100%)}
+.ghost-ctl button{width:40px;height:40px;border-radius:50%;font-size:20px;font-weight:900;color:#fff;border:2px solid rgba(0,0,0,.45);box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.ghost-ctl .ok{background:linear-gradient(180deg,#9be27f,#4f9f3d)}
+.ghost-ctl .ok[disabled]{background:linear-gradient(180deg,#a9a9a9,#6e6e6e);opacity:.7}
+.ghost-ctl .cancel{background:linear-gradient(180deg,#f08a7a,#b03a2c)}
+
+/* карточки стройки — свои, с миниатюрами спрайтов */
+.cards .card .img{background:linear-gradient(180deg,#d9c8a2,#c7b48b);display:grid;place-items:center;overflow:hidden}
+.cards .card .img img{max-width:92%;max-height:92%;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.cards .card.picked{outline:2px solid #8fd47c;outline-offset:1px}
+.cards .card .go{cursor:pointer}
+
+/* режим стройки: размытие фона своей подложкой, HUD-заглушки */
+.build .stage-bg{background:url(ground-day.jpg) center/cover;filter:blur(8px) brightness(.5)}
+.build.night .stage-bg{background-image:url(ground-night.jpg)}
+.build .viewport{cursor:grab}
+.build .b .hit{cursor:move}
+.hud .submenu{display:none}
+
+/* переключатель день/ночь (только прототип) */
+.time-toggle{position:absolute;right:12px;top:392px;width:34px;height:34px;font-size:16px;color:var(--ink);opacity:.9}
+.build .time-toggle{display:none}
+
+/* подсказка внизу по центру */
+.hint{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);padding:5px 12px;font-size:11px;font-weight:700;color:#f7f0e2;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .25s}
+.hint.show{opacity:1}
+.build .hint{bottom:196px}
