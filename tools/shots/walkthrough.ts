@@ -253,6 +253,25 @@ await sleep(1300);
 await page.screenshot({ path: join(outDir, "game-court-hall-moved.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-hall-moved.jpg");
 
+// замер верхней строки ИМЕННО во дворе (раунд 7): ресурсы не должны трогать профиль
+await sleep(800);
+const courtLayout = (await page.evaluate(`(() => {
+  const rect = function (sel) {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
+  };
+  return JSON.stringify({
+    top: rect(".hud-top"),
+    lord: rect(".hud-lord"),
+    res: rect(".hud-res"),
+    firstChip: rect(".hud-res .chip"),
+    lastChip: rect(".hud-res .chip:last-child"),
+  });
+})()`)) as string;
+console.log("  замер-двор:", courtLayout);
+
 // портретный кадр: как на телефоне заказчика
 await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
 await sleep(2500);

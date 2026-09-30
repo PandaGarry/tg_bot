@@ -188,56 +188,53 @@
   height: 13px;
 }
 
-/* ---------- ресурсы: правый верхний угол, колонкой (круг 17):
-   иконка сверху, число под ней; зазор между чипами плотнее ---------- */
+/* ---------- ресурсы (раунд 7): компактная сетка 2х3 из костяных пилюль
+   «иконка + число» — при любых числах не шире экрана, профиль не трогает ---------- */
 .hud-res {
   margin-left: auto;
-  display: flex;
-  gap: 5px;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, auto));
+  gap: 4px 5px;
+  align-content: start;
+  justify-items: start;
   min-width: 0;
-}
-
-.hud-res .chip b {
-  white-space: nowrap;
 }
 
 .hud-res .chip {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 1px;
-  padding: 3px 5px 2px;
-  background: var(--hud-glass);
-  border: 1px solid rgba(255, 240, 210, 0.16);
-  border-radius: 8px;
-  color: var(--hud-white);
-  backdrop-filter: blur(2px);
+  gap: 4px;
+  padding: 2px 8px 2px 3px;
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  border: 2px solid var(--hud-wood-1);
+  border-radius: 999px;
+  color: var(--hud-ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .hud-res .chip .ic {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex: 0 0 auto;
 }
 
 .hud-res .chip b {
   font-size: 10.5px;
-  line-height: 1.05;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-/* золото — премиум-валюта: золотая рамка и тёплый фон (как «камни» у RoK) */
+/* золото — премиум-валюта: золотая пилюля */
 .hud-res .chip-gold {
-  border-color: rgba(224, 176, 74, 0.55);
-  background: rgba(58, 38, 8, 0.6);
+  border-color: #a8761e;
+  background: linear-gradient(180deg, #f6e3b0, #eac96a);
 }
 
 .hud-res .chip-gold b {
-  color: #f0c866;
+  color: #5a3c10;
 }
-
 /* ---------- очереди: строитель, тренировка, исследование ---------- */
 .hud-queues {
   position: fixed;
@@ -258,12 +255,10 @@
   display: grid;
   place-items: center;
   min-height: 0;
-  border-radius: 9px;
-  background: rgba(18, 11, 7, 0.45);
-  border: 1.5px solid rgba(239, 227, 198, 0.26);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  border: 2px solid var(--hud-wood-1);
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .hud-queue {
@@ -297,11 +292,11 @@
   height: 38px;
 }
 
-/* ---------- правая колонка: служебные механики, под ресурсами (решение круга 4) ---------- */
+/* ---------- правая колонка: служебные механики, под сеткой ресурсов (раунд 7) ---------- */
 .hud-tabs {
   position: fixed;
   right: 8px;
-  top: calc(96px + env(safe-area-inset-top));
+  top: calc(116px + env(safe-area-inset-top));
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -404,7 +399,9 @@
   width: 54px;
   min-height: 56px;
   border-radius: 9px;
-  color: rgba(239, 227, 198, 0.6);
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  border: 2px solid var(--hud-wood-0);
+  color: var(--hud-muted);
 }
 
 /* активная вкладка — костяная плашка, как материалы панели персонажа */
@@ -671,7 +668,6 @@
   }
 
   .hud-res {
-    top: calc(4px + env(safe-area-inset-top));
     gap: 4px;
   }
 
@@ -690,7 +686,7 @@
   }
 
   .hud-tabs {
-    top: calc(64px + env(safe-area-inset-top));
+    top: calc(76px + env(safe-area-inset-top));
     gap: 5px;
   }
 
@@ -946,16 +942,12 @@
   border-color: rgba(255, 190, 150, 0.35);
 }
 
-/* ---------- иконки-плитки (этап C4): арт = вся ячейка ---------- */
+/* ---------- иконки-плитки: арт = вся ячейка (фон арта = фон ячейки) ---------- */
 .hud-rb,
 .hud-queue,
 .hud-tab {
   padding: 0;
-  background: rgba(24, 15, 9, 0.55);
-  border: 1.5px solid rgba(239, 227, 198, 0.3);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
   overflow: hidden;
-  border-radius: 10px;
 }
 
 .hud-rb .hud-ic,
