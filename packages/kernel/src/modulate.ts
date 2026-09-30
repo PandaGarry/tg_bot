@@ -11,7 +11,7 @@ export interface ModifierInput {
   point?: { kind: string; level: number; zone: number };
   troop?: { kind: string; tier: number; count: number };
   zone?: number;
-  subject?: "lord" | "court" | "world";
+  subject?: "lord" | "town" | "world";
   /** Числа, которые модуль передал сам: уровни, грейды, дни. */
   values?: Readonly<Record<string, number>>;
 }

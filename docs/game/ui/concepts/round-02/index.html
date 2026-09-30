@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ece9e2">
+<title>TDL — 10 UI-концептов · раунд 2</title>
+<style>
+:root{color-scheme:light;--bg:#ece9e2;--paper:#fbfaf7;--ink:#292a27;--muted:#686a63;--line:#d5d0c5;--accent:#776b55;--note:#f2eee5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1500px,calc(100% - 36px));margin-inline:auto}
+header{padding:34px 0 24px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font:600 clamp(32px,4.2vw,56px)/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:920px;margin:14px 0 0;color:#555851;font-size:15px}
+.reference,.notice{max-width:1080px;margin:16px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.55);color:#555851;font-size:12px}
+.reference{border-left:3px solid #857454}
+.reference b,.notice b{color:var(--ink)}
+.notice{border-left:3px solid #777b77;background:#f5f4f0}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #bdb6a8;border-radius:4px;background:var(--paper);color:#34352f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:#34352f;background:#34352f;color:#fbfaf7}
+.actions a:hover{transform:translateY(-1px)}
+main{padding:23px 0 40px}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:7px;background:var(--paper);box-shadow:0 8px 24px rgba(39,35,28,.07)}
+.image-link{display:block;overflow:hidden;background:#282a27}
+.image-link img{display:block;width:100%;height:auto;aspect-ratio:768/1376;object-fit:cover;transition:transform .18s ease}
+.image-link:hover img{transform:scale(1.015)}
+.card-copy{padding:13px 15px 15px}
+.meta{display:flex;flex-wrap:wrap;gap:5px 7px;align-items:center;color:#898477;font-size:10px;font-weight:850;letter-spacing:.11em;text-transform:uppercase}
+.palette{letter-spacing:.04em;font-weight:700}
+.card h2{margin:6px 0 6px;font:600 21px/1.12 Georgia,"Times New Roman",serif}
+.card p{margin:0;color:var(--muted);font-size:12px}
+.note{margin-top:10px!important;padding:8px 10px;border-left:2px solid #98886c;background:var(--note);color:#4f4a3e!important;font-size:12px!important}
+.note b{margin-right:4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+footer{padding:0 0 30px;color:#797971;font-size:11px}
+@media(max-width:1000px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.gallery{grid-template-columns:1fr;gap:13px}.intro{font-size:13px}.reference,.notice{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · визуальные направления · раунд 02</p>
+  <h1>Ещё 10 вариантов игрового UI</h1>
+  <p class="intro">Сравнение одной игровой ситуации: зимний двор, выбрана <b>защитная стена</b>, открыта панель улучшения. Варианты отличаются композицией, формой панелей, контрастом и материалами — это самостоятельные концепты, а не перекраска одного шаблона.</p>
+  <div class="reference"><b>Палитры-ориентиры:</b> концепты № 04, 09 и 10 первой серии. Здесь они используются только как цветовые референсы: ни один стиль не выбран.</div>
+  <div class="notice"><b>Важно:</b> это AI-концепты для сравнения, а не подтверждённые игровые экраны. Мелкие надписи и числа внутри изображений могут быть неточными заглушками. В вариантах 04, 06 и 07 крупные подписи вручную приведены к короткому современному русскому; подписи в галерее описывают только визуальное направление.</div>
+  <nav class="actions" aria-label="Навигация по концептам">
+    <a class="primary" href="contact-sheet.jpg">Открыть контакт-лист</a>
+    <a href="../round-03/index.html">Посмотреть раунд 3 · лёгкая мультяшность</a>
+    <a href="../index.html">Перейти к раунду 1</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="gallery" aria-label="Десять визуальных вариантов">
+  <article class="card"><a class="image-link" href="01-light-stone-ochre.jpg"><img src="01-light-stone-ochre.jpg" alt="Концепт 01: светлая каменная панель с охристыми акцентами" loading="lazy"></a><div class="card-copy"><div class="meta"><span>01 / 10</span><span class="palette">Палитра 04 · камень и охра</span></div><h2>Светлый камень и охра</h2><p>Светлые панели, широкие поля и охристый акцент на главном действии.</p></div></article>
+  <article class="card"><a class="image-link" href="02-coal-pale-stone.jpg"><img src="02-coal-pale-stone.jpg" alt="Концепт 02: тёмные угольные панели и светлый камень" loading="lazy"></a><div class="card-copy"><div class="meta"><span>02 / 10</span><span class="palette">Палитра 09 · уголь и камень</span></div><h2>Уголь и светлый камень</h2><p>Плотные тёмные панели, светлая рабочая зона и короткие полосы ресурсов.</p><p class="note"><b>Заметка</b> «Не развалилось. Уже неплохо.»</p></div></article>
+  <article class="card"><a class="image-link" href="03-stone-burgundy.jpg"><img src="03-stone-burgundy.jpg" alt="Концепт 03: светлый камень с бордовыми и бронзовыми акцентами" loading="lazy"></a><div class="card-copy"><div class="meta"><span>03 / 10</span><span class="palette">Палитра 10 · камень и бордо</span></div><h2>Камень и бордо</h2><p>Светлая каменная основа, бордовые вкладки и сдержанные бронзовые линии.</p></div></article>
+  <article class="card"><a class="image-link" href="04-frost-graphite.jpg"><img src="04-frost-graphite.jpg" alt="Концепт 04: морозный камень, графитовые панели и охристый выбор" loading="lazy"></a><div class="card-copy"><div class="meta"><span>04 / 10</span><span class="palette">Палитра 04 · иней и графит</span></div><h2>Снег и графит</h2><p>Отдельная площадка сразу выделяет выбранную защитную стену и её контур.</p><p class="note"><b>Заметка</b> «Стена на месте. Снег тоже.»</p></div></article>
+  <article class="card"><a class="image-link" href="05-charred-wood-limestone.jpg"><img src="05-charred-wood-limestone.jpg" alt="Концепт 05: тёмное дерево и светлые каменные панели" loading="lazy"></a><div class="card-copy"><div class="meta"><span>05 / 10</span><span class="palette">Палитры 09 + 04 · дерево и камень</span></div><h2>Тёмное дерево и камень</h2><p>Тёмная деревянная рамка окружает светлые блоки, а двор остаётся на виду.</p></div></article>
+  <article class="card"><a class="image-link" href="06-stone-bronze-status.jpg"><img src="06-stone-bronze-status.jpg" alt="Концепт 06: светлая каменная карточка с бронзовыми деталями" loading="lazy"></a><div class="card-copy"><div class="meta"><span>06 / 10</span><span class="palette">Палитры 10 + 04 · камень и бронза</span></div><h2>Камень и бронзовые метки</h2><p>Большая светлая карточка собирает защиту, стоимость и время в отдельные блоки.</p></div></article>
+  <article class="card"><a class="image-link" href="07-charcoal-dry-ochre.jpg"><img src="07-charcoal-dry-ochre.jpg" alt="Концепт 07: угольные панели и сухая охра" loading="lazy"></a><div class="card-copy"><div class="meta"><span>07 / 10</span><span class="palette">Палитра 09 · уголь и охра</span></div><h2>Уголь и сухая охра</h2><p>Компактная таблица статусов экономит место и оставляет сцену открытой.</p><p class="note"><b>Заметка</b> «Дерево на месте. Мир — как обычно.»</p></div></article>
+  <article class="card"><a class="image-link" href="08-stone-dark-frame.jpg"><img src="08-stone-dark-frame.jpg" alt="Концепт 08: светлая каменная карточка в тёмной рамке" loading="lazy"></a><div class="card-copy"><div class="meta"><span>08 / 10</span><span class="palette">Палитры 04 + 09 · камень и уголь</span></div><h2>Светлый камень в тёмной рамке</h2><p>Светлая карточка, тонкая рамка и много свободного пространства вокруг неё.</p></div></article>
+  <article class="card"><a class="image-link" href="09-burgundy-dark-stone.jpg"><img src="09-burgundy-dark-stone.jpg" alt="Концепт 09: бордовый акцент на тёмных каменных панелях" loading="lazy"></a><div class="card-copy"><div class="meta"><span>09 / 10</span><span class="palette">Палитры 09 + 10 · камень и бордо</span></div><h2>Бордо и тёмный камень</h2><p>Матовые тёмные панели и редкий бордовый акцент; показатели собраны снизу.</p></div></article>
+  <article class="card"><a class="image-link" href="10-stone-wood-burgundy.jpg"><img src="10-stone-wood-burgundy.jpg" alt="Концепт 10: светлый камень, тёмное дерево и бордовая вкладка" loading="lazy"></a><div class="card-copy"><div class="meta"><span>10 / 10</span><span class="palette">Палитры 04 + 09 + 10 · три материала</span></div><h2>Камень, дерево и бордо</h2><p>Центральное окно оставляет двор видимым и собирает действия вокруг одного выбора.</p><p class="note"><b>Заметка</b> «План сработал. Запишем, как повторить.»</p></div></article>
+</section>
+</main>
+<footer>Изображения созданы как AI-концепты для сравнения направлений TDL. Это не игровые скриншоты, не выбранный визуальный стиль и не UI-спецификация. Выбор остаётся за вами.</footer>
+</body>
+</html>

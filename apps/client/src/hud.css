@@ -1,0 +1,971 @@
+/* HUD-хром главного экрана: материалы Bone-Wood №05 из docs/game/ui/hud/hud.css —
+   резное дерево, кость, рисованные иконки. Компактная редакция круга 11:
+   всё мелкозернистое, кнопки — скруглённый квадрат, навигация — деревянная панель. */
+
+:root {
+  --hud-bone: #efe3c6;
+  --hud-wood-0: #22130b;
+  --hud-wood-1: #3a2114;
+  --hud-wood-2: #4a2c1a;
+  --hud-wood-3: #6b4128;
+  --hud-ink: #2a1e14;
+  --hud-muted: #6f5b45;
+  --hud-gold: #e0b04a;
+  --hud-white: #f7f0e2;
+  --hud-glass: rgba(16, 11, 8, 0.55);
+}
+
+.hud-ic {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
+/* ---------- панель персонажа: по прототипу docs/game/ui/hud (круг 15):
+   портрет-ячейка 38px, ник, «Ур.» с полосой опыта, VIP-значок с короной ---------- */
+.hud-lord {
+  position: fixed;
+  left: 8px;
+  top: calc(6px + env(safe-area-inset-top));
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 10px 3px 3px;
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  border: 2px solid var(--hud-wood-1);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 2px 5px rgba(0, 0, 0, 0.5);
+  color: var(--hud-ink);
+}
+
+.hud-lord .portrait {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--hud-wood-2);
+  box-shadow: inset 0 0 0 2px rgba(247, 240, 226, 0.5), inset 0 2px 3px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.hud-lord .portrait .hud-ic {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+}
+
+.hud-lord .rows {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 2px;
+  align-content: center;
+  min-width: 0;
+}
+
+.hud-lord .name-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hud-lord .name-row b {
+  max-width: 108px;
+  font-size: 13px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.hud-lord .name-row small {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--hud-muted);
+  white-space: nowrap;
+}
+
+.hud-lord .lvl-tag {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  color: #3b2416;
+  background: linear-gradient(180deg, #f0c866, #c8952e);
+  border-radius: 7px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hud-lord .power-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-lord .power-row img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.hud-lord .power-row b {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-lord .xp-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-lord .xp-row .lvl {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.hud-lord .xp-row .bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(42, 30, 20, 0.35);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.hud-lord .xp-row .bar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f0c866, #c8952e);
+}
+
+.hud-lord .vip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* VIP-значок — как в прототипе: золотая пилюля с короной */
+.hud-lord .vipb {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 7px 0 4px;
+  height: 15px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f0c866, #c8952e);
+  color: #3b2416;
+  font-weight: 800;
+  font-size: 9.5px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hud-lord .vipb .hud-ic {
+  width: 13px;
+  height: 13px;
+}
+
+/* ---------- ресурсы: правый верхний угол, колонкой (круг 17):
+   иконка сверху, число под ней; зазор между чипами плотнее ---------- */
+.hud-res {
+  position: fixed;
+  left: calc(196px + env(safe-area-inset-left));
+  right: 8px;
+  top: calc(6px + env(safe-area-inset-top));
+  z-index: 20;
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.hud-res .chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 5px 2px;
+  background: var(--hud-glass);
+  border: 1px solid rgba(255, 240, 210, 0.16);
+  border-radius: 8px;
+  color: var(--hud-white);
+  backdrop-filter: blur(2px);
+}
+
+.hud-res .chip .ic {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.hud-res .chip b {
+  font-size: 10.5px;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+/* золото — премиум-валюта: золотая рамка и тёплый фон (как «камни» у RoK) */
+.hud-res .chip-gold {
+  border-color: rgba(224, 176, 74, 0.55);
+  background: rgba(58, 38, 8, 0.6);
+}
+
+.hud-res .chip-gold b {
+  color: #f0c866;
+}
+
+/* ---------- очереди: строитель, тренировка, исследование ---------- */
+.hud-queues {
+  position: fixed;
+  left: 8px;
+  top: calc(70px + env(safe-area-inset-top));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* клетки круга 14: честный квадрат (min-height базовой кнопки побеждён явно),
+   полупрозрачное стекло — сцена видна сквозь */
+.hud-queue,
+.hud-rb,
+.hud-tab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  border-radius: 9px;
+  background: rgba(18, 11, 7, 0.45);
+  border: 1.5px solid rgba(239, 227, 198, 0.26);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.hud-queue {
+  width: 34px;
+  height: 34px;
+}
+
+.hud-queue .hud-ic {
+  width: 32px;
+  height: 32px;
+}
+
+/* ---------- левый столбик: «Строить» + очереди, под карточкой лорда (RoK 2.6) ---------- */
+.hud-rb-row {
+  position: fixed;
+  left: 8px;
+  top: calc(96px + env(safe-area-inset-top));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud-rb {
+  width: 40px;
+  height: 40px;
+}
+
+.hud-rb .hud-ic {
+  width: 38px;
+  height: 38px;
+}
+
+/* ---------- правая колонка: служебные механики, под ресурсами (решение круга 4) ---------- */
+.hud-tabs {
+  position: fixed;
+  right: 8px;
+  top: calc(96px + env(safe-area-inset-top));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud-tab {
+  width: 34px;
+  height: 34px;
+}
+
+.hud-tab .hud-ic {
+  width: 32px;
+  height: 32px;
+}
+
+.hud-tab span {
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--hud-white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.hud-tab:active span,
+.hud-tab:hover span {
+  opacity: 1;
+}
+
+/* ---------- панель-заглушка поверх сцены ---------- */
+.hud-panel {
+  position: fixed;
+  left: 50%;
+  bottom: calc(120px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(420px, 92vw);
+  padding: 12px 14px;
+  background: var(--hud-glass);
+  border: 1px solid rgba(255, 240, 210, 0.2);
+  border-radius: 12px;
+  color: var(--hud-white);
+  backdrop-filter: blur(3px);
+}
+
+.hud-panel b {
+  display: block;
+  margin-bottom: 4px;
+  color: #f0d9a8;
+  font-size: 13px;
+}
+
+.hud-panel p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hud-panel button {
+  min-height: 44px;
+  margin-top: 8px;
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  color: var(--hud-ink);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ---------- навигация-док: один и тот же на всех экранах, без прыжков (круг 17) ---------- */
+.game-nav {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(6px + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  background: linear-gradient(180deg, var(--hud-wood-3), var(--hud-wood-2) 42%, var(--hud-wood-1));
+  border: 2px solid var(--hud-wood-0);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 225, 190, 0.3);
+}
+
+.game-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  flex: 0 0 auto;
+  width: 54px;
+  min-height: 56px;
+  border-radius: 9px;
+  color: rgba(239, 227, 198, 0.6);
+}
+
+/* активная вкладка — костяная плашка, как материалы панели персонажа */
+.game-nav button.active {
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  color: var(--hud-ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.7), 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* «Карта» — центр дока: приподнята и крупнее (решение заказчика, круг 18) */
+.game-nav button.nav-map {
+  width: 58px;
+  min-height: 56px;
+  margin-top: -14px;
+  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
+  border: 2px solid var(--hud-wood-1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 248, 230, 0.7);
+  color: var(--hud-ink);
+}
+
+.game-nav button.nav-map .nic {
+  width: 34px;
+  height: 34px;
+}
+
+.game-nav button.nav-map.active {
+  background: linear-gradient(180deg, #f8efdb, #eBD9b2);
+}
+
+.game-nav .nic {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  transition: transform 0.15s;
+}
+
+.game-nav span {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.game-nav button.active .nic {
+  transform: scale(1.1);
+}
+
+/* ---------- адаптив (круг 16): ярусы ----------
+   база — телефоны 390–430; ниже 389 — компакт; 431–767 — крупнее; ≥768 — воздух по краям;
+   отдельно — низкий ландшафт. */
+
+/* узкие телефоны (<390): всё чуть плотнее, квадраты сохраняются */
+@media (max-width: 389px) {
+  .hud-res {
+    left: calc(150px + env(safe-area-inset-left));
+  }
+
+  .hud-lord .portrait {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hud-lord .portrait .hud-ic {
+    width: 30px;
+    height: 30px;
+  }
+
+  .hud-lord .name-row b {
+    font-size: 11px;
+  }
+
+  .hud-lord .vipb {
+    height: 14px;
+    font-size: 9px;
+  }
+
+  .hud-res {
+    gap: 4px;
+  }
+
+  .hud-res .chip {
+    padding: 2px 4px 2px;
+  }
+
+  .hud-res .chip .ic {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hud-res .chip b {
+    font-size: 9.5px;
+  }
+
+  .hud-lord .name-row b {
+    max-width: 84px;
+  }
+
+  .hud-rb {
+    width: 34px;
+    height: 34px;
+  }
+
+  .hud-rb .hud-ic {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hud-tab,
+  .hud-queue {
+    width: 28px;
+    height: 28px;
+  }
+
+  .hud-tab .hud-ic,
+  .hud-queue .hud-ic {
+    width: 26px;
+    height: 26px;
+  }
+
+  .game-nav button.nav-map {
+    width: 52px;
+    min-height: 50px;
+  }
+
+  .game-nav button {
+    width: 44px;
+    min-height: 48px;
+  }
+
+  .game-nav .nic {
+    width: 31px;
+    height: 31px;
+  }
+
+  .game-nav span {
+    font-size: 7.5px;
+  }
+}
+
+/* большие телефоны и малые планшеты (431–767): элементы крупнее */
+@media (min-width: 431px) {
+  .hud-res {
+    left: calc(216px + env(safe-area-inset-left));
+  }
+
+  .hud-lord {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .hud-lord .portrait {
+    width: 48px;
+    height: 48px;
+  }
+
+  .hud-lord .portrait .hud-ic {
+    width: 46px;
+    height: 46px;
+  }
+
+  .hud-lord .name-row b {
+    font-size: 13.5px;
+    max-width: 126px;
+  }
+
+  .hud-lord .vipb {
+    height: 16px;
+    font-size: 10.5px;
+  }
+
+  .hud-lord .vipb .hud-ic {
+    width: 14px;
+    height: 14px;
+  }
+
+  .hud-res {
+    gap: 6px;
+  }
+
+  .hud-res .chip .ic {
+    width: 22px;
+    height: 22px;
+  }
+
+  .hud-res .chip b {
+    font-size: 11.5px;
+  }
+
+  .hud-rb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .hud-rb .hud-ic {
+    width: 41px;
+    height: 41px;
+  }
+
+  .hud-tab,
+  .hud-queue {
+    width: 38px;
+    height: 38px;
+  }
+
+  .hud-tab .hud-ic,
+  .hud-queue .hud-ic {
+    width: 35px;
+    height: 35px;
+  }
+
+  .game-nav button {
+    width: 58px;
+    min-height: 60px;
+  }
+
+  .game-nav .nic {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+/* планшеты и десктоп: больше воздуха по краям (сцена и так до 820px) */
+@media (min-width: 768px) {
+  .hud-lord {
+    left: 14px;
+    top: calc(10px + env(safe-area-inset-top));
+  }
+
+  .hud-res {
+    right: 14px;
+    top: calc(10px + env(safe-area-inset-top));
+  }
+
+  .hud-rb-row {
+    left: 14px;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .court-mode .game-nav {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+/* низкий ландшафт телефонов: вертикали сжаты, док компактный */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hud-lord {
+    grid-template-columns: 30px 1fr;
+    padding: 2px 8px 2px 2px;
+  }
+
+  .hud-lord .portrait {
+    width: 30px;
+    height: 30px;
+  }
+
+  .hud-lord .portrait .hud-ic {
+    width: 20px;
+    height: 20px;
+  }
+
+  .hud-lord .name-row b {
+    font-size: 10.5px;
+  }
+
+  .hud-lord .xp-row .lvl {
+    font-size: 8.5px;
+  }
+
+  .hud-lord .vipb {
+    height: 13px;
+    font-size: 8.5px;
+    padding: 0 5px 0 3px;
+  }
+
+  .hud-lord .vipb .hud-ic {
+    width: 11px;
+    height: 11px;
+  }
+
+  .hud-res {
+    top: calc(4px + env(safe-area-inset-top));
+    gap: 4px;
+  }
+
+  .hud-res .chip .ic {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hud-res .chip b {
+    font-size: 9px;
+  }
+
+  .hud-rb-row {
+    top: calc(64px + env(safe-area-inset-top));
+    gap: 5px;
+  }
+
+  .hud-tabs {
+    top: calc(64px + env(safe-area-inset-top));
+    gap: 5px;
+  }
+
+  .hud-rb {
+    width: 34px;
+    height: 34px;
+  }
+
+  .hud-rb .hud-ic {
+    width: 32px;
+    height: 32px;
+  }
+
+  .court-mode .game-nav {
+    bottom: calc(4px + env(safe-area-inset-bottom));
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .game-nav button.nav-map {
+    width: 50px;
+    min-height: 48px;
+    margin-top: -10px;
+  }
+
+  .game-nav button {
+    width: 44px;
+    min-height: 48px;
+  }
+
+  .game-nav .nic {
+    width: 30px;
+    height: 30px;
+  }
+
+  .game-nav span {
+    font-size: 7.5px;
+  }
+
+  .hud-panel {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- панель строительства (этап C2): вкладки и карточки ---------- */
+.hud-build {
+  position: fixed;
+  left: 50%;
+  bottom: calc(120px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(440px, 94vw);
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  background: var(--hud-glass);
+  border: 1px solid rgba(255, 240, 210, 0.2);
+  border-radius: 14px;
+  color: var(--hud-white);
+  backdrop-filter: blur(3px);
+}
+
+.hud-build .btabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.hud-build .btabs button {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--hud-white);
+  background: rgba(30, 22, 12, 0.55);
+  border: 1px solid rgba(255, 240, 210, 0.18);
+  border-radius: 9px;
+}
+
+.hud-build .btabs button.active {
+  background: rgba(112, 74, 32, 0.85);
+  border-color: rgba(240, 200, 102, 0.6);
+}
+
+/* улучшение Ратуши — отдельная широкая карточка над списком */
+.hud-build .th-up {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--hud-white);
+  text-align: left;
+  background: rgba(112, 74, 32, 0.4);
+  border: 1px solid rgba(240, 200, 102, 0.45);
+  border-radius: 11px;
+}
+
+.hud-build .th-up:disabled {
+  opacity: 0.55;
+}
+
+.hud-build .th-up.max {
+  border-color: rgba(255, 240, 210, 0.2);
+}
+
+.hud-build .th-up-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.hud-build .th-up-text b {
+  font-size: 13px;
+}
+
+.hud-build .th-up-text em,
+.hud-build .bcost em {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 8px;
+  font-style: normal;
+  font-size: 12px;
+  color: #f0e6d2;
+}
+
+.hud-build .th-up-text em img,
+.hud-build .bcost em img {
+  width: 14px;
+  height: 14px;
+}
+
+.hud-build em.lack {
+  color: #e08a72;
+}
+
+.hud-build .bcards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.hud-build .bcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 7px;
+  font: inherit;
+  color: var(--hud-white);
+  background: rgba(30, 22, 12, 0.55);
+  border: 1px solid rgba(255, 240, 210, 0.16);
+  border-radius: 11px;
+  overflow: hidden;
+}
+
+.hud-build .bcard:active {
+  background: rgba(112, 74, 32, 0.6);
+}
+
+.hud-build .bcard .bic {
+  display: block;
+  height: 42px;
+}
+
+.hud-build .bcard b {
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.hud-build .bcost {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hud-build .bcard.locked .bic,
+.hud-build .bcard.locked b,
+.hud-build .bcard.locked .bcost {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}
+
+.hud-build .bcard .blocker {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 3px 2px 4px;
+  font-size: 10px;
+  line-height: 1.15;
+  color: #ffd9c4;
+  background: rgba(60, 24, 12, 0.82);
+}
+
+/* плашка режима постановки над доком */
+.place-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(116px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 26;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px 9px 16px;
+  background: rgba(20, 14, 8, 0.9);
+  border: 1px solid rgba(240, 200, 102, 0.5);
+  border-radius: 999px;
+  color: var(--hud-white);
+  font-size: 13px;
+  white-space: nowrap;
+  backdrop-filter: blur(3px);
+}
+
+.place-bar button {
+  min-height: 34px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--hud-white);
+  background: rgba(112, 74, 32, 0.85);
+  border: 1px solid rgba(255, 240, 210, 0.25);
+  border-radius: 999px;
+}
+
+.place-bar button.ok {
+  background: rgba(88, 120, 48, 0.9);
+  border-color: rgba(200, 230, 150, 0.4);
+}
+
+.hud-build .th-up.road.active {
+  border-color: rgba(240, 200, 102, 0.9);
+  background: rgba(112, 74, 32, 0.75);
+}
+
+/* долгое нажатие во дворе — это жест игры, а не выделение текста (этап C3):
+   без этого iOS показывает синие рамки и меню «Скопировать» */
+.court-mode,
+.court-mode * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.place-bar button.warn {
+  background: rgba(122, 58, 34, 0.9);
+  border-color: rgba(255, 190, 150, 0.35);
+}
+
+/* ---------- иконки-плитки (этап C4): арт = вся ячейка ---------- */
+.hud-rb,
+.hud-queue,
+.hud-tab {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: hidden;
+}
+
+.hud-rb .hud-ic,
+.hud-queue .hud-ic,
+.hud-tab .hud-ic {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}

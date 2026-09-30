@@ -152,7 +152,7 @@ function Choice({
   );
 }
 
-function swatch(name: string): string {
+export function swatch(name: string): string {
   const table: Record<string, string> = {
     bone: "#d8d2c4",
     moss: "#6b7a4a",

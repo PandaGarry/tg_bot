@@ -114,7 +114,7 @@ export type PatchRoute =
 
 export interface PatchOp {
   op: "set" | "del" | "add";
-  /** Путь в состоянии вида: «stock.meat», «tile.12.34». */
+  /** Путь в состоянии вида: «stock.<ресурс>», «tile.12.34». */
   path: string;
   value?: JsonValue;
 }

@@ -1,0 +1,35 @@
+{
+  "sheet": "court/sprites/sheet-c-night.png",
+  "size": [
+    1376,
+    768
+  ],
+  "key": [
+    247,
+    44,
+    248
+  ],
+  "icons": [
+    {
+      "name": "c-night-01.png",
+      "x": 13,
+      "y": 38,
+      "w": 458,
+      "h": 611
+    },
+    {
+      "name": "c-night-02.png",
+      "x": 432,
+      "y": 118,
+      "w": 513,
+      "h": 497
+    },
+    {
+      "name": "c-night-03.png",
+      "x": 904,
+      "y": 107,
+      "w": 465,
+      "h": 544
+    }
+  ]
+}

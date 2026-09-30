@@ -161,7 +161,7 @@ const probe = defineModule({
       )[0],
     );
     // Такт считается через фазу производства: модификатор виден в числе.
-    const production = Math.round(ctx.modulate("production", TICK_BASE, { resource: "probe_dust", subject: "court" }));
+    const production = Math.round(ctx.modulate("production", TICK_BASE, { resource: "probe_dust", subject: "town" }));
     return [
       {
         kind: "rows.upsert",

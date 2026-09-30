@@ -9,6 +9,28 @@ import { login } from "../net.js";
 import { store } from "../store.js";
 import { translator } from "../i18n/index.js";
 
+const MailIcon = () => (
+  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="3" y="5" width="18" height="14" rx="3" />
+    <path d="m4 7 8 6 8-6" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="5" y="10" width="14" height="10" rx="3" />
+    <path d="M8 10V7a4 4 0 1 1 8 0v3" />
+  </svg>
+);
+
+const EyeIcon = ({ off }: { off?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
+    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+    <circle cx="12" cy="12" r="2.6" />
+    {off ? <path d="m4 4 16 16" /> : null}
+  </svg>
+);
+
 export function Boot({
   lang,
   statusKey: status,
@@ -22,58 +44,70 @@ export function Boot({
   const t = translator(lang);
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const canSubmit = loginName.trim().length >= 3 && password.length >= 8;
 
   return (
-    <main className="flex min-h-[100dvh] flex-col items-center justify-center gap-6 p-6">
-      <h1 className="text-center text-2xl tracking-wide text-bone">{t("shell.app.title")}</h1>
-
-      <div className="flex gap-2">
+    <main className="gate relative flex min-h-[100dvh] flex-col items-center justify-center gap-5 p-5">
+      {/* язык — маленькие пилюли в правом верхнем углу (круг 17) */}
+      <div className="gate-lang-wrap">
         {(["ru", "en"] as Locale[]).map((code) => (
           <button
             key={code}
             type="button"
             onClick={() => store.setLang(code)}
-            className={`min-h-[44px] rounded border px-4 text-sm ${
-              lang === code ? "border-bone text-bone" : "border-stone-700 text-stone-400"
-            }`}
+            className={`gate-lang ${lang === code ? "gate-lang-on" : ""}`}
           >
-            {code === "ru" ? "Русский" : "English"}
+            {code === "ru" ? "РУС" : "ENG"}
           </button>
         ))}
       </div>
 
+      {/* авторская эмблема и титул */}
+      <img className="gate-brand" src="emblem.jpg" alt="" />
+      <h1 className="gate-title text-center text-2xl tracking-wide">{t("shell.app.title")}</h1>
+      <p className="gate-sub -mt-3 text-center text-sm">{t("shell.boot.subtitle")}</p>
+
       <form
-        className="flex w-full max-w-sm flex-col gap-3"
+        className="gate-card flex w-full max-w-sm flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
           login(loginName.trim(), password);
         }}
       >
-        <label className="flex flex-col gap-1 text-sm text-stone-400">
-          {t("shell.boot.login")}
-          <input
-            value={loginName}
-            onChange={(event) => setLoginName(event.target.value)}
-            autoComplete="username"
-            className="min-h-[44px] rounded border border-stone-700 bg-stone-900 px-3 text-bone outline-none focus:border-stone-500"
-          />
+        <label className="gate-field">
+          <span className="gate-label">{t("shell.boot.login")}</span>
+          <span className="gate-box">
+            <MailIcon />
+            <input
+              value={loginName}
+              onChange={(event) => setLoginName(event.target.value)}
+              autoComplete="username"
+              className="gate-input"
+            />
+          </span>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-stone-400">
-          {t("shell.boot.password")}
-          <input
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            autoComplete="current-password"
-            className="min-h-[44px] rounded border border-stone-700 bg-stone-900 px-3 text-bone outline-none focus:border-stone-500"
-          />
+        <label className="gate-field">
+          <span className="gate-label">{t("shell.boot.password")}</span>
+          <span className="gate-box">
+            <LockIcon />
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type={show ? "text" : "password"}
+              autoComplete="current-password"
+              className="gate-input gate-input-pin"
+            />
+            <button type="button" className="gate-eye" onClick={() => setShow((v) => !v)} aria-label="показать пароль">
+              <EyeIcon off={show} />
+            </button>
+          </span>
         </label>
         <button
           type="submit"
           disabled={!canSubmit}
-          className="min-h-[44px] rounded border border-stone-600 bg-stone-800 text-bone disabled:opacity-40"
+          className="gate-primary min-h-[44px] rounded disabled:opacity-40"
         >
           {t("shell.boot.enter")}
         </button>
@@ -81,13 +115,20 @@ export function Boot({
           type="button"
           onClick={onRegister}
           data-testid="boot-to-register"
-          className="min-h-[44px] rounded border border-stone-700 text-stone-300"
+          className="gate-secondary min-h-[44px] rounded"
         >
           {t("shell.boot.register")}
         </button>
       </form>
 
-      <p className="text-xs text-stone-500">{t(status)}</p>
+      <p className="gate-foot text-sm">
+        {t("shell.boot.noacc")}{" "}
+        <button type="button" onClick={onRegister} className="gate-link font-semibold">
+          {t("shell.boot.register")}
+        </button>
+      </p>
+
+      <p className="gate-note text-xs">{t(status)}</p>
     </main>
   );
 }

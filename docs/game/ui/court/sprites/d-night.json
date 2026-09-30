@@ -1,0 +1,35 @@
+{
+  "sheet": "court/sprites/sheet-d-night.png",
+  "size": [
+    1792,
+    592
+  ],
+  "key": [
+    247,
+    17,
+    246
+  ],
+  "icons": [
+    {
+      "name": "d-night-01.png",
+      "x": 6,
+      "y": 61,
+      "w": 606,
+      "h": 519
+    },
+    {
+      "name": "d-night-02.png",
+      "x": 610,
+      "y": 11,
+      "w": 572,
+      "h": 569
+    },
+    {
+      "name": "d-night-03.png",
+      "x": 1179,
+      "y": 73,
+      "w": 608,
+      "h": 507
+    }
+  ]
+}
