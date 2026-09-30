@@ -253,8 +253,9 @@ await sleep(1300);
 await page.screenshot({ path: join(outDir, "game-court-hall-moved.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-hall-moved.jpg");
 
-// замер верхней строки ИМЕННО во дворе (раунд 7): ресурсы не должны трогать профиль
-await sleep(800);
+// замер верхней строки ИМЕННО во дворе и ИМЕННО на телефонной ширине (иначе не ловится)
+await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+await sleep(1200);
 const courtLayout = (await page.evaluate(`(() => {
   const rect = function (sel) {
     const el = document.querySelector(sel);
@@ -277,5 +278,27 @@ await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
 await sleep(2500);
 await page.screenshot({ path: join(outDir, "game-court-portrait.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-portrait.jpg");
+
+// узкий экран 320: сетка ресурсов обязана уместиться и не задеть профиль
+await page.setViewport({ width: 320, height: 690, deviceScaleFactor: 1 });
+await sleep(1200);
+const narrowLayout = (await page.evaluate(`(() => {
+  const rect = function (sel) {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
+  };
+  return JSON.stringify({
+    top: rect(".hud-top"),
+    lord: rect(".hud-lord"),
+    res: rect(".hud-res"),
+    firstChip: rect(".hud-res .chip"),
+    lastChip: rect(".hud-res .chip:last-child"),
+  });
+})()`)) as string;
+console.log("  замер-узкий:", narrowLayout);
+await page.screenshot({ path: join(outDir, "game-court-narrow.jpg"), type: "jpeg", quality: 88 });
+console.log("сохранён game-court-narrow.jpg");
 
 await browser.close();

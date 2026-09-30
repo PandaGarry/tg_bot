@@ -206,11 +206,12 @@
   align-items: center;
   gap: 4px;
   padding: 2px 8px 2px 3px;
-  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
-  border: 2px solid var(--hud-wood-1);
+  /* тёмная пилюля: число светлое, иконка контрастна */
+  background: linear-gradient(180deg, rgba(70, 46, 26, 0.92), rgba(36, 20, 8, 0.95));
+  border: 1.5px solid rgba(239, 227, 198, 0.42);
   border-radius: 999px;
-  color: var(--hud-ink);
-  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
+  color: var(--hud-white);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .hud-res .chip .ic {
@@ -228,12 +229,12 @@
 
 /* золото — премиум-валюта: золотая пилюля */
 .hud-res .chip-gold {
-  border-color: #a8761e;
-  background: linear-gradient(180deg, #f6e3b0, #eac96a);
+  border-color: rgba(224, 176, 74, 0.8);
+  background: linear-gradient(180deg, rgba(98, 64, 20, 0.95), rgba(56, 32, 8, 0.97));
 }
 
 .hud-res .chip-gold b {
-  color: #5a3c10;
+  color: #f0c866;
 }
 /* ---------- очереди: строитель, тренировка, исследование ---------- */
 .hud-queues {
@@ -256,9 +257,10 @@
   place-items: center;
   min-height: 0;
   border-radius: 10px;
-  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
-  border: 2px solid var(--hud-wood-1);
-  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 2px 5px rgba(0, 0, 0, 0.45);
+  /* тёмное стекло под прозрачный арт (RoK): любой объект горит на нём */
+  background: linear-gradient(180deg, rgba(70, 46, 26, 0.94), rgba(36, 20, 8, 0.97));
+  border: 2px solid #1c0f06;
+  box-shadow: inset 0 0 0 1.5px rgba(239, 227, 198, 0.32), 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .hud-queue {
@@ -404,11 +406,12 @@
   color: var(--hud-muted);
 }
 
-/* активная вкладка — костяная плашка, как материалы панели персонажа */
+/* активная вкладка — тёмная плашка с золотой каймой (иконки прозрачные, костяной фон им не идёт) */
 .game-nav button.active {
-  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
-  color: var(--hud-ink);
-  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.7), 0 1px 4px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, rgba(88, 58, 30, 0.95), rgba(50, 29, 12, 0.97));
+  border: 1.5px solid rgba(224, 176, 74, 0.85);
+  color: var(--hud-white);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
 /* «Карта» — центр дока: приподнята и крупнее (решение заказчика, круг 18) */
@@ -416,10 +419,10 @@
   width: 58px;
   min-height: 56px;
   margin-top: -14px;
-  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
-  border: 2px solid var(--hud-wood-1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 248, 230, 0.7);
-  color: var(--hud-ink);
+  background: linear-gradient(180deg, rgba(104, 70, 36, 0.96), rgba(60, 35, 14, 0.98));
+  border: 2px solid #a8761e;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(240, 200, 102, 0.6);
+  color: var(--hud-white);
 }
 
 .game-nav button.nav-map .nic {
@@ -428,7 +431,7 @@
 }
 
 .game-nav button.nav-map.active {
-  background: linear-gradient(180deg, #f8efdb, #eBD9b2);
+  background: linear-gradient(180deg, rgba(118, 80, 42, 0.97), rgba(70, 42, 18, 0.98));
 }
 
 .game-nav .nic {
@@ -942,7 +945,7 @@
   border-color: rgba(255, 190, 150, 0.35);
 }
 
-/* ---------- иконки-плитки: арт = вся ячейка (фон арта = фон ячейки) ---------- */
+/* ---------- иконки-плитки: арт прозрачный, ячейка — тёмное стекло (RoK) ---------- */
 .hud-rb,
 .hud-queue,
 .hud-tab {
