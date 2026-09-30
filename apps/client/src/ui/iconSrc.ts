@@ -13,8 +13,8 @@ export const ICON_SRC: Record<string, string> = {
   mail: "icons/i-mail.png",
   banner: "icons/i-banner.png",
   map: "icons/i-map.png",
-  // следующий шаг генерации (временно плитки стартового набора)
-  scroll: "icons/scroll.png",
-  quill: "icons/quill.png",
-  gear: "icons/gear.png",
+  // полный набор «Глянец 3D» (одобрен заказчиком)
+  scroll: "icons/i-scroll.png",
+  quill: "icons/i-quill.png",
+  gear: "icons/i-gear.png",
 };
