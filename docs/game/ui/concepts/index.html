@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ece9e2">
+<title>TDL — 10 визуальных концептов</title>
+<style>
+:root{color-scheme:light;--bg:#ece9e2;--paper:#fbfaf7;--ink:#292a27;--muted:#686a63;--line:#d5d0c5;--accent:#776b55}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main,header{width:min(1500px,calc(100% - 36px));margin-inline:auto}
+header{padding:34px 0 24px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font:600 clamp(32px,4.2vw,56px)/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:850px;margin:14px 0 0;color:#555851;font-size:15px}
+.notice{display:flex;gap:10px;max-width:1000px;margin:18px 0 0;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);background:rgba(255,255,255,.55);color:#555851;font-size:12px}
+.notice b{color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #bdb6a8;border-radius:4px;background:var(--paper);color:#34352f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:#34352f;background:#34352f;color:#fbfaf7}
+.actions a:hover{transform:translateY(-1px)}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:24px auto 56px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:7px;background:var(--paper);box-shadow:0 8px 24px rgba(39,35,28,.07)}
+.card-image{display:block;overflow:hidden;background:#282a27}
+.card-image img{display:block;width:100%;height:auto;aspect-ratio:768/1376;object-fit:cover;transition:transform .18s ease}
+.card-image:hover img{transform:scale(1.015)}
+.card-copy{padding:13px 15px 15px}
+.card-meta{color:#898477;font-size:10px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.card h2{margin:4px 0 5px;font:600 21px/1.12 Georgia,"Times New Roman",serif}
+.card p{margin:0;color:var(--muted);font-size:12px}
+footer{width:min(1500px,calc(100% - 36px));margin:0 auto;padding:0 0 30px;color:#797971;font-size:11px}
+@media(max-width:1000px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){main,header,footer{width:calc(100% - 22px)}header{padding-top:20px}.gallery{grid-template-columns:1fr;gap:13px}.intro{font-size:13px}.notice{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · visual round 01</p>
+  <h1>10 визуальных концептов</h1>
+  <p class="intro">Архив ранних раундов: один и тот же экран проверял разные интерфейсные направления. Текущий рабочий концепт — единый Bone-Wood после лор-проверки; здесь доступны пять новых полноэкранных вариантов.</p>
+  <div class="notice"><span aria-hidden="true">i</span><span><b>Ни один стиль не выбран.</b> Это AI-сгенерированные концепт-эскизы, а не финальные игровые экраны и не скриншоты существующих игр. Генератор может искажать мелкий русский текст и цифры: считайте их декоративными заглушками; реальными остаются только намеренно повторённые задача и общая компоновка.</span></div>
+  <nav class="actions" aria-label="Действия">
+    <a class="primary" href="bone-wood-main-screen/index.html">Доработка выбранного №08 · главный экран двора</a>
+    <a href="bone-wood-round-08/index.html">Единая Bone-Wood-система · 5 экранов</a>
+    <a href="contact-sheet.jpg">Архив первого раунда · контакт-лист</a>
+    <a href="round-02/index.html">Архив · раунд 2</a>
+    <a href="../index.html">Вернуться к интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="gallery" aria-label="Десять концептов интерфейса">
+  <article class="card"><a class="card-image" href="01-chronicle.jpg"><img src="01-chronicle.jpg" alt="Концепт 01 — светлая летописная панель из бумаги и чернил" loading="lazy"></a><div class="card-copy"><div class="card-meta">01 / 10 · бумага · тушь · латунь</div><h2>Хроника двора</h2><p>Светлая летописная поверхность, строгая рамка и заголовки с засечками.</p></div></article>
+  <article class="card"><a class="card-image" href="02-ash-bone.jpg"><img src="02-ash-bone.jpg" alt="Концепт 02 — угольный фон, кость и стальные линии" loading="lazy"></a><div class="card-copy"><div class="card-meta">02 / 10 · уголь · кость · сталь</div><h2>Сажа и кость</h2><p>Компактный высококонтрастный HUD, квадратная геометрия и минимум декора.</p></div></article>
+  <article class="card"><a class="card-image" href="03-carved-oak.jpg"><img src="03-carved-oak.jpg" alt="Концепт 03 — панели из резного тёмного дерева и железа" loading="lazy"></a><div class="card-copy"><div class="card-meta">03 / 10 · дуб · железо · охра</div><h2>Резной дуб</h2><p>Панель как физическая часть двора: тёмная древесина и редкие кованые элементы.</p></div></article>
+  <article class="card"><a class="card-image" href="04-snow-stone.jpg"><img src="04-snow-stone.jpg" alt="Концепт 04 — светлый сланец, снег и тёплый CTA" loading="lazy"></a><div class="card-copy"><div class="card-meta">04 / 10 · иней · сланец · охра</div><h2>Снег на камне</h2><p>Светлые каменные поверхности поверх холодной сцены, мягкая форма и тёплая команда.</p></div></article>
+  <article class="card"><a class="card-image" href="05-march-map.jpg"><img src="05-march-map.jpg" alt="Концепт 05 — экран на картографическом листе с координатной сеткой" loading="lazy"></a><div class="card-copy"><div class="card-meta">05 / 10 · карта · сетка · олива</div><h2>Походная карта</h2><p>Координатные отметки, топографическая фактура и числа в стиле полевой ведомости.</p></div></article>
+  <article class="card"><a class="card-image" href="06-seal-archive.jpg"><img src="06-seal-archive.jpg" alt="Концепт 06 — хвойный архивный интерфейс с редкой печатью" loading="lazy"></a><div class="card-copy"><div class="card-meta">06 / 10 · хвойный графит · латунь · сургуч</div><h2>Печать и архив</h2><p>Архивные разделители и редкая печать для срока или подтверждения — без королевского трона.</p></div></article>
+  <article class="card"><a class="card-image" href="07-quiet-undermushroom.jpg"><img src="07-quiet-undermushroom.jpg" alt="Концепт 07 — тёмная органическая панель и сдержанный грибной акцент" loading="lazy"></a><div class="card-copy"><div class="card-meta">07 / 10 · почва · уголь · серо-зелёный</div><h2>Тихое подгрибье</h2><p>Мягкие органические контуры и отдельный грибной акцент без свечения и магии.</p></div></article>
+  <article class="card"><a class="card-image" href="08-garrison-ledger.jpg"><img src="08-garrison-ledger.jpg" alt="Концепт 08 — светлая оливковая гарнизонная ведомость" loading="lazy"></a><div class="card-copy"><div class="card-meta">08 / 10 · олива · известь · латунь</div><h2>Гарнизонная ведомость</h2><p>Табличная иерархия, короткие подписи и статусы для чисел и отрядов.</p></div></article>
+  <article class="card"><a class="card-image" href="09-ash-charred-wood.jpg"><img src="09-ash-charred-wood.jpg" alt="Концепт 09 — матовые панели из золы и обугленного дерева" loading="lazy"></a><div class="card-copy"><div class="card-meta">09 / 10 · зола · уголь · сухая охра</div><h2>Зола и обугленное дерево</h2><p>Суровый матовый интерфейс и след катастрофы в материале, не в хоррор-образах.</p></div></article>
+  <article class="card"><a class="card-image" href="10-stone-banner.jpg"><img src="10-stone-banner.jpg" alt="Концепт 10 — известковая панель с приглушённым бордовым знаменем" loading="lazy"></a><div class="card-copy"><div class="card-meta">10 / 10 · камень · бордо · бронза</div><h2>Камень и знамя</h2><p>Светлый камень, двойная рамка и тканевый акцент для человеческой власти и клана.</p></div></article>
+</section>
+</main>
+<footer>Все изображения — оригинальные AI-концепты для TDL, созданные для этого раунда выбора. Это не утверждённая палитра, UI-спецификация, баланс или визуальный референс существующей игры.</footer>
+</body>
+</html>

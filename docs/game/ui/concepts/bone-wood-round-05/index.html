@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e7e5de">
+<title>TDL — Bone-Wood · 10 вариантов интерфейса</title>
+<style>
+:root{color-scheme:light;--bg:#e7e5de;--paper:#fbf7e9;--bone:#e8d6ae;--ink:#29251f;--muted:#686157;--line:#c9bd9e;--wood:#4a3021;--ochre:#9d7440;--blue:#e7edf3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1500px,calc(100% - 36px));margin-inline:auto}
+header{padding:31px 0 22px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:#78603c;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{max-width:1000px;margin:0;font:600 clamp(31px,4vw,52px)/1.03 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:1080px;margin:13px 0 0;color:#50483c;font-size:15px}
+.note{max-width:1190px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,252,240,.72);color:#514a3e;font-size:12px}
+.note b{color:var(--ink)}.note.ref{border-left:3px solid var(--wood)}.note.cells{border-left:3px solid var(--ochre)}.note.free{border-left:3px solid #6c7e8d;background:var(--blue)}
+a{color:#57432d}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #a99b7b;border-radius:4px;background:var(--paper);color:#382c20;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:var(--wood);background:var(--wood);color:#fbf7e9}.actions a:hover{transform:translateY(-1px)}
+main{padding:20px 0 36px}
+.logic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:0 0 20px}
+.logic article{padding:13px 14px;border:1px solid var(--line);border-radius:5px;background:rgba(255,252,240,.65)}
+.logic h2{margin:0 0 5px;font:600 18px/1.12 Georgia,"Times New Roman",serif}.logic p{margin:0;color:var(--muted);font-size:12px}
+.gallery-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 13px;padding:0 3px 10px;border-bottom:1px solid var(--line)}
+.gallery-head h2{margin:0;font:600 clamp(23px,2.5vw,31px)/1.08 Georgia,"Times New Roman",serif}.gallery-head p{max-width:840px;margin:6px 0 0;color:var(--muted);font-size:12px}
+.stamp{flex:0 0 auto;padding:7px 9px;border:1px solid #a99b7b;border-radius:3px;color:#5c4931;font-size:9px;font-weight:900;letter-spacing:.1em}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 22px rgba(40,32,22,.08)}
+.image-link{display:block;overflow:hidden;background:#28303a}.image-link img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .18s ease}.image-link:hover img{transform:scale(1.012)}
+.copy{padding:12px 14px 14px}.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:#78674d;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.meta .tag{padding:3px 6px;border:1px solid #d5c7a5;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 5px;font:600 20px/1.12 Georgia,"Times New Roman",serif}.card p{margin:0;color:var(--muted);font-size:12px}
+footer{padding:0 0 30px;color:#70695d;font-size:11px}
+@media(max-width:900px){.logic{grid-template-columns:1fr}.gallery{grid-template-columns:1fr}}
+@media(max-width:640px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.intro{font-size:13px}.note{font-size:11px}.gallery-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · Bone-Wood · refinement 05</p>
+  <h1>Bone-Wood: десять вариантов игрового интерфейса</h1>
+  <p class="intro">Понял уточнение: основа здесь — именно стиль <b>№ 02 Bone-Wood</b> из первой серии, а не изображения № 02/09 из другого набора. Все десять картинок — полные игровые UI-экраны в одной выбранной стилистике; меняются организация HUD, ячеек и строительной панели, чтобы можно было выбрать основу.</p>
+  <div class="note ref"><b>Визуальный ориентир:</b> только <a href="../lore-reset/02-bone-wood-bright-hud.jpg">lore-reset / 02-bone-wood-bright-hud</a>. Сохраняются светлая костяно-пергаментная поверхность, тёмная тёплая древесина, простые выразительные ячейки и мягкая изометрическая 3D-сцена. Точный исходный экран не копируется. Последующая централизация выбранных вариантов №04 и №06 — в <a href="../bone-wood-round-06/index.html">раунде 06</a>.</div>
+  <div class="note cells"><b>Доработка ячеек:</b> ресурсная ячейка объединяет пиктограмму, место под запас и небольшой знак производства/состояния; ячейка постройки показывает миниатюру и стоимость такими же ресурсными пиктограммами; выбранная постройка связывается с инспектором и призраком размещения. Это направление системы, не утверждённые числа и подписи.</div>
+  <div class="note free"><b>Свободная постройка:</b> здания показаны раздельно, на свободном месте появляется призрак с лёгкой подсказкой footprint. Подсказка не означает фиксированные слоты. Эти экранные концепты не являются готовыми спрайтами: для игры каждое здание нужно отдельно генерировать/вырезать с альфа-фоном и общей камерой; снег, земля и тень не запекать в соседние объекты. Размер footprint и коллизии отдельно не назначены.</div>
+  <nav class="actions" aria-label="Навигация">
+    <a class="primary" href="../bone-wood-main-screen/index.html">Выбранный №08 · главный экран отдельно</a>
+    <a href="../bone-wood-round-07/index.html">К пяти уточнениям вариантов 04–06</a>
+    <a href="contact-sheet.jpg">Открыть базовые десять на одном листе</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="logic" aria-label="Логика визуальной системы">
+  <article><h2>Ресурс: иконка + запас</h2><p>Пять одинаково устроенных ячеек быстро сравниваются; грибы визуально остаются отдельным ресурсом исследований и навыков, не пищей.</p></article>
+  <article><h2>Здание: образ + стоимость</h2><p>В карточке используется чистый силуэт постройки и небольшие чипы стоимости из той же системы ресурсов.</p></article>
+  <article><h2>Выбор: карточка → поле</h2><p>Инспектор и полупрозрачный призрак относятся к одному объекту; контур установки помогает, но не задаёт заранее место.</p></article>
+</section>
+<section aria-labelledby="gallery-title">
+  <div class="gallery-head"><div><h2 id="gallery-title">Десять полных UI-экранов</h2><p>Все варианты сохраняют Bone-Wood; сравнивайте композицию, плотность панелей и логику ячеек. Надписи и числа, которые модель дорисовала внутри картинок, считать заглушками.</p></div><span class="stamp">10 ЭКРАНОВ · НЕ ВЫБРАНО</span></div>
+  <div class="gallery">
+    <article class="card"><a class="image-link" href="01-bone-wood-core.jpg"><img src="01-bone-wood-core.jpg" alt="01: Bone-Wood, основной экран с ресурсами, строительной карточкой и свободным размещением" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 10</span><span class="tag">базовая композиция</span></div><h3>Каркас Bone-Wood</h3><p>Профиль лорда, пять ресурсных ячеек, контекстная карточка и нижняя навигация собраны вокруг свободного двора.</p></div></article>
+    <article class="card"><a class="image-link" href="02-resource-cell-hierarchy.jpg"><img src="02-resource-cell-hierarchy.jpg" alt="02: крупные ресурсные ячейки с простыми пиктограммами и карточкой здания" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 10</span><span class="tag">ресурсные ячейки</span></div><h3>Запас и производство</h3><p>Ячейка получает место для количества и маленького маркера состояния, а не только крупную иконку.</p></div></article>
+    <article class="card"><a class="image-link" href="03-left-building-catalog.jpg"><img src="03-left-building-catalog.jpg" alt="03: строительный каталог слева, большой двор и инспектор выбранной постройки справа" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 10</span><span class="tag">каталог слева</span></div><h3>Каталог и инспектор</h3><p>Категории строительства собраны слева, выбранная постройка и её footprint — справа.</p></div></article>
+    <article class="card"><a class="image-link" href="04-bottom-build-drawer.jpg"><img src="04-bottom-build-drawer.jpg" alt="04: нижняя строительная полка над нижней навигацией и призрак постройки" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 10</span><span class="tag">нижняя полка</span></div><h3>Каталог снизу</h3><p>Строительная полка находится у пальца, но остаётся отдельной от постоянной навигации.</p></div></article>
+    <article class="card"><a class="image-link" href="05-compact-city-first.jpg"><img src="05-compact-city-first.jpg" alt="05: городская сцена занимает большую часть экрана, HUD компактный" loading="lazy"></a><div class="copy"><div class="meta"><span>05 / 10</span><span class="tag">сцена на первом месте</span></div><h3>Компактный HUD</h3><p>Меньше панелей поверх сцены; главное действие размещения читается по призраку и трём знакам.</p></div></article>
+    <article class="card"><a class="image-link" href="06-stateful-building-cells.jpg"><img src="06-stateful-building-cells.jpg" alt="06: строительные ячейки с различающимися состояниями и инспектором" loading="lazy"></a><div class="copy"><div class="meta"><span>06 / 10</span><span class="tag">состояния ячеек</span></div><h3>Доступно, выбрано, закрыто</h3><p>Состояние строительной ячейки различается рамкой и значком, а не только сменой цвета.</p></div></article>
+    <article class="card"><a class="image-link" href="07-contextual-inspector.jpg"><img src="07-contextual-inspector.jpg" alt="07: контекстный инспектор справа связан с выбранной постройкой на поле" loading="lazy"></a><div class="copy"><div class="meta"><span>07 / 10</span><span class="tag">контекстный инспектор</span></div><h3>Один объект — две проекции</h3><p>Одна и та же постройка видна в карточке и как выбранный объект на поле; каталог остаётся компактным.</p></div></article>
+    <article class="card"><a class="image-link" href="08-expanded-resource-cell.jpg"><img src="08-expanded-resource-cell.jpg" alt="08: выбранная ресурсная ячейка раскрывается в детальную карточку" loading="lazy"></a><div class="copy"><div class="meta"><span>08 / 10</span><span class="tag">раскрытие ячейки</span></div><h3>Подробность по запросу</h3><p>Активный ресурс может раскрыться, не превращая постоянный HUD в тяжёлую таблицу.</p></div></article>
+    <article class="card"><a class="image-link" href="09-minimal-overlay.jpg"><img src="09-minimal-overlay.jpg" alt="09: минимальные панели Bone-Wood по краям и большая открытая игровая сцена" loading="lazy"></a><div class="copy"><div class="meta"><span>09 / 10</span><span class="tag">минимальный HUD</span></div><h3>Больше двора</h3><p>Сцена остаётся почти открытой, а нужные сведения сгруппированы у краёв и в одном инспекторе.</p></div></article>
+    <article class="card"><a class="image-link" href="10-bone-wood-refined.jpg"><img src="10-bone-wood-refined.jpg" alt="10: сбалансированный Bone-Wood экран с пятью ресурсами и свободным размещением" loading="lazy"></a><div class="copy"><div class="meta"><span>10 / 10</span><span class="tag">сбалансированный экран</span></div><h3>Собранный вариант</h3><p>Наиболее полный синтез: пять ресурсов, каталог, открытая сцена, призрак и связанный инспектор.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>Это AI-концепты полного интерфейса для выбора направления, а не финальный клиентский UI. Широкий кадр нужен только для сопоставления и не фиксирует ориентацию игры. В основе лор TDL и выбранный Bone-Wood, не чужой интерфейс.</footer>
+</body>
+</html>

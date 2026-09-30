@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e8e8e3">
+<title>TDL — лорные UI-концепты · крыша и шов</title>
+<style>
+:root{color-scheme:light;--bg:#e8e8e3;--paper:#fbfaf6;--ink:#292a27;--muted:#656a63;--line:#cfcec5;--accent:#7d765c;--note:#f3f0e8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,main,footer{width:min(1540px,calc(100% - 36px));margin-inline:auto}
+header{padding:32px 0 22px;border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 8px;color:#777257;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font:600 clamp(32px,4vw,54px)/1.02 Georgia,"Times New Roman",serif;letter-spacing:-.035em}
+.intro{max-width:1000px;margin:13px 0 0;color:#50554f;font-size:15px}
+.ref,.canon,.caveat{max-width:1180px;margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.55);color:#50554f;font-size:12px}
+.ref{border-left:3px solid #827c61}.canon{border-left:3px solid #777b77}.caveat{border-left:3px solid #a07a43;background:#f4efe4}
+.ref b,.canon b,.caveat b{color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.actions a{display:inline-flex;align-items:center;min-height:40px;padding:9px 13px;border:1px solid #b8b5a9;border-radius:4px;background:var(--paper);color:#34372f;font-size:12px;font-weight:800;text-decoration:none}
+.actions a.primary{border-color:#34372f;background:#34372f;color:#fbfaf6}
+.actions a:hover{transform:translateY(-1px)}
+main{padding:20px 0 38px}
+.dna{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 22px}
+.dna article{padding:12px 13px;border:1px solid var(--line);border-radius:5px;background:rgba(255,255,255,.5)}
+.dna h2{margin:0 0 5px;font:600 17px/1.12 Georgia,"Times New Roman",serif}
+.dna p{margin:0;color:#5d625b;font-size:11px}
+.gallery-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 13px;padding:0 3px 10px;border-bottom:1px solid var(--line)}
+.gallery-head h2{margin:0;font:600 clamp(23px,2.5vw,31px)/1.08 Georgia,"Times New Roman",serif}
+.gallery-head p{margin:6px 0 0;color:var(--muted);font-size:12px}
+.stamp{flex:0 0 auto;padding:7px 9px;border:1px solid #aaa995;border-radius:3px;color:#555848;font-size:9px;font-weight:900;letter-spacing:.1em}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 22px rgba(30,34,28,.07)}
+.image-link{display:block;overflow:hidden;background:#252a27}
+.image-link img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .18s ease}
+.image-link:hover img{transform:scale(1.012)}
+.copy{padding:12px 14px 14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:#777762;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.meta .tag{padding:3px 6px;border:1px solid #d8d5c8;border-radius:999px;font-size:9px;letter-spacing:.04em}
+.card h3{margin:6px 0 5px;font:600 20px/1.12 Georgia,"Times New Roman",serif}
+.card p{margin:0;color:var(--muted);font-size:12px}
+footer{padding:0 0 30px;color:#74776f;font-size:11px}
+@media(max-width:1050px){.dna{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){header,main,footer{width:calc(100% - 22px)}header{padding-top:20px}.dna,.gallery{grid-template-columns:1fr}.intro{font-size:13px}.ref,.canon,.caveat{font-size:11px}.gallery-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">The Dead Lords · lore-led UI art direction</p>
+  <h1>Крыша держит ум</h1>
+  <p class="intro">Новая серия из 10 эскизов строилась вокруг двух выбранных вами опор — пергаментного зимнего двора <b>№ 01</b> и мягкой 3D-формы <b>№ 08</b>. В замысле каждый вариант проверял отдельную деталь лора, а не только материал или цвет. Это визуальные гипотезы, не финальный skin.</p>
+  <div class="ref"><b>Использованные референсы:</b> только изображения 01 и 08 из предыдущего набора, которые вы отметили как интересные. Их текст и иконки считались случайными AI-заглушками. Остальные прошлые изображения не использовались.</div>
+  <div class="canon"><b>Визуальная идея TDL:</b> крыша, стена, работа и личное знамя удерживают ум лорда. Поэтому скат крыши становится формой края панели, тонкий шов — разделителем, а знамя — личным знаком, не флагом страны. Грибы остаются отдельным тихим ресурсом; Мать не появляется и не говорит.</div>
+  <div class="caveat"><b>Статус этой итерации:</b> это AI-эскизы, не реальные скриншоты. При просмотре видно, что генератор в нескольких кадрах повторил почти тот же изометрический двор и HUD, поэтому различия слабее, чем требовалось. Не считаю этот проход финальным и не прошу выбирать по нему. Мелкие значки и надписи также могут быть неточными.</div>
+  <nav class="actions" aria-label="Навигация">
+    <a class="primary" href="contact-sheet.jpg">Открыть 10 вариантов на одном листе</a>
+    <a href="../../index.html">К интерактивным UI-макетам</a>
+  </nav>
+</header>
+<main>
+<section class="dna" aria-label="Детали лора, ставшие визуальными мотивами">
+  <article><h2>Крыша и шов</h2><p>Повторяемый контур напоминает, что двор удерживает ум; без свечения и магических связей.</p></article>
+  <article><h2>Своё «Я?»</h2><p>Спокойный портрет и личное знамя показывают отдельного лорда, а не общий разум.</p></article>
+  <article><h2>Ресурсы по смыслу</h2><p>Мясо идёт от стада; грибы живут отдельно в погребе и не становятся едой.</p></article>
+  <article><h2>Срок, не заклинание</h2><p>Столичный срок можно обозначить печатью и делениями календаря, не магическим троном.</p></article>
+</section>
+<section aria-labelledby="gallery-title">
+  <div class="gallery-head"><div><h2 id="gallery-title">Десять лорных UI-идей</h2><p>Откройте картинку в полном размере. Подписи описывают замысел промптов, а не гарантированную точность деталей: генератор часто удерживал один и тот же ракурс.</p></div><span class="stamp">10 НОВЫХ ЭСКИЗОВ · ЧЕРНОВИК</span></div>
+  <div class="gallery">
+    <article class="card"><a class="image-link" href="01-roofline-anchor.jpg"><img src="01-roofline-anchor.jpg" alt="01: зимний двор и повторяющийся контур крыши в интерфейсе" loading="lazy"></a><div class="copy"><div class="meta"><span>01 / 10</span><span class="tag">крыша как рамка</span></div><h3>Крыша держит ум</h3><p>Один скатный контур проходит через здания, карточки и состояние выбора.</p></div></article>
+    <article class="card"><a class="image-link" href="02-first-i-banner.jpg"><img src="02-first-i-banner.jpg" alt="02: личный портрет лорда и небольшое знамя во дворе" loading="lazy"></a><div class="copy"><div class="meta"><span>02 / 10</span><span class="tag">личность лорда</span></div><h3>Первое своё слово</h3><p>Портрет, шов и личный знак подчёркивают, что ум снова принадлежит одному человеку.</p></div></article>
+    <article class="card"><a class="image-link" href="03-sleepless-court.jpg"><img src="03-sleepless-court.jpg" alt="03: спокойный освещённый фонарями двор в зимних сумерках" loading="lazy"></a><div class="copy"><div class="meta"><span>03 / 10</span><span class="tag">двор без сна</span></div><h3>Двор не спит</h3><p>Тёплые окна и обычная работа показывают бессонную жизнь без хоррора.</p></div></article>
+    <article class="card"><a class="image-link" href="04-mushroom-cellar.jpg"><img src="04-mushroom-cellar.jpg" alt="04: интерфейс с отдельным погребным ресурсом грибов" loading="lazy"></a><div class="copy"><div class="meta"><span>04 / 10</span><span class="tag">грибы отдельно</span></div><h3>Погреб, не магия</h3><p>Грибы вынесены в отдельную тихую зону, не смешаны с едой и припасами двора.</p></div></article>
+    <article class="card"><a class="image-link" href="05-two-peoples-yard.jpg"><img src="05-two-peoples-yard.jpg" alt="05: спокойные жители двора и живые люди за его стеной" loading="lazy"></a><div class="copy"><div class="meta"><span>05 / 10</span><span class="tag">люди по обе стороны</span></div><h3>Два народа</h3><p>Мёртвые живут внутри двора, живые остаются людьми за его стеной — без карикатуры.</p></div></article>
+    <article class="card"><a class="image-link" href="06-healed-scar-horizon.jpg"><img src="06-healed-scar-horizon.jpg" alt="06: зимний двор и закрытый шрам земли вдали" loading="lazy"></a><div class="copy"><div class="meta"><span>06 / 10</span><span class="tag">шрам ямы</span></div><h3>Шрам, не пасть</h3><p>След ямы остаётся частью ландшафта, но не превращается в монстра или игровую цель.</p></div></article>
+    <article class="card"><a class="image-link" href="07-banner-keeps-court.jpg"><img src="07-banner-keeps-court.jpg" alt="07: личное знамя над деревянным двором" loading="lazy"></a><div class="copy"><div class="meta"><span>07 / 10</span><span class="tag">знамя как опора</span></div><h3>Знамя держит двор</h3><p>Один личный знак связывает лорда с его крышей, без выдуманной страны или фракции.</p></div></article>
+    <article class="card"><a class="image-link" href="08-seal-of-time.jpg"><img src="08-seal-of-time.jpg" alt="08: печать и деления срока в интерфейсе зимнего города" loading="lazy"></a><div class="copy"><div class="meta"><span>08 / 10</span><span class="tag">срок столицы</span></div><h3>Печать времени</h3><p>Деления календаря и печать показывают конечный срок как правило людей, не магию трона.</p></div></article>
+    <article class="card"><a class="image-link" href="09-each-mind-its-own.jpg"><img src="09-each-mind-its-own.jpg" alt="09: несколько спокойных жителей заняты отдельной работой" loading="lazy"></a><div class="copy"><div class="meta"><span>09 / 10</span><span class="tag">свой ум</span></div><h3>Каждый занят своим</h3><p>Разные жители и задачи подчёркивают отдельные умы после гибели Матери.</p></div></article>
+    <article class="card"><a class="image-link" href="10-roof-and-seam.jpg"><img src="10-roof-and-seam.jpg" alt="10: зимний двор с повторяющейся формой крыши и шва в UI" loading="lazy"></a><div class="copy"><div class="meta"><span>10 / 10</span><span class="tag">собранный знак TDL</span></div><h3>Крыша и шов</h3><p>Объединяет личность лорда, деревянную крышу и спокойную систему панелей в один знак.</p></div></article>
+  </div>
+</section>
+</main>
+<footer>В основе — канон The Dead Lords: <a href="../../../01-lore.md">история мира</a> и <a href="../../../02-tone.md">правила тона</a>. Набор нужен для сравнения и разговора; он не фиксирует ориентацию клиента, точные тексты, числа или финальный арт.</footer>
+</body>
+</html>

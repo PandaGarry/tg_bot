@@ -37,33 +37,30 @@ export function Slides({ lang, onDone }: { lang: Locale; onDone: () => void }) {
   };
 
   return (
-    <main className="mx-auto flex h-[100dvh] w-full max-w-3xl flex-col">
-      <header className="flex items-center justify-between px-3 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
-        <div className="flex gap-1">
+    <main className="gate relative mx-auto flex h-[100dvh] w-full max-w-3xl flex-col">
+      <header className="flex items-center justify-end gap-2 px-3 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
+        {/* язык — маленькие пилюли справа, как в окнах входа (круг 17) */}
+        <div className="gate-lang-wrap" data-static>
           {(["ru", "en"] as Locale[]).map((code) => (
             <button
               key={code}
               type="button"
               onClick={() => store.setLang(code)}
-              className={`rounded border px-2 py-1 text-xs ${
-                lang === code ? "border-bone text-bone" : "border-stone-700 text-stone-500"
-              }`}
+              className={`gate-lang ${lang === code ? "gate-lang-on" : ""}`}
             >
-              {code.toUpperCase()}
+              {code === "ru" ? "РУС" : "ENG"}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-stone-500">
-            {t("shell.slides.of", { index: index + 1, total: INTRO_KEYS.length })}
-          </span>
-          {/* Пропуск есть со второго слайда: первый кадр не пропускается. */}
-          {index >= 1 ? (
-            <button type="button" onClick={finish} className="px-2 py-1 text-xs text-stone-400">
-              {t("shell.slides.skip")}
-            </button>
-          ) : null}
-        </div>
+        <span className="gate-note text-xs">
+          {t("shell.slides.of", { index: index + 1, total: INTRO_KEYS.length })}
+        </span>
+        {/* Пропуск есть со второго слайда: первый кадр не пропускается. */}
+        {index >= 1 ? (
+          <button type="button" onClick={finish} className="gate-link px-1 text-xs">
+            {t("shell.slides.skip")}
+          </button>
+        ) : null}
       </header>
 
       <section className="min-h-0 flex-1 px-3 py-2">
@@ -71,7 +68,7 @@ export function Slides({ lang, onDone }: { lang: Locale; onDone: () => void }) {
       </section>
 
       <footer className="flex flex-col gap-3 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <p data-testid="slide-text" className="text-xl leading-snug text-bone sm:text-2xl">
+        <p data-testid="slide-text" className="gate-title text-xl leading-snug sm:text-2xl">
           {t(INTRO_KEYS[index] as string)}
         </p>
         <div className="flex items-center justify-between gap-2">
@@ -87,7 +84,7 @@ export function Slides({ lang, onDone }: { lang: Locale; onDone: () => void }) {
           <button
             type="button"
             onClick={() => (last ? finish() : setIndex(index + 1))}
-            className="min-h-[44px] rounded border border-stone-600 bg-stone-800 px-6 text-bone"
+            className="gate-primary min-h-[44px] rounded px-6"
           >
             {last ? t("shell.slides.begin") : t("shell.slides.next")}
           </button>

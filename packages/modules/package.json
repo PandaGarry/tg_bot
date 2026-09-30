@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@tdl/kernel": "workspace:*",
+    "@tdl/module-court": "workspace:*",
     "@tdl/module-day-window": "workspace:*",
     "@tdl/module-holiday": "workspace:*",
     "@tdl/module-hour-window": "workspace:*",

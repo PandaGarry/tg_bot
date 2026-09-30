@@ -29,6 +29,7 @@ export function Register({
   const [repeat, setRepeat] = useState("");
   const [rules, setRules] = useState(false);
   const [mail, setMail] = useState(false);
+  const [show, setShow] = useState(false);
   const [sending, setSending] = useState(false);
 
   // Отказ ядра (логин занят, почта не та) снимает ожидание и говорит причину.
@@ -71,51 +72,69 @@ export function Register({
         }}
       >
         <Field label={t("shell.register.login")} hint={t("shell.register.login.hint")}>
-          <input
-            value={login}
-            onChange={(event) => setLogin(event.target.value)}
-            autoComplete="username"
-            autoCorrect="off"
-            spellCheck={false}
-            maxLength={LIMITS.loginMax}
-            data-testid="register-login"
-            className={INPUT}
-          />
+          <span className="gate-box">
+            <UserIcon />
+            <input
+              value={login}
+              onChange={(event) => setLogin(event.target.value)}
+              autoComplete="username"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={LIMITS.loginMax}
+              data-testid="register-login"
+              className={INPUT}
+            />
+          </span>
         </Field>
 
         <Field label={t("shell.register.email")}>
-          <input
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            inputMode="email"
-            type="email"
-            maxLength={LIMITS.emailMax}
-            data-testid="register-email"
-            className={INPUT}
-          />
+          <span className="gate-box">
+            <MailIcon />
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              inputMode="email"
+              type="email"
+              maxLength={LIMITS.emailMax}
+              data-testid="register-email"
+              className={INPUT}
+            />
+          </span>
         </Field>
 
         <Field label={t("shell.register.password")}>
-          <input
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            autoComplete="new-password"
-            data-testid="register-password"
-            className={INPUT}
-          />
+          <span className="gate-box">
+            <LockIcon />
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type={show ? "text" : "password"}
+              autoComplete="new-password"
+              data-testid="register-password"
+              className={INPUT}
+            />
+            <button type="button" className="gate-eye" onClick={() => setShow((v) => !v)} aria-label="показать пароль">
+              <EyeIcon off={show} />
+            </button>
+          </span>
         </Field>
 
         <Field label={t("shell.register.repeat")}>
-          <input
-            value={repeat}
-            onChange={(event) => setRepeat(event.target.value)}
-            type="password"
-            autoComplete="new-password"
-            data-testid="register-repeat"
-            className={INPUT}
-          />
+          <span className="gate-box">
+            <LockIcon />
+            <input
+              value={repeat}
+              onChange={(event) => setRepeat(event.target.value)}
+              type={show ? "text" : "password"}
+              autoComplete="new-password"
+              data-testid="register-repeat"
+              className={INPUT}
+            />
+            <button type="button" className="gate-eye" onClick={() => setShow((v) => !v)} aria-label="показать пароль">
+              <EyeIcon off={show} />
+            </button>
+          </span>
         </Field>
 
         <label className="flex items-start gap-2 text-xs text-stone-400">
@@ -160,6 +179,35 @@ export function Register({
     </main>
   );
 }
+
+const UserIcon = () => (
+  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c1.8-3.2 4.6-5 8-5s6.2 1.8 8 5" />
+  </svg>
+);
+
+const MailIcon = () => (
+  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="3" y="5" width="18" height="14" rx="3" />
+    <path d="m4 7 8 6 8-6" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="5" y="10" width="14" height="10" rx="3" />
+    <path d="M8 10V7a4 4 0 1 1 8 0v3" />
+  </svg>
+);
+
+const EyeIcon = ({ off }: { off?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
+    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+    <circle cx="12" cy="12" r="2.6" />
+    {off ? <path d="m4 4 16 16" /> : null}
+  </svg>
+);
 
 const INPUT =
   "min-h-[44px] rounded border border-stone-700 bg-stone-900 px-3 text-bone outline-none focus:border-stone-500";

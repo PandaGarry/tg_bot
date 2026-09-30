@@ -1638,7 +1638,7 @@ export class WorldService {
       const details = modulateDetailed({
         phase: "limit",
         base: 0,
-        input: { resource, subject: "court" },
+        input: { resource, subject: "town" },
         sources: this.modifierSources(),
         env: {
           world: this.worldFacts(this.now()),

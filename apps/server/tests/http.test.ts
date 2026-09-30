@@ -143,7 +143,7 @@ describe("порт мира", () => {
     const missing = await fetch(base, {
       method: "POST",
       headers: { ...token, "content-type": "application/json" },
-      body: JSON.stringify({ id: "court", state: "enabled" }),
+      body: JSON.stringify({ id: "nowhere", state: "enabled" }),
     });
     expect(missing.status).toBe(404);
 
