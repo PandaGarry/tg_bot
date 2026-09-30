@@ -26,14 +26,23 @@
 
 /* ---------- панель персонажа: по прототипу docs/game/ui/hud (круг 15):
    портрет-ячейка 38px, ник, «Ур.» с полосой опыта, VIP-значок с короной ---------- */
-.hud-lord {
+.hud-top {
   position: fixed;
   left: 8px;
+  right: 8px;
   top: calc(6px + env(safe-area-inset-top));
   z-index: 20;
-  display: grid;
-  grid-template-columns: 44px 1fr;
+  display: flex;
   gap: 8px;
+  align-items: flex-start;
+}
+
+.hud-lord {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 7px;
   align-items: center;
   padding: 3px 10px 3px 3px;
   background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
@@ -45,8 +54,8 @@
 
 .hud-lord .portrait {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -56,8 +65,8 @@
 }
 
 .hud-lord .portrait .hud-ic {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   object-fit: cover;
 }
 
@@ -78,8 +87,8 @@
 }
 
 .hud-lord .name-row b {
-  max-width: 108px;
-  font-size: 13px;
+  max-width: 96px;
+  font-size: 12.5px;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
@@ -96,7 +105,7 @@
 
 .hud-lord .lvl-tag {
   font-style: normal;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   color: #3b2416;
   background: linear-gradient(180deg, #f0c866, #c8952e);
@@ -120,7 +129,7 @@
 }
 
 .hud-lord .power-row b {
-  font-size: 12.5px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -182,15 +191,16 @@
 /* ---------- ресурсы: правый верхний угол, колонкой (круг 17):
    иконка сверху, число под ней; зазор между чипами плотнее ---------- */
 .hud-res {
-  position: fixed;
-  left: calc(196px + env(safe-area-inset-left));
-  right: 8px;
-  top: calc(6px + env(safe-area-inset-top));
-  z-index: 20;
+  margin-left: auto;
   display: flex;
   gap: 5px;
   flex-wrap: nowrap;
   justify-content: flex-end;
+  min-width: 0;
+}
+
+.hud-res .chip b {
+  white-space: nowrap;
 }
 
 .hud-res .chip {
@@ -447,10 +457,6 @@
 
 /* узкие телефоны (<390): всё чуть плотнее, квадраты сохраняются */
 @media (max-width: 389px) {
-  .hud-res {
-    left: calc(150px + env(safe-area-inset-left));
-  }
-
   .hud-lord .portrait {
     width: 32px;
     height: 32px;
@@ -488,7 +494,7 @@
   }
 
   .hud-lord .name-row b {
-    max-width: 84px;
+    max-width: 78px;
   }
 
   .hud-rb {
@@ -535,22 +541,18 @@
 
 /* большие телефоны и малые планшеты (431–767): элементы крупнее */
 @media (min-width: 431px) {
-  .hud-res {
-    left: calc(216px + env(safe-area-inset-left));
-  }
-
   .hud-lord {
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 44px 1fr;
   }
 
   .hud-lord .portrait {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
   }
 
   .hud-lord .portrait .hud-ic {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
   }
 
   .hud-lord .name-row b {
@@ -616,12 +618,8 @@
 
 /* планшеты и десктоп: больше воздуха по краям (сцена и так до 820px) */
 @media (min-width: 768px) {
-  .hud-lord {
+  .hud-top {
     left: 14px;
-    top: calc(10px + env(safe-area-inset-top));
-  }
-
-  .hud-res {
     right: 14px;
     top: calc(10px + env(safe-area-inset-top));
   }
@@ -953,12 +951,11 @@
 .hud-queue,
 .hud-tab {
   padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(24, 15, 9, 0.55);
+  border: 1.5px solid rgba(239, 227, 198, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
   overflow: hidden;
+  border-radius: 10px;
 }
 
 .hud-rb .hud-ic,
@@ -966,6 +963,5 @@
 .hud-tab .hud-ic {
   width: 100%;
   height: 100%;
-  border-radius: 10px;
   object-fit: cover;
 }

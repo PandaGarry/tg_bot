@@ -1,20 +1,20 @@
 /**
- * Иконки интерфейса — сгенерированные плитки (арт занимает ячейку целиком).
- * Имена — ключи клеток левого столбика, правой колонки и дока.
+ * Иконки интерфейса — сгенерированные плитки (предмет крупно, фон плоский;
+ * рамку даёт ячейка интерфейса). Имена — ключи клеток HUD и дока.
  */
 export const ICON_SRC: Record<string, string> = {
   hammer: "icons/i-hammer.png",
   swords: "icons/i-swords.png",
-  web: "icons/i-web.png",
+  flask: "icons/i-flask.png",
   helmet: "icons/i-helmet.png",
   shield: "icons/i-shield.png",
   bag: "icons/i-bag.png",
   shop: "icons/i-shop.png",
   mail: "icons/i-mail.png",
   banner: "icons/i-banner.png",
-  scroll: "icons/i-scroll.png",
-  // догенерируются на следующем шаге — пока плитки из стартового набора
-  map: "icons/map.png",
+  map: "icons/i-map.png",
+  // следующий шаг генерации (временно плитки стартового набора)
+  scroll: "icons/scroll.png",
   quill: "icons/quill.png",
   gear: "icons/gear.png",
 };

@@ -118,6 +118,24 @@ await clickButton("Занять двор");
 
 // двор: ждём HUD-блок лорда; canvas появляется, только если поднялся WebGL
 await page.waitForSelector(".hud-lord", { timeout: 30_000 });
+// замер верхней строки: карточка лорда и ресурсы не должны пересекаться
+await sleep(1200);
+const layout = (await page.evaluate(`(() => {
+  const rect = function (sel) {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
+  };
+  return JSON.stringify({
+    top: rect(".hud-top"),
+    lord: rect(".hud-lord"),
+    res: rect(".hud-res"),
+    firstChip: rect(".hud-res .chip"),
+    lastChip: rect(".hud-res .chip:last-child"),
+  });
+})()`)) as string;
+console.log("  замер:", layout);
 let webgl = true;
 try {
   await page.waitForSelector("canvas", { timeout: 15_000 });

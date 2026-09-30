@@ -475,23 +475,27 @@ function Gatehouse() {
           </mesh>
         </group>
       ))}
-      {/* перемычка на башнях и двускатная крышка над воротами */}
+      {/* перемычка между башнями и ступенчатый фронтон: над проездом не нависает */}
       <mesh position={[7.7, 2.52, 0]} castShadow>
-        <boxGeometry args={[0.76, 0.24, 4.1]} />
+        <boxGeometry args={[0.72, 0.26, 2.68]} />
         <meshStandardMaterial color={C.logTip} roughness={0.95} />
       </mesh>
-      {[-1, 1].map((s) => (
-        <group key={`rf${s}`}>
-          <mesh position={[7.7 + s * 0.16, 2.82, 0]} rotation-z={s * 0.58} castShadow>
-            <boxGeometry args={[0.95, 0.07, 4.3]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.9} flatShading />
-          </mesh>
-          <mesh position={[7.7 + s * 0.13, 2.88, 0]} rotation-z={s * 0.58}>
-            <boxGeometry args={[0.64, 0.05, 4.2]} />
-            <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
-          </mesh>
-        </group>
-      ))}
+      <mesh position={[7.7, 2.78, 0]} castShadow>
+        <boxGeometry args={[0.66, 0.24, 2.6]} />
+        <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+      </mesh>
+      <mesh position={[7.7, 3.02, 0]} castShadow>
+        <boxGeometry args={[0.56, 0.22, 2.2]} />
+        <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+      </mesh>
+      <mesh position={[7.7, 3.24, 0]} castShadow>
+        <boxGeometry args={[0.44, 0.2, 1.8]} />
+        <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+      </mesh>
+      <mesh position={[7.7, 3.36, 0]}>
+        <boxGeometry args={[0.3, 0.06, 1.66]} />
+        <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+      </mesh>
       {/* фонарь под перемычкой — тёплая точка у входа */}
       <group position={[7.4, 0, 0]}>
         <mesh position={[0.09, 2.34, 0]}>

@@ -26,7 +26,7 @@ type PanelKind = "build" | "train" | "sci" | "commanders" | "clan" | "items" | "
     Все иконки HUD уникальны — повторов нет (круг 18). */
 const QUEUES: { kind: "train" | "sci"; icon: string; key: string }[] = [
   { kind: "train", icon: "swords", key: "shell.hud.queue.train" },
-  { kind: "sci", icon: "web", key: "shell.hud.queue.sci" },
+  { kind: "sci", icon: "flask", key: "shell.hud.queue.sci" },
 ];
 
 /** Правая колонка — служебные механики (решение заказчика из круга 4):
@@ -40,10 +40,10 @@ const TABS: { kind: Exclude<PanelKind, "build" | "train" | "sci" | null>; icon: 
 ];
 
 /** Короткий формат чисел: миллионы и миллиарды не ломают строку ресурсов (круг 15). */
+// числа (раунд 5): полностью до 100 999 999; сотни млн — «NNN млн»; миллиарды — «1.2 млрд»
 const fmt = (n: number) =>
-  n >= 1e9 ? `${(n / 1e9).toFixed(n % 1e9 ? 1 : 0)}B` :
-  n >= 1e6 ? `${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` :
-  n >= 1e4 ? `${(n / 1e3).toFixed(n % 1e3 ? 1 : 0)}K` :
+  n >= 1e9 ? `${(n / 1e9).toFixed(n % 1e9 ? 1 : 0)} млрд` :
+  n >= 1e8 ? `${Math.floor(n / 1e6)} млн` :
   String(n);
 
 /** Целевое левое меню (требования заказчика, круг 14) рисуется только из данных систем:
@@ -113,6 +113,8 @@ export function Hud({
     <>
       {/* панель персонажа по прототипу HUD: портрет-ячейка, ник, «Ур.» + полоса опыта, VIP.
           Уровень, опыт и VIP появят системы (этап C/D) — пока вид с честными стартовыми значениями. */}
+      {/* верхняя строка: карточка лорда и ресурсы — flex не даёт им пересечься */}
+      <div className="hud-top">
       {me ? (
         <div className="hud-lord">
           <span className="portrait" style={{ background: swatch(me.bannerColor) }}>
@@ -147,6 +149,7 @@ export function Hud({
             <b>{fmt(amount)}</b>
           </span>
         ))}
+      </div>
       </div>
 
       {/* левая панель: «Строить» и очереди (карта одна — в нижнем доке, круг 17) */}
