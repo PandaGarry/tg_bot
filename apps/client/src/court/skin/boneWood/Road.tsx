@@ -155,12 +155,8 @@ export function Road({ roads, size }: RoadProps) {
         if (n) path.push({ x0: c.cx, z0: c.cz, x1: n.cx, z1: n.cz, r0: PATH_R, r1: PATH_R });
       }
     }
-    // подъезд: от ворот прямо наружу, у ворот сужается до ширины тропы
-    const taperEnd = PLOT + 3.6;
-    const road: Prim[] = [
-      { x0: PLOT - 0.5, z0: 0, x1: taperEnd, z1: 0, r0: PATH_R, r1: ROAD_R },
-      { x0: taperEnd, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R },
-    ];
+    // подъезд: от ворот прямо наружу, одной ширины по всей длине (по решению заказчика не сужается)
+    const road: Prim[] = [{ x0: PLOT - 0.2, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R }];
     const all = [...path, ...road.filter((p) => p.x0 < PLOT + 1.2)];
 
     const gridMin = (v: number) => Math.floor(v / STEP) * STEP;
@@ -174,9 +170,11 @@ export function Road({ roads, size }: RoadProps) {
     const toneOut = new THREE.Color();
     const soil = (x: number, z: number, f: number, out: THREE.Color) => {
       groundTone(x, z, out);
-      // во дворе земля тёмная, тропе нужен контраст: светлее, чем за воротами, где вокруг снег
-      const boost = THREE.MathUtils.lerp(2.3, 1.2, smooth(PLOT, PLOT + 2.2, x));
-      out.multiplyScalar(boost * (0.55 + 0.45 * smooth(0, 1, f))); // у кромки темнее: грунт «врастает» в землю двора
+      // во дворе тропа мягче и пестрее: меньше яркости, пятна светлее и темнее (за воротами палитра как утверждена)
+      const inside = 1 - smooth(PLOT, PLOT + 2.2, x);
+      const patch = noise(x * 2.4 + 9, z * 2.4 - 5, 0.8) * 0.5 + 0.5;
+      const boost = THREE.MathUtils.lerp(1.2, 0.85 * (0.75 + 0.5 * patch), inside);
+      out.multiplyScalar(boost * (0.55 + 0.45 * smooth(0, 1, f))); // у кромки темнее: грунт «врастает» в землю
       return smooth(0, 0.6, f);
     };
 
