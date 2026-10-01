@@ -168,7 +168,7 @@ export function Road({ roads, size }: RoadProps) {
       }
     }
     // подъезд: от ворот прямо наружу, одной ширины по всей длине (по решению заказчика не сужается)
-    const road: Prim[] = [{ x0: PLOT - 0.2, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R, soft: 0.22 }];
+    const road: Prim[] = [{ x0: PLOT - 2.6, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R, soft: 0.22 }];
 
     const gridMin = (v: number) => Math.floor(v / STEP) * STEP;
     const xs = [PLOT + 1.2, ...cells.map((c) => c.cx)];
@@ -188,15 +188,17 @@ export function Road({ roads, size }: RoadProps) {
       return smooth(0, 0.6, f);
     };
     const roadSoil = (x: number, z: number, f: number, out: THREE.Color) => {
+      // у ворот дорога «вырастает» из земли двора: прозрачность и яркость нарастают от x = PLOT-2.6 до края площадки
+      const ramp = smooth(PLOT - 2.6, PLOT + 0.15, x);
       roadTone(x, z, roadCol);
-      out.copy(roadCol).multiplyScalar(0.75 + 0.25 * smooth(0, 1, f));
-      return smooth(0, 0.3, f);
+      out.copy(roadCol).multiplyScalar((0.75 + 0.25 * smooth(0, 1, f)) * (0.7 + 0.3 * ramp));
+      return smooth(0, 0.3, f) * ramp;
     };
 
     const yard = buildField({ prims: path, ...yardBounds, stepX: STEP, stepZ: STEP, y: (x, f) => baseY(x) - 0.012 * (1 - f), color: soil });
     // дорога: ближний участок у ворот — мелкая сетка, дальше — крупнее
     const roadY = (x: number, f: number) => baseY(x) + 0.004 - 0.006 * (1 - f);
-    const roadNear = buildField({ prims: road, x: [PLOT - 0.7, PLOT + 1.2], z: [-2.4, 2.4 + 1e-6], stepX: STEP, stepZ: STEP, y: roadY, color: roadSoil });
+    const roadNear = buildField({ prims: road, x: [PLOT - 3.1, PLOT + 1.2], z: [-2.4, 2.4 + 1e-6], stepX: STEP, stepZ: STEP, y: roadY, color: roadSoil });
     const roadFar = buildField({ prims: road, x: [PLOT + 1.2, ROAD_END], z: [-2.4, 2.4 + 1e-6], stepX: 0.3, stepZ: STEP, y: roadY, color: roadSoil });
     // колея: две тонкие тёмные полосы вдоль дороги, затухают у ворот
     const rut = (x: number, z: number) => {
@@ -252,8 +254,8 @@ export function Road({ roads, size }: RoadProps) {
     const area = Math.max(cells.length, 1);
     scatter(area * 16, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], path, 0.55, 1, 0.03, 0.07);
     scatter(area * 10, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], path, 0.08, 0.5, 0.02, 0.04);
-    scatter(320, PLOT - 0.1, 36, -1.45, 1.45, road, 0.5, 1, 0.025, 0.06);
-    scatter(140, PLOT - 0.1, 36, -1.7, 1.7, road, 0.05, 0.5, 0.02, 0.04);
+    scatter(320, PLOT - 0.4, 36, -1.45, 1.45, road, 0.5, 1, 0.025, 0.06);
+    scatter(140, PLOT - 0.4, 36, -1.7, 1.7, road, 0.05, 0.5, 0.02, 0.04);
     return { yard, roadNear, roadFar, ruts, lumps, pebbles };
   }, [roads, size]);
 
