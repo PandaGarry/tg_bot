@@ -25,6 +25,12 @@ export interface GateProps {
   level: number;
 }
 
+/** Тропинка: клетки, которые игрок выложил сам. */
+export interface RoadProps {
+  roads: readonly { x: number; z: number }[];
+  size: number;
+}
+
 export interface CourtSkin {
   /** Стабильный идентификатор: хранится у игрока, его выдают за ивенты и покупки. */
   id: string;
@@ -36,6 +42,8 @@ export interface CourtSkin {
   /** Частокол по периметру, с проёмом под ворота. */
   Fence: ComponentType;
   Gate: ComponentType<GateProps>;
+  /** Тропинка игрока: декор, который должен ложиться в общий вид двора. */
+  Road: ComponentType<RoadProps>;
   /** Ели, валуны и дальний лес вокруг двора. */
   Trees: ComponentType;
   /** Набор текстур сезона в public/textures/<имя>/ (зима, позже весна и лето). */

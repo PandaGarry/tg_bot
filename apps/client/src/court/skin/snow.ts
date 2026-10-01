@@ -259,3 +259,48 @@ export function snowBand({ half, gateHalf, blocked, seed }: SnowBandOptions): TH
   g.setIndex(index);
   return flipUp(g);
 }
+
+/**
+ * Снежный вал на балке: вытянут вдоль оси Z, в сечении — полуэллипс с загнутой под бревно кромкой,
+ * концы закруглены. Основание в y = 0 (кладите на верх балки). Высота и ширина «дышат» по длине.
+ */
+export function snowRidge(length: number, width: number, height: number, seed: number): THREE.BufferGeometry {
+  const nu = Math.max(12, Math.round(length / 0.08));
+  const nv = 14;
+  const r = rng(seed);
+  const waves = Array.from({ length: 3 }, () => ({ f: 1.5 + r() * 3.5, p: r() * TAU, a: 0.12 + r() * 0.1 }));
+  const wob = (u: number) => 1 + waves.reduce((acc, w) => acc + Math.sin(u * w.f * Math.PI + w.p) * w.a, 0);
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (let i = 0; i <= nu; i++) {
+    const u = i / nu;
+    const e = Math.pow(Math.max(1 - Math.pow(Math.abs(2 * u - 1), 7), 0), 0.5); // закруглённые концы
+    const k = wob(u);
+    for (let j = 0; j <= nv; j++) {
+      const th = -0.45 + (j / nv) * (Math.PI + 0.9); // кромка заходит под бревно с обеих сторон
+      const x = Math.cos(th) * width * e * (1 + 0.08 * (k - 1));
+      const y = Math.sin(th) * height * e * k;
+      pos.push(x, y, (u - 0.5) * length);
+    }
+  }
+  for (let i = 0; i < nu; i++) {
+    for (let j = 0; j < nv; j++) {
+      const a = i * (nv + 1) + j;
+      const b = a + nv + 1;
+      idx.push(a, b, a + 1, a + 1, b, b + 1);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const n = g.attributes.normal as THREE.BufferAttribute;
+  let up = 0;
+  for (let i = 0; i < n.count; i++) up += n.getY(i);
+  if (up < 0) {
+    for (let i = 0; i < idx.length; i += 3) [idx[i + 1], idx[i + 2]] = [idx[i + 2]!, idx[i + 1]!];
+    g.setIndex(idx);
+    g.computeVertexNormals();
+  }
+  return g;
+}

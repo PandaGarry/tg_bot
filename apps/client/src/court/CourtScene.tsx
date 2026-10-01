@@ -205,83 +205,6 @@ function buildingAt(grid: CourtGridLite, cx: number, cz: number) {
   return null;
 }
 
-/**
- * Гравийная дорога: плита на клетку — тёмное основание и россыпь мелких
- * камешков (детерминированно по клетке). Дорога — данные игрока: кладётся
- * и убирается тапом (команда court.road), узор складывается сам.
- */
-function RoadTiles({ roads, size }: { roads: { x: number; z: number }[]; size: number }) {
-  const tiles = useMemo(
-    () =>
-      roads.map((road) => {
-        const r = rng(1000 + road.x * 31 + road.z * 7);
-        const stones = Array.from({ length: 16 }, () => ({
-          dx: (r() - 0.5) * 0.9,
-          dz: (r() - 0.5) * 0.9,
-          s: 0.03 + r() * 0.05,
-          y: 0.185 + r() * 0.035,
-          rot: r() * Math.PI,
-          c: ["#b3a17f", "#9c8767", "#a89a82", "#8a7a5e", "#c2b193"][Math.floor(r() * 5) % 5]!,
-        }));
-        const cobbles = Array.from({ length: 3 }, () => ({
-          dx: (r() - 0.5) * 0.72,
-          dz: (r() - 0.5) * 0.72,
-          s: 0.09 + r() * 0.05,
-          rot: r() * Math.PI,
-        }));
-        const sand = Array.from({ length: 4 }, () => ({
-          dx: (r() - 0.5) * 0.95,
-          dz: (r() - 0.5) * 0.95,
-          s: 0.05 + r() * 0.06,
-        }));
-        return {
-          key: `${road.x}:${road.z}`,
-          cx: gridToWorld(road.x, size),
-          cz: gridToWorld(road.z, size),
-          stones,
-          cobbles,
-          sand,
-        };
-      }),
-    [roads, size],
-  );
-  return (
-    <group>
-      {tiles.map((tile) => (
-        <group key={tile.key} position={[tile.cx, 0, tile.cz]}>
-          {/* утоптанный грунт вокруг: плита не выглядит наклейкой */}
-          <mesh position-y={0.155} rotation-x={-Math.PI / 2} receiveShadow>
-            <circleGeometry args={[0.58, 10]} />
-            <meshStandardMaterial color="#97794e" roughness={1} />
-          </mesh>
-          <mesh position-y={0.162} rotation-x={-Math.PI / 2} receiveShadow>
-            <planeGeometry args={[1.06, 1.06]} />
-            <meshStandardMaterial color="#7d6444" roughness={1} />
-          </mesh>
-          {tile.sand.map((s, i) => (
-            <mesh key={`sa${i}`} position={[s.dx, 0.168, s.dz]} rotation-x={-Math.PI / 2}>
-              <circleGeometry args={[s.s, 6]} />
-              <meshStandardMaterial color="#c2a97a" roughness={1} />
-            </mesh>
-          ))}
-          {tile.stones.map((st, i) => (
-            <mesh key={`s${i}`} position={[st.dx, st.y, st.dz]} rotation-y={st.rot} castShadow>
-              <dodecahedronGeometry args={[st.s, 0]} />
-              <meshStandardMaterial color={st.c} roughness={1} flatShading />
-            </mesh>
-          ))}
-          {tile.cobbles.map((cb, i) => (
-            <mesh key={`c${i}`} position={[cb.dx, 0.19, cb.dz]} rotation-y={cb.rot} castShadow receiveShadow>
-              <cylinderGeometry args={[cb.s, cb.s * 1.12, 0.035, 7]} />
-              <meshStandardMaterial color={i % 2 ? "#a8977c" : "#93826a"} roughness={1} flatShading />
-            </mesh>
-          ))}
-        </group>
-      ))}
-    </group>
-  );
-}
-
 // ---------- Ратуша: основание, сруб, крыша, окна, крыльцо, труба, дым, флажок ----------
 /** Знамя на крыше Ратуши (уровень 3+): волнуется тем же ветром, что на воротах. */
 function RoofBanner({ y = 3.55, s = 1 }: { y?: number; s?: number }) {
@@ -1509,7 +1432,7 @@ export function CourtScene({
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
         // near/far сжаты ради точности depth-буфера на мобильных (круг 9)
-        camera={{ fov: 40, near: 2, far: 140, position: [17, 16, 17] }}
+        camera={{ fov: 40, near: 3.5, far: 140, position: [17, 16, 17] }}
       >
         <color attach="background" args={[C.sky]} />
         <fog attach="fog" args={[C.fogFar, 42, 100]} />
@@ -1531,7 +1454,7 @@ export function CourtScene({
         <directionalLight color="#c4d8eb" intensity={0.24} position={[-12, 10, -14]} />
         <CameraRig />
         <skin.Ground size={grid?.size ?? 14} blocked={blocked} />
-        <RoadTiles roads={grid?.roads ?? []} size={grid?.size ?? 14} />
+        <skin.Road roads={grid?.roads ?? []} size={grid?.size ?? 14} />
         <skin.Fence />
         <skin.Gate level={gateLevel} />
         <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />

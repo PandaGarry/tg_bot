@@ -13,6 +13,11 @@ export const CELL = 1.1;
 export const PLOT = 7.7; // половина площадки (14 клеток по 1.1)
 export const GATE_HALF = 1.5;
 
+/** Клетка сетки → мир: сетка центрирована, край упирается в частокол. */
+export function cellToWorld(g: number, size: number): number {
+  return (g - (size - 1) / 2) * CELL;
+}
+
 /** Палитра Bone-Wood №05: тёплое дерево, кость, тёплый снег. */
 export const C = {
   sky: "#c3d3da",

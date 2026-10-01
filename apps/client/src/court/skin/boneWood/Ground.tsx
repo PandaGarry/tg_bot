@@ -49,13 +49,28 @@ function GroundRelief({ tex }: { tex: Tex }) {
   );
 }
 
-/** Грунтовая дорога от ворот наружу: часть основы двора. */
+/** Подъезд от ворот наружу: утоптанный гравий того же тона, что и тропинка во дворе, снег по краям. */
 function Approach({ tex }: { tex: Tex }) {
+  const rims = useMemo(
+    () => [-1, 1].flatMap((s) => [0.9, 3.0, 5.1, 7.0].map((dx, i) => ({ s, x: PLOT + dx + (i % 2) * 0.3, geom: snowBlob(1.25 + (i % 3) * 0.2, 0.15 + (i % 2) * 0.05, 200 + i + s * 9, 0.34) }))),
+    [],
+  );
   return (
-    <mesh position={[PLOT + 3.6, 0.08, 0]} castShadow receiveShadow>
-      <boxGeometry args={[7.2, 0.12, 3.1]} />
-      {mudMaterial(tex, 1.6, 0.7, "#d9c7b4")}
-    </mesh>
+    <group>
+      <mesh position={[PLOT + 3.6, 0.08, 0]} castShadow receiveShadow>
+        <boxGeometry args={[7.2, 0.12, 3.1]} />
+        {tex ? (
+          <meshStandardMaterial key="tex" color="#e8d6bc" map={tiled(tex.mud, 1.1, 0.5)} emissiveMap={tiled(tex.mud, 1.1, 0.5)} emissive="#b5a688" emissiveIntensity={0.85} bumpMap={tiled(tex.mud, 1.1, 0.5)} bumpScale={0.07} roughness={1} />
+        ) : (
+          <meshStandardMaterial key="plain" color="#a98a5e" roughness={1} />
+        )}
+      </mesh>
+      {rims.map((r, i) => (
+        <mesh key={i} geometry={r.geom} position={[r.x, 0.0, r.s * 1.95]} rotation-y={r.s * 0.05} castShadow receiveShadow>
+          {snowMaterial(tex, 0.34, "#f4f1e8", 0.03)}
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -131,7 +146,7 @@ export function Ground({ size, blocked }: GroundProps) {
     <group>
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
         <planeGeometry args={[120, 120]} />
-        {snowMaterial(tex, 17, "#f4f0e6", 0.03)}
+        {snowMaterial(tex, 17, "#f4f0e6", 0.015)}
       </mesh>
       <mesh receiveShadow castShadow>
         <boxGeometry args={[PLOT * 2 + 0.4, 0.16, PLOT * 2 + 0.4]} />

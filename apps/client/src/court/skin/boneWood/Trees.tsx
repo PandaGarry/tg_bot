@@ -9,14 +9,19 @@ export function Trees() {
   const trees = useMemo(() => {
     const r = rng(23);
     const out: { x: number; z: number; s: number; w: number; tone: number; rot: number }[] = [];
-    for (let i = 0; i < 64; i++) {
-      const side = Math.floor(r() * 4);
-      const t = (r() * 2 - 1) * 26;
-      const d = 10 + r() * 16;
-      const x = side === 0 ? t : side === 1 ? d : side === 2 ? t : -d;
-      const z = side === 0 ? d : side === 1 ? t : side === 2 ? -d : t;
-      if (z > 7 && Math.abs(x) < 3.5) continue;
-      out.push({ x, z, s: 0.8 + r() * 0.6, w: 0.9 + r() * 0.22, tone: 0.84 + r() * 0.26, rot: r() * Math.PI });
+    // Лес густеет к двору и редеет вдали. Полоса дороги от ворот (вдоль +X) остаётся чистой,
+    // у частокола деревья не стоят: крона ели шире 1.5.
+    let guard = 0;
+    while (out.length < 170 && guard++ < 6000) {
+      const x = (r() * 2 - 1) * 36;
+      const z = (r() * 2 - 1) * 36;
+      const edge = Math.max(Math.abs(x), Math.abs(z));
+      if (edge < 10.6) continue;
+      if (x > 6 && Math.abs(z) < 3.9) continue;
+      if (r() > 1.15 - (edge - 10) / 30) continue;
+      const s = 0.72 + r() * 0.8;
+      if (out.some((o) => Math.hypot(o.x - x, o.z - z) < 1.15 * (o.s + s))) continue;
+      out.push({ x, z, s, w: 0.9 + r() * 0.22, tone: 0.84 + r() * 0.26, rot: r() * Math.PI });
     }
     return out;
   }, []);
