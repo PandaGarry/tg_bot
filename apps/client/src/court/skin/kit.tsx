@@ -163,6 +163,7 @@ export const WINTER = "winter";
 
 export interface SeasonTextures {
   mud: THREE.Texture;
+  road: THREE.Texture;
   snow: THREE.Texture;
   bark: THREE.Texture;
   needles: THREE.Texture;
@@ -182,8 +183,8 @@ function loadSeason(season: string): Promise<SeasonTextures | null> {
       tex.anisotropy = 8;
       return tex;
     };
-    hit = Promise.all([one("ground-mud"), one("snow"), one("log-bark"), one("fir-needles")])
-      .then(([mud, snow, bark, needles]) => ({ mud, snow, bark, needles }))
+    hit = Promise.all([one("ground-mud"), one("road"), one("snow"), one("log-bark"), one("fir-needles")])
+      .then(([mud, road, snow, bark, needles]) => ({ mud, road, snow, bark, needles }))
       .catch(() => null);
     seasonCache.set(season, hit);
   }

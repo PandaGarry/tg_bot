@@ -10,6 +10,7 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { snowBlob } from "../snow.js";
 import { CELL, GATE_HALF, PLOT, WINTER, cellToWorld, rng, tiled, useSeasonTextures } from "../kit.js";
 import type { RoadProps } from "../types.js";
 
@@ -19,7 +20,7 @@ const SNOW_Y = 0.03;
 const STEP = 0.1;
 const ROAD_END = 58;
 const PATH_R = 0.3; // половина ширины тропы во дворе (≈ 0.55 клетки)
-const ROAD_R = 0.95; // половина ширины дороги за воротами
+const ROAD_R = GATE_HALF; // половина ширины дороги: как проём ворот, чтобы двор и дорога «сливались»
 
 interface Prim {
   x0: number;
@@ -28,6 +29,8 @@ interface Prim {
   z1: number;
   r0: number;
   r1: number;
+  /** Доля радиуса, на которой покрытие спадает от 1 до 0 (меньше — чётче кромка). */
+  soft?: number;
 }
 
 const smooth = (a: number, b: number, x: number) => {
@@ -47,7 +50,7 @@ function cover(p: Prim, x: number, z: number, widen = 1): number {
   const t = len2 > 1e-9 ? THREE.MathUtils.clamp(((x - p.x0) * dx + (z - p.z0) * dz) / len2, 0, 1) : 0;
   const d = Math.hypot(x - (p.x0 + dx * t), z - (p.z0 + dz * t));
   const r = THREE.MathUtils.lerp(p.r0, p.r1, t) * widen * (1 + 0.3 * noise(x, z, 1.5));
-  return THREE.MathUtils.clamp((1 - d / r) / 0.5, 0, 1);
+  return THREE.MathUtils.clamp((1 - d / r) / (p.soft ?? 0.5), 0, 1);
 }
 
 function fieldAt(prims: Prim[], x: number, z: number, widen = 1): number {
@@ -69,19 +72,10 @@ function groundTone(x: number, z: number, out: THREE.Color): THREE.Color {
   return t < 0.5 ? out.copy(BROWN).lerp(SAND, t * 2) : out.copy(SAND).lerp(GREY, (t - 0.5) * 2);
 }
 
-// Дорога за воротами (по концепту path-gate): влажная красновато-коричневая глина, в середине
-// утрамбованная серо-бежевая полоса, по сторонам тёмные пятна. Это отдельный «материал», не как тропа.
-const MUD_DARK = new THREE.Color(1.0, 0.7, 0.5);
-const MUD_MID = new THREE.Color(1.8, 1.4, 1.0);
-const MUD_WARM = new THREE.Color(2.3, 1.9, 1.3);
-const PACKED = new THREE.Color(2.2, 2.5, 2.6);
-
+/** Дорога за воротами: своя текстура (road.jpg), цвет вершин лишь слегка оживляет её вдоль дороги. */
 function roadTone(x: number, z: number, out: THREE.Color): THREE.Color {
-  const n = noise(x * 0.7 + 2, z * 1.6 - 1, 0.9) * 0.5 + 0.5; // пятна вдоль дороги
-  const m = noise(x * 2.2 - 6, z * 3.1 + 4, 0.8) * 0.5 + 0.5; // мелкая пестрота
-  out.copy(MUD_DARK).lerp(MUD_MID, THREE.MathUtils.clamp(n * 1.3, 0, 1)).lerp(MUD_WARM, THREE.MathUtils.clamp((m - 0.55) * 2, 0, 0.7));
-  const centre = smooth(0.62, 0.0, Math.abs(z)) * THREE.MathUtils.clamp(0.55 + n * 0.8, 0, 1);
-  return out.lerp(PACKED, centre * 0.85);
+  const n = noise(x * 0.5 + 2, z * 1.2 - 1, 0.9) * 0.5 + 0.5;
+  return out.setScalar(1.0 + 0.3 * n);
 }
 
 const YARD_SAND = new THREE.Color(1.9, 1.85, 1.55);
@@ -174,8 +168,7 @@ export function Road({ roads, size }: RoadProps) {
       }
     }
     // подъезд: от ворот прямо наружу, одной ширины по всей длине (по решению заказчика не сужается)
-    const road: Prim[] = [{ x0: PLOT - 0.2, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R }];
-    const all = [...path, ...road.filter((p) => p.x0 < PLOT + 1.2)];
+    const road: Prim[] = [{ x0: PLOT - 0.2, z0: 0, x1: ROAD_END, z1: 0, r0: ROAD_R, r1: ROAD_R, soft: 0.22 }];
 
     const gridMin = (v: number) => Math.floor(v / STEP) * STEP;
     const xs = [PLOT + 1.2, ...cells.map((c) => c.cx)];
@@ -185,64 +178,61 @@ export function Road({ roads, size }: RoadProps) {
       z: [gridMin(Math.min(...zs) - 0.7), gridMin(Math.max(...zs) + 0.7) + STEP] as [number, number],
     };
 
-    const toneOut = new THREE.Color();
     const roadCol = new THREE.Color();
     const soil = (x: number, z: number, f: number, out: THREE.Color) => {
-      const inside = 1 - smooth(PLOT, PLOT + 2.2, x);
       // тропа во дворе: бледный песок/грунт, мягкие пятна светлее и темнее
       const tone = noise(x * 0.9 + 4, z * 0.9 - 3, 0.7) * 0.5 + 0.5;
       const patch = noise(x * 2.4 + 9, z * 2.4 - 5, 0.8) * 0.5 + 0.5;
       out.copy(YARD_BROWN).lerp(YARD_SAND, THREE.MathUtils.clamp(tone * 1.4, 0, 1)).multiplyScalar(0.82 + 0.36 * patch);
-      // дорога за воротами: свой цвет
-      roadTone(x, z, roadCol);
-      out.lerp(roadCol, 1 - inside);
       out.multiplyScalar(0.55 + 0.45 * smooth(0, 1, f)); // у кромки темнее: грунт «врастает» в землю
       return smooth(0, 0.6, f);
     };
+    const roadSoil = (x: number, z: number, f: number, out: THREE.Color) => {
+      roadTone(x, z, roadCol);
+      out.copy(roadCol).multiplyScalar(0.75 + 0.25 * smooth(0, 1, f));
+      return smooth(0, 0.3, f);
+    };
 
-    const yard = buildField({ prims: all, ...yardBounds, stepX: STEP, stepZ: STEP, y: (x, f) => baseY(x) - 0.012 * (1 - f), color: soil });
-    const outer = buildField({
-      prims: road,
-      x: [PLOT + 1.2, ROAD_END],
-      z: [-2.2, 2.2 + 1e-6],
-      stepX: 0.3,
-      stepZ: STEP,
-      y: (x, f) => baseY(x) - 0.004 * (1 - f),
-      color: soil,
-    });
-    // притоптанный снег по обочинам: шире дороги, серовато-голубой, очень мягкий
-    const shoulder = buildField({
-      prims: road,
-      x: [PLOT + 0.4, ROAD_END],
-      z: [-3.6, 3.6 + 1e-6],
-      stepX: 0.4,
-      stepZ: 0.15,
-      widen: 1.85,
-      y: () => 0.014,
-      color: (x, z, f, out) => {
-        out.setRGB(0.8, 0.82, 0.87).offsetHSL(0, 0, noise(x * 0.5, z * 1.5) * 0.02);
-        return 0.85 * smooth(0, 0.7, f);
-      },
-    });
+    const yard = buildField({ prims: path, ...yardBounds, stepX: STEP, stepZ: STEP, y: (x, f) => baseY(x) - 0.012 * (1 - f), color: soil });
+    // дорога: ближний участок у ворот — мелкая сетка, дальше — крупнее
+    const roadY = (x: number, f: number) => baseY(x) + 0.004 - 0.006 * (1 - f);
+    const roadNear = buildField({ prims: road, x: [PLOT - 0.7, PLOT + 1.2], z: [-2.4, 2.4 + 1e-6], stepX: STEP, stepZ: STEP, y: roadY, color: roadSoil });
+    const roadFar = buildField({ prims: road, x: [PLOT + 1.2, ROAD_END], z: [-2.4, 2.4 + 1e-6], stepX: 0.3, stepZ: STEP, y: roadY, color: roadSoil });
     // колея: две тонкие тёмные полосы вдоль дороги, затухают у ворот
     const rut = (x: number, z: number) => {
       const mask = smooth(PLOT + 1.0, PLOT + 3.0, x) * smooth(0.4, 0.9, fieldAt(road, x, z));
-      const a = 1 - Math.min(Math.abs(z - 0.36), Math.abs(z + 0.36)) / 0.1;
+      const a = 1 - Math.min(Math.abs(z - 0.55), Math.abs(z + 0.55)) / 0.1;
       return Math.max(a, 0) * mask * (0.7 + 0.3 * noise(x * 0.8, 0));
     };
     const ruts = buildField({
       prims: road,
       x: [PLOT + 1.0, ROAD_END],
-      z: [-0.6, 0.6 + 1e-6],
+      z: [-0.8, 0.8 + 1e-6],
       stepX: 0.4,
       stepZ: 0.03,
       value: rut,
-      y: () => baseY(PLOT + 6) + 0.003,
+      y: () => baseY(PLOT + 6) + 0.009,
       color: (_x, _z, f, out) => {
         out.setRGB(0.3, 0.19, 0.13);
-        return 0.7 * f;
+        return 0.55 * f;
       },
     });
+
+    // снег по краям дороги: низкие неровные валики вдоль кромки (не изгиб дороги, а лёгкая обвалка)
+    const rs = rng(777);
+    const lumps: { geom: THREE.BufferGeometry; x: number; z: number; rot: number; tone: string }[] = [];
+    for (let x = PLOT + 0.9; x < 34; x += 1.2 + rs() * 1.9) {
+      for (const side of [-1, 1]) {
+        if (rs() < 0.25) continue;
+        lumps.push({
+          geom: snowBlob(0.55 + rs() * 0.6, 0.13 + rs() * 0.1, 300 + lumps.length * 5, 0.5),
+          x: x + rs() * 0.8,
+          z: side * ROAD_R * (0.9 + rs() * 0.3),
+          rot: (rs() - 0.5) * 0.5,
+          tone: rs() < 0.5 ? "#f6f2e8" : "#eeeae0",
+        });
+      }
+    }
 
     // мелкая россыпь: только крошка и мелкая галька, никаких крупных камней
     const r = rng(4242);
@@ -260,12 +250,11 @@ export function Road({ roads, size }: RoadProps) {
       }
     };
     const area = Math.max(cells.length, 1);
-    scatter(area * 16, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], all, 0.55, 1, 0.03, 0.07);
-    scatter(area * 10, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], all, 0.08, 0.5, 0.02, 0.04);
-    scatter(260, PLOT + 1.2, 36, -1.1, 1.1, road, 0.5, 1, 0.025, 0.06);
-    scatter(120, PLOT + 1.2, 36, -1.3, 1.3, road, 0.05, 0.5, 0.02, 0.04);
-    void toneOut;
-    return { yard, outer, shoulder, ruts, pebbles };
+    scatter(area * 16, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], path, 0.55, 1, 0.03, 0.07);
+    scatter(area * 10, yardBounds.x[0], yardBounds.x[1], yardBounds.z[0], yardBounds.z[1], path, 0.08, 0.5, 0.02, 0.04);
+    scatter(320, PLOT - 0.1, 36, -1.45, 1.45, road, 0.5, 1, 0.025, 0.06);
+    scatter(140, PLOT - 0.1, 36, -1.7, 1.7, road, 0.05, 0.5, 0.02, 0.04);
+    return { yard, roadNear, roadFar, ruts, lumps, pebbles };
   }, [roads, size]);
 
   const peb = useRef<THREE.InstancedMesh>(null!);
@@ -291,22 +280,28 @@ export function Road({ roads, size }: RoadProps) {
   ) : (
     <meshStandardMaterial key="plain" vertexColors transparent color="#a98a5e" roughness={1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
   );
-  const shoulderMat = tex ? (
-    <meshStandardMaterial key="tex" vertexColors transparent depthWrite={false} map={tiled(tex.snow, 0.34)} roughness={1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+  const roadMat = tex ? (
+    <meshStandardMaterial key="tex" vertexColors transparent map={tiled(tex.road, 0.27)} bumpMap={tiled(tex.road, 0.27)} bumpScale={0.06} roughness={1} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
   ) : (
-    <meshStandardMaterial key="plain" vertexColors transparent depthWrite={false} roughness={1} />
+    <meshStandardMaterial key="plain" vertexColors transparent color="#8a5f3e" roughness={1} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
   );
+  const lumpMat = (tone: string) =>
+    tex ? (
+      <meshStandardMaterial key="tex" color={tone} map={tiled(tex.snow, 0.34)} bumpMap={tiled(tex.snow, 0.34)} bumpScale={0.03} roughness={0.96} />
+    ) : (
+      <meshStandardMaterial key="plain" color={tone} roughness={0.96} />
+    );
 
   return (
     <group>
-      {data.shoulder ? (
-        <mesh geometry={data.shoulder} receiveShadow renderOrder={1}>
-          {shoulderMat}
+      {data.roadNear ? (
+        <mesh geometry={data.roadNear} receiveShadow renderOrder={3}>
+          {roadMat}
         </mesh>
       ) : null}
-      {data.outer ? (
-        <mesh geometry={data.outer} receiveShadow renderOrder={2}>
-          {soilMat}
+      {data.roadFar ? (
+        <mesh geometry={data.roadFar} receiveShadow renderOrder={3}>
+          {roadMat}
         </mesh>
       ) : null}
       {data.yard ? (
@@ -315,10 +310,15 @@ export function Road({ roads, size }: RoadProps) {
         </mesh>
       ) : null}
       {data.ruts ? (
-        <mesh geometry={data.ruts} renderOrder={3}>
+        <mesh geometry={data.ruts} renderOrder={4}>
           <meshBasicMaterial vertexColors transparent depthWrite={false} polygonOffset polygonOffsetFactor={-3} polygonOffsetUnits={-3} />
         </mesh>
       ) : null}
+      {data.lumps.map((l, i) => (
+        <mesh key={i} geometry={l.geom} position={[l.x, 0.06, l.z]} rotation-y={l.rot} castShadow receiveShadow>
+          {lumpMat(l.tone)}
+        </mesh>
+      ))}
       <instancedMesh key={data.pebbles.length} ref={peb} args={[undefined, undefined, data.pebbles.length]} castShadow receiveShadow>
         <dodecahedronGeometry args={[1, 0]} />
         <meshStandardMaterial roughness={1} flatShading />
