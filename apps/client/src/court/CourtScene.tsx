@@ -1113,152 +1113,23 @@ function CourtInput({
   );
 }
 
-function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) {
-  // клетка Ратуши — из данных: перенос долгим нажатием двигает и модель
+/**
+ * Центральное здание двора — Цитадель из скина. Клетка берётся из данных (перенос долгим
+ * нажатием двигает и модель), вход смотрит на восток, к воротам. Размер на земле всегда 3×3.
+ * В dev-сборке уровень можно подменить через `window.__citadelLevel` — так снимаются все стадии.
+ */
+function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; level: number; grid: CourtGridLite }) {
   const at = grid.buildings.find((b) => b.type === "townhall") ?? { x: 7, z: 7 };
-  const smoke = useRef<(THREE.Mesh | null)[]>([]);
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    smoke.current.forEach((m, i) => {
-      if (!m) return;
-      const p = (t * 0.22 + i / 6) % 1;
-      m.position.set(0.85 + Math.sin((p + i) * 5) * 0.1, 2.75 + p * 2.2, -0.75);
-      m.scale.setScalar(0.5 + p * 1.6);
-      (m.material as THREE.MeshStandardMaterial).opacity = 0.4 * (1 - p);
-    });
+  const [override, setOverride] = useState<number | null>(null);
+  useFrame(() => {
+    if (!import.meta.env.DEV) return;
+    const v = (window as unknown as { __citadelLevel?: number }).__citadelLevel;
+    const next = typeof v === "number" ? v : null;
+    if (next !== override) setOverride(next);
   });
   return (
-    // Главное здание двора: каменный подиум с крыльцом, тёплый камень первого
-    // этажа, деревянный второй, часовая башня со шпилём. Масштаб 0.8 — Ратуша
-    // выше и богаче рядовых построек, но не подавляет их; растёт с уровнем.
-    // Дверь и крыльцо — на восток, к воротам (круг 21).
-    <group
-      position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]}
-      scale={0.8 * (1 + 0.05 * (level - 1))}
-      rotation-y={Math.PI / 2}
-    >
-      {/* подиум и широкое крыльцо */}
-      <mesh position-y={0.17} castShadow receiveShadow>
-        <boxGeometry args={[2.9, 0.34, 2.9]} />
-        <meshStandardMaterial color="#9a948a" roughness={0.95} flatShading />
-      </mesh>
-      {[0, 1, 2].map((i) => (
-        <mesh key={i} position={[0, 0.3 - i * 0.1, 1.56 + i * 0.22]} castShadow receiveShadow>
-          <boxGeometry args={[1.3 - i * 0.12, 0.1, 0.26]} />
-          <meshStandardMaterial color="#aaa396" roughness={0.95} flatShading />
-        </mesh>
-      ))}
-      {/* первый этаж — тёплый камень со светлыми угловыми квадрами */}
-      <mesh position-y={0.95} castShadow receiveShadow>
-        <boxGeometry args={[2.5, 1.2, 2.5]} />
-        <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.9} flatShading />
-      </mesh>
-      {[
-        [-1.12, -1.12],
-        [1.12, -1.12],
-        [-1.12, 1.12],
-        [1.12, 1.12],
-      ].map(([x, z], i) => (
-        <mesh key={i} position={[x!, 0.95, z!]} castShadow>
-          <boxGeometry args={[0.3, 1.24, 0.3]} />
-          <meshStandardMaterial color="#b8b1a2" roughness={0.9} flatShading />
-        </mesh>
-      ))}
-      {/* фасад: дверь с золотой аркой, два окна */}
-      <mesh position={[0, 0.62, 1.24]}>
-        <boxGeometry args={[0.74, 1.18, 0.05]} />
-        <meshStandardMaterial color="#f0c866" metalness={0.45} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 0.6, 1.29]} castShadow>
-        <boxGeometry args={[0.58, 1.1, 0.06]} />
-        <meshStandardMaterial color="#4a3320" roughness={0.9} />
-      </mesh>
-      {[-0.82, 0.82].map((x) => (
-        <group key={x} position={[x, 1.05, 1.26]}>
-          <mesh>
-            <boxGeometry args={[0.34, 0.44, 0.06]} />
-            <meshStandardMaterial color={C.frame} roughness={0.85} />
-          </mesh>
-          <mesh position-z={0.03}>
-            <boxGeometry args={[0.24, 0.34, 0.05]} />
-            <meshStandardMaterial color={C.window} roughness={0.5} />
-          </mesh>
-        </group>
-      ))}
-      {/* второй этаж — дерево, карниз со снегом */}
-      <mesh position-y={1.92} castShadow receiveShadow>
-        <boxGeometry args={[2.1, 0.86, 2.1]} />
-        <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
-      </mesh>
-      <mesh position-y={2.4} castShadow>
-        <boxGeometry args={[2.26, 0.12, 2.26]} />
-        <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} flatShading />
-      </mesh>
-      <mesh position-y={2.5}>
-        <boxGeometry args={[2.3, 0.07, 2.3]} />
-        <meshStandardMaterial color="#fbf8f0" roughness={0.85} flatShading />
-      </mesh>
-      {/* окна второго этажа: золотые рамы */}
-      {[-0.55, 0.55].map((x) => (
-        <group key={x} position={[x, 1.95, 1.08]}>
-          <mesh>
-            <boxGeometry args={[0.4, 0.5, 0.05]} />
-            <meshStandardMaterial color="#f0c866" metalness={0.4} roughness={0.45} />
-          </mesh>
-          <mesh position-z={0.03}>
-            <boxGeometry args={[0.3, 0.4, 0.05]} />
-            <meshStandardMaterial color={C.window} roughness={0.5} />
-          </mesh>
-        </group>
-      ))}
-      {/* часовая башня с окном */}
-      <mesh position-y={3.0} castShadow>
-        <boxGeometry args={[1.15, 1.4, 1.15]} />
-        <meshStandardMaterial color="#aaa396" roughness={0.9} flatShading />
-      </mesh>
-      <group position={[0, 3.3, 0.58]}>
-        <mesh>
-          <boxGeometry args={[0.34, 0.42, 0.06]} />
-          <meshStandardMaterial color="#f0c866" metalness={0.4} roughness={0.45} />
-        </mesh>
-        <mesh position-z={0.04}>
-          <boxGeometry args={[0.24, 0.32, 0.05]} />
-          <meshStandardMaterial color={C.window} roughness={0.5} />
-        </mesh>
-      </group>
-      {/* уровень 2+: золотой пояс башни */}
-      {level >= 2 ? (
-        <mesh position-y={2.54}>
-          <boxGeometry args={[1.24, 0.09, 1.24]} />
-          <meshStandardMaterial color="#f0c866" metalness={0.55} roughness={0.35} flatShading />
-        </mesh>
-      ) : null}
-      {/* шатёр: тёплая черепица, снег, золочёный шпиль */}
-      <mesh position-y={4.02} rotation-y={Math.PI / 4} castShadow>
-        <coneGeometry args={[1.05, 0.95, 4]} />
-        <meshStandardMaterial color="#5a4434" roughness={0.85} flatShading />
-      </mesh>
-      <mesh position-y={4.33} rotation-y={Math.PI / 4}>
-        <coneGeometry args={[0.62, 0.34, 4]} />
-        <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
-      </mesh>
-      <mesh position-y={4.8}>
-        <coneGeometry args={[0.09, 0.34, 6]} />
-        <meshStandardMaterial color="#f0c866" metalness={0.6} roughness={0.3} />
-      </mesh>
-      {/* уровень 3+: знамя на башне */}
-      {level >= 3 ? <RoofBanner y={4.52} s={0.9} /> : null}
-      {/* труба с дымом */}
-      <mesh position={[0.85, 2.6, -0.75]} castShadow>
-        <boxGeometry args={[0.3, 0.7, 0.3]} />
-        <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.9} flatShading />
-      </mesh>
-      {Array.from({ length: 6 }, (_, i) => (
-        <mesh key={i} ref={(m) => { smoke.current[i] = m; }}>
-          <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color={C.smoke} transparent opacity={0.4} depthWrite={false} />
-        </mesh>
-      ))}
+    <group position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]}>
+      <skin.Citadel level={override ?? level} />
     </group>
   );
 }
@@ -1458,7 +1329,7 @@ export function CourtScene({
         <skin.Fence />
         <skin.Gate level={gateLevel} />
         <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />
-        <TownHall level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
+        <CitadelSlot skin={skin} level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
         {bursts.map((b) => (
           <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
         ))}

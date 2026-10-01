@@ -12,6 +12,7 @@
  */
 
 import type { ComponentType } from "react";
+import type { BannerSpec } from "./banner.js";
 
 /** Данные для земли: размер сетки и клетки, где нельзя класть мелкий декор. */
 export interface GroundProps {
@@ -31,6 +32,12 @@ export interface RoadProps {
   size: number;
 }
 
+/** Цитадель: центр двора. Уровень выбирает вид (5 стадий), герб игрока ложится на флаг. */
+export interface CitadelProps {
+  level: number;
+  banner?: BannerSpec;
+}
+
 export interface CourtSkin {
   /** Стабильный идентификатор: хранится у игрока, его выдают за ивенты и покупки. */
   id: string;
@@ -42,6 +49,8 @@ export interface CourtSkin {
   /** Частокол по периметру, с проёмом под ворота. */
   Fence: ComponentType;
   Gate: ComponentType<GateProps>;
+  /** Центральное здание: пятно 3×3 клетки, вход на +x (к воротам), основание в y = 0. */
+  Citadel: ComponentType<CitadelProps>;
   /** Тропинка игрока: декор, который должен ложиться в общий вид двора. */
   Road: ComponentType<RoadProps>;
   /** Ели, валуны и дальний лес вокруг двора. */

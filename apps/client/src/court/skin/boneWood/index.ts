@@ -1,6 +1,7 @@
 import { WINTER } from "../kit.js";
 import type { CourtSkin } from "../types.js";
 import { Fence } from "./Fence.js";
+import { Citadel } from "./Citadel.js";
 import { Gate } from "./Gate.js";
 import { Ground } from "./Ground.js";
 import { Road } from "./Road.js";
@@ -14,6 +15,7 @@ export const boneWood: CourtSkin = {
   Ground,
   Fence,
   Gate,
+  Citadel,
   Road,
   Trees,
   season: WINTER,
