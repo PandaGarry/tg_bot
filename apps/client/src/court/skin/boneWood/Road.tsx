@@ -69,6 +69,24 @@ function groundTone(x: number, z: number, out: THREE.Color): THREE.Color {
   return t < 0.5 ? out.copy(BROWN).lerp(SAND, t * 2) : out.copy(SAND).lerp(GREY, (t - 0.5) * 2);
 }
 
+// Дорога за воротами (по концепту path-gate): влажная красновато-коричневая глина, в середине
+// утрамбованная серо-бежевая полоса, по сторонам тёмные пятна. Это отдельный «материал», не как тропа.
+const MUD_DARK = new THREE.Color(1.0, 0.7, 0.5);
+const MUD_MID = new THREE.Color(1.8, 1.4, 1.0);
+const MUD_WARM = new THREE.Color(2.3, 1.9, 1.3);
+const PACKED = new THREE.Color(2.2, 2.5, 2.6);
+
+function roadTone(x: number, z: number, out: THREE.Color): THREE.Color {
+  const n = noise(x * 0.7 + 2, z * 1.6 - 1, 0.9) * 0.5 + 0.5; // пятна вдоль дороги
+  const m = noise(x * 2.2 - 6, z * 3.1 + 4, 0.8) * 0.5 + 0.5; // мелкая пестрота
+  out.copy(MUD_DARK).lerp(MUD_MID, THREE.MathUtils.clamp(n * 1.3, 0, 1)).lerp(MUD_WARM, THREE.MathUtils.clamp((m - 0.55) * 2, 0, 0.7));
+  const centre = smooth(0.62, 0.0, Math.abs(z)) * THREE.MathUtils.clamp(0.55 + n * 0.8, 0, 1);
+  return out.lerp(PACKED, centre * 0.85);
+}
+
+const YARD_SAND = new THREE.Color(1.9, 1.85, 1.55);
+const YARD_BROWN = new THREE.Color(1.55, 1.2, 0.9);
+
 interface FieldOptions {
   prims: Prim[];
   x: [number, number];
@@ -138,7 +156,7 @@ function buildField(o: FieldOptions): THREE.BufferGeometry | null {
   return g;
 }
 
-const PEBBLES = ["#b3a17f", "#9c8767", "#a89a82", "#8a7a5e", "#c2b193", "#7f7466", "#b9ad9b"];
+const PEBBLES = ["#b3a17f", "#9c8767", "#a89a82", "#8a7a5e", "#c2b193", "#7f7466", "#b9ad9b", "#9a948a", "#847b70"];
 
 export function Road({ roads, size }: RoadProps) {
   const tex = useSeasonTextures(WINTER);
@@ -168,13 +186,17 @@ export function Road({ roads, size }: RoadProps) {
     };
 
     const toneOut = new THREE.Color();
+    const roadCol = new THREE.Color();
     const soil = (x: number, z: number, f: number, out: THREE.Color) => {
-      groundTone(x, z, out);
-      // во дворе тропа мягче и пестрее: меньше яркости, пятна светлее и темнее (за воротами палитра как утверждена)
       const inside = 1 - smooth(PLOT, PLOT + 2.2, x);
+      // тропа во дворе: бледный песок/грунт, мягкие пятна светлее и темнее
+      const tone = noise(x * 0.9 + 4, z * 0.9 - 3, 0.7) * 0.5 + 0.5;
       const patch = noise(x * 2.4 + 9, z * 2.4 - 5, 0.8) * 0.5 + 0.5;
-      const boost = THREE.MathUtils.lerp(1.2, 0.85 * (0.75 + 0.5 * patch), inside);
-      out.multiplyScalar(boost * (0.55 + 0.45 * smooth(0, 1, f))); // у кромки темнее: грунт «врастает» в землю
+      out.copy(YARD_BROWN).lerp(YARD_SAND, THREE.MathUtils.clamp(tone * 1.4, 0, 1)).multiplyScalar(0.82 + 0.36 * patch);
+      // дорога за воротами: свой цвет
+      roadTone(x, z, roadCol);
+      out.lerp(roadCol, 1 - inside);
+      out.multiplyScalar(0.55 + 0.45 * smooth(0, 1, f)); // у кромки темнее: грунт «врастает» в землю
       return smooth(0, 0.6, f);
     };
 
@@ -204,21 +226,21 @@ export function Road({ roads, size }: RoadProps) {
     });
     // колея: две тонкие тёмные полосы вдоль дороги, затухают у ворот
     const rut = (x: number, z: number) => {
-      const mask = smooth(PLOT + 1.6, PLOT + 4.5, x) * smooth(0.4, 0.9, fieldAt(road, x, z));
-      const a = 1 - Math.min(Math.abs(z - 0.36), Math.abs(z + 0.36)) / 0.075;
+      const mask = smooth(PLOT + 1.0, PLOT + 3.0, x) * smooth(0.4, 0.9, fieldAt(road, x, z));
+      const a = 1 - Math.min(Math.abs(z - 0.36), Math.abs(z + 0.36)) / 0.1;
       return Math.max(a, 0) * mask * (0.7 + 0.3 * noise(x * 0.8, 0));
     };
     const ruts = buildField({
       prims: road,
-      x: [PLOT + 1.6, ROAD_END],
+      x: [PLOT + 1.0, ROAD_END],
       z: [-0.6, 0.6 + 1e-6],
       stepX: 0.4,
-      stepZ: 0.025,
+      stepZ: 0.03,
       value: rut,
       y: () => baseY(PLOT + 6) + 0.003,
       color: (_x, _z, f, out) => {
-        out.setRGB(0.5, 0.36, 0.26);
-        return 0.55 * f;
+        out.setRGB(0.3, 0.19, 0.13);
+        return 0.7 * f;
       },
     });
 
@@ -257,7 +279,7 @@ export function Road({ roads, size }: RoadProps) {
       d.scale.set(p.s, p.s * 0.5, p.s);
       d.updateMatrix();
       peb.current.setMatrixAt(i, d.matrix);
-      peb.current.setColorAt(i, col.set(p.c));
+      peb.current.setColorAt(i, col.set(p.c).multiplyScalar(0.8));
     });
     peb.current.instanceMatrix.needsUpdate = true;
     if (peb.current.instanceColor) peb.current.instanceColor.needsUpdate = true;
