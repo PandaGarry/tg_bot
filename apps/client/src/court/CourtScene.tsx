@@ -44,6 +44,77 @@ const C = {
   smoke: "#efe9dd",
 } as const;
 
+type SurfaceKind = "wood" | "soil" | "stone" | "snow";
+type SurfaceMaps = { color: THREE.DataTexture; bump: THREE.DataTexture };
+
+/** Deterministic procedural maps add grain and surface relief without adding scene props. */
+function makeSurfaceMaps(kind: SurfaceKind, seed: number): SurfaceMaps {
+  const size = 128;
+  const colorData = new Uint8Array(size * size * 4);
+  const bumpData = new Uint8Array(size * size * 4);
+  const random = rng(seed);
+  const tint: Record<SurfaceKind, [number, number, number]> = {
+    wood: [1, 0.96, 0.89],
+    soil: [1, 0.94, 0.84],
+    stone: [0.97, 0.985, 1],
+    snow: [0.96, 0.985, 1],
+  };
+
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      let structure: number;
+      if (kind === "wood") {
+        structure = Math.sin((x + Math.sin(y * 0.08) * 3) * 0.42) + Math.sin(y * 0.11 + x * 0.025) * 0.3;
+      } else if (kind === "stone") {
+        structure = Math.sin(x * 0.13 + Math.sin(y * 0.09) * 2.1) + Math.cos(y * 0.17 + x * 0.035);
+      } else if (kind === "soil") {
+        structure = Math.sin(x * 0.09 + Math.sin(y * 0.07) * 1.7) + Math.cos(y * 0.12 - x * 0.04);
+      } else {
+        structure = Math.sin(x * 0.14 + Math.cos(y * 0.11) * 1.3) + Math.cos(y * 0.16 + x * 0.03);
+      }
+      const noise = random() - 0.5;
+      const amount = kind === "wood" ? 0.034 : kind === "snow" ? 0.022 : 0.038;
+      const shade = THREE.MathUtils.clamp(0.96 + structure * amount + noise * (kind === "snow" ? 0.016 : 0.026), 0.87, 1);
+      const reliefScale = kind === "wood" ? 36 : kind === "stone" ? 30 : kind === "soil" ? 28 : 16;
+      const relief = THREE.MathUtils.clamp(128 + structure * reliefScale + noise * 34, 72, 184);
+      const index = (y * size + x) * 4;
+      colorData[index] = Math.round(255 * shade * tint[kind][0]);
+      colorData[index + 1] = Math.round(255 * shade * tint[kind][1]);
+      colorData[index + 2] = Math.round(255 * shade * tint[kind][2]);
+      colorData[index + 3] = 255;
+      bumpData[index] = relief;
+      bumpData[index + 1] = relief;
+      bumpData[index + 2] = relief;
+      bumpData[index + 3] = 255;
+    }
+  }
+
+  const color = new THREE.DataTexture(colorData, size, size, THREE.RGBAFormat);
+  color.colorSpace = THREE.SRGBColorSpace;
+  color.wrapS = color.wrapT = THREE.RepeatWrapping;
+  color.magFilter = THREE.LinearFilter;
+  color.minFilter = THREE.LinearMipmapLinearFilter;
+  color.generateMipmaps = true;
+  color.anisotropy = 4;
+  color.needsUpdate = true;
+
+  const bump = new THREE.DataTexture(bumpData, size, size, THREE.RGBAFormat);
+  bump.wrapS = bump.wrapT = THREE.RepeatWrapping;
+  bump.magFilter = THREE.LinearFilter;
+  bump.minFilter = THREE.LinearMipmapLinearFilter;
+  bump.generateMipmaps = true;
+  bump.anisotropy = 4;
+  bump.needsUpdate = true;
+  return { color, bump };
+}
+
+const SURFACE = {
+  wood: makeSurfaceMaps("wood", 161),
+  soil: makeSurfaceMaps("soil", 411),
+  stone: makeSurfaceMaps("stone", 731),
+  snow: makeSurfaceMaps("snow", 919),
+} satisfies Record<SurfaceKind, SurfaceMaps>;
+
 /** Детерминированный генератор: раскладка одинакова между кадрами и устройствами. */
 function rng(seed: number): () => number {
   let a = seed >>> 0;
@@ -250,23 +321,23 @@ function Ground({ grid }: { grid: CourtGridLite | null }) {
     <group>
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
         <planeGeometry args={[120, 120]} />
-        <meshStandardMaterial color={C.snowOuter} roughness={1} />
+        <meshStandardMaterial color={C.snowOuter} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.012} roughness={0.96} />
       </mesh>
       <mesh receiveShadow castShadow>
         <boxGeometry args={[PLOT * 2 + 0.4, 0.16, PLOT * 2 + 0.4]} />
-        <meshStandardMaterial color={C.dirt} roughness={1} />
+        <meshStandardMaterial color={C.dirt} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.04} roughness={0.95} />
       </mesh>
       {patches.map((p, i) => (
         <mesh key={i} geometry={p.geom} rotation-x={-Math.PI / 2} rotation-z={p.rot} position={[p.x, 0.14, p.z]} receiveShadow>
           {/* двухтонный снег: пятна чуть различаются оттенком — фактура вместо плоскости */}
-          <meshStandardMaterial color={i % 2 ? C.snowPatch : "#eae1cd"} roughness={1} />
+          <meshStandardMaterial color={i % 2 ? C.snowPatch : "#eae1cd"} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.014} roughness={0.96} />
         </mesh>
       ))}
       {/* сугробы-валики у края площадки */}
       {drifts.map((d, i) => (
         <mesh key={`d${i}`} position={[d.x, 0.1, d.z]} rotation-y={d.rot} scale={[d.s, 0.3, d.s * 0.7]} castShadow receiveShadow>
           <sphereGeometry args={[0.8, 10, 8]} />
-          <meshStandardMaterial color={C.snowPatch} roughness={1} flatShading />
+          <meshStandardMaterial color={C.snowPatch} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.014} roughness={0.96} flatShading />
         </mesh>
       ))}
       {/* мелкая фактура земли: камешки и жухлая трава — площадка не «пластиковая» */}
@@ -423,7 +494,7 @@ function RoadTiles({ roads, size }: { roads: { x: number; z: number }[]; size: n
   );
 }
 
-/** Ворота двора: башни-срубы, закрытые створы с крестом нашивок, крыша, фонарь. */
+/** Ворота двора: башни-срубы, распахнутые полотна створ, крыша и фонарь. */
 function Gatehouse() {
   return (
     <group>
@@ -432,11 +503,11 @@ function Gatehouse() {
         <group key={s} position={[7.7, 0, s * 1.66]}>
           <mesh position-y={1.15} castShadow receiveShadow>
             <boxGeometry args={[0.64, 2.3, 0.64]} />
-            <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           <mesh position-y={2.34} castShadow>
             <boxGeometry args={[0.74, 0.1, 0.74]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           <mesh position={[0.34, 1.45, 0]} castShadow>
             <boxGeometry args={[0.06, 0.34, 0.16]} />
@@ -444,31 +515,27 @@ function Gatehouse() {
           </mesh>
           <mesh position-y={2.78} rotation-y={Math.PI / 4} castShadow>
             <coneGeometry args={[0.56, 0.56, 4]} />
-            <meshStandardMaterial color={C.roof} roughness={0.85} flatShading />
+            <meshStandardMaterial color={C.roof} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.85} flatShading />
           </mesh>
           <mesh position-y={3.1} rotation-y={Math.PI / 4} castShadow>
             <coneGeometry args={[0.26, 0.18, 4]} />
-            <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+            <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
           </mesh>
         </group>
       ))}
-      {/* створы распахнуты к башням: полотно на петле, проход по центру свободен */}
+      {/* створы остаются распахнутыми: полотна, стойки и кольца на месте; сняты только две поперечины */}
       {[-1, 1].map((s) => (
         <group key={`leaf${s}`} position={[7.66, 0, s * 1.3]} rotation-y={s * 1.4}>
           <mesh position={[0, 0.82, s * 0.65]} castShadow receiveShadow>
             <boxGeometry args={[0.12, 1.6, 1.3]} />
-            <meshStandardMaterial color="#5d4229" roughness={0.95} flatShading />
+            <meshStandardMaterial color="#5d4229" map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.02} roughness={0.9} flatShading />
           </mesh>
           {[0.22, 1.08].map((z) => (
             <mesh key={z} position={[0.035, 0.82, s * (0.65 - z)]} castShadow>
               <boxGeometry args={[0.07, 1.66, 0.11]} />
-              <meshStandardMaterial color={C.beam} roughness={0.9} />
+              <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
             </mesh>
           ))}
-          <mesh position={[0.08, 1.06, s * 0.65]} rotation-y={Math.PI / 2}>
-            <boxGeometry args={[0.02, 0.09, 1.24]} />
-            <meshStandardMaterial color="#3d2c1a" roughness={0.8} metalness={0.25} />
-          </mesh>
           <mesh position={[0.1, 0.86, s * 0.62]} rotation-y={Math.PI / 2}>
             <torusGeometry args={[0.08, 0.02, 6, 14]} />
             <meshStandardMaterial color="#f0c866" metalness={0.55} roughness={0.35} />
@@ -478,34 +545,34 @@ function Gatehouse() {
       {/* перемычка между башнями и ступенчатый фронтон: над проездом не нависает */}
       <mesh position={[7.7, 2.52, 0]} castShadow>
         <boxGeometry args={[0.72, 0.26, 2.68]} />
-        <meshStandardMaterial color={C.logTip} roughness={0.95} />
+        <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
       </mesh>
       <mesh position={[7.7, 2.78, 0]} castShadow>
         <boxGeometry args={[0.66, 0.24, 2.6]} />
-        <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
       </mesh>
       <mesh position={[7.7, 3.02, 0]} castShadow>
         <boxGeometry args={[0.56, 0.22, 2.2]} />
-        <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
       </mesh>
       <mesh position={[7.7, 3.24, 0]} castShadow>
         <boxGeometry args={[0.44, 0.2, 1.8]} />
-        <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
       </mesh>
       <mesh position={[7.7, 3.36, 0]}>
         <boxGeometry args={[0.3, 0.06, 1.66]} />
-        <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+        <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
       </mesh>
       {/* фонарь под перемычкой — тёплая точка у входа */}
       <group position={[7.4, 0, 0]}>
         <mesh position={[0.09, 2.34, 0]}>
           <boxGeometry args={[0.18, 0.05, 0.05]} />
-          <meshStandardMaterial color={C.beam} roughness={0.9} />
+          <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
         </mesh>
         <LanternFlame y={2.2} />
         <mesh position-y={2.36}>
           <coneGeometry args={[0.13, 0.1, 4]} />
-          <meshStandardMaterial color={C.beam} roughness={0.9} flatShading />
+          <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} flatShading />
         </mesh>
       </group>
     </group>
@@ -550,11 +617,11 @@ function Palisade() {
     <group>
       <instancedMesh ref={body} args={[undefined, undefined, logs.length]} castShadow receiveShadow>
         <cylinderGeometry args={[0.085, 0.115, 0.8, 6]} />
-        <meshStandardMaterial color={C.log} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.log} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
       </instancedMesh>
       <instancedMesh ref={caps} args={[undefined, undefined, logs.length]} castShadow>
         <coneGeometry args={[0.115, 0.2, 6]} />
-        <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
       </instancedMesh>
       {/* горизонтальные прожилины: ограда читается частоколом, а не частыми гвоздями */}
       {[-PLOT, PLOT].map((edge) => (
@@ -562,13 +629,13 @@ function Palisade() {
           {[0.32, 0.56].map((h) => (
             <mesh key={h} position={[0, h, edge]} castShadow>
               <boxGeometry args={[PLOT * 2, 0.05, 0.07]} />
-              <meshStandardMaterial color={C.logTip} roughness={0.95} />
+              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
             </mesh>
           ))}
           {[0.32, 0.56].map((h) => (
             <mesh key={`z${h}`} position={[edge, h, 0]} castShadow>
               <boxGeometry args={[0.07, 0.05, PLOT * 2]} />
-              <meshStandardMaterial color={C.logTip} roughness={0.95} />
+              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
             </mesh>
           ))}
         </group>
@@ -585,17 +652,17 @@ function Palisade() {
         <group key={`c${i}`} position={[cx!, 0, cz!]}>
           <mesh position-y={0.62} castShadow>
             <cylinderGeometry args={[0.13, 0.16, 1.15, 7]} />
-            <meshStandardMaterial color={C.gate} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           {[-1, 1].map((s) => (
             <mesh key={s} position={[s * 0.16, 0.5, -s * 0.16]} castShadow>
               <cylinderGeometry args={[0.085, 0.1, 0.9, 6]} />
-              <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
             </mesh>
           ))}
           <mesh position-y={1.28} castShadow>
             <coneGeometry args={[0.18, 0.26, 7]} />
-            <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+            <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
           </mesh>
         </group>
       ))}
@@ -622,7 +689,7 @@ function RoofBanner({ y = 3.55, s = 1 }: { y?: number; s?: number }) {
     <group position={[0, y, 0]} scale={s}>
       <mesh position-y={0.35} castShadow>
         <cylinderGeometry args={[0.03, 0.03, 0.8, 6]} />
-        <meshStandardMaterial color={C.beam} roughness={0.9} />
+        <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
       </mesh>
       <mesh ref={flag} position={[0.33, 0.52, 0]}>
         <planeGeometry args={[0.56, 0.34, 8, 1]} />
@@ -672,7 +739,7 @@ function Windmill({ x, z }: { x: number; z: number }) {
     <group position={[x, 0, z]}>
       <mesh position-y={0.48} castShadow>
         <cylinderGeometry args={[0.045, 0.06, 0.96, 6]} />
-        <meshStandardMaterial color={C.beam} roughness={0.9} />
+        <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
       </mesh>
       <group position-y={1.02} rotation-y={Math.PI / 2}>
         <group ref={rotor}>
@@ -684,7 +751,7 @@ function Windmill({ x, z }: { x: number; z: number }) {
           ))}
           <mesh>
             <sphereGeometry args={[0.06, 8, 8]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
         </group>
       </group>
@@ -710,7 +777,7 @@ function SawBlade({ x, y, z }: { x: number; y: number; z: number }) {
       </group>
       <mesh rotation-x={Math.PI / 2}>
         <cylinderGeometry args={[0.045, 0.045, 0.035, 8]} />
-        <meshStandardMaterial color={C.beam} roughness={0.6} metalness={0.3} />
+          <meshStandardMaterial color="#554637" metalness={0.45} roughness={0.48} />
       </mesh>
     </group>
   );
@@ -732,7 +799,7 @@ function Bucket({ x, y, z }: { x: number; y: number; z: number }) {
         </mesh>
         <mesh position-y={-0.4} castShadow>
           <boxGeometry args={[0.15, 0.13, 0.15]} />
-          <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+          <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
         </mesh>
       </group>
     </group>
@@ -810,7 +877,7 @@ function CornerBeams({ y, size, hgt }: { y: number; size: number; hgt: number })
       ].map(([bx, bz], i) => (
         <mesh key={i} position={[bx!, y, bz!]} castShadow>
           <boxGeometry args={[0.09, hgt, 0.09]} />
-          <meshStandardMaterial color={C.beam} roughness={0.95} />
+          <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.95} />
         </mesh>
       ))}
     </>
@@ -822,7 +889,7 @@ function RoofSnow({ y, r }: { y: number; r: number }) {
   return (
     <mesh position-y={y} rotation-y={Math.PI / 4} castShadow>
       <coneGeometry args={[r, r * 0.5, 4]} />
-      <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+      <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
     </mesh>
   );
 }
@@ -836,11 +903,11 @@ function BuildingBody({ type }: { type: string }) {
           <Pad />
           <mesh position-y={0.18} castShadow receiveShadow>
             <boxGeometry args={[1.5, 0.2, 1.5]} />
-            <meshStandardMaterial color={C.stone} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.95} flatShading />
           </mesh>
           <mesh position-y={0.67} castShadow receiveShadow>
             <boxGeometry args={[1.36, 0.78, 1.36]} />
-            <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
           </mesh>
           <CornerBeams y={0.67} size={1.38} hgt={0.8} />
           {/* дверь с рамой и окно с цветником */}
@@ -875,12 +942,12 @@ function BuildingBody({ type }: { type: string }) {
           {/* крыша со снегом и каменная труба */}
           <mesh position-y={1.39} rotation-y={Math.PI / 4} castShadow>
             <coneGeometry args={[1.1, 0.62, 4]} />
-            <meshStandardMaterial color={C.roof} roughness={0.85} flatShading />
+            <meshStandardMaterial color={C.roof} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.85} flatShading />
           </mesh>
           <RoofSnow y={1.72} r={0.5} />
           <mesh position={[0.52, 1.15, -0.3]} castShadow>
             <boxGeometry args={[0.2, 0.6, 0.2]} />
-            <meshStandardMaterial color={C.stone} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.95} flatShading />
           </mesh>
           <mesh position={[0.52, 1.48, -0.3]}>
             <boxGeometry args={[0.26, 0.06, 0.26]} />
@@ -891,7 +958,7 @@ function BuildingBody({ type }: { type: string }) {
           {[0, 1, 2].map((i) => (
             <mesh key={i} position={[-0.56, 0.13 + (i === 2 ? 0.12 : 0), 0.5 + (i === 2 ? -0.09 : i * 0.14)]} rotation-z={Math.PI / 2} castShadow>
               <cylinderGeometry args={[0.055, 0.055, 0.44, 7]} />
-              <meshStandardMaterial color={i % 2 ? C.log : C.logTip} roughness={0.95} flatShading />
+              <meshStandardMaterial color={i % 2 ? C.log : C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.9} flatShading />
             </mesh>
           ))}
         </group>
@@ -917,7 +984,7 @@ function BuildingBody({ type }: { type: string }) {
           <group position={[-0.52, 0, -0.5]}>
             <mesh position-y={0.32} castShadow receiveShadow>
               <boxGeometry args={[0.74, 0.52, 0.64]} />
-              <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+              <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
             </mesh>
             <mesh position-y={0.75} rotation-y={Math.PI / 4} castShadow>
               <coneGeometry args={[0.62, 0.34, 4]} />
@@ -934,12 +1001,12 @@ function BuildingBody({ type }: { type: string }) {
           {[-0.72, -0.24, 0.24, 0.72].map((fx) => (
             <mesh key={`f${fx}`} position={[fx, 0.16, 0.9]} castShadow>
               <boxGeometry args={[0.05, 0.22, 0.05]} />
-              <meshStandardMaterial color={C.logTip} roughness={0.95} />
+              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
             </mesh>
           ))}
           <mesh position={[0, 0.24, 0.9]}>
             <boxGeometry args={[1.66, 0.03, 0.035]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
           </mesh>
         </group>
       );
@@ -951,12 +1018,12 @@ function BuildingBody({ type }: { type: string }) {
           <group position={[-0.33, 0, -0.28]}>
             <mesh position-y={0.39} castShadow receiveShadow>
               <boxGeometry args={[1.05, 0.66, 0.95]} />
-              <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+              <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
             </mesh>
             <CornerBeams y={0.39} size={1.07} hgt={0.68} />
             <mesh position-y={0.99} rotation-y={Math.PI / 4} castShadow>
               <coneGeometry args={[0.92, 0.42, 4]} />
-              <meshStandardMaterial color={C.roof} roughness={0.85} flatShading />
+              <meshStandardMaterial color={C.roof} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.85} flatShading />
             </mesh>
             <RoofSnow y={1.24} r={0.4} />
           </group>
@@ -965,13 +1032,13 @@ function BuildingBody({ type }: { type: string }) {
           {[0, 1, 2].map((i) => (
             <mesh key={`l${i}`} position={[0.62, 0.1, -0.18 + i * 0.2]} rotation-x={Math.PI / 2} castShadow>
               <cylinderGeometry args={[0.09, 0.09, 0.56, 7]} />
-              <meshStandardMaterial color={i % 2 ? C.log : C.logTip} roughness={0.95} flatShading />
+              <meshStandardMaterial color={i % 2 ? C.log : C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.9} flatShading />
             </mesh>
           ))}
           {[0, 1].map((i) => (
             <mesh key={`t${i}`} position={[0.62, 0.26, -0.08 + i * 0.2]} rotation-x={Math.PI / 2} castShadow>
               <cylinderGeometry args={[0.09, 0.09, 0.56, 7]} />
-              <meshStandardMaterial color={C.log} roughness={0.95} flatShading />
+              <meshStandardMaterial color={C.log} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
             </mesh>
           ))}
           {/* свежие доски у сарая */}
@@ -996,7 +1063,7 @@ function BuildingBody({ type }: { type: string }) {
           </mesh>
           <mesh position={[0.32, 0.2, -0.4]} rotation-y={0.8} castShadow>
             <dodecahedronGeometry args={[0.3, 0]} />
-            <meshStandardMaterial color={C.rock} roughness={1} flatShading />
+            <meshStandardMaterial color={C.rock} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.03} roughness={1} flatShading />
           </mesh>
           <mesh position={[0.02, 0.17, 0.12]} rotation-y={1.9} castShadow>
             <dodecahedronGeometry args={[0.26, 0]} />
@@ -1005,15 +1072,15 @@ function BuildingBody({ type }: { type: string }) {
           {/* деревянные вороты: нога, перекладина, верёвка, бадья */}
           <mesh position={[0.42, 0.4, 0.5]} rotation-z={0.28} castShadow>
             <boxGeometry args={[0.05, 0.88, 0.05]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0.68, 0.4, 0.5]} rotation-z={-0.28} castShadow>
             <boxGeometry args={[0.05, 0.88, 0.05]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0.55, 0.8, 0.5]} castShadow>
             <boxGeometry args={[0.36, 0.05, 0.05]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <Bucket x={0.55} y={0.78} z={0.5} />
           {/* блоки ровным штабелем */}
@@ -1041,15 +1108,15 @@ function BuildingBody({ type }: { type: string }) {
           {/* крепь и чёрный провал */}
           <mesh position={[-0.2, 0.26, 0.62]} castShadow>
             <boxGeometry args={[0.09, 0.52, 0.09]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0.2, 0.26, 0.62]} castShadow>
             <boxGeometry args={[0.09, 0.52, 0.09]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0, 0.55, 0.62]} castShadow>
             <boxGeometry args={[0.6, 0.09, 0.09]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0, 0.22, 0.63]}>
             <boxGeometry args={[0.36, 0.42, 0.05]} />
@@ -1071,12 +1138,12 @@ function BuildingBody({ type }: { type: string }) {
           <group position={[0, 0.16, 0.34]}>
             <mesh castShadow>
               <boxGeometry args={[0.26, 0.16, 0.19]} />
-              <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
             </mesh>
             {[[-0.1, -0.07], [0.1, -0.07], [-0.1, 0.07], [0.1, 0.07]].map(([wx, wz], i) => (
               <mesh key={i} position={[wx!, -0.09, wz!]} rotation-z={Math.PI / 2}>
                 <cylinderGeometry args={[0.04, 0.04, 0.02, 8]} />
-                <meshStandardMaterial color={C.beam} roughness={0.9} />
+                <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
               </mesh>
             ))}
             <mesh position={[0, 0.1, 0]} castShadow>
@@ -1097,7 +1164,7 @@ function BuildingBody({ type }: { type: string }) {
           </mesh>
           <mesh position-y={0.64} castShadow receiveShadow>
             <boxGeometry args={[1.36, 0.6, 0.98]} />
-            <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
           </mesh>
           <CornerBeams y={0.64} size={1.38} hgt={0.62} />
           <mesh position-y={1.24} rotation-y={Math.PI / 4} castShadow>
@@ -1125,7 +1192,7 @@ function BuildingBody({ type }: { type: string }) {
           {[-0.04, 0.04].map((ox) => (
             <mesh key={ox} position={[0.66 + ox, 0.44, 0.44 - Math.abs(ox)]} rotation-z={0.12 + (ox < 0 ? -0.05 : 0.05)} castShadow>
               <cylinderGeometry args={[0.018, 0.018, 0.8, 6]} />
-              <meshStandardMaterial color={C.beam} roughness={0.9} />
+              <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
             </mesh>
           ))}
           {[-0.04, 0.04].map((ox) => (
@@ -1147,7 +1214,7 @@ function BuildingBody({ type }: { type: string }) {
           <Pad w={1.8} h={1.8} />
           <mesh position-y={0.17} castShadow receiveShadow>
             <cylinderGeometry args={[0.44, 0.5, 0.34, 9]} />
-            <meshStandardMaterial color={C.stone} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.95} flatShading />
           </mesh>
           <mesh position-y={0.35}>
             <cylinderGeometry args={[0.37, 0.37, 0.03, 9]} />
@@ -1162,19 +1229,19 @@ function BuildingBody({ type }: { type: string }) {
           {/* ворот */}
           <mesh position={[-0.3, 0.5, 0]} rotation-z={0.34} castShadow>
             <boxGeometry args={[0.06, 1.0, 0.06]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0.3, 0.5, 0]} rotation-z={-0.34} castShadow>
             <boxGeometry args={[0.06, 1.0, 0.06]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0, 0.86, 0]} rotation-z={Math.PI / 2} castShadow>
             <cylinderGeometry args={[0.055, 0.055, 0.56, 8]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           <mesh position={[0.32, 0.86, 0.07]} rotation-x={Math.PI / 2}>
             <cylinderGeometry args={[0.018, 0.018, 0.14, 6]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <mesh position={[0, 0.66, 0]}>
             <cylinderGeometry args={[0.009, 0.009, 0.34, 5]} />
@@ -1182,11 +1249,11 @@ function BuildingBody({ type }: { type: string }) {
           </mesh>
           <mesh position={[0, 0.45, 0]} castShadow>
             <boxGeometry args={[0.13, 0.12, 0.13]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           <mesh position-y={1.24} rotation-y={Math.PI / 4} castShadow>
             <coneGeometry args={[0.62, 0.36, 4]} />
-            <meshStandardMaterial color={C.roof} roughness={0.85} flatShading />
+            <meshStandardMaterial color={C.roof} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.85} flatShading />
           </mesh>
           <RoofSnow y={1.46} r={0.27} />
         </group>
@@ -1198,21 +1265,21 @@ function BuildingBody({ type }: { type: string }) {
           <Pad w={1.86} h={0.86} />
           <mesh position-y={0.3} castShadow receiveShadow>
             <boxGeometry args={[1.0, 0.06, 0.32]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           <mesh position={[0, 0.47, -0.15]} rotation-x={-0.12} castShadow>
             <boxGeometry args={[1.0, 0.28, 0.05]} />
-            <meshStandardMaterial color={C.logTip} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
           </mesh>
           {[-0.46, 0.46].map((bx) => (
             <group key={bx} position={[bx, 0, 0]}>
               <mesh position-y={0.14} castShadow>
                 <boxGeometry args={[0.06, 0.28, 0.3]} />
-                <meshStandardMaterial color={C.beam} roughness={0.9} />
+                <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
               </mesh>
               <mesh position-y={0.42} castShadow>
                 <boxGeometry args={[0.06, 0.05, 0.3]} />
-                <meshStandardMaterial color={C.beam} roughness={0.9} />
+                <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
               </mesh>
             </group>
           ))}
@@ -1224,7 +1291,7 @@ function BuildingBody({ type }: { type: string }) {
         <group>
           <mesh position-y={0.05} castShadow receiveShadow>
             <cylinderGeometry args={[0.17, 0.2, 0.1, 8]} />
-            <meshStandardMaterial color={C.stone} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.95} flatShading />
           </mesh>
           {[0, 1, 2].map((i) => (
             <mesh key={i} position={[Math.cos((i / 3) * Math.PI * 2 + 0.5) * 0.26, 0.05, Math.sin((i / 3) * Math.PI * 2 + 0.5) * 0.26]} rotation-y={i} castShadow>
@@ -1234,12 +1301,12 @@ function BuildingBody({ type }: { type: string }) {
           ))}
           <mesh position-y={0.47} castShadow>
             <cylinderGeometry args={[0.035, 0.05, 0.74, 6]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
           </mesh>
           <LanternFlame y={0.95} />
           <mesh position-y={1.12}>
             <coneGeometry args={[0.15, 0.12, 4]} />
-            <meshStandardMaterial color={C.beam} roughness={0.9} flatShading />
+            <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} flatShading />
           </mesh>
         </group>
       );
@@ -1249,7 +1316,7 @@ function BuildingBody({ type }: { type: string }) {
         <group>
           <mesh position-y={0.05} castShadow receiveShadow>
             <cylinderGeometry args={[0.16, 0.19, 0.1, 8]} />
-            <meshStandardMaterial color={C.stone} roughness={0.95} flatShading />
+            <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.95} flatShading />
           </mesh>
           <RoofBannerSmall />
         </group>
@@ -1277,7 +1344,7 @@ function RoofBannerSmall() {
     <group>
       <mesh position-y={0.5} castShadow>
         <cylinderGeometry args={[0.028, 0.035, 1.0, 6]} />
-        <meshStandardMaterial color={C.beam} roughness={0.9} />
+        <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
       </mesh>
       <mesh ref={flag} position={[0.26, 0.82, 0]}>
         <planeGeometry args={[0.44, 0.28, 8, 1]} />
@@ -1561,7 +1628,7 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       {/* первый этаж — тёплый камень со светлыми угловыми квадрами */}
       <mesh position-y={0.95} castShadow receiveShadow>
         <boxGeometry args={[2.5, 1.2, 2.5]} />
-        <meshStandardMaterial color={C.stone} roughness={0.9} flatShading />
+        <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.9} flatShading />
       </mesh>
       {[
         [-1.12, -1.12],
@@ -1598,11 +1665,11 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       {/* второй этаж — дерево, карниз со снегом */}
       <mesh position-y={1.92} castShadow receiveShadow>
         <boxGeometry args={[2.1, 0.86, 2.1]} />
-        <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+        <meshStandardMaterial color={C.wall} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.028} roughness={0.95} flatShading />
       </mesh>
       <mesh position-y={2.4} castShadow>
         <boxGeometry args={[2.26, 0.12, 2.26]} />
-        <meshStandardMaterial color={C.beam} roughness={0.9} flatShading />
+        <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} flatShading />
       </mesh>
       <mesh position-y={2.5}>
         <boxGeometry args={[2.3, 0.07, 2.3]} />
@@ -1650,7 +1717,7 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       </mesh>
       <mesh position-y={4.33} rotation-y={Math.PI / 4}>
         <coneGeometry args={[0.62, 0.34, 4]} />
-        <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+        <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
       </mesh>
       <mesh position-y={4.8}>
         <coneGeometry args={[0.09, 0.34, 6]} />
@@ -1661,7 +1728,7 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       {/* труба с дымом */}
       <mesh position={[0.85, 2.6, -0.75]} castShadow>
         <boxGeometry args={[0.3, 0.7, 0.3]} />
-        <meshStandardMaterial color={C.stone} roughness={0.9} flatShading />
+        <meshStandardMaterial color={C.stone} map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.024} roughness={0.9} flatShading />
       </mesh>
       {Array.from({ length: 6 }, (_, i) => (
         <mesh key={i} ref={(m) => { smoke.current[i] = m; }}>
@@ -1884,17 +1951,18 @@ export function CourtScene({
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.12;
+          gl.toneMappingExposure = 1.04;
+          gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
         // near/far сжаты ради точности depth-буфера на мобильных (круг 9)
         camera={{ fov: 40, near: 2, far: 140, position: [17, 16, 17] }}
       >
         <color attach="background" args={[C.sky]} />
         <fog attach="fog" args={[C.fogFar, 42, 100]} />
-        <hemisphereLight args={["#e8f0fa", "#a08a6c", 0.9]} />
+        <hemisphereLight args={["#e8f0fa", "#998064", 0.72]} />
         <directionalLight
-          color="#ffd9a0"
-          intensity={2.0}
+          color="#ffe0b1"
+          intensity={2.25}
           position={[16, 22, 8]}
           castShadow
           shadow-mapSize={[2048, 2048]}
@@ -1904,7 +1972,9 @@ export function CourtScene({
           shadow-camera-bottom={-24}
           shadow-bias={-0.0004}
           shadow-normalBias={0.02}
+          shadow-radius={2}
         />
+        <directionalLight color="#c4d8eb" intensity={0.24} position={[-12, 10, -14]} />
         <CameraRig />
         <Ground grid={grid} />
         <RoadTiles roads={grid?.roads ?? []} size={grid?.size ?? 14} />

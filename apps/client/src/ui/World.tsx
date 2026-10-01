@@ -15,6 +15,7 @@ import { addChronicle, hasChronicle } from "../shell/chronicle.js";
 import { CourtScene } from "../court/CourtScene.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
+import { ResourceStrip } from "./ResourceStrip.js";
 import "../hud.css";
 import { Diagnostics } from "./Diagnostics.js";
 
@@ -157,7 +158,13 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
       {route !== "court" ? (
         <>
       <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/95 pt-[env(safe-area-inset-top)]">
-        <Slot slot={"hud.resources" as SlotId} view={view} lang={lang} serverNow={serverNow} empty={<ResourceBar view={view} lang={lang} />} />
+        <Slot
+          slot={"hud.resources" as SlotId}
+          view={view}
+          lang={lang}
+          serverNow={serverNow}
+          empty={<ResourceStrip stock={view.stock ?? {}} lang={lang} className="resourcebar" />}
+        />
       </header>
 
       <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2 overflow-y-auto p-3 pb-28">
@@ -283,28 +290,6 @@ function CourtTape({ lang }: { lang: Locale }) {
       >
         {t("shell.tape.ok")}
       </button>
-    </div>
-  );
-}
-
-function ResourceBar({ view, lang }: { view: WorldViewBase; lang: Locale }) {
-  const labels = translator(lang);
-  const names: Record<string, string> = {
-    meat: "shell.hud.meat",
-    wood: "shell.hud.wood",
-    stone: "shell.hud.stone",
-    metal: "shell.hud.metal",
-    mushrooms: "shell.hud.mushrooms",
-  };
-  const entries = Object.entries(view.stock ?? {});
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-wrap gap-x-3 gap-y-1 px-3 py-2 text-xs">
-      {entries.length === 0 ? <span className="text-stone-500">склад пуст</span> : null}
-      {entries.map(([id, amount]) => (
-        <span key={id} className="text-stone-400">
-          {names[id] ? labels(names[id] as string) : id}: <span className="font-mono text-bone">{amount}</span>
-        </span>
-      ))}
     </div>
   );
 }

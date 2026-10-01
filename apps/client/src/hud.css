@@ -31,17 +31,39 @@
   left: 8px;
   right: 8px;
   top: calc(6px + env(safe-area-inset-top));
-  z-index: 20;
+  z-index: 40;
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+  align-items: stretch;
+}
+
+@media (orientation: landscape) {
+  .hud-top {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hud-top .hud-lord {
+    flex: 0 0 auto;
+  }
+
+  .hud-top > .hud-res {
+    flex: 1 1 0;
+    width: auto;
+    margin-left: auto;
+  }
 }
 
 .hud-lord {
   flex: 0 1 auto;
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 40px minmax(0, 1fr);
   gap: 7px;
   align-items: center;
   padding: 3px 10px 3px 3px;
@@ -188,53 +210,111 @@
   height: 13px;
 }
 
-/* ---------- ресурсы (раунд 7): компактная сетка 2х3 из костяных пилюль
-   «иконка + число» — при любых числах не шире экрана, профиль не трогает ---------- */
+/* ---------- ресурсы: шесть значков в одной прозрачной строке.
+   В портрете строка идёт под карточкой лорда; в ширину — справа от неё. ---------- */
 .hud-res {
-  margin-left: auto;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, auto));
-  gap: 4px 5px;
-  align-content: start;
-  justify-items: start;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: center;
+  gap: 3px;
+  width: 100%;
   min-width: 0;
+  margin: 0;
 }
 
 .hud-res .chip {
+  position: relative;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px 2px 3px;
-  /* тёмная пилюля: число светлое, иконка контрастна */
-  background: linear-gradient(180deg, rgba(70, 46, 26, 0.92), rgba(36, 20, 8, 0.95));
-  border: 1.5px solid rgba(239, 227, 198, 0.42);
-  border-radius: 999px;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 2px 1px;
+  appearance: none;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
   color: var(--hud-white);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.hud-res .chip .ic {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
+.hud-res .chip:focus-visible {
+  outline: 1px solid rgba(239, 227, 198, 0.72);
+  outline-offset: 1px;
+}
+
+.hud-res .ic-frame {
+  display: grid;
+  place-items: center;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  padding: 1px;
+  border: 1px solid rgba(239, 227, 198, 0.52);
+  border-radius: 5px;
+  background: transparent;
+}
+
+.hud-res .ic-frame .hud-ic {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.72));
 }
 
 .hud-res .chip b {
-  font-size: 10.5px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hud-white);
+  font-size: 9.5px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-overflow: clip;
 }
 
-/* золото — премиум-валюта: золотая пилюля */
-.hud-res .chip-gold {
-  border-color: rgba(224, 176, 74, 0.8);
-  background: linear-gradient(180deg, rgba(98, 64, 20, 0.95), rgba(56, 32, 8, 0.97));
+.hud-res .chip-gold .ic-frame {
+  border-color: rgba(240, 200, 102, 0.85);
 }
 
 .hud-res .chip-gold b {
   color: #f0c866;
+}
+
+.hud-res .exact-value {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  z-index: 45;
+  width: max-content;
+  max-width: min(210px, calc(100vw - 24px));
+  padding: 5px 8px;
+  border: 1px solid rgba(239, 227, 198, 0.42);
+  border-radius: 6px;
+  background: rgba(24, 17, 11, 0.96);
+  color: var(--hud-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hud-res .chip:nth-child(n + 4) .exact-value {
+  right: 0;
+  left: auto;
+}
+
+/* Non-court resource header uses the same fixed six-column strip. */
+.hud-res.resourcebar {
+  width: min(100%, 768px);
+  margin: 0 auto;
+  padding: 4px 12px;
 }
 /* ---------- очереди: строитель, тренировка, исследование ---------- */
 .hud-queues {
@@ -273,11 +353,11 @@
   height: 32px;
 }
 
-/* ---------- левый столбик: «Строить» + очереди, под карточкой лорда (RoK 2.6) ---------- */
+/* ---------- левый столбик: «Строить» + очереди, под верхним HUD в портрете ---------- */
 .hud-rb-row {
   position: fixed;
   left: 8px;
-  top: calc(96px + env(safe-area-inset-top));
+  top: calc(118px + env(safe-area-inset-top));
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -477,14 +557,17 @@
   }
 
   .hud-res {
-    gap: 4px;
+    gap: 1px;
   }
 
   .hud-res .chip {
-    padding: 2px 4px 2px;
+    min-height: 32px;
+    gap: 2px;
+    padding: 0;
   }
 
-  .hud-res .chip .ic {
+  .hud-res .ic-frame {
+    flex-basis: 16px;
     width: 16px;
     height: 16px;
   }
@@ -571,16 +654,21 @@
   }
 
   .hud-res {
-    gap: 6px;
+    gap: 4px;
   }
 
-  .hud-res .chip .ic {
-    width: 22px;
-    height: 22px;
+  .hud-res .chip {
+    min-height: 40px;
+  }
+
+  .hud-res .ic-frame {
+    flex-basis: 21px;
+    width: 21px;
+    height: 21px;
   }
 
   .hud-res .chip b {
-    font-size: 11.5px;
+    font-size: 11px;
   }
 
   .hud-rb {
@@ -671,10 +759,17 @@
   }
 
   .hud-res {
-    gap: 4px;
+    gap: 2px;
   }
 
-  .hud-res .chip .ic {
+  .hud-res .chip {
+    min-height: 32px;
+    gap: 2px;
+    padding: 0;
+  }
+
+  .hud-res .ic-frame {
+    flex-basis: 16px;
     width: 16px;
     height: 16px;
   }

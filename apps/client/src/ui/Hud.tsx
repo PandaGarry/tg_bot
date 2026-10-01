@@ -1,6 +1,6 @@
 /**
  * HUD-хром главного экрана (этап B, круг 8): материалы Bone-Wood №05.
- * Блок лорда и ресурсы сверху, «Строить»/«Карта» слева, вкладки справа.
+ * Блок лорда и ресурсы: столбцом в портрете, одной строкой в ширину; «Строить»/«Карта» слева.
  * Чисел, которых нет в системах, не рисуем: лорд без уровня и силы, пока их не даст шаг 4+.
  */
 
@@ -10,15 +10,7 @@ import { translator } from "../i18n/index.js";
 import { swatch } from "./Create.js";
 import { BuildPanel } from "./BuildPanel.js";
 import { ICON_SRC } from "./iconSrc.js";
-
-const RES_ICONS: Record<string, string> = {
-  meat: "meat",
-  wood: "wood",
-  stone: "stone",
-  metal: "metal",
-  mushrooms: "mushroom",
-  gold: "gold",
-};
+import { ResourceStrip } from "./ResourceStrip.js";
 
 type PanelKind = "build" | "train" | "sci" | "commanders" | "clan" | "items" | "shop" | "mail" | null;
 
@@ -84,18 +76,6 @@ export function Hud({
   const court = (view.modules.court ?? {}) as { level?: number; power?: number };
   const level = Number(court.level ?? 1);
   const power = Number(court.power ?? 0);
-  // Ресурсная строка: пять основных ресурсов игры (материалы HUD, круг 4).
-  // Значения берём со склада сервера; пока модуль двора их не выдаёт — честные нули (круг 11).
-  const stock = view.stock ?? {};
-  const resRow: [string, number][] = [
-    ["meat", stock.meat ?? 0],
-    ["wood", stock.wood ?? 0],
-    ["stone", stock.stone ?? 0],
-    ["metal", stock.metal ?? 0],
-    ["mushrooms", stock.mushrooms ?? 0],
-    ["gold", stock.gold ?? 0],
-  ];
-
   const TITLES: Record<Exclude<PanelKind, null>, string> = {
     build: "shell.hud.build",
     train: "shell.hud.queue.train",
@@ -113,7 +93,7 @@ export function Hud({
     <>
       {/* панель персонажа по прототипу HUD: портрет-ячейка, ник, «Ур.» + полоса опыта, VIP.
           Уровень, опыт и VIP появят системы (этап C/D) — пока вид с честными стартовыми значениями. */}
-      {/* верхняя строка: карточка лорда и ресурсы — flex не даёт им пересечься */}
+      {/* профиль и ресурсы: портрет складывает их, ландшафт ставит рядом */}
       <div className="hud-top">
       {me ? (
         <div className="hud-lord">
@@ -139,17 +119,8 @@ export function Hud({
         </div>
       ) : null}
 
-      {/* ресурсы двора */}
-      <div className="hud-res">
-        {resRow.map(([id, amount]) => (
-          <span className={`chip${id === "gold" ? " chip-gold" : ""}`} key={id}>
-            <span className="ic">
-              <img className="hud-ic" src={`icons/${RES_ICONS[id] ?? "gear"}.png`} alt="" />
-            </span>
-            <b>{fmt(amount)}</b>
-          </span>
-        ))}
-      </div>
+      {/* ресурсы двора: компактные значения, точные — по нажатию */}
+      <ResourceStrip stock={view.stock ?? {}} lang={lang} />
       </div>
 
       {/* левая панель: «Строить» и очереди (карта одна — в нижнем доке, круг 17) */}
