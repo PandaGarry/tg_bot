@@ -59,6 +59,17 @@ function makeSurfaceMaps(kind: SurfaceKind, seed: number): SurfaceMaps {
     stone: [0.97, 0.985, 1],
     snow: [0.96, 0.985, 1],
   };
+  // The first pass was nearly invisible on phones: boost broad grain while
+  // keeping snow softer than wood and soil so the low-poly palette stays clear.
+  const amount: Record<SurfaceKind, number> = {
+    wood: 0.055,
+    soil: 0.06,
+    stone: 0.05,
+    snow: 0.028,
+  };
+  const noiseAmount = kind === "snow" ? 0.034 : 0.05;
+  const baseShade = kind === "snow" ? 0.97 : 0.94;
+  const reliefScale = kind === "wood" ? 48 : kind === "stone" ? 44 : kind === "soil" ? 40 : 26;
 
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
@@ -73,10 +84,8 @@ function makeSurfaceMaps(kind: SurfaceKind, seed: number): SurfaceMaps {
         structure = Math.sin(x * 0.14 + Math.cos(y * 0.11) * 1.3) + Math.cos(y * 0.16 + x * 0.03);
       }
       const noise = random() - 0.5;
-      const amount = kind === "wood" ? 0.034 : kind === "snow" ? 0.022 : 0.038;
-      const shade = THREE.MathUtils.clamp(0.96 + structure * amount + noise * (kind === "snow" ? 0.016 : 0.026), 0.87, 1);
-      const reliefScale = kind === "wood" ? 36 : kind === "stone" ? 30 : kind === "soil" ? 28 : 16;
-      const relief = THREE.MathUtils.clamp(128 + structure * reliefScale + noise * 34, 72, 184);
+      const shade = THREE.MathUtils.clamp(baseShade + structure * amount[kind] + noise * noiseAmount, 0.76, 1);
+      const relief = THREE.MathUtils.clamp(128 + structure * reliefScale + noise * 46, 48, 208);
       const index = (y * size + x) * 4;
       colorData[index] = Math.round(255 * shade * tint[kind][0]);
       colorData[index + 1] = Math.round(255 * shade * tint[kind][1]);
