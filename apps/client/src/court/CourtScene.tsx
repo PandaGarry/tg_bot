@@ -10,130 +10,8 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
-
-const PLOT = 7.7; // половина площадки (14 клеток по 1.1)
-const GATE_HALF = 1.5;
-
-/** Палитра Bone-Wood №05: тёплое дерево, кость, тёплый снег. */
-const C = {
-  sky: "#c3d3da",
-  fogFar: "#c3d3da",
-  snowOuter: "#f7f4ec",
-  snowPatch: "#f3efe4",
-  dirt: "#8a6544",
-  path: "#b08a5c",
-  log: "#6d4a2c",
-  logTip: "#7d5735",
-  gate: "#5d4229",
-  banner: "#d9c9a6",
-  stone: "#a09a8c",
-  wall: "#7b5236",
-  beam: "#4a3320",
-  roof: "#f7f3e8",
-  door: "#352417",
-  window: "#2e2013",
-  frame: "#d9c9a6",
-  fir1: "#2f5540",
-  fir2: "#3a6047",
-  firTip: "#eef3ea",
-  trunk: "#5d4530",
-  rock: "#b9b2a4",
-  wool: "#f1ead9",
-  sheepHead: "#2c2622",
-  flag: "#b3402f",
-  smoke: "#efe9dd",
-} as const;
-
-type SurfaceKind = "wood" | "soil" | "stone" | "snow";
-type SurfaceMaps = { color: THREE.DataTexture; bump: THREE.DataTexture };
-
-/** Deterministic procedural maps add grain and surface relief without adding scene props. */
-function makeSurfaceMaps(kind: SurfaceKind, seed: number): SurfaceMaps {
-  const size = 128;
-  const colorData = new Uint8Array(size * size * 4);
-  const bumpData = new Uint8Array(size * size * 4);
-  const random = rng(seed);
-  const tint: Record<SurfaceKind, [number, number, number]> = {
-    wood: [1, 0.96, 0.89],
-    soil: [1, 0.94, 0.84],
-    stone: [0.97, 0.985, 1],
-    snow: [0.96, 0.985, 1],
-  };
-  // The first pass was nearly invisible on phones: boost broad grain while
-  // keeping snow softer than wood and soil so the low-poly palette stays clear.
-  const amount: Record<SurfaceKind, number> = {
-    wood: 0.055,
-    soil: 0.06,
-    stone: 0.05,
-    snow: 0.028,
-  };
-  const noiseAmount = kind === "snow" ? 0.034 : 0.05;
-  const baseShade = kind === "snow" ? 0.97 : 0.94;
-  const reliefScale = kind === "wood" ? 48 : kind === "stone" ? 44 : kind === "soil" ? 40 : 26;
-
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      let structure: number;
-      if (kind === "wood") {
-        structure = Math.sin((x + Math.sin(y * 0.08) * 3) * 0.42) + Math.sin(y * 0.11 + x * 0.025) * 0.3;
-      } else if (kind === "stone") {
-        structure = Math.sin(x * 0.13 + Math.sin(y * 0.09) * 2.1) + Math.cos(y * 0.17 + x * 0.035);
-      } else if (kind === "soil") {
-        structure = Math.sin(x * 0.09 + Math.sin(y * 0.07) * 1.7) + Math.cos(y * 0.12 - x * 0.04);
-      } else {
-        structure = Math.sin(x * 0.14 + Math.cos(y * 0.11) * 1.3) + Math.cos(y * 0.16 + x * 0.03);
-      }
-      const noise = random() - 0.5;
-      const shade = THREE.MathUtils.clamp(baseShade + structure * amount[kind] + noise * noiseAmount, 0.76, 1);
-      const relief = THREE.MathUtils.clamp(128 + structure * reliefScale + noise * 46, 48, 208);
-      const index = (y * size + x) * 4;
-      colorData[index] = Math.round(255 * shade * tint[kind][0]);
-      colorData[index + 1] = Math.round(255 * shade * tint[kind][1]);
-      colorData[index + 2] = Math.round(255 * shade * tint[kind][2]);
-      colorData[index + 3] = 255;
-      bumpData[index] = relief;
-      bumpData[index + 1] = relief;
-      bumpData[index + 2] = relief;
-      bumpData[index + 3] = 255;
-    }
-  }
-
-  const color = new THREE.DataTexture(colorData, size, size, THREE.RGBAFormat);
-  color.colorSpace = THREE.SRGBColorSpace;
-  color.wrapS = color.wrapT = THREE.RepeatWrapping;
-  color.magFilter = THREE.LinearFilter;
-  color.minFilter = THREE.LinearMipmapLinearFilter;
-  color.generateMipmaps = true;
-  color.anisotropy = 4;
-  color.needsUpdate = true;
-
-  const bump = new THREE.DataTexture(bumpData, size, size, THREE.RGBAFormat);
-  bump.wrapS = bump.wrapT = THREE.RepeatWrapping;
-  bump.magFilter = THREE.LinearFilter;
-  bump.minFilter = THREE.LinearMipmapLinearFilter;
-  bump.generateMipmaps = true;
-  bump.anisotropy = 4;
-  bump.needsUpdate = true;
-  return { color, bump };
-}
-
-const SURFACE = {
-  wood: makeSurfaceMaps("wood", 161),
-  soil: makeSurfaceMaps("soil", 411),
-  stone: makeSurfaceMaps("stone", 731),
-  snow: makeSurfaceMaps("snow", 919),
-} satisfies Record<SurfaceKind, SurfaceMaps>;
-
-/** Детерминированный генератор: раскладка одинакова между кадрами и устройствами. */
-function rng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { getSkin } from "./skin/index.js";
+import { C, CELL, SURFACE, LanternFlame, rng } from "./skin/kit.js";
 
 function webglAvailable(): boolean {
   try {
@@ -147,34 +25,22 @@ function webglAvailable(): boolean {
 // ---------- камера: пан, зум, свободный поворот с ограничениями ----------
 // Желаемое состояние меняют жесты, текущее догоняет его с демпфированием —
 // камера идёт плавно, без «кадрового» ощущения (замечание заказчика, круг 9).
-function CameraRig({ foundationPreview = false }: { foundationPreview?: boolean }) {
-  const { camera, gl, size } = useThree();
-  const aspect = size.width / Math.max(1, size.height);
-  const initialDistance = foundationPreview ? THREE.MathUtils.clamp(30 / Math.max(aspect, 0.5), 24, 45) : 24;
+function CameraRig() {
+  const { camera, gl } = useThree();
   const want = useRef({
     target: new THREE.Vector3(0, 0, 0),
     az: Math.PI / 4,
     pol: 0.98,
-    dist: initialDistance,
+    dist: 24,
   });
   const cur = useRef({
     target: new THREE.Vector3(0, 0, 0),
     az: Math.PI / 4,
     pol: 0.98,
-    dist: initialDistance,
+    dist: 24,
   });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef(0);
-
-  useEffect(() => {
-    if (!foundationPreview) return;
-    if (camera instanceof THREE.PerspectiveCamera) {
-      camera.fov = aspect < 0.8 ? 55 : 40;
-      camera.updateProjectionMatrix();
-    }
-    want.current.dist = initialDistance;
-    cur.current.dist = initialDistance;
-  }, [aspect, camera, foundationPreview, initialDistance]);
 
   useEffect(() => {
     const el = gl.domElement;
@@ -281,150 +147,10 @@ function CameraRig({ foundationPreview = false }: { foundationPreview?: boolean 
   return null;
 }
 
-// ---------- земля ----------
-// Высоты слоёв разведены с запасом (земля 0.08 → тропа 0.105 → снег 0.14),
-// иначе на телефонах с мелким depth-буфером снег «мигает» (z-fighting, круг 9).
-function FoundationGroundRelief() {
-  const geometry = useMemo(() => {
-    const g = new THREE.PlaneGeometry(PLOT * 2, PLOT * 2, 42, 42);
-    const position = g.attributes.position as THREE.BufferAttribute;
-    for (let i = 0; i < position.count; i++) {
-      const x = position.getX(i);
-      const z = position.getY(i);
-      const broad = Math.sin(x * 0.52 + Math.sin(z * 0.31)) * Math.cos(z * 0.43 - x * 0.17);
-      const fine = Math.sin(x * 1.21 + z * 0.63) * Math.cos(z * 0.92 - x * 0.38);
-      const height = 0.012 + (0.5 + broad * 0.3 + fine * 0.08) * 0.035;
-      position.setZ(i, height);
-    }
-    g.computeVertexNormals();
-    return g;
-  }, []);
-  return (
-    <mesh geometry={geometry} position-y={0.08} rotation-x={-Math.PI / 2} castShadow receiveShadow>
-      <meshStandardMaterial color="#7d5f41" map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.035} roughness={0.98} />
-    </mesh>
-  );
-}
-
-function Ground({ grid, foundationPreview = false }: { grid: CourtGridLite | null; foundationPreview?: boolean }) {
-  const patches = useMemo(() => {
-    const r = rng(7);
-    return Array.from({ length: 26 }, () => {
-      const m = foundationPreview ? 20 + Math.floor(r() * 8) : 10 + Math.floor(r() * 5);
-      const pts: THREE.Vector2[] = [];
-      for (let i = 0; i < m; i++) {
-        const a = (i / m) * Math.PI * 2;
-        const rad = foundationPreview
-          ? (0.55 + r() * 0.65) * (0.75 + r() * 0.4)
-          : (0.5 + r() * 1.1) * (0.7 + r() * 0.6);
-        pts.push(new THREE.Vector2(Math.cos(a) * rad, Math.sin(a) * rad));
-      }
-      let x: number;
-      let z: number;
-      if (foundationPreview) {
-        const t = (r() * 2 - 1) * (PLOT - 1);
-        const edge = PLOT - 0.35 - r() * 1.05;
-        const side = Math.floor(r() * 4);
-        x = side < 2 ? t : side === 2 ? -edge : edge;
-        z = side === 0 ? -edge : side === 1 ? edge : t;
-      } else {
-        x = (r() * 2 - 1) * (PLOT - 1);
-        z = (r() * 2 - 1) * (PLOT - 1);
-      }
-      return {
-        x,
-        z,
-        rot: r() * Math.PI,
-        geom: new THREE.ShapeGeometry(new THREE.Shape(pts), 6),
-      };
-    });
-  }, [foundationPreview]);
-  const roads = foundationPreview ? [] : grid?.roads ?? [];
-  const occupied = useMemo(
-    () => (grid && !foundationPreview ? footprintKeys(grid) : new Set<string>()),
-    [grid, foundationPreview],
-  );
-  const drifts = useMemo(() => {
-    const r = rng(41);
-    const out: { x: number; z: number; s: number; rot: number }[] = [];
-    let guard = 0;
-    while (out.length < 10 && guard++ < 60) {
-      const a = r() * Math.PI * 2;
-      const d = PLOT - 0.8 - r() * 1.5;
-      const x = Math.cos(a) * d;
-      const z = Math.sin(a) * d;
-      // сугробы не растут на дороге и под постройками
-      const cx = Math.round(x / CELL + 6.5);
-      const cz = Math.round(z / CELL + 6.5);
-      if (roads.some((road) => road.x === cx && road.z === cz)) continue;
-      if (occupied.has(`${cx}:${cz}`)) continue;
-      out.push({ x, z, s: 0.7 + r() * 1.1, rot: r() * Math.PI });
-    }
-    return out;
-  }, [roads, occupied]);
-  const debris = useMemo(() => {
-    if (foundationPreview) return [];
-    const r = rng(77);
-    const out: { x: number; z: number; kind: number; s: number; rot: number }[] = [];
-    let guard = 0;
-    while (out.length < 64 && guard++ < 400) {
-      const x = (r() * 2 - 1) * (PLOT - 0.5);
-      const z = (r() * 2 - 1) * (PLOT - 0.5);
-      const cx = Math.round(x / CELL + 6.5);
-      const cz = Math.round(z / CELL + 6.5);
-      if (roads.some((road) => road.x === cx && road.z === cz)) continue;
-      if (occupied.has(`${cx}:${cz}`)) continue;
-      out.push({ x, z, kind: r() > 0.55 ? 1 : 0, s: 0.04 + r() * 0.06, rot: r() * Math.PI });
-    }
-    return out;
-  }, [roads, occupied, foundationPreview]);
-  return (
-    <group>
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[120, 120]} />
-        <meshStandardMaterial color={C.snowOuter} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.012} roughness={0.96} />
-      </mesh>
-      <mesh receiveShadow castShadow>
-        <boxGeometry args={[PLOT * 2 + 0.4, 0.16, PLOT * 2 + 0.4]} />
-        <meshStandardMaterial color={foundationPreview ? "#7e6042" : C.dirt} map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={foundationPreview ? 0.055 : 0.04} roughness={0.97} />
-      </mesh>
-      {foundationPreview ? <FoundationGroundRelief /> : null}
-      {patches.map((p, i) => (
-        <mesh key={i} geometry={p.geom} rotation-x={-Math.PI / 2} rotation-z={p.rot} position={[p.x, 0.14, p.z]} receiveShadow>
-          {/* двухтонный снег: пятна чуть различаются оттенком — фактура вместо плоскости */}
-          <meshStandardMaterial color={i % 2 ? C.snowPatch : "#eae1cd"} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.014} roughness={0.96} />
-        </mesh>
-      ))}
-      {/* сугробы-валики у края площадки */}
-      {drifts.map((d, i) => (
-        <mesh key={`d${i}`} position={[d.x, 0.1, d.z]} rotation-y={d.rot} scale={[d.s, 0.3, d.s * 0.7]} castShadow receiveShadow>
-          <sphereGeometry args={[0.8, 10, 8]} />
-          <meshStandardMaterial color={C.snowPatch} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.014} roughness={0.96} flatShading />
-        </mesh>
-      ))}
-      {/* мелкая фактура земли: камешки и жухлая трава — площадка не «пластиковая» */}
-      {debris.map((d, i) =>
-        d.kind === 0 ? (
-          <mesh key={`st${i}`} position={[d.x, 0.11, d.z]} rotation-y={d.rot} castShadow>
-            <dodecahedronGeometry args={[d.s, 0]} />
-            <meshStandardMaterial color={i % 3 ? "#8f8878" : "#a39a88"} roughness={1} flatShading />
-          </mesh>
-        ) : (
-          <mesh key={`gr${i}`} position={[d.x, 0.16, d.z]} rotation-y={d.rot}>
-            <coneGeometry args={[d.s * 0.6, d.s * 3.2, 5]} />
-            <meshStandardMaterial color="#77804a" roughness={1} flatShading />
-          </mesh>
-        ),
-      )}
-    </group>
-  );
-}
-
 // ---------- каменная дорожка: лента-основание и плиты поверх снежного слоя (круг 20).
 // Высоты: снег 0.14 → лента 0.17 → плиты 0.17–0.24. Кривая известна Ground'у,
 // чтобы сугробы не прорастали сквозь дорогу. У ворот лента расширяется «воронкой».
 // Клетка двора: 14 × 1.1 = 15.4 — ровно площадка PLOT (модуль хранит размер сетки).
-const CELL = 1.1;
 /** Клетка сетки → мир: сетка центрирована, край упирается в частокол. */
 function gridToWorld(g: number, size: number): number {
   return (g - (size - 1) / 2) * CELL;
@@ -552,230 +278,6 @@ function RoadTiles({ roads, size }: { roads: { x: number; z: number }[]; size: n
           ))}
         </group>
       ))}
-    </group>
-  );
-}
-
-/** Ворота двора: башни-срубы, распахнутые полотна створ, крыша и фонарь. */
-function Gatehouse() {
-  return (
-    <group>
-      {/* башни по сторонам проёма: квадратные срубы с пояском и снежной крышей */}
-      {[-1, 1].map((s) => (
-        <group key={s} position={[7.7, 0, s * 1.66]}>
-          <mesh position-y={1.15} castShadow receiveShadow>
-            <boxGeometry args={[0.64, 2.3, 0.64]} />
-            <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-          </mesh>
-          <mesh position-y={2.34} castShadow>
-            <boxGeometry args={[0.74, 0.1, 0.74]} />
-            <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-          </mesh>
-          <mesh position={[0.34, 1.45, 0]} castShadow>
-            <boxGeometry args={[0.06, 0.34, 0.16]} />
-            <meshStandardMaterial color="#241a10" roughness={1} />
-          </mesh>
-          <mesh position-y={2.78} rotation-y={Math.PI / 4} castShadow>
-            <coneGeometry args={[0.56, 0.56, 4]} />
-            <meshStandardMaterial color={C.roof} map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.85} flatShading />
-          </mesh>
-          <mesh position-y={3.1} rotation-y={Math.PI / 4} castShadow>
-            <coneGeometry args={[0.26, 0.18, 4]} />
-            <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
-          </mesh>
-        </group>
-      ))}
-      {/* створы остаются распахнутыми: полотна, стойки и кольца на месте; сняты только две поперечины */}
-      {[-1, 1].map((s) => (
-        <group key={`leaf${s}`} position={[7.66, 0, s * 1.3]} rotation-y={s * 1.4}>
-          <mesh position={[0, 0.82, s * 0.65]} castShadow receiveShadow>
-            <boxGeometry args={[0.12, 1.6, 1.3]} />
-            <meshStandardMaterial color="#5d4229" map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.02} roughness={0.9} flatShading />
-          </mesh>
-          {[0.22, 1.08].map((z) => (
-            <mesh key={z} position={[0.035, 0.82, s * (0.65 - z)]} castShadow>
-              <boxGeometry args={[0.07, 1.66, 0.11]} />
-              <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
-            </mesh>
-          ))}
-          <mesh position={[0.1, 0.86, s * 0.62]} rotation-y={Math.PI / 2}>
-            <torusGeometry args={[0.08, 0.02, 6, 14]} />
-            <meshStandardMaterial color="#f0c866" metalness={0.55} roughness={0.35} />
-          </mesh>
-        </group>
-      ))}
-      {/* перемычка между башнями и ступенчатый фронтон: над проездом не нависает */}
-      <mesh position={[7.7, 2.52, 0]} castShadow>
-        <boxGeometry args={[0.72, 0.26, 2.68]} />
-        <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
-      </mesh>
-      <mesh position={[7.7, 2.78, 0]} castShadow>
-        <boxGeometry args={[0.66, 0.24, 2.6]} />
-        <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-      </mesh>
-      <mesh position={[7.7, 3.02, 0]} castShadow>
-        <boxGeometry args={[0.56, 0.22, 2.2]} />
-        <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-      </mesh>
-      <mesh position={[7.7, 3.24, 0]} castShadow>
-        <boxGeometry args={[0.44, 0.2, 1.8]} />
-        <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-      </mesh>
-      <mesh position={[7.7, 3.36, 0]}>
-        <boxGeometry args={[0.3, 0.06, 1.66]} />
-        <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
-      </mesh>
-      {/* фонарь под перемычкой — тёплая точка у входа */}
-      <group position={[7.4, 0, 0]}>
-        <mesh position={[0.09, 2.34, 0]}>
-          <boxGeometry args={[0.18, 0.05, 0.05]} />
-          <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} />
-        </mesh>
-        <LanternFlame y={2.2} />
-        <mesh position-y={2.36}>
-          <coneGeometry args={[0.13, 0.1, 4]} />
-          <meshStandardMaterial color={C.beam} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.014} roughness={0.9} flatShading />
-        </mesh>
-      </group>
-    </group>
-  );
-}
-
-function FoundationGate() {
-  return (
-    <group>
-      {[-1, 1].map((side) => (
-        <group key={`post-${side}`} position={[PLOT, 0, side * GATE_HALF]}>
-          <mesh position-y={0.76} castShadow receiveShadow>
-            <cylinderGeometry args={[0.17, 0.21, 1.52, 7]} />
-            <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.02} roughness={0.96} flatShading />
-          </mesh>
-          <mesh position-y={1.55} castShadow>
-            <boxGeometry args={[0.42, 0.08, 0.42]} />
-            <meshStandardMaterial color="#f2eee5" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.008} roughness={0.96} />
-          </mesh>
-        </group>
-      ))}
-      {[-1, 1].map((side) => (
-        <group key={`leaf-${side}`} position={[PLOT - 0.04, 0, side * GATE_HALF]} rotation-y={-side * 1.05}>
-          <mesh position={[0, 0.72, -side * 0.66]} castShadow receiveShadow>
-            <boxGeometry args={[0.14, 1.38, 1.32]} />
-            <meshStandardMaterial color="#60452d" map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.02} roughness={0.95} flatShading />
-          </mesh>
-          {Array.from({ length: 6 }, (_, index) => (
-            <mesh key={`slat-${index}`} position={[0.08, 0.72, -side * (0.16 + index * 0.2)]} castShadow>
-              <boxGeometry args={[0.045, 1.3, 0.12]} />
-              <meshStandardMaterial color={index % 2 ? C.log : C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.96} />
-            </mesh>
-          ))}
-          {[0.28, 1.13].map((y) => (
-            <mesh key={`rail-${y}`} position={[0.09, y, -side * 0.66]} castShadow>
-              <boxGeometry args={[0.06, 0.1, 1.34]} />
-              <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.016} roughness={0.95} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-      <mesh position={[PLOT + 0.12, 0.12, 0]} receiveShadow>
-        <boxGeometry args={[0.4, 0.08, 2.7]} />
-        <meshStandardMaterial color="#91816a" map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.02} roughness={0.98} flatShading />
-      </mesh>
-    </group>
-  );
-}
-
-function Palisade({ foundationPreview = false }: { foundationPreview?: boolean }) {
-  const logHeight = foundationPreview ? 1.28 : 0.8;
-  const logs = useMemo(() => {
-    const r = rng(11);
-    const pts: { x: number; z: number; h: number; tilt: number }[] = [];
-    const step = foundationPreview ? 0.28 : 0.5;
-    const tiltSpread = foundationPreview ? 0.02 : 0.04;
-    const j = () => (r() * 2 - 1);
-    for (let t = -PLOT; t <= PLOT + 0.001; t += step) {
-      pts.push({ x: t, z: PLOT, h: logHeight + j() * 0.08, tilt: j() * tiltSpread });
-      pts.push({ x: t, z: -PLOT, h: logHeight + j() * 0.08, tilt: j() * tiltSpread });
-      pts.push({ x: -PLOT, z: t, h: logHeight + j() * 0.08, tilt: j() * tiltSpread });
-      if (Math.abs(t) >= GATE_HALF) pts.push({ x: PLOT, z: t, h: logHeight + j() * 0.08, tilt: j() * tiltSpread });
-    }
-    return pts;
-  }, [logHeight]);
-  const body = useRef<THREE.InstancedMesh>(null!);
-  const caps = useRef<THREE.InstancedMesh>(null!);
-  useLayoutEffect(() => {
-    const d = new THREE.Object3D();
-    const tone = new THREE.Color();
-    logs.forEach((p, i) => {
-      d.position.set(p.x, 0.08 + p.h / 2, p.z);
-      d.rotation.set(p.tilt, 0, p.tilt);
-      d.updateMatrix();
-      body.current.setMatrixAt(i, d.matrix);
-      d.position.y = 0.08 + p.h + 0.08;
-      d.updateMatrix();
-      caps.current.setMatrixAt(i, d.matrix);
-      // лёгкая тональная рябь по брёвнам: частокол читается деревом, а не пластиком
-      body.current.setColorAt(i, tone.set(C.log).offsetHSL(0, i % 2 ? 0.01 : -0.01, ((i * 7) % 5) * 0.013 - 0.026));
-    });
-    body.current.instanceMatrix.needsUpdate = true;
-    caps.current.instanceMatrix.needsUpdate = true;
-    if (body.current.instanceColor) body.current.instanceColor.needsUpdate = true;
-  }, [logs]);
-  return (
-    <group>
-      <instancedMesh ref={body} args={[undefined, undefined, logs.length]} castShadow receiveShadow>
-        <cylinderGeometry args={[foundationPreview ? 0.13 : 0.085, foundationPreview ? 0.16 : 0.115, logHeight, 6]} />
-        <meshStandardMaterial color={foundationPreview ? "#795839" : C.log} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-      </instancedMesh>
-      <instancedMesh ref={caps} args={[undefined, undefined, logs.length]} castShadow>
-        <coneGeometry args={[foundationPreview ? 0.16 : 0.115, foundationPreview ? 0.16 : 0.2, 6]} />
-        <meshStandardMaterial color={foundationPreview ? "#f0ede5" : C.logTip} map={foundationPreview ? SURFACE.snow.color : SURFACE.wood.color} bumpMap={foundationPreview ? SURFACE.snow.bump : SURFACE.wood.bump} bumpScale={foundationPreview ? 0.01 : 0.018} roughness={0.95} flatShading />
-      </instancedMesh>
-      {!foundationPreview ? (
-        <>
-          {/* горизонтальные прожилины и угловые опоры остаются в игровой версии двора */}
-          {[-PLOT, PLOT].map((edge) => (
-            <group key={`rail${edge}`}>
-              {[0.32, 0.56].map((h) => (
-                <mesh key={h} position={[0, h, edge]} castShadow>
-                  <boxGeometry args={[PLOT * 2, 0.05, 0.07]} />
-                  <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
-                </mesh>
-              ))}
-              {[0.32, 0.56].map((h) => (
-                <mesh key={`z${h}`} position={[edge, h, 0]} castShadow>
-                  <boxGeometry args={[0.07, 0.05, PLOT * 2]} />
-                  <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} />
-                </mesh>
-              ))}
-            </group>
-          ))}
-          {/* угловые башенки: по три бревна со снежными шапками */}
-          {[
-            [-PLOT, -PLOT],
-            [PLOT, -PLOT],
-            [-PLOT, PLOT],
-            [PLOT, PLOT],
-          ].map(([cx, cz], i) => (
-            <group key={`c${i}`} position={[cx!, 0, cz!]}>
-              <mesh position-y={0.62} castShadow>
-                <cylinderGeometry args={[0.13, 0.16, 1.15, 7]} />
-                <meshStandardMaterial color={C.gate} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-              </mesh>
-              {[-1, 1].map((s) => (
-                <mesh key={s} position={[s * 0.16, 0.5, -s * 0.16]} castShadow>
-                  <cylinderGeometry args={[0.085, 0.1, 0.9, 6]} />
-                  <meshStandardMaterial color={C.logTip} map={SURFACE.wood.color} bumpMap={SURFACE.wood.bump} bumpScale={0.018} roughness={0.95} flatShading />
-                </mesh>
-              ))}
-              <mesh position-y={1.28} castShadow>
-                <coneGeometry args={[0.18, 0.26, 7]} />
-                <meshStandardMaterial color="#fbf8f0" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.01} roughness={0.94} flatShading />
-              </mesh>
-            </group>
-          ))}
-        </>
-      ) : null}
-      {foundationPreview ? <FoundationGate /> : <Gatehouse />}
     </group>
   );
 }
@@ -917,18 +419,6 @@ function Bucket({ x, y, z }: { x: number; y: number; z: number }) {
 }
 
 /** Фонарь: тёплый свет чуть дышит. */
-function LanternFlame({ y }: { y: number }) {
-  const mat = useRef<THREE.MeshStandardMaterial>(null!);
-  useFrame(({ clock }) => {
-    mat.current.emissiveIntensity = 0.85 + Math.sin(clock.elapsedTime * 7) * 0.25;
-  });
-  return (
-    <mesh position-y={y} castShadow>
-      <boxGeometry args={[0.17, 0.22, 0.17]} />
-      <meshStandardMaterial ref={mat} color="#8a6a3a" emissive="#ffcf7a" emissiveIntensity={0.85} roughness={0.6} />
-    </mesh>
-  );
-}
 
 /** Ткань на ветру: общий узел для знамён построек и ворот. */
 function WaveCloth({
@@ -1535,7 +1025,7 @@ function Dust({ x, z, onDone }: { x: number; z: number; onDone: () => void }) {
 }
 
 /** Сетка двора: тонкие тёплые линии поверх площадки — только в режиме стройки. */
-function GridOverlay({ size, foundationPreview = false }: { size: number; foundationPreview?: boolean }) {
+function GridOverlay({ size }: { size: number }) {
   const geom = useMemo(() => {
     const half = (size * CELL) / 2;
     const pts: number[] = [];
@@ -1549,74 +1039,8 @@ function GridOverlay({ size, foundationPreview = false }: { size: number; founda
   }, [size]);
   return (
     <lineSegments geometry={geom} position-y={0.185} renderOrder={5}>
-      <lineBasicMaterial color={foundationPreview ? "#c99a58" : "#f0e6d2"} transparent opacity={foundationPreview ? 0.4 : 0.25} depthWrite={false} />
+      <lineBasicMaterial color="#d9b070" transparent opacity={0.4} depthWrite={false} />
     </lineSegments>
-  );
-}
-
-/** Открытая грунтовая дорожка от ворот наружу: часть основы двора, не объект-декор. */
-function FoundationApproachPath() {
-  return (
-    <mesh position={[PLOT + 3.6, 0.08, 0]} castShadow receiveShadow>
-      <boxGeometry args={[7.2, 0.12, 3.1]} />
-      <meshStandardMaterial color="#73563b" map={SURFACE.soil.color} bumpMap={SURFACE.soil.bump} bumpScale={0.055} roughness={0.98} />
-    </mesh>
-  );
-}
-
-/** Низкие каменные опоры отмечают будущие пятна застройки, не подменяя модели зданий. */
-function FoundationPlots({ size }: { size: number }) {
-  const plots = [
-    { key: "north-west", x: 2, z: 2, w: 2, d: 2 },
-    { key: "north-east", x: 8, z: 3, w: 3, d: 2 },
-    { key: "south", x: 5, z: 9, w: 2, d: 2 },
-  ];
-  return (
-    <group>
-      {plots.map((plot) => {
-        const cx = gridToWorld(plot.x + (plot.w - 1) / 2, size);
-        const cz = gridToWorld(plot.z + (plot.d - 1) / 2, size);
-        const halfX = (plot.w * CELL) / 2 - 0.2;
-        const halfZ = (plot.d * CELL) / 2 - 0.2;
-        const corners = [
-          [-halfX, -halfZ],
-          [halfX, -halfZ],
-          [-halfX, halfZ],
-          [halfX, halfZ],
-        ] as const;
-        return (
-          <group key={plot.key} position={[cx, 0, cz]}>
-            {[
-              { position: [0, 0.14, -halfZ], size: [plot.w * CELL - 0.36, 0.16, 0.18] },
-              { position: [0, 0.14, halfZ], size: [plot.w * CELL - 0.36, 0.16, 0.18] },
-              { position: [-halfX, 0.14, 0], size: [0.18, 0.16, plot.d * CELL - 0.36] },
-              { position: [halfX, 0.14, 0], size: [0.18, 0.16, plot.d * CELL - 0.36] },
-            ].map((edge, index) => (
-              <mesh key={`edge-${index}`} position={edge.position as [number, number, number]} castShadow receiveShadow>
-                <boxGeometry args={edge.size as [number, number, number]} />
-                <meshStandardMaterial color="#837661" map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.022} roughness={0.96} flatShading />
-              </mesh>
-            ))}
-            {corners.map(([x, z], index) => (
-              <group key={index} position={[x, 0, z]}>
-                <mesh position-y={0.14} castShadow receiveShadow>
-                  <boxGeometry args={[0.34, 0.16, 0.34]} />
-                  <meshStandardMaterial color="#837661" map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.025} roughness={0.96} flatShading />
-                </mesh>
-                <mesh position-y={0.235} castShadow>
-                  <dodecahedronGeometry args={[0.13, 0]} />
-                  <meshStandardMaterial color="#a29a89" map={SURFACE.stone.color} bumpMap={SURFACE.stone.bump} bumpScale={0.02} roughness={0.98} flatShading />
-                </mesh>
-                <mesh position-y={0.27}>
-                  <boxGeometry args={[0.32, 0.025, 0.32]} />
-                  <meshStandardMaterial color="#eee9df" map={SURFACE.snow.color} bumpMap={SURFACE.snow.bump} bumpScale={0.008} roughness={0.96} />
-                </mesh>
-              </group>
-            ))}
-          </group>
-        );
-      })}
-    </group>
   );
 }
 
@@ -2075,7 +1499,8 @@ export function CourtScene({
   texts,
   grid,
   thLevel = 1,
-  foundationPreview = false,
+  gateLevel = 1,
+  skinId,
   tool,
   pending,
   onTarget,
@@ -2085,7 +1510,10 @@ export function CourtScene({
   texts: { rotate: string; nowebgl: string };
   grid: CourtGridLite | null;
   thLevel?: number;
-  foundationPreview?: boolean;
+  /** Уровень ворот: ядро хранит число, вид выбирает скин. */
+  gateLevel?: number;
+  /** Идентификатор скина двора; неизвестный откатывается на базовый. */
+  skinId?: string | null;
   tool: CourtTool;
   pending: CourtPending | null;
   onTarget: (x: number, z: number) => void;
@@ -2093,6 +1521,13 @@ export function CourtScene({
   onPickup: (type: string, x: number, z: number) => void;
 }) {
   const [webgl] = useState(webglAvailable);
+  const skin = getSkin(skinId);
+  // клетки, где скин не ставит мелкий декор: дороги и пятна построек
+  const blocked = useMemo(() => {
+    const set = grid ? footprintKeys(grid) : new Set<string>();
+    for (const road of grid?.roads ?? []) set.add(`${road.x}:${road.z}`);
+    return set;
+  }, [grid]);
   // пыль постановки: краткие веера под новыми постройками
   const [bursts, setBursts] = useState<{ key: string; x: number; z: number }[]>([]);
   const prevKeys = useRef<Set<string> | null>(null);
@@ -2113,13 +1548,7 @@ export function CourtScene({
 
   if (!webgl) {
     return (
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: foundationPreview ? "linear-gradient(180deg, #ede7dc, #8b7357)" : `url(court-fallback.jpg) center / cover no-repeat, ${C.sky}`,
-        }}
-      >
+      <div style={{ position: "absolute", inset: 0, background: `url(court-fallback.jpg) center / cover no-repeat, ${C.sky}` }}>
         <div className="court-note">{texts.nowebgl}</div>
       </div>
     );
@@ -2159,30 +1588,22 @@ export function CourtScene({
           shadow-radius={2}
         />
         <directionalLight color="#c4d8eb" intensity={0.24} position={[-12, 10, -14]} />
-        <CameraRig foundationPreview={foundationPreview} />
-        <Ground grid={grid} foundationPreview={foundationPreview} />
-        {foundationPreview ? <FoundationApproachPath /> : <RoadTiles roads={grid?.roads ?? []} size={grid?.size ?? 14} />}
-        <Palisade foundationPreview={foundationPreview} />
-        {foundationPreview ? (
-          <>
-            <FoundationPlots size={grid?.size ?? 14} />
-            <GridOverlay size={grid?.size ?? 14} foundationPreview />
-          </>
-        ) : (
-          <>
-            <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />
-            <TownHall level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
-            {bursts.map((b) => (
-              <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
-            ))}
-            {grid ? (
-              <CourtInput grid={grid} tool={tool} pending={pending} onTarget={onTarget} onRoad={onRoad} onPickup={onPickup} />
-            ) : null}
-            <Trees />
-            <MeadowLife />
-            <Birds />
-          </>
-        )}
+        <CameraRig />
+        <skin.Ground size={grid?.size ?? 14} blocked={blocked} />
+        <RoadTiles roads={grid?.roads ?? []} size={grid?.size ?? 14} />
+        <skin.Fence />
+        <skin.Gate level={gateLevel} />
+        <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />
+        <TownHall level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
+        {bursts.map((b) => (
+          <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
+        ))}
+        {grid ? (
+          <CourtInput grid={grid} tool={tool} pending={pending} onTarget={onTarget} onRoad={onRoad} onPickup={onPickup} />
+        ) : null}
+        <Trees />
+        <MeadowLife />
+        <Birds />
       </Canvas>
     </div>
   );

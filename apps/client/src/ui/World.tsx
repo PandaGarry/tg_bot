@@ -30,8 +30,6 @@ const NAV: { route: string; key: string; icon: string; center?: boolean }[] = [
 
 export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Locale; serverNow: number }) {
   const t = translator(lang);
-  // Изолированный предпросмотр основания двора доступен только в dev по ?court=foundation.
-  const foundationPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).get("court") === "foundation";
   const [route, setRoute] = useState("court");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [, forceTick] = useState(0);
@@ -48,6 +46,9 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   const court = (view.modules.court ?? {}) as {
     grid?: { size: number; buildings: { type: string; x: number; z: number }[]; roads: { x: number; z: number }[] };
     townhallLevel?: number;
+    /** Пока сервер не отдаёт: ворота 1 уровня, скин по умолчанию. */
+    gateLevel?: number;
+    skinId?: string;
   };
 
   useEffect(() => {
@@ -63,10 +64,10 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   // Вход во двор: сервер отдаёт сетку, стартовый набор и заводит такт.
   const courtEntered = useRef(false);
   useEffect(() => {
-    if (route !== "court" || courtEntered.current || !view.me || foundationPreview) return;
+    if (route !== "court" || courtEntered.current || !view.me) return;
     courtEntered.current = true;
     sendCommand("court.enter");
-  }, [route, view.me, foundationPreview]);
+  }, [route, view.me]);
 
   return (
     // на дворе фиксированный контейнер вместо dvh: навигация не прыгает после поворота (круг 13)
@@ -78,7 +79,8 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               texts={{ rotate: t("shell.court.rotate"), nowebgl: t("shell.court.nowebgl") }}
               grid={court.grid ?? null}
               thLevel={Number(court.townhallLevel ?? 1)}
-              foundationPreview={foundationPreview}
+              gateLevel={Number(court.gateLevel ?? 1)}
+              skinId={court.skinId ?? null}
               tool={placing ? { kind: "place", type: placing } : roadTool ? { kind: "road" } : null}
               pending={pending}
               onTarget={(x, z) => {
@@ -98,66 +100,64 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               }}
             />
           </div>
-          {!foundationPreview ? (
-            <Hud
-              view={view}
-              lang={lang}
-              placingName={placing ? t(`shell.hud.b.${placing}`) : null}
-              pending={
-                pending
-                  ? {
-                      name: t(`shell.hud.b.${pending.type}`),
-                      move: Boolean(pending.from),
-                      // сносить можно только декор и плиты дороги
-                      removable: pending.type === "road" || ["lantern", "bench", "well", "flag"].includes(pending.type),
-                    }
-                  : null
+          <Hud
+            view={view}
+            lang={lang}
+            placingName={placing ? t(`shell.hud.b.${placing}`) : null}
+            pending={
+              pending
+                ? {
+                    name: t(`shell.hud.b.${pending.type}`),
+                    move: Boolean(pending.from),
+                    // сносить можно только декор и плиты дороги
+                    removable: pending.type === "road" || ["lantern", "bench", "well", "flag"].includes(pending.type),
+                  }
+                : null
+            }
+            roadTool={roadTool}
+            onConfirm={() => {
+              if (!pending) return;
+              if (pending.type === "road" && pending.from) {
+                // перенос плиты дороги — одна атомарная команда
+                sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: pending.from });
+              } else if (pending.from) {
+                sendCommand("court.move", {
+                  type: pending.type,
+                  fromX: pending.from.x,
+                  fromZ: pending.from.z,
+                  toX: pending.x,
+                  toZ: pending.z,
+                });
+              } else {
+                sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z });
               }
-              roadTool={roadTool}
-              onConfirm={() => {
-                if (!pending) return;
-                if (pending.type === "road" && pending.from) {
-                  // перенос плиты дороги — одна атомарная команда
-                  sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: pending.from });
-                } else if (pending.from) {
-                  sendCommand("court.move", {
-                    type: pending.type,
-                    fromX: pending.from.x,
-                    fromZ: pending.from.z,
-                    toX: pending.x,
-                    toZ: pending.z,
-                  });
-                } else {
-                  sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z });
-                }
-                setPending(null);
-              }}
-              onRemove={() => {
-                if (!pending?.from) return;
-                if (pending.type === "road") {
-                  sendCommand("court.road", { x: pending.from.x, z: pending.from.z, remove: true });
-                } else {
-                  sendCommand("court.remove", { type: pending.type, x: pending.from.x, z: pending.from.z });
-                }
-                setPending(null);
-              }}
-              onCancel={() => {
-                setPending(null);
-                setRoadTool(false);
-                setPlacing(null);
-              }}
-              onPlaceStart={(type) => {
-                setRoadTool(false);
-                setPlacing(type);
-              }}
-              onRoadTool={() => {
-                setPlacing(null);
-                setRoadTool((value) => !value);
-              }}
-              onUpgrade={() => sendCommand("court.upgrade")}
-            />
-          ) : null}
-          {!foundationPreview ? <CourtTape lang={lang} /> : null}
+              setPending(null);
+            }}
+            onRemove={() => {
+              if (!pending?.from) return;
+              if (pending.type === "road") {
+                sendCommand("court.road", { x: pending.from.x, z: pending.from.z, remove: true });
+              } else {
+                sendCommand("court.remove", { type: pending.type, x: pending.from.x, z: pending.from.z });
+              }
+              setPending(null);
+            }}
+            onCancel={() => {
+              setPending(null);
+              setRoadTool(false);
+              setPlacing(null);
+            }}
+            onPlaceStart={(type) => {
+              setRoadTool(false);
+              setPlacing(type);
+            }}
+            onRoadTool={() => {
+              setPlacing(null);
+              setRoadTool((value) => !value);
+            }}
+            onUpgrade={() => sendCommand("court.upgrade")}
+          />
+          <CourtTape lang={lang} />
         </>
       ) : null}
       {route !== "court" ? (
@@ -213,31 +213,29 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         </>
       ) : null}
 
-      {!foundationPreview ? (
-        <nav className="game-nav">
-          <div className="flex">
-            {NAV.map((item) => (
-              <button
-                key={item.route}
-                type="button"
-                onClick={() => {
-                  setRoute(item.route);
-                  if (item.route === "sheet") setSheetOpen(true);
-                }}
-                className={[
-                  item.center ? "nav-map" : "",
-                  route === item.route ? "active" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ") || undefined}
-              >
-                <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
-                <span>{t(item.key)}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
-      ) : null}
+      <nav className="game-nav">
+        <div className="flex">
+          {NAV.map((item) => (
+            <button
+              key={item.route}
+              type="button"
+              onClick={() => {
+                setRoute(item.route);
+                if (item.route === "sheet") setSheetOpen(true);
+              }}
+              className={[
+                item.center ? "nav-map" : "",
+                route === item.route ? "active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ") || undefined}
+            >
+              <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
+              <span>{t(item.key)}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {sheetOpen && !hasSlot("sheet" as SlotId) ? null : null}
       {sheetOpen ? (
