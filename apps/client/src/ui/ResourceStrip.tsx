@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
-import { formatCompactResource, formatExactResource } from "./resourceFormat.js";
+import { formatCompactResourceParts, formatExactResource } from "./resourceFormat.js";
 
 const RESOURCES = [
   { id: "meat", icon: "meat", label: "shell.hud.meat" },
@@ -53,6 +53,7 @@ export function ResourceStrip({
         const amount = Number(stock[id] ?? 0);
         const name = t(label);
         const exact = formatExactResource(amount, lang);
+        const compact = formatCompactResourceParts(amount, lang);
         const exactLabel = `${name}: ${exact}`;
         const isExpanded = expanded === id;
         return (
@@ -70,7 +71,10 @@ export function ResourceStrip({
             <span className="ic-frame">
               <img className="hud-ic" src={`icons/${icon}.png`} alt="" />
             </span>
-            <b>{formatCompactResource(amount)}</b>
+            <b>
+              <span>{compact.value}</span>
+              {compact.suffix ? <small>{compact.suffix}</small> : null}
+            </b>
             {isExpanded ? (
               <span id={`resource-exact-${id}`} className="exact-value" role="status" aria-live="polite">
                 {exactLabel}
