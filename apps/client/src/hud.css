@@ -210,8 +210,8 @@
   height: 13px;
 }
 
-/* ---------- ресурсы: шесть значков в одной прозрачной строке.
-   В портрете строка идёт под карточкой лорда; в ширину — справа от неё. ---------- */
+/* ---------- ресурсы: шесть читаемых чипов в одну строку.
+   Контрастная тёмная подложка нужна поверх светлой снежной сцены. ---------- */
 .hud-res {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -230,60 +230,98 @@
   gap: 3px;
   width: 100%;
   min-width: 0;
-  min-height: 36px;
+  min-height: 38px;
   padding: 2px 1px;
   appearance: none;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
+  border: 1.5px solid rgba(239, 227, 198, 0.55);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(75, 50, 29, 0.97), rgba(31, 18, 10, 0.98));
   color: var(--hud-white);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 244, 215, 0.1), 0 2px 5px rgba(0, 0, 0, 0.58);
   font: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
+.hud-res .chip:active {
+  filter: brightness(1.12);
+}
+
 .hud-res .chip:focus-visible {
-  outline: 1px solid rgba(239, 227, 198, 0.72);
+  outline: 2px solid rgba(240, 200, 102, 0.92);
   outline-offset: 1px;
 }
 
 .hud-res .ic-frame {
   display: grid;
   place-items: center;
-  flex: 0 0 19px;
-  width: 19px;
-  height: 19px;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
   padding: 1px;
-  border: 1px solid rgba(239, 227, 198, 0.52);
-  border-radius: 5px;
-  background: transparent;
+  border: 1px solid rgba(239, 227, 198, 0.32);
+  border-radius: 6px;
+  background: rgba(255, 240, 210, 0.08);
 }
 
 .hud-res .ic-frame .hud-ic {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.72));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 .hud-res .chip b {
   min-width: 0;
   overflow: hidden;
-  color: var(--hud-white);
-  font-size: 9.5px;
+  color: #fff8e9;
+  font-size: 10.5px;
+  font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   text-overflow: clip;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.hud-res .chip-gold {
+  border-color: rgba(240, 200, 102, 0.9);
+  background: linear-gradient(180deg, rgba(105, 70, 22, 0.98), rgba(47, 28, 8, 0.99));
+  box-shadow: inset 0 0 0 1px rgba(255, 224, 151, 0.15), 0 2px 5px rgba(0, 0, 0, 0.58);
 }
 
 .hud-res .chip-gold .ic-frame {
-  border-color: rgba(240, 200, 102, 0.85);
+  border-color: rgba(240, 200, 102, 0.76);
 }
 
 .hud-res .chip-gold b {
-  color: #f0c866;
+  color: #ffe08b;
+}
+
+@media (max-width: 360px) {
+  .hud-res {
+    gap: 2px;
+  }
+
+  .hud-res .chip {
+    gap: 2px;
+    min-height: 35px;
+  }
+
+  .hud-res .ic-frame {
+    flex-basis: 21px;
+    width: 21px;
+    height: 21px;
+  }
+
+  .hud-res .chip b {
+    font-size: 9.5px;
+  }
+
+  .hud-res.resourcebar {
+    padding-right: 6px;
+    padding-left: 6px;
+  }
 }
 
 .hud-res .exact-value {
