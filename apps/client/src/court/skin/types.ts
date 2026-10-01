@@ -36,4 +36,8 @@ export interface CourtSkin {
   /** Частокол по периметру, с проёмом под ворота. */
   Fence: ComponentType;
   Gate: ComponentType<GateProps>;
+  /** Ели, валуны и дальний лес вокруг двора. */
+  Trees: ComponentType;
+  /** Набор текстур сезона в public/textures/<имя>/ (зима, позже весна и лето). */
+  season: string;
 }

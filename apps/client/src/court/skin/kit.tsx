@@ -5,7 +5,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /** Клетка двора: 14 × 1.1 = 15.4 — ровно площадка PLOT (модуль хранит размер сетки). */
@@ -146,4 +146,69 @@ export function LanternFlame({ y }: { y: number }) {
       <meshStandardMaterial ref={mat} color="#8a6a3a" emissive="#ffcf7a" emissiveIntensity={0.85} roughness={0.6} />
     </mesh>
   );
+}
+
+
+// ---------- готовые текстуры сезона ----------
+// Файлы лежат в public/textures/<сезон>/. Пока они грузятся (или не загрузились),
+// скин рисует процедурными поверхностями из SURFACE: двор никогда не остаётся пустым.
+
+/** Название набора текстур по умолчанию (зима). Другие сезоны добавляются папкой в public/textures. */
+export const WINTER = "winter";
+
+export interface SeasonTextures {
+  mud: THREE.Texture;
+  snow: THREE.Texture;
+  bark: THREE.Texture;
+  needles: THREE.Texture;
+}
+
+const seasonCache = new Map<string, Promise<SeasonTextures | null>>();
+const tiledCache = new Map<string, THREE.Texture>();
+
+function loadSeason(season: string): Promise<SeasonTextures | null> {
+  let hit = seasonCache.get(season);
+  if (!hit) {
+    const loader = new THREE.TextureLoader();
+    const one = async (name: string) => {
+      const tex = await loader.loadAsync(`textures/${season}/${name}.jpg`);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = 8;
+      return tex;
+    };
+    hit = Promise.all([one("ground-mud"), one("snow"), one("log-bark"), one("fir-needles")])
+      .then(([mud, snow, bark, needles]) => ({ mud, snow, bark, needles }))
+      .catch(() => null);
+    seasonCache.set(season, hit);
+  }
+  return hit;
+}
+
+/** Текстуры сезона или null, пока не загрузились (или файлов нет). */
+export function useSeasonTextures(season: string): SeasonTextures | null {
+  const [textures, setTextures] = useState<SeasonTextures | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadSeason(season).then((t) => {
+      if (alive) setTextures(t);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [season]);
+  return textures;
+}
+
+/** Копия текстуры со своим повтором: одна картинка на GPU, разный масштаб на деталях. */
+export function tiled(tex: THREE.Texture, repeatX: number, repeatY = repeatX): THREE.Texture {
+  const key = `${tex.uuid}:${repeatX}:${repeatY}`;
+  let hit = tiledCache.get(key);
+  if (!hit) {
+    hit = tex.clone();
+    hit.repeat.set(repeatX, repeatY);
+    hit.needsUpdate = true;
+    tiledCache.set(key, hit);
+  }
+  return hit;
 }
