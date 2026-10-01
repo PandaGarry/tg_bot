@@ -4,6 +4,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { C, WINTER, rng, tiled, useSeasonTextures } from "../kit.js";
 import { snowBlob, snowConeCap } from "../snow.js";
+import { BareTrees, type BareItem } from "./BareTrees.js";
 
 export function Trees() {
   const trees = useMemo(() => {
@@ -25,6 +26,47 @@ export function Trees() {
     }
     return out;
   }, []);
+  // голые берёзы (небольшими группами) и кусты: ели остаются на своих местах, новые деревья ищут свободные просветы
+  const bare = useMemo(() => {
+    const r = rng(91);
+    const out: BareItem[] = [];
+    const onRoad = (x: number, z: number) => x > 6 && Math.abs(z) < 3.9;
+    const freeOf = (x: number, z: number, own: number, k: number) =>
+      !trees.some((o) => Math.hypot(o.x - x, o.z - z) < k * o.s + own) && !out.some((o) => Math.hypot(o.x - x, o.z - z) < own + 0.6 * o.s);
+    // берёзы: 14 групп по 2–3 дерева в просветах между елями
+    let guard = 0;
+    let groupsMade = 0;
+    while (groupsMade < 14 && guard++ < 4000) {
+      const cx = (r() * 2 - 1) * 26;
+      const cz = (r() * 2 - 1) * 26;
+      const edge = Math.max(Math.abs(cx), Math.abs(cz));
+      if (edge < 11.2 || onRoad(cx, cz) || r() > 1.1 - (edge - 11) / 28) continue;
+      if (!freeOf(cx, cz, 0.7, 0.8)) continue;
+      const n = 2 + Math.floor(r() * 2);
+      for (let k = 0; k < n; k++) {
+        const a = r() * Math.PI * 2;
+        const d = k === 0 ? 0 : 0.9 + r() * 0.9;
+        const x = cx + Math.cos(a) * d;
+        const z = cz + Math.sin(a) * d;
+        if (onRoad(x, z) || Math.max(Math.abs(x), Math.abs(z)) < 10.8 || !freeOf(x, z, 0.5, 0.7)) continue;
+        out.push({ kind: "birch", v: Math.floor(r() * 3), x, z, s: 0.85 + r() * 0.45, rot: r() * Math.PI * 2 });
+      }
+      groupsMade++;
+    }
+    // кусты: поодиночке и парами у опушки, ближе к двору их больше
+    guard = 0;
+    let bushes = 0;
+    while (bushes < 60 && guard++ < 6000) {
+      const x = (r() * 2 - 1) * 28;
+      const z = (r() * 2 - 1) * 28;
+      const edge = Math.max(Math.abs(x), Math.abs(z));
+      if (edge < 9.9 || onRoad(x, z) || r() > 1.05 - (edge - 10) / 24) continue;
+      if (!freeOf(x, z, 0.45, 0.78)) continue;
+      out.push({ kind: "bush", v: Math.floor(r() * 3), x, z, s: 0.8 + r() * 0.6, rot: r() * Math.PI * 2 });
+      bushes++;
+    }
+    return out;
+  }, [trees]);
   const tex = useSeasonTextures(WINTER);
   // снег: шапки на ярусах (покрытие растёт к вершине) и сугробик у комля
   const caps = useMemo(
@@ -116,6 +158,7 @@ export function Trees() {
           <meshStandardMaterial key="plain" color="#f1ede3" roughness={0.97} />
         )}
       </instancedMesh>
+      <BareTrees items={bare} />
     </group>
   );
 }

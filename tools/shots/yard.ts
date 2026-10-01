@@ -2,7 +2,7 @@
  * Снимки двора глазами телефона: `corepack pnpm exec tsx tools/shots/yard.ts [порт] [префикс]`.
  *
  * Нужен запущенный сервер (`bash tools/replit-dev.sh`, порт 3000). Скрипт проходит вступление,
- * заводит пробный аккаунт и снимает двор: общий план и ближний (колёсиком). Результат в `.tmp/`: far, near, gate.
+ * заводит пробный аккаунт и снимает двор: общий план и ближний (колёсиком). Результат в `.tmp/`: far, near, gate, forest.
  * Пишется строкой-IIFE в page.evaluate: функции esbuild ломает (`__name is not defined`).
  */
 
@@ -82,5 +82,20 @@ for (let i = 1; i <= 12; i++) {
 await page.mouse.up();
 await sleep(4000);
 await page.screenshot({ path: join(outDir, `${prefix}-gate.png`), type: "png" });
+// лес: возвращаем общий план и тянем сцену вниз, чтобы опушка заняла кадр
+await page.mouse.move(195, 420);
+for (let i = 0; i < 2; i++) {
+  await page.mouse.wheel({ deltaY: 250 });
+  await sleep(600);
+}
+await page.mouse.move(195, 300);
+await page.mouse.down();
+for (let i = 1; i <= 10; i++) {
+  await page.mouse.move(195 + i * 6, 300 + i * 38);
+  await sleep(40);
+}
+await page.mouse.up();
+await sleep(4000);
+await page.screenshot({ path: join(outDir, `${prefix}-forest.png`), type: "png" });
 console.log("ok");
 await browser.close();
