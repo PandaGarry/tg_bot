@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import * as THREE from "three";
-import { CELL, PLOT, SURFACE, WINTER, rng, tiled, useSeasonTextures, type SeasonTextures } from "../kit.js";
+import { CELL, GATE_HALF, PLOT, SURFACE, WINTER, rng, tiled, useSeasonTextures, type SeasonTextures } from "../kit.js";
+import { snowBand, snowBlob } from "../snow.js";
 import type { GroundProps } from "../types.js";
 
 
@@ -63,53 +64,52 @@ export function Ground({ size, blocked }: GroundProps) {
   const half = (size - 1) / 2;
   const cellOf = (x: number, z: number) => `${Math.round(x / CELL + half)}:${Math.round(z / CELL + half)}`;
 
-  // Снежные пятна лежат у кромки: середина двора остаётся чистой землёй под застройку.
-  const patches = useMemo(() => {
-    const r = rng(7);
-    return Array.from({ length: 26 }, () => {
-      const m = 24;
-      const base = 0.55 + r() * 0.75;
-      const p1 = r() * 6.28;
-      const p2 = r() * 6.28;
-      const pts: THREE.Vector2[] = [];
-      for (let i = 0; i < m; i++) {
-        const a = (i / m) * Math.PI * 2;
-        const rad = base * (1 + 0.22 * Math.sin(a * 3 + p1) + 0.1 * Math.sin(a * 5 + p2));
-        pts.push(new THREE.Vector2(Math.cos(a) * rad, Math.sin(a) * rad * 0.8));
-      }
-      const t = (r() * 2 - 1) * (PLOT - 1);
-      const edge = PLOT - 0.35 - r() * 1.05;
-      const side = Math.floor(r() * 4);
-      return {
-        x: side < 2 ? t : side === 2 ? -edge : edge,
-        z: side === 0 ? -edge : side === 1 ? edge : t,
-        rot: r() * Math.PI,
-        // объёмная шапка с закруглённой кромкой: снег лежит слоем, а не плоским пятном
-        geom: new THREE.ExtrudeGeometry(new THREE.Shape(pts), {
-          depth: 0.03,
-          bevelEnabled: true,
-          bevelThickness: 0.07,
-          bevelSize: 0.16,
-          bevelSegments: 7,
-          curveSegments: 12,
-        }),
-      };
-    });
-  }, []);
-
-  const drifts = useMemo(() => {
-    const r = rng(41);
-    const out: { x: number; z: number; s: number; rot: number }[] = [];
-    let guard = 0;
-    while (out.length < 10 && guard++ < 60) {
-      const a = r() * Math.PI * 2;
-      const d = PLOT - 0.8 - r() * 1.5;
-      const x = Math.cos(a) * d;
-      const z = Math.sin(a) * d;
-      if (blocked.has(cellOf(x, z))) continue;
-      out.push({ x, z, s: 0.7 + r() * 1.1, rot: r() * Math.PI });
+  /** Занята ли точка двора (постройка, дорога) — клетка или соседняя с ней. */
+  const taken = (x: number, z: number, pad = 0) => {
+    for (const [dx, dz] of pad > 0 ? [[0, 0], [pad, 0], [-pad, 0], [0, pad], [0, -pad]] : [[0, 0]]) {
+      if (blocked.has(cellOf(x + dx!, z + dz!))) return true;
     }
-    return out;
+    return false;
+  };
+
+  // Снег внутри частокола: вал вдоль стены, крупные сугробы в углах и редкие низкие языки у края.
+  // Середина двора остаётся чистой землёй под застройку.
+  const snow = useMemo(() => {
+    const r = rng(7);
+    const band = snowBand({ half: PLOT - 0.1, gateHalf: GATE_HALF + 0.35, blocked: (x, z) => taken(x, z), seed: 5 });
+    const blobs: { geom: THREE.BufferGeometry; x: number; z: number; rot: number; tone: string }[] = [];
+    const tones = ["#f7f4ec", "#f1ede2", "#f4efe4"];
+    const push = (x: number, z: number, radius: number, height: number, aspect: number) => {
+      blobs.push({
+        geom: snowBlob(radius, height, 100 + blobs.length * 7, aspect),
+        x,
+        z,
+        rot: r() * Math.PI,
+        tone: tones[blobs.length % tones.length]!,
+      });
+    };
+    // углы: наметённые сугробы, в дальнем (за воротами) тоже
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+      const x = sx * (PLOT - 1.0 - r() * 0.3);
+      const z = sz * (PLOT - 1.0 - r() * 0.3);
+      if (!taken(x, z, 0.9)) push(x, z, 1.15 + r() * 0.35, 0.34 + r() * 0.14, 0.75 + r() * 0.2);
+    }
+    // языки снега между стеной и серединой: рваные, невысокие
+    let guard = 0;
+    let placed = 0;
+    while (placed < 8 && guard++ < 200) {
+      const along = (r() * 2 - 1) * (PLOT - 2.2);
+      const off = PLOT - 2.2 - r() * 2.2;
+      const side = Math.floor(r() * 4);
+      const x = side < 2 ? along : side === 2 ? -off : off;
+      const z = side === 0 ? -off : side === 1 ? off : along;
+      const radius = 0.55 + r() * 0.65;
+      if (taken(x, z, radius * 1.15)) continue;
+      if (x > 0 && Math.abs(z) < 2.4) continue; // полоса от ворот остаётся чистой
+      push(x, z, radius, 0.08 + r() * 0.08, 0.55 + r() * 0.3);
+      placed++;
+    }
+    return { band, blobs };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocked, size]);
 
@@ -117,9 +117,9 @@ export function Ground({ size, blocked }: GroundProps) {
     const r = rng(77);
     const out: { x: number; z: number; kind: number; s: number; rot: number }[] = [];
     let guard = 0;
-    while (out.length < 40 && guard++ < 300) {
-      const x = (r() * 2 - 1) * (PLOT - 0.5);
-      const z = (r() * 2 - 1) * (PLOT - 0.5);
+    while (out.length < 30 && guard++ < 300) {
+      const x = (r() * 2 - 1) * (PLOT - 1.9);
+      const z = (r() * 2 - 1) * (PLOT - 1.9);
       if (blocked.has(cellOf(x, z))) continue;
       out.push({ x, z, kind: r() > 0.55 ? 1 : 0, s: 0.04 + r() * 0.06, rot: r() * Math.PI });
     }
@@ -139,16 +139,12 @@ export function Ground({ size, blocked }: GroundProps) {
       </mesh>
       <GroundRelief tex={tex} />
       <Approach tex={tex} />
-      {patches.map((p, i) => (
-        <mesh key={i} geometry={p.geom} rotation-x={-Math.PI / 2} rotation-z={p.rot} position={[p.x, 0.125, p.z]} castShadow receiveShadow>
-          {snowMaterial(tex, 0.34, i % 2 ? "#f7f4ec" : "#eee6d3", 0.03)}
-        </mesh>
-      ))}
-      {drifts.map((d, i) => (
-        <mesh key={`d${i}`} position={[d.x, 0.1, d.z]} rotation-y={d.rot} scale={[d.s, 0.3, d.s * 0.7]} castShadow receiveShadow>
-          <sphereGeometry args={[0.8, 10, 8]} />
-          {/* у сферы UV сходятся в полюсе и дают кольца: сугробам хватает гладкого цвета */}
-          <meshStandardMaterial color="#f1ede3" roughness={0.97} flatShading />
+      <mesh geometry={snow.band} castShadow receiveShadow position-y={0.1}>
+        {snowMaterial(tex, 0.34, "#f6f2e8", 0.03)}
+      </mesh>
+      {snow.blobs.map((b, i) => (
+        <mesh key={i} geometry={b.geom} position={[b.x, 0.1, b.z]} rotation-y={b.rot} castShadow receiveShadow>
+          {snowMaterial(tex, 0.34, b.tone, 0.03)}
         </mesh>
       ))}
       {debris.map((d, i) =>
@@ -157,12 +153,7 @@ export function Ground({ size, blocked }: GroundProps) {
             <dodecahedronGeometry args={[d.s, 0]} />
             <meshStandardMaterial color={i % 3 ? "#8f8878" : "#a39a88"} roughness={1} flatShading />
           </mesh>
-        ) : (
-          <mesh key={`gr${i}`} position={[d.x, 0.16, d.z]} rotation-y={d.rot}>
-            <coneGeometry args={[d.s * 0.6, d.s * 3.2, 5]} />
-            <meshStandardMaterial color="#77804a" roughness={1} flatShading />
-          </mesh>
-        ),
+        ) : null,
       )}
     </group>
   );
