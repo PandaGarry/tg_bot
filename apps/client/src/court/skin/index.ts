@@ -1,7 +1,7 @@
 import { boneWood } from "./boneWood/index.js";
 import type { CourtSkin } from "./types.js";
 
-export type { CitadelProps, CourtSkin, GateProps, GroundProps } from "./types.js";
+export type { CitadelProps, CourtSkin, GateProps, GroundProps, UpgradeProgress } from "./types.js";
 export { NEUTRAL_BANNER, type BannerSpec } from "./banner.js";
 
 /** Все доступные скины. Новый скин — новая папка и одна запись здесь. */

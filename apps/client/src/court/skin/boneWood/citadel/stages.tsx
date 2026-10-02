@@ -35,7 +35,7 @@ export function Stage1({ banner }: StageProps) {
       <GableRoof y={roofY} length={len} width={d + 2 * r} rise={0.95} over={0.2} seed={2} />
       <Door x={w / 2 + r + 0.03} w={0.55} h={1.0} />
       <Win p={[0.15, 0.95, d / 2 + r + 0.02]} face="z" s={[0.28, 0.3]} />
-      <Antlers p={[len / 2 + 0.03, roofY + 0.42, 0]} k={0.85} />
+      <Antlers p={[len / 2 + 0.03, roofY + 0.42, 0]} k={1.2} />
       <Banner p={[-len / 2 + 0.3, roofY + 0.95, 0]} pole={0.8} cloth={[0.55, 0.3]} spec={banner} />
       <Drifts />
     </group>
@@ -64,7 +64,7 @@ export function Stage2({ banner }: StageProps) {
       <GableRoof x={1.42} y={1.5} length={0.5} width={1.3} rise={0.42} over={0.08} seed={8} snowLen={0.9} />
       <Door x={w / 2 + cx + 0.04} w={0.6} h={1.1} />
       <RibArch x={1.4} hw={0.5} h={1.25} n={2} lean={0.05} />
-      <Antlers p={[cx + w / 2 + 0.02, 2.2, 0]} k={1.0} />
+      <Antlers p={[cx + w / 2 + 0.02, 2.2, 0]} k={1.35} />
       <Banner p={[cx - w / 2 + 0.2, h + 1.2 + 0.1, 0]} pole={0.9} cloth={[0.65, 0.36]} spec={banner} />
       <Drifts />
     </group>
@@ -98,12 +98,13 @@ export function Stage3({ banner }: StageProps) {
         <Door x={w / 2 + 0.04} w={0.66} h={1.2} />
         <RibArch x={1.36} hw={0.62} h={1.45} n={3} lean={0.06} />
       </group>
+      <Box p={[1.47, 0.14, 0]} s={[0.24, 0.12, 1.15]} m={MAT.stoneDark} />
       <Box p={[1.5, 1.95, 0]} s={[0.3, 0.07, 0.95]} m={MAT.plankDark} />
       <Box p={[1.64, 2.2, 0]} s={[0.04, 0.06, 0.95]} m={MAT.plankDark} />
       {[-0.46, 0, 0.46].map((z) => <Box key={z} p={[1.64, 2.08, z]} s={[0.04, 0.26, 0.04]} m={MAT.plankDark} />)}
       <Box p={[w / 2 + 0.03, 2.3, 0]} s={[0.06, 0.8, 0.46]} m={MAT.door} />
-      <Antlers p={[w / 2 + 0.02, 3.05, 0]} k={1.1} />
-      <group position={[-w / 2 - 0.02, 0, 0]} rotation-y={Math.PI}><Antlers p={[0, 3.05, 0]} k={0.95} /></group>
+      <Antlers p={[w / 2 + 0.02, 3.05, 0]} k={1.45} />
+      <group position={[-w / 2 - 0.02, 0, 0]} rotation-y={Math.PI}><Antlers p={[0, 3.05, 0]} k={1.25} /></group>
       <Banner p={[-1.2, top + 1.25, 0]} pole={1.0} cloth={[0.75, 0.4]} spec={banner} />
       <Drifts />
     </group>
@@ -130,9 +131,10 @@ export function Stage4({ banner }: StageProps) {
       {[-0.8, 0.6].map((x) => <Win key={x} p={[x, 0.85, 1.46]} face="z" s={[0.18, 0.4]} lit />)}
       {[-0.7, 0.35].map((x) => <Win key={`u${x}`} p={[x, 1.95, 1.36]} face="z" s={[0.24, 0.34]} lit />)}
       {[-0.95, 0.95].map((z) => <Win key={`f${z}`} p={[1.46, 0.85, z]} face="x" s={[0.18, 0.4]} lit />)}
+      <Box p={[1.54, 0.06, 0]} s={[0.22, 0.12, 1.2]} m={MAT.stoneDark} />
       <Door x={1.47} w={0.7} h={1.25} iron />
       <RibArch x={1.36} hw={0.62} h={1.55} n={3} lean={0.06} />
-      <Antlers p={[1.37, 2.95, 0]} k={0.95} />
+      <Antlers p={[1.37, 2.95, 0]} k={1.3} />
       <Banner p={[-0.35, 5.0, 0]} pole={1.0} cloth={[0.85, 0.45]} spec={banner} />
       <Drifts />
     </group>
@@ -171,6 +173,7 @@ export function Stage5({ banner }: StageProps) {
       {/* окна-бойницы, ворота и арка */}
       {[-0.8, 0.4].map((x) => <Win key={x} p={[x, 1.5, 1.46]} face="z" s={[0.15, 0.5]} lit />)}
       {[-0.95, 0.95].map((z) => <Win key={`f${z}`} p={[1.46, 1.5, z]} face="x" s={[0.15, 0.5]} lit />)}
+      <Box p={[1.54, 0.06, 0]} s={[0.22, 0.12, 1.3]} m={MAT.stoneDark} />
       <Door x={1.47} w={0.8} h={1.5} iron />
       <RibArch x={1.36} hw={0.7} h={1.8} n={3} lean={0.06} />
       <Banner p={[-1.25, 3.9, -1.25]} pole={1.3} cloth={[1.0, 0.55]} spec={banner} />

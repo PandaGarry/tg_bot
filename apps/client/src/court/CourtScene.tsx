@@ -1121,15 +1121,18 @@ function CourtInput({
 function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; level: number; grid: CourtGridLite }) {
   const at = grid.buildings.find((b) => b.type === "townhall") ?? { x: 7, z: 7 };
   const [override, setOverride] = useState<number | null>(null);
+  const [upgrade, setUpgrade] = useState<{ startedAt: number; endsAt: number } | null>(null);
   useFrame(() => {
     if (!import.meta.env.DEV) return;
-    const v = (window as unknown as { __citadelLevel?: number }).__citadelLevel;
-    const next = typeof v === "number" ? v : null;
+    const w = window as unknown as { __citadelLevel?: number; __citadelUpgrade?: { startedAt: number; endsAt: number } | null };
+    const next = typeof w.__citadelLevel === "number" ? w.__citadelLevel : null;
     if (next !== override) setOverride(next);
+    const up = w.__citadelUpgrade ?? null;
+    if (up !== upgrade) setUpgrade(up);
   });
   return (
     <group position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]}>
-      <skin.Citadel level={override ?? level} />
+      <skin.Citadel level={override ?? level} upgrade={upgrade} />
     </group>
   );
 }

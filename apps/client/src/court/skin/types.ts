@@ -33,9 +33,17 @@ export interface RoadProps {
 }
 
 /** Цитадель: центр двора. Уровень выбирает вид (5 стадий), герб игрока ложится на флаг. */
+/** Идущее улучшение здания: когда началось и когда закончится (мс от эпохи). */
+export interface UpgradeProgress {
+  startedAt: number;
+  endsAt: number;
+}
+
 export interface CitadelProps {
   level: number;
   banner?: BannerSpec;
+  /** Есть, пока здание улучшается: молот, пыль и таймер. Здание при этом продолжает работать. */
+  upgrade?: UpgradeProgress | null;
 }
 
 export interface CourtSkin {

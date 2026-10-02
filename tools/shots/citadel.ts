@@ -1,5 +1,5 @@
 /**
- * Снимки Цитадели без интерфейса по стадиям: `corepack pnpm exec tsx tools/shots/citadel.ts [порт] [префикс] [уровни через запятую]`.
+ * Снимки Цитадели без интерфейса по стадиям: `corepack pnpm exec tsx tools/shots/citadel.ts [порт] [префикс] [уровни через запятую] [mid] [up]`.
  * Нужен запущенный dev-сервер (`bash tools/replit-dev.sh`): уровень подменяется через `window.__citadelLevel`
  * (только dev). Результат в `.tmp/<префикс>-{far,mid}-<уровень>.png`.
  */
@@ -65,6 +65,10 @@ await page.addStyleTag({ content: "* { visibility: hidden !important; } canvas {
 await sleep(1500);
 const levels = (process.argv[4] ?? "3,8,13,18,23").split(",").map(Number);
 const setLevel = (n: number) => page.evaluate(`window.__citadelLevel = ${n}`);
+// шестой аргумент `up`: показать стройку (молот, пыль, таймер) через `window.__citadelUpgrade`
+if (process.argv[6] === "up") {
+  await page.evaluate(`window.__citadelUpgrade = { startedAt: Date.now() - 6 * 3600e3, endsAt: Date.now() + (1 * 86400e3 + 4 * 3600e3 + 12 * 60e3) }`);
+}
 for (const n of process.argv[5] === "mid" ? [] : levels) {
   await setLevel(n);
   await sleep(2500);
