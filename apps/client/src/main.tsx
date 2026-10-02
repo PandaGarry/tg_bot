@@ -10,6 +10,7 @@ import { Create } from "./ui/Create.js";
 import { Register } from "./ui/Register.js";
 import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
+import { initTelegram } from "./court/touch/haptics.js";
 import { statusKey } from "./i18n/index.js";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
   const [authScreen, setAuthScreen] = useState<"login" | "register">("login");
 
   useEffect(() => {
+    initTelegram();
     connect();
   }, []);
 

@@ -3,6 +3,23 @@
  * Отключается ключом `tdl.haptics = "off"` в localStorage (позже — в настройках).
  */
 
+/**
+ * Подключает Telegram Web App API, **только внутри Telegram** и **не блокируя загрузку**: скрипт добавляется
+ * динамически с `async`. Вне Telegram (браузер, тесты) ничего не грузится.
+ */
+export function initTelegram(): void {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const w = window as unknown as { Telegram?: unknown; TelegramWebviewProxy?: unknown };
+  const inTelegram = Boolean(w.TelegramWebviewProxy) || /tgWebApp/i.test(location.hash) || /tgWebApp/i.test(location.search);
+  if (!inTelegram || w.Telegram || document.querySelector("script[data-tg-api]")) return;
+  const s = document.createElement("script");
+  s.src = "https://telegram.org/js/telegram-web-app.js";
+  s.async = true;
+  s.dataset.tgApi = "1";
+  s.onerror = () => s.remove(); // нет сети до telegram.org — вибро просто не будет, игра работает
+  document.head.appendChild(s);
+}
+
 export type HapticKind = "select" | "pickup" | "drop" | "rotate" | "error";
 
 interface TgHaptic {
