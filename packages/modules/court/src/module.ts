@@ -2,7 +2,7 @@
  * Модуль двора: экономика и застройка города.
  *
  * Шаг C1 (фундамент): шесть ресурсов двора (мясо, дерево, камень, металл,
- * грибы-в-погребе, золото), сетка двора с Ратушей в центре и медленное
+ * грибы-в-погребе, золото), сетка двора с Цитаделью в центре и медленное
  * производство по такту. Постройки ставятся командой, вид построек —
  * обязанность сцены двора, а не этого модуля.
  *
@@ -16,7 +16,7 @@ import { strings } from "./strings.js";
 
 /** Сетка двора в клетках: 14×14 сейчас, расширяемо до 22×22. */
 const GRID_SIZE = 14;
-/** Центр сетки — здесь стоит Ратуша. */
+/** Центр сетки — здесь стоит Цитадель. */
 const CENTER = Math.floor(GRID_SIZE / 2);
 /** Период производственного такта. */
 const TICK_MS = 60_000;
@@ -28,7 +28,7 @@ type BuildTab = "economy" | "military" | "decor";
 
 /**
  * Каталог построек: пятно [ширина, глубина] в клетках, вкладка, требование
- * и цена. Здания открываются постепенно — уровнем Ратуши (прокачка) и позже
+ * и цена. Здания открываются постепенно — уровнем Цитадели (прокачка) и позже
  * расширением территории; всё, что не открыто, видно с замком.
  */
 const CATALOG: Record<
@@ -58,7 +58,7 @@ const FOOTPRINT: Record<string, [number, number]> = {
   ...Object.fromEntries(PLACEABLE.map((id) => [id, CATALOG[id]?.size ?? ([1, 1] as [number, number])])),
 };
 
-/** Цена улучшения Ратуши: индекс — целевой уровень. */
+/** Цена улучшения Цитадели: индекс — целевой уровень. */
 const TH_COSTS: (Partial<Record<CourtResource, number>> | undefined)[] = [
   undefined,
   undefined,
@@ -67,7 +67,7 @@ const TH_COSTS: (Partial<Record<CourtResource, number>> | undefined)[] = [
   { wood: 1200, stone: 900, metal: 250, gold: 400 },
   { wood: 2400, stone: 1800, metal: 500, gold: 1000 },
 ];
-/** Максимальный уровень Ратуши сейчас. */
+/** Максимальный уровень Цитадели сейчас. */
 const TH_MAX = TH_COSTS.length - 1;
 
 /** Пределы хранения до модификаторов: склад и погреб отдельно. */
@@ -163,7 +163,7 @@ interface CourtGrid {
   [key: string]: JsonValue;
 }
 
-/** Стартовая дорога: от ворот (восток) до крыльца Ратуши. */
+/** Стартовая дорога: от ворот (восток) до крыльца Цитадели. */
 const ROAD_SEED: CourtRoad[] = Array.from({ length: 5 }, (_, i) => ({ x: 9 + i, z: 7 }));
 
 interface CourtState {
@@ -222,7 +222,7 @@ function payOps(cost: Partial<Record<CourtResource, number>>): StockOp[] {
   }));
 }
 
-/** Сетка по умолчанию: пустой двор с Ратушей в центре. */
+/** Сетка по умолчанию: пустой двор с Цитаделью в центре. */
 function defaultGrid(): CourtGrid {
   return { size: GRID_SIZE, buildings: [{ type: "townhall", x: CENTER, z: CENTER }], roads: ROAD_SEED };
 }
@@ -314,7 +314,7 @@ const court = defineModule({
       );
       const state = stateOf({ ...rows[0], townhallLevel: rows[0]?.townhall_level });
       const grid = state.grid ?? defaultGrid();
-      // Уровень лорда растёт вместе с Ратушей; сила — видимый итог прогресса двора.
+      // Уровень лорда растёт вместе с Цитаделью; сила — видимый итог прогресса двора.
       const power = 120 * state.townhallLevel + 40 * (grid.buildings.length - 1) + 5 * grid.roads.length;
       return { starter: state.starter, townhallLevel: state.townhallLevel, level: state.townhallLevel, power, grid, holderId };
     },
@@ -378,7 +378,7 @@ const court = defineModule({
           if (!item) return [];
           const grid = gridOf(ctx.state);
           const level = stateOf(ctx.state).townhallLevel;
-          // Постройка ещё не открыта: уровень Ратуши не дотягивает.
+          // Постройка ещё не открыта: уровень Цитадели не дотягивает.
           if (level < item.th) return [];
           if (!canAfford(ctx.stock, item.cost)) return [];
           if (grid.buildings.length >= MAX_BUILDINGS) return [];
@@ -493,7 +493,7 @@ const court = defineModule({
         input: zRemove,
         handle: (ctx, input): EffectList => {
           const holderId = ctx.actor?.id ?? "world";
-          // Сносится только декор: экономика, военные и Ратуша не убираются
+          // Сносится только декор: экономика, военные и Цитадель не убираются
           if (CATALOG[input.type]?.tab !== "decor") return [];
           const grid = gridOf(ctx.state);
           const index = grid.buildings.findIndex(

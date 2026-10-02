@@ -32,11 +32,11 @@ page.on("pageerror", (error) => console.warn(`  страница: ${String(error
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function clickButton(text: string) {
   await page.waitForFunction(
-    `[...document.querySelectorAll("button")].some((b) => b.textContent?.trim() === ${JSON.stringify(text)})`,
+    `[...document.querySelectorAll("button")].some((b) => (b.textContent?.trim() === ${JSON.stringify(text)} || b.getAttribute('aria-label') === ${JSON.stringify(text)}))`,
     { timeout: 30_000 },
   );
   await page.evaluate(
-    `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent?.trim() === ${JSON.stringify(text)}); b && b.click(); })()`,
+    `(() => { const b = [...document.querySelectorAll("button")].find((x) => (x.textContent?.trim() === ${JSON.stringify(text)} || x.getAttribute('aria-label') === ${JSON.stringify(text)})); b && b.click(); })()`,
   );
 }
 
@@ -86,7 +86,7 @@ const project = async (gx: number, gz: number, y = 0): Promise<[number, number]>
 const state = async () => (await page.evaluate(`window.__yardState()`)) as { pending: { type: string; x: number; z: number; rot: number } | null; selected: unknown; az: number };
 const has = (sel: string) => page.evaluate(`!!document.querySelector(${JSON.stringify(sel)})`) as Promise<boolean>;
 const clickText = (text: string) =>
-  page.evaluate(`(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent?.includes(${JSON.stringify(text)})); b && b.click(); return !!b; })()`);
+  page.evaluate(`(() => { const b = [...document.querySelectorAll("button")].find((x) => (x.textContent?.includes(${JSON.stringify(text)}) || x.getAttribute('aria-label')?.includes(${JSON.stringify(text)}))); b && b.click(); return !!b; })()`);
 const shot = (name: string) => page.screenshot({ path: join(outDir, `${prefix}-${name}.png`), type: "png" });
 const results: Record<string, [number, number]> = {};
 const score = (name: string, ok: boolean) => {
@@ -144,12 +144,12 @@ await shot("1-moved");
 const r0 = (await state()).pending?.rot ?? 0;
 const seen: number[] = [];
 for (let i = 0; i < 4; i++) {
-  await page.evaluate(`document.querySelector(".place-bar button.rot:last-of-type")?.click()`);
+  await page.evaluate(`document.querySelector(".place-bar button[aria-label^='Повернуть'][aria-label$='вправо']")?.click()`);
   await until(async () => ((await state()).pending?.rot ?? -1) !== (seen.at(-1) ?? r0), 1500);
   seen.push((await state()).pending?.rot ?? -1);
 }
 score("поворот на 90° четыре раза даёт круг", seen.join() === [1, 2, 3, 0].map((v) => (v + r0) % 4).join() || seen[3] === r0);
-await page.evaluate(`document.querySelector(".place-bar button.rot:last-of-type")?.click()`);
+await page.evaluate(`document.querySelector(".place-bar button[aria-label^='Повернуть'][aria-label$='вправо']")?.click()`);
 await sleep(300);
 await shot("2-rotated");
 

@@ -1,9 +1,9 @@
 /**
  * Сцена двора в клиенте (этап A, направление B — живой 3D).
  *
- * Тёплый low-poly в палитре Bone-Wood №05: Ратуша, частокол с воротами,
+ * Тёплый low-poly в палитре Bone-Wood №05: Цитадель, частокол с воротами,
  * снег, ели, овцы, дым, флажок. Камера игровая: пан, зум, свободный поворот
- * с ограничениями. Инстансинг и предел dpr — под слабые телефоны TG Mini App.
+ * с ограничениями. Инстансинг и предел dpr — под слабые телефоны.
  * Без WebGL — запасной кадр и подсказка (решение круга 8).
  */
 
@@ -49,8 +49,8 @@ function CameraRig({ want }: { want: MutableRefObject<CamState> }) {
   return null;
 }
 
-// ---------- Ратуша: основание, сруб, крыша, окна, крыльцо, труба, дым, флажок ----------
-/** Знамя на крыше Ратуши (уровень 3+): волнуется тем же ветром, что на воротах. */
+// ---------- Цитадель: основание, сруб, крыша, окна, крыльцо, труба, дым, флажок ----------
+/** Знамя на крыше Цитадели (уровень 3+): волнуется тем же ветром, что на воротах. */
 function RoofBanner({ y = 3.55, s = 1 }: { y?: number; s?: number }) {
   const flag = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
@@ -740,11 +740,13 @@ function Popped({ x, z, children }: { x: number; z: number; children: ReactNode 
 }
 
 /** Все постройки игрока из сетки модуля. */
-function Buildings({ grid }: { grid: CourtGridLite }) {
+function Buildings({ grid, carried }: { grid: CourtGridLite; carried?: { x: number; z: number; type: string } | null }) {
   return (
     <>
       {grid.buildings.map((b) => {
-        if (b.type === "townhall") return null; // Ратуша — отдельная живая модель
+        if (b.type === "townhall") return null; // Цитадель — отдельная живая модель
+        // поднятая постройка едет в руках игрока (призрак с моделью), на старом месте её нет
+        if (carried && carried.type === b.type && carried.x === b.x && carried.z === b.z) return null;
         const { wx, wz } = centerOfBuilding(b, grid.size);
         return (
           <Popped key={`${b.type}:${b.x}:${b.z}`} x={wx} z={wz}>
@@ -797,7 +799,7 @@ function Dust({ x, z, onDone }: { x: number; z: number; onDone: () => void }) {
  * нажатием двигает и модель), вход смотрит на восток, к воротам. Размер на земле всегда 3×3.
  * В dev-сборке уровень можно подменить через `window.__citadelLevel` — так снимаются все стадии.
  */
-function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; level: number; grid: CourtGridLite }) {
+function CitadelSlot({ skin, level, grid, carried }: { skin: ReturnType<typeof getSkin>; level: number; grid: CourtGridLite; carried: boolean }) {
   const at = grid.buildings.find((b) => b.type === "townhall") ?? { type: "townhall", x: 7, z: 7, rot: 0 };
   const [override, setOverride] = useState<number | null>(null);
   const [upgrade, setUpgrade] = useState<{ startedAt: number; endsAt: number } | null>(null);
@@ -809,6 +811,7 @@ function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; 
     const up = w.__citadelUpgrade ?? null;
     if (up !== upgrade) setUpgrade(up);
   });
+  if (carried) return null; // Цитадель в руках игрока: показывается призраком
   return (
     <group position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]} rotation-y={(-(at.rot ?? 0) * Math.PI) / 2}>
       <skin.Citadel level={override ?? level} upgrade={upgrade} />
@@ -1004,8 +1007,8 @@ export function CourtScene({
         <skin.Road roads={grid?.roads ?? []} size={grid?.size ?? 14} />
         <skin.Fence />
         <skin.Gate level={gateLevel} />
-        <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />
-        <CitadelSlot skin={skin} level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
+        <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} carried={pending?.from ? { type: pending.type, x: pending.from.x, z: pending.from.z } : null} />
+        <CitadelSlot skin={skin} level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} carried={pending?.type === "townhall" && Boolean(pending.from)} />
         {bursts.map((b) => (
           <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
         ))}
@@ -1016,6 +1019,9 @@ export function CourtScene({
             pending={pending}
             selected={selected}
             thLevel={thLevel}
+            renderModel={(type) =>
+              type === "townhall" ? <skin.Citadel level={thLevel} /> : type === "road" ? null : <BuildingBody type={type} />
+            }
             camera={cam}
             onTarget={onTarget}
             onValid={onValid}

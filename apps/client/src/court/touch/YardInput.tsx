@@ -12,11 +12,10 @@
  */
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import * as THREE from "three";
 import {
   centerOfBuilding,
-  FOOTVIEW,
   footprintKeys,
   gridToWorld,
   sizeFor,
@@ -65,6 +64,8 @@ interface Props {
   onRoad: (x: number, z: number, has: boolean) => void;
   onPickup: (type: string, x: number, z: number, rot: number) => void;
   onSelect: (sel: CourtSelection | null) => void;
+  /** Модель постройки для призрака в руках (скин рисует, ввод только показывает). */
+  renderModel: (type: string) => ReactNode;
   /** Подъём оказался тапом (поток событий задержался): вернуть здание на место. */
   onCancelPickup: () => void;
 }
@@ -521,7 +522,7 @@ export function YardInput(props: Props) {
   return (
     <group>
       {tool || pending ? <GridOverlay size={grid.size} /> : null}
-      {ghost ? <Ghost {...ghost} gridSize={grid.size} /> : null}
+      {ghost ? <Ghost {...ghost} gridSize={grid.size} model={props.renderModel(ghost.type)} /> : null}
       {!pending && selected ? <Highlight b={selected} gridSize={grid.size} color="#f2d27a" strong /> : null}
       {!pending && hot ? <Highlight b={hot} gridSize={grid.size} color="#fff0c0" /> : null}
     </group>
@@ -544,7 +545,10 @@ function Highlight({ b, gridSize, color, strong }: { b: CourtSelection; gridSize
   );
 }
 
-/** Призрак постройки: цветная плашка и объём по пятну; треугольник показывает, куда смотрит вход. */
+/**
+ * Постройка в руках: настоящая модель на цветной плашке (зелёная — можно, красная — нельзя).
+ * Поворот виден сразу: модель плавно доворачивается к новому положению.
+ */
 function Ghost({
   type,
   x,
@@ -552,6 +556,7 @@ function Ghost({
   rot,
   valid,
   gridSize,
+  model,
 }: {
   type: string;
   x: number;
@@ -559,28 +564,36 @@ function Ghost({
   rot: number;
   valid: boolean;
   gridSize: number;
+  model: ReactNode;
 }) {
-  const [w, h] = FOOTVIEW[type] ?? [1, 1];
   const [rw, rh] = sizeFor(type, rot);
   const hw = Math.floor(rw / 2);
   const hh = Math.floor(rh / 2);
   const wx = gridToWorld(x - hw + (rw - 1) / 2, gridSize);
   const wz = gridToWorld(z - hh + (rh - 1) / 2, gridSize);
   const color = valid ? "#7fae5a" : "#c25438";
+  const spin = useRef<THREE.Group>(null);
+  const angle = useRef<number | null>(null);
+  useFrame((_, dt) => {
+    const g = spin.current;
+    if (!g) return;
+    const target = (-rot * Math.PI) / 2;
+    if (angle.current === null) angle.current = target;
+    // кратчайший путь к целевому углу
+    const d = ((((target - angle.current + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
+    angle.current += d * (1 - Math.exp(-20 * Math.min(dt, 0.05)));
+    g.rotation.y = angle.current;
+  });
   return (
-    <group position={[wx, 0.2, wz]} rotation-y={(-rot * Math.PI) / 2}>
+    <group position={[wx, 0.2, wz]}>
       <mesh rotation-x={-Math.PI / 2}>
-        <planeGeometry args={[w * CELL - 0.08, h * CELL - 0.08]} />
+        <planeGeometry args={[rw * CELL - 0.08, rh * CELL - 0.08]} />
         <meshBasicMaterial color={color} transparent opacity={0.5} depthWrite={false} />
       </mesh>
-      <mesh position-y={0.5}>
-        <boxGeometry args={[w * CELL - 0.2, 1.0, h * CELL - 0.2]} />
-        <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
-      </mesh>
-      <mesh position={[(w * CELL) / 2 - 0.3, 0.02, 0]} rotation-x={-Math.PI / 2} renderOrder={6}>
-        <circleGeometry args={[0.26, 3]} />
-        <meshBasicMaterial color="#fff0c0" transparent opacity={0.9} depthWrite={false} />
-      </mesh>
+      {/* модель нарисована входом на восток; на землю она встаёт так же, как постройки двора (y = 0.08) */}
+      <group ref={spin} position-y={-0.12}>
+        {model}
+      </group>
     </group>
   );
 }

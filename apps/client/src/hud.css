@@ -1030,8 +1030,8 @@
   z-index: 26;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 10px 9px 16px;
+  gap: 8px;
+  padding: 5px 6px;
   background: rgba(20, 14, 8, 0.9);
   border: 1px solid rgba(240, 200, 102, 0.5);
   border-radius: 999px;
@@ -1041,20 +1041,24 @@
   backdrop-filter: blur(3px);
 }
 
-.place-bar button {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 16px;
+.place-bar .act {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
   touch-action: manipulation;
   font: inherit;
-  font-size: 13px;
+  font-size: 19px;
+  line-height: 1;
   color: var(--hud-white);
   background: rgba(112, 74, 32, 0.85);
   border: 1px solid rgba(255, 240, 210, 0.25);
   border-radius: 999px;
 }
 
-.place-bar button.ok {
+.place-bar .act.ok {
   background: rgba(88, 120, 48, 0.9);
   border-color: rgba(200, 230, 150, 0.4);
 }
@@ -1074,7 +1078,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.place-bar button.warn {
+.place-bar .act.warn {
   background: rgba(122, 58, 34, 0.9);
   border-color: rgba(255, 190, 150, 0.35);
 }
@@ -1096,28 +1100,30 @@
 }
 
 /* касание: нажатая кнопка отзывается сразу, недоступная — бледная */
-.place-bar button:active {
+.place-bar .act:active {
   transform: scale(0.95);
   filter: brightness(1.15);
 }
 
-.place-bar button:disabled {
+.place-bar .act:disabled {
   opacity: 0.45;
 }
 
-.place-bar button.rot {
-  padding: 0;
-  font-size: 22px;
-  line-height: 1;
+.place-bar .act img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .place-bar .place-name {
   font-weight: 600;
-  max-width: 120px;
+  font-size: 12px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .select-bar {
-  padding-left: 18px;
+  padding-left: 12px;
 }

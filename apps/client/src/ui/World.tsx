@@ -42,7 +42,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   // Красный призрак (не лезет в сетку, на постройку или дорогу) подтвердить нельзя.
   const [ghostOk, setGhostOk] = useState(true);
   const REMOVABLE = ["lantern", "bench", "well", "flag"];
-  // Данные модуля двора из вида: сетку и уровень Ратуши рисует сцена.
+  // Данные модуля двора из вида: сетку и уровень Цитадели рисует сцена.
   const court = (view.modules.court ?? {}) as {
     grid?: { size: number; buildings: { type: string; x: number; z: number; rot?: number }[]; roads: { x: number; z: number }[] };
     townhallLevel?: number;
