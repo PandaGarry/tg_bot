@@ -7,7 +7,7 @@
 import type { BannerSpec } from "../../banner.js";
 import { Banner } from "./Banner.js";
 import {
-  Antlers, Box, Chimney, ConeRoof, Door, GableRoof, HipRoof, LogWalls, MAT, RibArch, SnowDrift, StoneBlock, Win,
+  Antlers, Box, Chimney, ConeRoof, Door, GableRoof, HipRoof, LogWalls, MAT, PlankWalls, RibArch, SnowDrift, StoneBlock, Win, WoodPile,
 } from "./parts.js";
 
 interface StageProps {
@@ -35,7 +35,8 @@ export function Stage1({ banner }: StageProps) {
       <GableRoof y={roofY} length={len} width={d + 2 * r} rise={0.95} over={0.2} seed={2} />
       <Door x={w / 2 + r + 0.03} w={0.55} h={1.0} />
       <Win p={[0.15, 0.95, d / 2 + r + 0.02]} face="z" s={[0.28, 0.3]} />
-      <Antlers p={[len / 2 + 0.03, roofY + 0.5, 0]} k={0.8} />
+      <Antlers p={[len / 2 + 0.03, roofY + 0.42, 0]} k={0.85} />
+      <WoodPile p={[-0.45, 0, 1.5]} />
       <Banner p={[-len / 2 + 0.3, roofY + 0.95, 0]} pole={0.8} cloth={[0.55, 0.3]} spec={banner} />
       <Drifts />
     </group>
@@ -47,12 +48,12 @@ export function Stage2({ banner }: StageProps) {
   const cx = -0.15, w = 2.7, d = 2.0, h = 1.65;
   return (
     <group>
-      <Box p={[cx, h / 2, 0]} s={[w, h, d]} m={MAT.plank} />
+      <group position={[cx, 0, 0]}><PlankWalls w={w} d={d} y0={0} h={h} /></group>
       <Box p={[cx, 0.1, 0]} s={[w + 0.06, 0.2, d + 0.06]} m={MAT.plankDark} />
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} p={[cx + (sx * w) / 2, h / 2, (sz * d) / 2]} s={[0.14, h, 0.14]} m={MAT.plankDark} />))}
       <GableRoof x={cx} y={h} length={w} width={d} rise={1.2} over={0.22} seed={4} bone />
       {/* пристройка со своей крышей */}
-      <Box p={[-0.7, 0.55, 1.28]} s={[1.3, 1.1, 0.62]} m={MAT.plank} />
+      <group position={[-0.7, 0, 1.28]}><PlankWalls w={1.3} d={0.62} y0={0} h={1.1} /></group>
       <group position={[-0.7, 1.1, 1.3]} rotation-y={Math.PI / 2}>
         <GableRoof y={0} length={0.55} width={1.3} rise={0.5} over={0.1} seed={6} />
       </group>
@@ -64,7 +65,7 @@ export function Stage2({ banner }: StageProps) {
       <GableRoof x={1.42} y={1.5} length={0.5} width={1.3} rise={0.42} over={0.08} seed={8} snowLen={0.9} />
       <Door x={w / 2 + cx + 0.04} w={0.6} h={1.1} />
       <RibArch x={1.4} hw={0.5} h={1.25} n={2} lean={0.05} />
-      <Antlers p={[cx + w / 2 + 0.02, 2.25, 0]} k={0.95} />
+      <Antlers p={[cx + w / 2 + 0.02, 2.2, 0]} k={1.0} />
       <Banner p={[cx - w / 2 + 0.2, h + 1.2 + 0.1, 0]} pole={0.9} cloth={[0.65, 0.36]} spec={banner} />
       <Drifts />
     </group>
@@ -77,7 +78,7 @@ export function Stage3({ banner }: StageProps) {
   return (
     <group>
       <Box p={[0, base / 2, 0]} s={[3.0, base, 2.9]} m={MAT.stone} />
-      <Box p={[0, (base + top) / 2, 0]} s={[w, top - base, d]} m={MAT.plank} />
+      <PlankWalls w={w} d={d} y0={base} h={top - base} />
       <Box p={[0, 1.55, 0]} s={[w + 0.07, 0.12, d + 0.07]} m={MAT.plankDark} />
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} p={[(sx * w) / 2, (base + top) / 2, (sz * d) / 2]} s={[0.15, top - base, 0.15]} m={MAT.plankDark} />))}
       <GableRoof y={top} length={w} width={d} rise={1.2} over={0.2} seed={11} bone />
@@ -102,8 +103,8 @@ export function Stage3({ banner }: StageProps) {
       <Box p={[1.64, 2.2, 0]} s={[0.04, 0.06, 0.95]} m={MAT.plankDark} />
       {[-0.46, 0, 0.46].map((z) => <Box key={z} p={[1.64, 2.08, z]} s={[0.04, 0.26, 0.04]} m={MAT.plankDark} />)}
       <Box p={[w / 2 + 0.03, 2.3, 0]} s={[0.06, 0.8, 0.46]} m={MAT.door} />
-      <Antlers p={[w / 2 + 0.02, 3.2, 0]} k={1.05} />
-      <group position={[-w / 2 - 0.02, 0, 0]} rotation-y={Math.PI}><Antlers p={[0, 3.2, 0]} k={0.9} /></group>
+      <Antlers p={[w / 2 + 0.02, 3.05, 0]} k={1.1} />
+      <group position={[-w / 2 - 0.02, 0, 0]} rotation-y={Math.PI}><Antlers p={[0, 3.05, 0]} k={0.95} /></group>
       <Banner p={[-1.2, top + 1.25, 0]} pole={1.0} cloth={[0.75, 0.4]} spec={banner} />
       <Drifts />
     </group>
@@ -115,12 +116,12 @@ export function Stage4({ banner }: StageProps) {
   return (
     <group>
       <StoneBlock y0={0} h={1.35} w={2.9} d={2.9} />
-      <Box p={[0, 1.925, 0]} s={[2.7, 1.15, 2.7]} m={MAT.plank} />
+      <PlankWalls w={2.7} d={2.7} y0={1.35} h={1.15} />
       <Box p={[0, 1.38, 0]} s={[2.78, 0.1, 2.78]} m={MAT.plankDark} />
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} p={[sx * 1.35, 1.925, sz * 1.35]} s={[0.15, 1.15, 0.15]} m={MAT.plankDark} />))}
       <GableRoof y={2.5} length={2.7} width={2.7} rise={1.05} over={0.22} seed={21} bone />
       {/* башня */}
-      <Box p={[-0.35, 3.05, 0]} s={[1.2, 2.1, 1.2]} m={MAT.plank} />
+      <group position={[-0.35, 0, 0]}><PlankWalls w={1.2} d={1.2} y0={2.0} h={2.1} /></group>
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Box key={`t${sx}${sz}`} p={[-0.35 + sx * 0.6, 3.05, sz * 0.6]} s={[0.14, 2.1, 0.14]} m={MAT.plankDark} />))}
       <Box p={[-0.35, 3.55, 0]} s={[1.26, 0.09, 1.26]} m={MAT.plankDark} />
       <Win p={[0.26, 3.2, 0]} face="x" s={[0.22, 0.4]} lit />
@@ -132,7 +133,7 @@ export function Stage4({ banner }: StageProps) {
       {[-0.95, 0.95].map((z) => <Win key={`f${z}`} p={[1.46, 0.85, z]} face="x" s={[0.18, 0.4]} lit />)}
       <Door x={1.47} w={0.7} h={1.25} iron />
       <RibArch x={1.36} hw={0.62} h={1.55} n={3} lean={0.06} />
-      <Antlers p={[1.37, 3.05, 0]} k={0.85} />
+      <Antlers p={[1.37, 2.95, 0]} k={0.95} />
       <Banner p={[-0.35, 5.0, 0]} pole={1.0} cloth={[0.85, 0.45]} spec={banner} />
       <Drifts />
     </group>
@@ -166,8 +167,8 @@ export function Stage5({ banner }: StageProps) {
       {[2.6, 3.4, 4.1].map((y) => <Box key={y} p={[-0.35, y, 0]} s={[1.36, 0.07, 1.36]} m={MAT.iron} cast={false} />)}
       <Win p={[0.31, 3.4, 0]} face="x" s={[0.16, 0.5]} lit />
       <Win p={[-0.35, 3.4, 0.66]} face="z" s={[0.16, 0.5]} lit />
-      <HipRoof p={[-0.35, 4.4, 0]} base={1.7} h={1.7} mat={MAT.roofIron} />
-      <Antlers p={[-0.35, 6.05, 0]} k={1.1} crown />
+      <HipRoof p={[-0.35, 4.4, 0]} base={1.7} h={1.7} mat={MAT.roofIron} cover={0.62} />
+      <Antlers p={[-0.35, 6.1, 0]} k={1.3} crown />
       {/* окна-бойницы, ворота и арка */}
       {[-0.8, 0.4].map((x) => <Win key={x} p={[x, 1.5, 1.46]} face="z" s={[0.15, 0.5]} lit />)}
       {[-0.95, 0.95].map((z) => <Win key={`f${z}`} p={[1.46, 1.5, z]} face="x" s={[0.15, 0.5]} lit />)}

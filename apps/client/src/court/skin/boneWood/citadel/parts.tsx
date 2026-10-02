@@ -14,27 +14,35 @@ import { snowBlob, snowConeCap, snowRidge } from "../../snow.js";
 
 export type V3 = [number, number, number];
 
-const wood = (color: string, rough = 0.95) =>
-  new THREE.MeshStandardMaterial({ color, map: SURFACE.wood.color, bumpMap: SURFACE.wood.bump, bumpScale: 0.03, roughness: rough, flatShading: true });
-const rock = (color: string) =>
-  new THREE.MeshStandardMaterial({ color, map: SURFACE.stone.color, bumpMap: SURFACE.stone.bump, bumpScale: 0.05, roughness: 0.92, flatShading: true });
+/** Копия процедурной текстуры со своим повтором: доски и камень не «растягиваются» на большую стену. */
+function tex(base: THREE.DataTexture, rx: number, ry: number): THREE.DataTexture {
+  const c = base.clone();
+  c.wrapS = c.wrapT = THREE.RepeatWrapping;
+  c.repeat.set(rx, ry);
+  c.needsUpdate = true;
+  return c;
+}
+const wood = (color: string, rx = 2, ry = 2, rough = 0.95) =>
+  new THREE.MeshStandardMaterial({ color, map: tex(SURFACE.wood.color, rx, ry), bumpMap: tex(SURFACE.wood.bump, rx, ry), bumpScale: 0.03, roughness: rough, flatShading: true });
+const rock = (color: string, rx = 2, ry = 2) =>
+  new THREE.MeshStandardMaterial({ color, map: tex(SURFACE.stone.color, rx, ry), bumpMap: tex(SURFACE.stone.bump, rx, ry), bumpScale: 0.05, roughness: 0.92, flatShading: true });
 
 /** Общие материалы (создаются один раз, GPU делит их между стадиями). */
 export const MAT = {
-  plank: wood("#7a5535"),
-  plankDark: wood("#4a3220"),
-  log: wood("#6b4a2e"),
-  roofWood: wood("#4f3825"),
+  plank: wood("#7d5837", 3, 2),
+  plankDark: wood("#46301e", 1, 1),
+  log: wood("#6b4a2e", 1, 3),
+  roofWood: wood("#4f3825", 4, 3),
   roofIron: new THREE.MeshStandardMaterial({ color: "#4b4f55", roughness: 0.55, metalness: 0.45, flatShading: true }),
-  stone: rock("#a8a294"),
-  stoneDark: rock("#85807a"),
-  quoin: rock("#cfc7b4"),
+  stone: rock("#9ea5ab", 2, 2),
+  stoneDark: rock("#7b8186", 2, 2),
+  quoin: rock("#d2d0c9", 1, 1),
   bone: new THREE.MeshStandardMaterial({ color: "#e8dec6", roughness: 0.78 }),
   boneDark: new THREE.MeshStandardMaterial({ color: "#cdbf9f", roughness: 0.85 }),
   iron: new THREE.MeshStandardMaterial({ color: "#34373c", roughness: 0.5, metalness: 0.6, flatShading: true }),
-  door: wood("#3a281a"),
+  door: wood("#3a281a", 1, 1),
   snow: new THREE.MeshStandardMaterial({ color: "#f7f3e8", roughness: 1 }),
-  glass: new THREE.MeshStandardMaterial({ color: "#2e2013", emissive: "#ffb45a", emissiveIntensity: 0.95, roughness: 0.6 }),
+  glass: new THREE.MeshStandardMaterial({ color: "#2e2013", emissive: "#ffb45a", emissiveIntensity: 0.8, roughness: 0.6 }),
   frame: new THREE.MeshStandardMaterial({ color: "#d9c9a6", roughness: 0.85 }),
   smoke: new THREE.MeshStandardMaterial({ color: "#efe9dd", transparent: true, opacity: 0.4, roughness: 1, depthWrite: false }),
 };
@@ -167,21 +175,21 @@ export function GableRoof({
   );
 }
 
-/** Четырёхскатная шапка (башня): основание base × base, высота h. */
-export function HipRoof({ p, base, h, mat = MAT.roofWood, seed = 1, rot = 0 }: { p: V3; base: number; h: number; mat?: THREE.Material; seed?: number; rot?: number }) {
+/** Четырёхскатная шапка (башня): основание base × base, высота h; снег лежит на верхней доле `cover`. */
+export function HipRoof({ p, base, h, mat = MAT.roofWood, cover = 0.9, rot = 0 }: { p: V3; base: number; h: number; mat?: THREE.Material; cover?: number; rot?: number }) {
   const R = (base / 2) * Math.SQRT2;
   const snow = useMemo(() => {
-    const g = new THREE.ConeGeometry(R * 1.02, h * 0.9, 4, 1);
+    const hs = h * cover;
+    const g = new THREE.ConeGeometry(R * cover * 1.05, hs, 4, 1);
     g.rotateY(Math.PI / 4);
-    return g;
-  }, [R, h]);
-  void seed;
+    return { g, hs };
+  }, [R, h, cover]);
   return (
     <group position={p} rotation-y={rot}>
       <mesh position-y={h / 2} rotation-y={Math.PI / 4} material={mat} castShadow receiveShadow>
         <coneGeometry args={[R, h, 4, 1]} />
       </mesh>
-      <mesh geometry={snow} position-y={h * 0.5 + 0.07} material={MAT.snow} castShadow />
+      <mesh geometry={snow.g} position-y={h + 0.06 - snow.hs / 2} material={MAT.snow} castShadow />
     </group>
   );
 }
@@ -201,36 +209,42 @@ export function ConeRoof({ p, r, h, mat = MAT.roofIron, seed = 1 }: { p: V3; r: 
 
 // ---------- рога, кость, детали ----------
 
-/** Череп с рогами, смотрит на +x; размах рогов — вдоль z. */
+/** Череп с рогами: смотрит на +x, рога идут вверх и в стороны (по z), три отростка на каждом. */
 export function Antlers({ p, k = 1, crown = false }: { p: V3; k?: number; crown?: boolean }) {
-  const beams: V3[][] = [
-    [[0, 0, 0.05], [0.0, 0.1, 0.17], [0.02, 0.28, 0.25], [0.0, 0.46, 0.22]],
-  ];
-  const tines: [V3, V3][] = [
-    [[0.0, 0.1, 0.17], [0.12, 0.2, 0.2]],
-    [[0.02, 0.28, 0.25], [0.14, 0.38, 0.27]],
-    [[0.0, 0.46, 0.22], [-0.02, 0.62, 0.2]],
-  ];
-  const mirror = (v: V3): V3 => [v[0], v[1], -v[2]];
-  const set = (sg: 1 | -1) => (
-    <group key={sg}>
-      {beams[0]!.slice(0, -1).map((q, i) => (
-        <Rod key={i} a={sg > 0 ? q : mirror(q)} b={sg > 0 ? beams[0]![i + 1]! : mirror(beams[0]![i + 1]!)} r={0.035} r2={0.026} />
-      ))}
-      {tines.map(([q, e], i) => (
-        <Rod key={`t${i}`} a={sg > 0 ? q : mirror(q)} b={sg > 0 ? e : mirror(e)} r={0.022} r2={0.012} />
-      ))}
-    </group>
-  );
+  const horns = useMemo(() => {
+    const main: V3[] = [[0, 0.04, 0.06], [-0.04, 0.17, 0.15], [-0.05, 0.33, 0.23], [0, 0.49, 0.27], [0.07, 0.62, 0.24]];
+    const tines: V3[][] = [
+      [main[1]!, [0.05, 0.25, 0.17], [0.11, 0.3, 0.17]],
+      [main[2]!, [0.05, 0.41, 0.27], [0.12, 0.5, 0.29]],
+      [main[3]!, [0.02, 0.6, 0.32], [-0.04, 0.7, 0.34]],
+      [main[4]!, [0.1, 0.72, 0.26], [0.13, 0.82, 0.25]],
+    ];
+    const parts: THREE.BufferGeometry[] = [];
+    for (const sg of [1, -1]) {
+      const m = (v: V3) => new THREE.Vector3(v[0], v[1], v[2] * sg);
+      parts.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(main.map(m)), 14, 0.03, 6));
+      for (const tn of tines) parts.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tn.map(m)), 6, 0.017, 5));
+    }
+    return mergeGeometries(parts)!;
+  }, []);
   return (
-    <group position={p} scale={k * 1.7}>
+    <group position={p} scale={k}>
       {!crown && (
-        <mesh scale={[1.25, 0.9, 1]} material={MAT.bone} castShadow>
-          <sphereGeometry args={[0.1, 10, 8]} />
-        </mesh>
+        <group>
+          <mesh scale={[1.2, 0.85, 0.9]} material={MAT.bone} castShadow>
+            <sphereGeometry args={[0.1, 10, 8]} />
+          </mesh>
+          <mesh position={[0.12, -0.03, 0]} rotation-z={-Math.PI / 2 + 0.2} material={MAT.bone} castShadow>
+            <coneGeometry args={[0.055, 0.17, 7]} />
+          </mesh>
+          {[-1, 1].map((s) => (
+            <mesh key={s} position={[0.09, 0.02, s * 0.06]} material={MAT.door}>
+              <sphereGeometry args={[0.022, 6, 5]} />
+            </mesh>
+          ))}
+        </group>
       )}
-      {set(1)}
-      {set(-1)}
+      <mesh geometry={horns} material={MAT.bone} castShadow />
     </group>
   );
 }
@@ -268,6 +282,8 @@ export function Win({ p, face, s = [0.3, 0.42], lit = false }: { p: V3; face: "x
     <group position={p} rotation-y={rotY}>
       <Box p={[0, 0, 0]} s={[s[0] + 0.1, s[1] + 0.1, 0.05]} m={MAT.frame} cast={false} />
       <Box p={[0, 0, 0.03]} s={[s[0], s[1], 0.03]} m={lit ? MAT.glass : MAT.door} cast={false} />
+      <Box p={[0, 0, 0.05]} s={[0.03, s[1], 0.02]} m={MAT.plankDark} cast={false} />
+      <Box p={[0, 0, 0.05]} s={[s[0], 0.03, 0.02]} m={MAT.plankDark} cast={false} />
     </group>
   );
 }
@@ -337,4 +353,56 @@ export function StoneBlock({ y0, h, w, d, bands = false, quoins = true }: { y0: 
 export function SnowDrift({ p, r = 0.4, h = 0.16, seed = 3 }: { p: V3; r?: number; h?: number; seed?: number }) {
   const g = useMemo(() => snowBlob(r, h, seed), [r, h, seed]);
   return <mesh geometry={g} position={p} material={MAT.snow} receiveShadow />;
+}
+
+/** Дощатые стены: коробка и вертикальные рейки, чтобы доски читались издали. Центр основания в (0, y0, 0). */
+export function PlankWalls({ w, d, y0, h, mat = MAT.plank, gap = 0.3 }: { w: number; d: number; y0: number; h: number; mat?: THREE.Material; gap?: number }) {
+  const geo = useMemo(() => {
+    const parts: THREE.BufferGeometry[] = [];
+    const bh = h - 0.16;
+    for (let x = -w / 2 + gap; x < w / 2 - gap / 2; x += gap) {
+      for (const sz of [-1, 1]) {
+        const g = new THREE.BoxGeometry(0.055, bh, 0.035);
+        g.translate(x, y0 + h / 2, (sz * (d + 0.02)) / 2);
+        parts.push(g);
+      }
+    }
+    for (let z = -d / 2 + gap; z < d / 2 - gap / 2; z += gap) {
+      for (const sx of [-1, 1]) {
+        const g = new THREE.BoxGeometry(0.035, bh, 0.055);
+        g.translate((sx * (w + 0.02)) / 2, y0 + h / 2, z);
+        parts.push(g);
+      }
+    }
+    return mergeGeometries(parts)!;
+  }, [w, d, y0, h, gap]);
+  return (
+    <group>
+      <Box p={[0, y0 + h / 2, 0]} s={[w, h, d]} m={mat} />
+      <mesh geometry={geo} material={MAT.plankDark} castShadow />
+    </group>
+  );
+}
+
+/** Поленница: три ряда брёвен лежат вдоль x, сверху снег. */
+export function WoodPile({ p, len = 0.75 }: { p: V3; len?: number }) {
+  const geo = useMemo(() => {
+    const parts: THREE.BufferGeometry[] = [];
+    const r = 0.075;
+    [4, 3, 2].forEach((n, row) => {
+      for (let i = 0; i < n; i++) {
+        const g = new THREE.CylinderGeometry(r, r, len, 7);
+        g.rotateZ(Math.PI / 2);
+        g.translate(0, r + row * r * 1.7, (i - (n - 1) / 2) * r * 2.05);
+        parts.push(g);
+      }
+    });
+    return mergeGeometries(parts)!;
+  }, [len]);
+  return (
+    <group position={p}>
+      <mesh geometry={geo} material={MAT.log} castShadow receiveShadow />
+      <SnowDrift p={[0, 0.3, 0]} r={0.36} h={0.1} seed={17} />
+    </group>
+  );
 }
