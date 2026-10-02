@@ -104,11 +104,14 @@ const RESOURCES = ["meat", "wood", "stone", "metal", "mushrooms", "gold"] as con
 type CourtResource = (typeof RESOURCES)[number];
 
 const zEmpty = z.object({}).strict();
+/** Поворот постройки в четвертях оборота: 0 — вход на восток; нечётный поворот меняет местами ширину и глубину пятна. */
+const zRot = z.number().int().min(0).max(3).default(0);
 const zPlace = z
   .object({
     type: z.enum(PLACEABLE as [string, ...string[]]),
     x: z.number().int().min(0).max(GRID_SIZE - 1),
     z: z.number().int().min(0).max(GRID_SIZE - 1),
+    rot: zRot,
   })
   .strict();
 const zMove = z
@@ -118,6 +121,7 @@ const zMove = z
     fromZ: z.number().int().min(0).max(GRID_SIZE - 1),
     toX: z.number().int().min(0).max(GRID_SIZE - 1),
     toZ: z.number().int().min(0).max(GRID_SIZE - 1),
+    rot: zRot,
   })
   .strict();
 const zRoad = z
@@ -232,11 +236,17 @@ function roadKeys(roads: CourtRoad[]): Set<string> {
   return new Set(roads.map((road) => `${road.x}:${road.z}`));
 }
 
+/** Пятно постройки с учётом поворота: при нечётном повороте ширина и глубина меняются местами. */
+function sizeFor(type: string, rot: unknown): [number, number] {
+  const [w, h] = FOOTPRINT[type] ?? [1, 1];
+  return Number(rot ?? 0) % 2 === 1 ? [h, w] : [w, h];
+}
+
 /** Клетки, занятые постройками с учётом их пятна. */
 function footprintOf(buildings: CourtBuilding[]): Set<string> {
   const cells = new Set<string>();
   for (const building of buildings) {
-    const [w, h] = FOOTPRINT[building.type] ?? [1, 1];
+    const [w, h] = sizeFor(building.type, building.rot);
     const halfW = Math.floor(w / 2);
     const halfH = Math.floor(h / 2);
     for (let dx = -halfW; dx < w - halfW; dx += 1) {
@@ -372,7 +382,7 @@ const court = defineModule({
           if (level < item.th) return [];
           if (!canAfford(ctx.stock, item.cost)) return [];
           if (grid.buildings.length >= MAX_BUILDINGS) return [];
-          const [w, h] = item.size;
+          const [w, h] = sizeFor(input.type, input.rot);
           const halfW = Math.floor(w / 2);
           const halfH = Math.floor(h / 2);
           const fromX = -halfW;
@@ -397,7 +407,7 @@ const court = defineModule({
           }
           const next: CourtGrid = {
             size: grid.size,
-            buildings: [...grid.buildings, { type: input.type, x: input.x, z: input.z }],
+            buildings: [...grid.buildings, { type: input.type, x: input.x, z: input.z, ...(input.rot ? { rot: input.rot } : {}) }],
             roads: grid.roads,
           };
           return [
@@ -433,7 +443,7 @@ const court = defineModule({
             (b) => b.type === input.type && b.x === input.fromX && b.z === input.fromZ,
           );
           if (index < 0) return [];
-          const [w, h] = FOOTPRINT[input.type] ?? [1, 1];
+          const [w, h] = sizeFor(input.type, input.rot);
           const halfW = Math.floor(w / 2);
           const halfH = Math.floor(h / 2);
           const fromX = -halfW;
@@ -459,7 +469,7 @@ const court = defineModule({
           }
           const next: CourtGrid = {
             size: grid.size,
-            buildings: [...others, { type: input.type, x: input.toX, z: input.toZ }],
+            buildings: [...others, { type: input.type, x: input.toX, z: input.toZ, ...(input.rot ? { rot: input.rot } : {}) }],
             roads: grid.roads,
           };
           return [

@@ -12,7 +12,7 @@ import { ICON_SRC } from "./iconSrc.js";
 import { store } from "../store.js";
 import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
-import { CourtScene } from "../court/CourtScene.js";
+import { CourtScene, type CourtPending, type CourtSelection } from "../court/CourtScene.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
 import { ResourceStrip } from "./ResourceStrip.js";
@@ -36,15 +36,15 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
   const [roadTool, setRoadTool] = useState(false);
-  const [pending, setPending] = useState<{
-    type: string;
-    x: number;
-    z: number;
-    from?: { x: number; z: number };
-  } | null>(null);
+  const [pending, setPending] = useState<CourtPending | null>(null);
+  // Здание, выбранное тапом: подсветка и панель «Переместить / Убрать».
+  const [selected, setSelected] = useState<CourtSelection | null>(null);
+  // Красный призрак (не лезет в сетку, на постройку или дорогу) подтвердить нельзя.
+  const [ghostOk, setGhostOk] = useState(true);
+  const REMOVABLE = ["lantern", "bench", "well", "flag"];
   // Данные модуля двора из вида: сетку и уровень Ратуши рисует сцена.
   const court = (view.modules.court ?? {}) as {
-    grid?: { size: number; buildings: { type: string; x: number; z: number }[]; roads: { x: number; z: number }[] };
+    grid?: { size: number; buildings: { type: string; x: number; z: number; rot?: number }[]; roads: { x: number; z: number }[] };
     townhallLevel?: number;
     /** Пока сервер не отдаёт: ворота 1 уровня, скин по умолчанию. */
     gateLevel?: number;
@@ -83,20 +83,25 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               skinId={court.skinId ?? null}
               tool={placing ? { kind: "place", type: placing } : roadTool ? { kind: "road" } : null}
               pending={pending}
+              selected={pending ? null : selected}
+              onValid={setGhostOk}
+              onSelect={setSelected}
+              onCancelPickup={() => setPending(null)}
               onTarget={(x, z) => {
                 if (pending) setPending({ ...pending, x, z });
                 else if (placing) {
-                  setPending({ type: placing, x, z });
+                  setPending({ type: placing, x, z, rot: 0 });
                   setPlacing(null);
                 }
               }}
               onRoad={(x, z, has) => {
                 if (roadTool) sendCommand("court.road", { x, z, remove: has });
               }}
-              onPickup={(type, x, z) => {
+              onPickup={(type, x, z, rot) => {
                 setPlacing(null);
                 setRoadTool(false);
-                setPending({ type, x, z, from: { x, z } });
+                setSelected(null);
+                setPending({ type, x, z, rot, from: { x, z, rot } });
               }}
             />
           </div>
@@ -110,13 +115,34 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                     name: t(`shell.hud.b.${pending.type}`),
                     move: Boolean(pending.from),
                     // сносить можно только декор и плиты дороги
-                    removable: pending.type === "road" || ["lantern", "bench", "well", "flag"].includes(pending.type),
+                    removable: pending.type === "road" || REMOVABLE.includes(pending.type),
+                    rotatable: pending.type !== "road",
+                    valid: ghostOk,
                   }
                 : null
             }
+            selected={
+              selected && !pending
+                ? { name: t(`shell.hud.b.${selected.type}`), removable: REMOVABLE.includes(selected.type) }
+                : null
+            }
+            onRotate={(dir) => {
+              if (pending) setPending({ ...pending, rot: (pending.rot + dir + 4) % 4 });
+            }}
+            onSelectMove={() => {
+              if (!selected) return;
+              setPending({ ...selected, from: { x: selected.x, z: selected.z, rot: selected.rot } });
+              setSelected(null);
+            }}
+            onSelectRemove={() => {
+              if (!selected) return;
+              sendCommand("court.remove", { type: selected.type, x: selected.x, z: selected.z });
+              setSelected(null);
+            }}
+            onSelectClose={() => setSelected(null)}
             roadTool={roadTool}
             onConfirm={() => {
-              if (!pending) return;
+              if (!pending || !ghostOk) return;
               if (pending.type === "road" && pending.from) {
                 // перенос плиты дороги — одна атомарная команда
                 sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: pending.from });
@@ -127,9 +153,10 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                   fromZ: pending.from.z,
                   toX: pending.x,
                   toZ: pending.z,
+                  rot: pending.rot,
                 });
               } else {
-                sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z });
+                sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z, rot: pending.rot });
               }
               setPending(null);
             }}
@@ -148,10 +175,12 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               setPlacing(null);
             }}
             onPlaceStart={(type) => {
+              setSelected(null);
               setRoadTool(false);
               setPlacing(type);
             }}
             onRoadTool={() => {
+              setSelected(null);
               setPlacing(null);
               setRoadTool((value) => !value);
             }}

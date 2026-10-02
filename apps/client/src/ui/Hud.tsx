@@ -49,7 +49,12 @@ export function Hud({
   lang,
   placingName,
   pending,
+  selected,
   roadTool,
+  onRotate,
+  onSelectMove,
+  onSelectRemove,
+  onSelectClose,
   onConfirm,
   onRemove,
   onCancel,
@@ -60,7 +65,13 @@ export function Hud({
   view: WorldViewBase;
   lang: Locale;
   placingName: string | null;
-  pending: { name: string; move: boolean; removable: boolean } | null;
+  pending: { name: string; move: boolean; removable: boolean; rotatable: boolean; valid: boolean } | null;
+  /** Здание, выбранное тапом: панель «Переместить / Убрать». */
+  selected: { name: string; removable: boolean } | null;
+  onRotate: (dir: 1 | -1) => void;
+  onSelectMove: () => void;
+  onSelectRemove: () => void;
+  onSelectClose: () => void;
   roadTool: boolean;
   onConfirm: () => void;
   onRemove: () => void;
@@ -190,10 +201,38 @@ export function Hud({
         </div>
       ) : null}
 
-      {/* подтверждение: призрак на клетке — «Подтвердить»; переносимое можно и убрать */}
+      {/* выбранное здание: имя и действия (лента с кнопками аналогов придёт в фазе интерфейса здания) */}
+      {selected && !pending ? (
+        <div className="place-bar select-bar">
+          <span className="place-name">{selected.name}</span>
+          <button type="button" className="ok" onClick={onSelectMove}>
+            {t("shell.hud.select.move")}
+          </button>
+          {selected.removable ? (
+            <button type="button" className="warn" onClick={onSelectRemove}>
+              {t("shell.hud.build.remove")}
+            </button>
+          ) : null}
+          <button type="button" onClick={onSelectClose}>
+            {t("shell.hud.select.close")}
+          </button>
+        </div>
+      ) : null}
+
+      {/* подтверждение: призрак на клетке — повернуть, «Подтвердить»; переносимое можно и убрать */}
       {pending ? (
         <div className="place-bar">
-          <button type="button" className="ok" onClick={onConfirm}>
+          {pending.rotatable ? (
+            <>
+              <button type="button" className="rot" aria-label={t("shell.hud.rotate.left")} onClick={() => onRotate(-1)}>
+                ↶
+              </button>
+              <button type="button" className="rot" aria-label={t("shell.hud.rotate.right")} onClick={() => onRotate(1)}>
+                ↷
+              </button>
+            </>
+          ) : null}
+          <button type="button" className="ok" disabled={!pending.valid} onClick={onConfirm}>
             {t("shell.hud.build.confirm")}
           </button>
           {pending.move && pending.removable ? (

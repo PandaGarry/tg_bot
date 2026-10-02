@@ -8,10 +8,12 @@
  */
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import * as THREE from "three";
 import { getSkin } from "./skin/index.js";
 import { C, CELL, SURFACE, LanternFlame, rng } from "./skin/kit.js";
+import { centerOfBuilding, footprintKeys, gridToWorld, type CourtGridLite, type CourtPending, type CourtSelection, type CourtTool } from "./grid.js";
+import { YardInput, type CamState } from "./touch/YardInput.js";
 
 function webglAvailable(): boolean {
   try {
@@ -22,112 +24,12 @@ function webglAvailable(): boolean {
   }
 }
 
-// ---------- камера: пан, зум, свободный поворот с ограничениями ----------
-// Желаемое состояние меняют жесты, текущее догоняет его с демпфированием —
+// ---------- камера: плавное догоняние желаемого состояния ----------
+// Желаемое состояние меняют жесты (`touch/YardInput.tsx`), текущее догоняет его с демпфированием —
 // камера идёт плавно, без «кадрового» ощущения (замечание заказчика, круг 9).
-function CameraRig() {
-  const { camera, gl } = useThree();
-  const want = useRef({
-    target: new THREE.Vector3(0, 0, 0),
-    az: Math.PI / 4,
-    pol: 0.98,
-    dist: 24,
-  });
-  const cur = useRef({
-    target: new THREE.Vector3(0, 0, 0),
-    az: Math.PI / 4,
-    pol: 0.98,
-    dist: 24,
-  });
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const pinch = useRef(0);
-
-  useEffect(() => {
-    const el = gl.domElement;
-    // без этого Safari порывается скроллить/зумить страницу вместо сцены —
-    // отсюда были обрывы и pointercancel при панораме (круг 11)
-    el.style.touchAction = "none";
-    const s = want.current;
-    const down = (e: PointerEvent) => {
-      if (pointers.current.size >= 2) return; // третий палец не участвует
-      el.setPointerCapture(e.pointerId);
-      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      pinch.current = 0;
-    };
-    const pan = (dx: number, dy: number) => {
-      // пан: чувствительность подобрана под палец (круг 9)
-      const k = s.dist * 0.0022; // круг 12: пан медленнее и комфортнее
-      const fwd = new THREE.Vector3(-Math.sin(s.az), 0, -Math.cos(s.az));
-      const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
-      s.target.addScaledVector(right, -dx * k).addScaledVector(fwd, dy * k);
-      s.target.x = THREE.MathUtils.clamp(s.target.x, -6, 6);
-      s.target.z = THREE.MathUtils.clamp(s.target.z, -6, 6);
-    };
-    const orbit = (dx: number, dy: number) => {
-      // свободный поворот с ограничениями (решение круга 8)
-      s.az = THREE.MathUtils.clamp(s.az + dx * 0.005, Math.PI / 4 - 0.9, Math.PI / 4 + 0.9);
-      s.pol = THREE.MathUtils.clamp(s.pol + dy * 0.004, 0.78, 1.25);
-    };
-    const move = (e: PointerEvent) => {
-      const prev = pointers.current.get(e.pointerId);
-      if (!prev) return;
-      // все коалесцированные сэмплы кадра: без «ступенек» на 120 Гц-экранах
-      const batch = e.getCoalescedEvents?.() ?? [];
-      const samples = batch.length ? batch : [e as PointerEvent];
-      for (const ev of samples) {
-        const dx = ev.clientX - prev.x;
-        const dy = ev.clientY - prev.y;
-        prev.x = ev.clientX;
-        prev.y = ev.clientY;
-        if (pointers.current.size === 2) {
-          const [a, b] = [...pointers.current.values()];
-          if (a && b) {
-            const d = Math.hypot(a.x - b.x, a.y - b.y);
-            if (pinch.current > 0 && d > 0) s.dist = THREE.MathUtils.clamp(s.dist * (pinch.current / d), 7, 45);
-            pinch.current = d;
-          }
-        } else if (ev.buttons & 2 || ev.shiftKey) {
-          orbit(dx, dy);
-        } else {
-          pan(dx, dy);
-        }
-      }
-    };
-    const up = (e: PointerEvent) => {
-      pointers.current.delete(e.pointerId);
-      pinch.current = 0;
-    };
-    const wheel = (e: WheelEvent) => {
-      e.preventDefault();
-      want.current.dist = THREE.MathUtils.clamp(want.current.dist * (1 + e.deltaY * 0.0012), 7, 45);
-    };
-    const ctx = (e: Event) => e.preventDefault();
-    // iOS Safari норовит обработать щипок как зум страницы — гасим системные жесты
-    const gesture = (e: Event) => e.preventDefault();
-    el.addEventListener("pointerdown", down);
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerup", up);
-    el.addEventListener("pointercancel", up);
-    el.addEventListener("wheel", wheel, { passive: false });
-    el.addEventListener("contextmenu", ctx);
-    el.addEventListener("gesturestart", gesture);
-    el.addEventListener("gesturechange", gesture);
-    el.addEventListener("gestureend", gesture);
-    el.addEventListener("dblclick", ctx);
-    return () => {
-      el.removeEventListener("pointerdown", down);
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerup", up);
-      el.removeEventListener("pointercancel", up);
-      el.removeEventListener("wheel", wheel);
-      el.removeEventListener("contextmenu", ctx);
-      el.removeEventListener("gesturestart", gesture);
-      el.removeEventListener("gesturechange", gesture);
-      el.removeEventListener("gestureend", gesture);
-      el.removeEventListener("dblclick", ctx);
-    };
-  }, [gl]);
-
+function CameraRig({ want }: { want: MutableRefObject<CamState> }) {
+  const { camera } = useThree();
+  const cur = useRef({ target: new THREE.Vector3(0, 0, 0), az: Math.PI / 4, pol: 0.98, dist: 24 });
   useFrame((_, dt) => {
     const w = want.current, c = cur.current;
     // экспоненциальное демпфирование: плавно при любом fps
@@ -144,64 +46,6 @@ function CameraRig() {
     );
     camera.lookAt(c.target);
   });
-  return null;
-}
-
-// ---------- каменная дорожка: лента-основание и плиты поверх снежного слоя (круг 20).
-// Высоты: снег 0.14 → лента 0.17 → плиты 0.17–0.24. Кривая известна Ground'у,
-// чтобы сугробы не прорастали сквозь дорогу. У ворот лента расширяется «воронкой».
-// Клетка двора: 14 × 1.1 = 15.4 — ровно площадка PLOT (модуль хранит размер сетки).
-/** Клетка сетки → мир: сетка центрирована, край упирается в частокол. */
-function gridToWorld(g: number, size: number): number {
-  return (g - (size - 1) / 2) * CELL;
-}
-/** Пятна построек [ширина, глубина] — копия FOOTPRINT модуля court (сервер — власть). */
-const FOOTVIEW: Record<string, [number, number]> = {
-  townhall: [3, 3],
-  cottage: [2, 2],
-  farm: [2, 2],
-  sawmill: [2, 2],
-  quarry: [2, 2],
-  mine: [2, 2],
-  barracks: [2, 2],
-  lantern: [1, 1],
-  bench: [2, 1],
-  well: [2, 2],
-  flag: [1, 1],
-  road: [1, 1],
-};
-
-/** Мир → клетка сетки. */
-function worldToCell(wx: number, wz: number, size: number) {
-  return {
-    x: Math.round(wx / CELL + (size - 1) / 2),
-    z: Math.round(wz / CELL + (size - 1) / 2),
-  };
-}
-
-/** Занятые постройками клетки (переносимую можно пропустить). */
-function footprintKeys(grid: CourtGridLite, skip?: { x: number; z: number }): Set<string> {
-  const set = new Set<string>();
-  for (const b of grid.buildings) {
-    if (skip && b.x === skip.x && b.z === skip.z) continue;
-    const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    for (let dx = -halfW; dx < w - halfW; dx++) {
-      for (let dz = -halfH; dz < h - halfH; dz++) set.add(`${b.x + dx}:${b.z + dz}`);
-    }
-  }
-  return set;
-}
-
-/** Постройка, чьё пятно накрывает клетку (для долгого нажатия). */
-function buildingAt(grid: CourtGridLite, cx: number, cz: number) {
-  for (const b of grid.buildings) {
-    const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    if (cx >= b.x - halfW && cx < b.x - halfW + w && cz >= b.z - halfH && cz < b.z - halfH + h) return b;
-  }
   return null;
 }
 
@@ -901,12 +745,13 @@ function Buildings({ grid }: { grid: CourtGridLite }) {
     <>
       {grid.buildings.map((b) => {
         if (b.type === "townhall") return null; // Ратуша — отдельная живая модель
-        const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-        const cx = gridToWorld(b.x - Math.floor(w / 2) + (w - 1) / 2, grid.size);
-        const cz = gridToWorld(b.z - Math.floor(h / 2) + (h - 1) / 2, grid.size);
+        const { wx, wz } = centerOfBuilding(b, grid.size);
         return (
-          <Popped key={`${b.type}:${b.x}:${b.z}`} x={cx} z={cz}>
-            <BuildingBody type={b.type} />
+          <Popped key={`${b.type}:${b.x}:${b.z}`} x={wx} z={wz}>
+            {/* модель нарисована входом на восток; поворот — четверти оборота по часовой стрелке */}
+            <group rotation-y={(-(b.rot ?? 0) * Math.PI) / 2}>
+              <BuildingBody type={b.type} />
+            </group>
           </Popped>
         );
       })}
@@ -947,179 +792,13 @@ function Dust({ x, z, onDone }: { x: number; z: number; onDone: () => void }) {
   );
 }
 
-/** Сетка двора: тонкие тёплые линии поверх площадки — только в режиме стройки. */
-function GridOverlay({ size }: { size: number }) {
-  const geom = useMemo(() => {
-    const half = (size * CELL) / 2;
-    const pts: number[] = [];
-    for (let i = 0; i <= size; i++) {
-      const p = -half + i * CELL;
-      pts.push(p, 0, -half, p, 0, half, -half, 0, p, half, 0, p);
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-    return g;
-  }, [size]);
-  return (
-    <lineSegments geometry={geom} position-y={0.185} renderOrder={5}>
-      <lineBasicMaterial color="#d9b070" transparent opacity={0.4} depthWrite={false} />
-    </lineSegments>
-  );
-}
-
-/**
- * Слой стройки: призрак постройки под пальцем и тап по клетке.
- * Тап отличаем от панорамы: если палец уехал больше 8px — это поворот камеры.
- */
-/**
- * Ввод двора: тап ставит выбранную постройку или двигает подтверждаемую,
- * тап кладёт/убирает плиту дороги, долгое нажатие (0.55 с) поднимает
- * постройку для переноски — включая Ратушу (забор вне сетки и не трогается).
- * Тап отличаем от панорамы порогом 8px.
- */
-function CourtInput({
-  grid,
-  tool,
-  pending,
-  onTarget,
-  onRoad,
-  onPickup,
-}: {
-  grid: CourtGridLite;
-  tool: { kind: "place"; type: string } | { kind: "road" } | null;
-  pending: { type: string; x: number; z: number; from?: { x: number; z: number } } | null;
-  onTarget: (x: number, z: number) => void;
-  onRoad: (x: number, z: number, has: boolean) => void;
-  onPickup: (type: string, x: number, z: number) => void;
-}) {
-  const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
-  const down = useRef<{ x: number; y: number; cell: { x: number; z: number } } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const held = useRef(false);
-  const size = grid.size;
-
-  const roads = useMemo(() => new Set(grid.roads.map((r) => `${r.x}:${r.z}`)), [grid]);
-  const busy = useMemo(() => footprintKeys(grid, pending?.from), [grid, pending]);
-  const [viewW, viewH] = FOOTVIEW[pending?.type ?? (tool?.kind === "place" ? tool.type : "")] ?? [1, 1];
-  const halfW = Math.floor(viewW / 2);
-  const halfH = Math.floor(viewH / 2);
-
-  const free = (gx: number, gz: number): boolean => {
-    for (let dx = -halfW; dx < viewW - halfW; dx++) {
-      for (let dz = -halfH; dz < viewH - halfH; dz++) {
-        const x = gx + dx;
-        const z = gz + dz;
-        if (x < 0 || z < 0 || x > size - 1 || z > size - 1) return false;
-        const key = `${x}:${z}`;
-        if (busy.has(key) || roads.has(key)) return false;
-      }
-    }
-    return true;
-  };
-
-  const centerOf = (cell: { x: number; z: number }) => ({
-    wx: gridToWorld(cell.x - halfW + (viewW - 1) / 2, size),
-    wz: gridToWorld(cell.z - halfH + (viewH - 1) / 2, size),
-  });
-
-  const clearTimer = () => {
-    if (timer.current !== null) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
-  };
-
-  const ghost = pending
-    ? { valid: true, ...centerOf(pending) }
-    : hover && tool?.kind === "place"
-      ? { valid: free(hover.x, hover.z), ...centerOf(hover) }
-      : null;
-  const ghostColor = pending ? "#d9b25a" : ghost?.valid ? "#7fae5a" : "#c25438";
-
-  return (
-    <group>
-      {tool || pending ? <GridOverlay size={size} /> : null}
-      <mesh
-        rotation-x={-Math.PI / 2}
-        position-y={0.22}
-        onPointerMove={(e) => {
-          const d = down.current;
-          if (d && Math.hypot(e.nativeEvent.clientX - d.x, e.nativeEvent.clientY - d.y) > 8) clearTimer();
-          setHover(worldToCell(e.point.x, e.point.z, size));
-        }}
-        onPointerDown={(e) => {
-          const cell = worldToCell(e.point.x, e.point.z, size);
-          down.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, cell };
-          held.current = false;
-          clearTimer();
-          // долгое нажатие: поднять постройку для переноски
-          timer.current = setTimeout(() => {
-            timer.current = null;
-            const d = down.current;
-            down.current = null;
-            if (!d || pending || tool) return;
-            const hit = buildingAt(grid, d.cell.x, d.cell.z);
-            if (hit) {
-              held.current = true;
-              onPickup(hit.type, hit.x, hit.z);
-              return;
-            }
-            // на постройке пусто — может, это плита дороги
-            if (roads.has(`${d.cell.x}:${d.cell.z}`)) {
-              held.current = true;
-              onPickup("road", d.cell.x, d.cell.z);
-            }
-          }, 550);
-        }}
-        onPointerUp={(e) => {
-          clearTimer();
-          const d = down.current;
-          down.current = null;
-          if (!d || held.current) {
-            held.current = false;
-            return;
-          }
-          if (Math.hypot(e.nativeEvent.clientX - d.x, e.nativeEvent.clientY - d.y) > 8) return;
-          const cell = worldToCell(e.point.x, e.point.z, size);
-          if (pending) {
-            if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
-          } else if (tool?.kind === "place") {
-            if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
-          } else if (tool?.kind === "road") {
-            onRoad(cell.x, cell.z, roads.has(`${cell.x}:${cell.z}`));
-          }
-        }}
-        onPointerLeave={() => {
-          clearTimer();
-          down.current = null;
-        }}
-      >
-        <planeGeometry args={[size * CELL, size * CELL]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
-      {ghost ? (
-        <group position={[ghost.wx, 0.2, ghost.wz]}>
-          <mesh rotation-x={-Math.PI / 2}>
-            <planeGeometry args={[viewW * CELL - 0.08, viewH * CELL - 0.08]} />
-            <meshBasicMaterial color={ghostColor} transparent opacity={0.5} depthWrite={false} />
-          </mesh>
-          <mesh position-y={0.5}>
-            <boxGeometry args={[viewW * CELL - 0.2, 1.0, viewH * CELL - 0.2]} />
-            <meshBasicMaterial color={ghostColor} transparent opacity={0.16} depthWrite={false} />
-          </mesh>
-        </group>
-      ) : null}
-    </group>
-  );
-}
-
 /**
  * Центральное здание двора — Цитадель из скина. Клетка берётся из данных (перенос долгим
  * нажатием двигает и модель), вход смотрит на восток, к воротам. Размер на земле всегда 3×3.
  * В dev-сборке уровень можно подменить через `window.__citadelLevel` — так снимаются все стадии.
  */
 function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; level: number; grid: CourtGridLite }) {
-  const at = grid.buildings.find((b) => b.type === "townhall") ?? { x: 7, z: 7 };
+  const at = grid.buildings.find((b) => b.type === "townhall") ?? { type: "townhall", x: 7, z: 7, rot: 0 };
   const [override, setOverride] = useState<number | null>(null);
   const [upgrade, setUpgrade] = useState<{ startedAt: number; endsAt: number } | null>(null);
   useFrame(() => {
@@ -1131,7 +810,7 @@ function CitadelSlot({ skin, level, grid }: { skin: ReturnType<typeof getSkin>; 
     if (up !== upgrade) setUpgrade(up);
   });
   return (
-    <group position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]}>
+    <group position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]} rotation-y={(-(at.rot ?? 0) * Math.PI) / 2}>
       <skin.Citadel level={override ?? level} upgrade={upgrade} />
     </group>
   );
@@ -1217,21 +896,7 @@ function MeadowLife() {
 }
 
 // ---------- оболочка сцены: fallback и подсказка поворота ----------
-/** Сетка двора из вида: то, что отдаёт модуль court. */
-export interface CourtGridLite {
-  size: number;
-  buildings: { type: string; x: number; z: number }[];
-  roads: { x: number; z: number }[];
-}
-
-export type CourtTool = { kind: "place"; type: string } | { kind: "road" } | null;
-
-export interface CourtPending {
-  type: string;
-  x: number;
-  z: number;
-  from?: { x: number; z: number };
-}
+export type { CourtGridLite, CourtPending, CourtSelection, CourtTool } from "./grid.js";
 
 export function CourtScene({
   texts,
@@ -1241,9 +906,13 @@ export function CourtScene({
   skinId,
   tool,
   pending,
+  selected,
   onTarget,
+  onValid,
   onRoad,
   onPickup,
+  onSelect,
+  onCancelPickup,
 }: {
   texts: { rotate: string; nowebgl: string };
   grid: CourtGridLite | null;
@@ -1254,11 +923,17 @@ export function CourtScene({
   skinId?: string | null;
   tool: CourtTool;
   pending: CourtPending | null;
+  selected: CourtSelection | null;
   onTarget: (x: number, z: number) => void;
+  /** Допустимо ли положение постройки в руках (красный призрак не подтвердить). */
+  onValid: (ok: boolean) => void;
   onRoad: (x: number, z: number, has: boolean) => void;
-  onPickup: (type: string, x: number, z: number) => void;
+  onPickup: (type: string, x: number, z: number, rot: number) => void;
+  onSelect: (sel: CourtSelection | null) => void;
+  onCancelPickup: () => void;
 }) {
   const [webgl] = useState(webglAvailable);
+  const cam = useRef<CamState>({ target: new THREE.Vector3(0, 0, 0), az: Math.PI / 4, pol: 0.98, dist: 24 });
   const skin = getSkin(skinId);
   // клетки, где скин не ставит мелкий декор: дороги и пятна построек
   const blocked = useMemo(() => {
@@ -1278,9 +953,7 @@ export function CourtScene({
     if (!prev) return; // первая загрузка — просто рисуем двор
     const added = grid.buildings.find((b) => !prev.has(`${b.type}:${b.x}:${b.z}`));
     if (!added) return;
-    const [w, h] = FOOTVIEW[added.type] ?? [1, 1];
-    const x = gridToWorld(added.x - Math.floor(w / 2) + (w - 1) / 2, grid.size);
-    const z = gridToWorld(added.z - Math.floor(h / 2) + (h - 1) / 2, grid.size);
+    const { wx: x, wz: z } = centerOfBuilding(added, grid.size);
     setBursts((list) => [...list, { key: `${added.type}:${added.x}:${added.z}:${Date.now()}`, x, z }]);
   }, [grid]);
 
@@ -1326,7 +999,7 @@ export function CourtScene({
           shadow-radius={2}
         />
         <directionalLight color="#c4d8eb" intensity={0.24} position={[-12, 10, -14]} />
-        <CameraRig />
+        <CameraRig want={cam} />
         <skin.Ground size={grid?.size ?? 14} blocked={blocked} />
         <skin.Road roads={grid?.roads ?? []} size={grid?.size ?? 14} />
         <skin.Fence />
@@ -1337,7 +1010,20 @@ export function CourtScene({
           <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
         ))}
         {grid ? (
-          <CourtInput grid={grid} tool={tool} pending={pending} onTarget={onTarget} onRoad={onRoad} onPickup={onPickup} />
+          <YardInput
+            grid={grid}
+            tool={tool}
+            pending={pending}
+            selected={selected}
+            thLevel={thLevel}
+            camera={cam}
+            onTarget={onTarget}
+            onValid={onValid}
+            onRoad={onRoad}
+            onPickup={onPickup}
+            onSelect={onSelect}
+            onCancelPickup={onCancelPickup}
+          />
         ) : null}
         <skin.Trees />
         <MeadowLife />
