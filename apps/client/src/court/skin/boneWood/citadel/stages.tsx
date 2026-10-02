@@ -7,7 +7,7 @@
 import type { BannerSpec } from "../../banner.js";
 import { Banner } from "./Banner.js";
 import {
-  Antlers, Box, Chimney, ConeRoof, Door, GableRoof, HipRoof, LogWalls, MAT, PlankWalls, RibArch, SnowDrift, StoneBlock, Win, WoodPile,
+  Antlers, Box, Chimney, ConeRoof, Door, GableRoof, HipRoof, LogWalls, MAT, PlankWalls, RibArch, SnowDrift, StoneBlock, Win,
 } from "./parts.js";
 
 interface StageProps {
@@ -36,7 +36,6 @@ export function Stage1({ banner }: StageProps) {
       <Door x={w / 2 + r + 0.03} w={0.55} h={1.0} />
       <Win p={[0.15, 0.95, d / 2 + r + 0.02]} face="z" s={[0.28, 0.3]} />
       <Antlers p={[len / 2 + 0.03, roofY + 0.42, 0]} k={0.85} />
-      <WoodPile p={[-0.45, 0, 1.5]} />
       <Banner p={[-len / 2 + 0.3, roofY + 0.95, 0]} pole={0.8} cloth={[0.55, 0.3]} spec={banner} />
       <Drifts />
     </group>

@@ -383,26 +383,3 @@ export function PlankWalls({ w, d, y0, h, mat = MAT.plank, gap = 0.3 }: { w: num
     </group>
   );
 }
-
-/** Поленница: три ряда брёвен лежат вдоль x, сверху снег. */
-export function WoodPile({ p, len = 0.75 }: { p: V3; len?: number }) {
-  const geo = useMemo(() => {
-    const parts: THREE.BufferGeometry[] = [];
-    const r = 0.075;
-    [4, 3, 2].forEach((n, row) => {
-      for (let i = 0; i < n; i++) {
-        const g = new THREE.CylinderGeometry(r, r, len, 7);
-        g.rotateZ(Math.PI / 2);
-        g.translate(0, r + row * r * 1.7, (i - (n - 1) / 2) * r * 2.05);
-        parts.push(g);
-      }
-    });
-    return mergeGeometries(parts)!;
-  }, [len]);
-  return (
-    <group position={p}>
-      <mesh geometry={geo} material={MAT.log} castShadow receiveShadow />
-      <SnowDrift p={[0, 0.3, 0]} r={0.36} h={0.1} seed={17} />
-    </group>
-  );
-}
