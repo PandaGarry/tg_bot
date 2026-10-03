@@ -17,3 +17,6 @@ art/
 !.env.parallel.example
 .devdb/
 .registry-check/
+
+# временные снимки и замеры браузерных проверок
+.tmp/
