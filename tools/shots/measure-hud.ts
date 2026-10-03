@@ -24,7 +24,13 @@ const browser = await puppeteer.launch({
   executablePath: prepareRuntime(),
   args: [...chromium.args, "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--hide-scrollbars"],
   headless: true,
-  defaultViewport: { width: 390, height: 844, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
+  defaultViewport: {
+    width: Number(process.argv[4] ?? 390),
+    height: Number(process.argv[5] ?? 844),
+    deviceScaleFactor: 1,
+    hasTouch: true,
+    isMobile: true,
+  },
   protocolTimeout: 180_000,
   timeout: 120_000,
 });
@@ -61,12 +67,62 @@ await sleep(5_000);
 
 const report = await page.evaluate(`(() => {
   const r = (sel) => { const el = document.querySelector(sel); if (!el) return null;
-    const b = el.getBoundingClientRect(); return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) }; };
+    const b = el.getBoundingClientRect(); return { x: +b.x.toFixed(1), y: +b.y.toFixed(1), w: +b.width.toFixed(1), h: +b.height.toFixed(1) }; };
   const lord = r(".hud-lord"); const res = r(".hud-res");
   const portrait = r(".hud-lord .portrait"); const face = r(".hud-lord .portrait .face");
   const frame = r(".hud-lord .portrait .frame"); const tag = r(".hud-lord .portrait .lvl-tag");
+  const rows = r(".hud-lord .rows");
   const overlap = lord && res ? !(lord.x + lord.w <= res.x + 1 || res.x + res.w <= lord.x + 1) : null;
-  return { lord, res, portrait, face, frame, tag, overlap, screen: window.innerWidth };
+
+  /* Ожидаемая геометрия — измеренные доли подложки lord-plate.png (1566x754). */
+  const P = { fx: 0.0834, fy: 0.2168, fw: 0.2701, fh: 0.5610,
+              rx: 0.4042, rw: 0.4898, ry: [0.2082, 0.4151, 0.6233], rh: 0.1485 };
+  const exp = (px, py, pw, ph) => ({ x: +(lord.x + px * lord.w).toFixed(1), y: +(lord.y + py * lord.h).toFixed(1),
+                                     w: +(pw * lord.w).toFixed(1), h: +(ph * lord.h).toFixed(1) });
+  const dev = (a, b) => a && b ? { dx: +(a.x - b.x).toFixed(1), dy: +(a.y - b.y).toFixed(1),
+                                   dw: +(a.w - b.w).toFixed(1), dh: +(a.h - b.h).toFixed(1) } : null;
+  const expPortrait = exp(P.fx, P.fy, P.fw, P.fh);
+  const expRows = P.ry.map((ry) => exp(P.rx, ry, P.rw, P.rh));
+
+  const rowSel = [".hud-lord .rows .name", ".hud-lord .power-row", ".hud-lord .state-row"];
+  const gotRows = rowSel.map(r);
+
+  /* центр лица и рамки против центра слота: должны совпадать */
+  const center = (b) => b ? { cx: +(b.x + b.w / 2).toFixed(1), cy: +(b.y + b.h / 2).toFixed(1) } : null;
+  const cPortrait = center(portrait), cFace = center(face), cFrame = center(frame);
+
+  /* текст не должен вылезать из своей ячейки по высоте */
+  const fit = gotRows.map((g, i) => {
+    const el = document.querySelector(rowSel[i]);
+    if (!el || !g) return null;
+    const inner = [...el.children].reduce((m, c) => Math.max(m, c.getBoundingClientRect().height), 0);
+    return { row: +(g.h).toFixed(1), content: +inner.toFixed(1), free: +(g.h - inner).toFixed(1),
+             font: getComputedStyle(el).fontSize, scrollX: el.scrollWidth - el.clientWidth };
+  });
+
+  const chips = [...document.querySelectorAll(".hud-res .chip")].map((c) => {
+    const b = c.getBoundingClientRect();
+    return { w: +b.width.toFixed(1), overflow: Math.max(0, c.scrollWidth - c.clientWidth) };
+  });
+
+  const cs = (sel, prop) => { const el = document.querySelector(sel); return el ? getComputedStyle(el)[prop] : null; };
+  const styles = {
+    supportCqh: CSS.supports("height", "1cqh"),
+    containerType: cs(".hud-lord", "containerType"),
+    lordFont: cs(".hud-lord", "fontSize"),
+    nameFont: cs(".hud-lord .rows .name", "fontSize"),
+    powerImg: { w: cs(".hud-lord .power-row img", "width"), h: cs(".hud-lord .power-row img", "height") },
+    powerNum: cs(".hud-lord .power-row b", "fontSize"),
+    vipb: { h: cs(".hud-lord .vipb", "height"), font: cs(".hud-lord .vipb", "fontSize") },
+    tagFont: cs(".hud-lord .portrait .lvl-tag", "fontSize"),
+  };
+
+  return { styles, lord, res, overlap, screen: window.innerWidth,
+           portrait: { got: portrait, exp: expPortrait, dev: dev(portrait, expPortrait) },
+           frame: { got: frame, face, cPortrait, cFrame, cFace },
+           tag,
+           rows: { got: rows, cells: gotRows.map((g, i) => ({ got: g, exp: expRows[i], dev: dev(g, expRows[i]), fit: fit[i] })) },
+           chips };
 })()`);
 console.log("Замер верхней строки HUD:");
 console.log(JSON.stringify(report, null, 2));

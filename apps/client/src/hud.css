@@ -34,7 +34,7 @@
   z-index: 40;
   display: grid;
   /* Один ряд во всех ориентациях: профиль сжимается до 38%, освобождая место ресурсам. */
-  grid-template-columns: minmax(0, min(212px, 42vw)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, min(216px, 52vw)) minmax(0, 1fr);
   gap: 6px;
   align-items: start;
 }
@@ -52,14 +52,20 @@
 }
 
 /* Карточка лорда по концепту C1 (документ 32 §11).
-   Геометрию задаёт подложка lord-plate.png (1566×754): рамка профиля, костяное поле, золотые уголки.
-   Положение аватара не угадано, а измерено по самой подложке: тёмное поле под аватар занимает
-   x 8,3–35 % и y 22,5–77,5 %, это квадрат 418×415 пикселей. Портрет и рамка аватара — отдельные
-   прозрачные слои поверх, поэтому рамки меняются наградами, а лицо не перерисовывается. */
+   Геометрия не подобрана на глаз, а измерена по самой подложке lord-plate.png (1566×754):
+     · поле под аватар — прямоугольник x 131–553 (8,34–35,31 %), y 156–594 (20,69–78,91 %).
+       В него по центру вписан квадрат 423×423: left 8,34 %, top 21,68 %, 27,01 % × 56,10 %.
+     · три ячейки под текст — столбец x 633–1400 (left 40,42 %, width 48,98 %),
+       по y 157–269, 313–425 и 470–582, то есть верх 20,82 / 41,51 / 62,33 % при высоте 14,85 %.
+   Размеры надписей заданы в cqh — процентах высоты самой карточки, поэтому текст всегда
+   стоит ровно в своей ячейке, какую бы ширину ни дал экран: раньше шрифты были в пикселях
+   и при сжатии карточки вылезали из ячеек. */
 .hud-lord {
   position: relative;
   width: 100%;
   aspect-ratio: 1566 / 754;
+  /* собственный контейнер запросов: 1cqh = 1 % высоты карточки */
+  container-type: size;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
@@ -78,76 +84,87 @@
   max-width: none;
 }
 
-/* Слот аватара — ровно по тёмному полю подложки. */
+/* Слот аватара — ровно по полю подложки, квадрат по центру поля. */
 .hud-lord .portrait {
   position: absolute;
-  left: 8.3%;
-  top: 22.5%;
-  width: 26.7%;
-  height: 55%;
+  left: 8.34%;
+  top: 21.68%;
+  width: 27.01%;
+  height: 56.1%;
   display: block;
 }
 
+/* Портрет — внутри поля, с отступом под угловые накладки рамки (у PNG рамки сами углы,
+   середина сторон пустая, поэтому лицо закрывает почти всё поле). */
 .hud-lord .portrait .face {
   /* max-width снимаем: Tailwind задаёт img { max-width: 100% }, иначе портрет расползается на весь слот
      и перекрывает рамку; размер задаём явно — у замещаемых элементов height:auto берёт свою высоту. */
   position: absolute;
-  top: 6%;
-  left: 6%;
-  width: 88%;
-  height: 88%;
+  top: 4.5%;
+  left: 4.5%;
+  width: 91%;
+  height: 91%;
   max-width: none;
   object-fit: cover;
   object-position: center top;
   border-radius: 14%;
 }
 
-/* Рамка аватара — сменный декор поверх портрета. */
+/* Рамка аватара — сменный декор поверх портрета, строго по границе поля (раньше была 108 % и
+   вылезала за поле: отсюда «криво»). Угловые накладки ложатся на углы портрета. */
 .hud-lord .portrait .frame {
   position: absolute;
-  top: -4%;
-  left: -4%;
-  width: 108%;
-  height: 108%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   max-width: none;
   object-fit: contain;
   pointer-events: none;
 }
 
-/* Уровень — плашкой в углу аватара: строка имени остаётся свободной (требование заказчика). */
+/* Уровень — плашкой в углу аватара: строка имени остаётся свободной (требование заказчика).
+   Смещения подобраны так, чтобы плашка села в правый нижний угол поля, а не за его пределами. */
 .hud-lord .portrait .lvl-tag {
   position: absolute;
-  right: -12%;
-  bottom: -10%;
+  right: -1%;
+  bottom: -2%;
   font-style: normal;
-  font-size: 9px;
+  font-size: 8.2cqh;
   font-weight: 800;
-  line-height: 1.35;
+  line-height: 1.25;
   color: #3b2416;
   background: linear-gradient(180deg, #f0c866, #c8952e);
-  border-radius: 7px;
-  padding: 0 4px;
+  border-radius: 2.4cqh;
+  padding: 0 1.5cqh;
   white-space: nowrap;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+/* Три ячейки текста: границы столбца и высоты строк измерены по подложке, между строками
+   ровно столько, сколько оставила подложка (10,47 % — совпало с замером 44–45 px). */
 .hud-lord .rows {
   position: absolute;
-  left: 38%;
-  right: 5%;
-  top: 16%;
-  bottom: 16%;
+  left: 40.42%;
+  width: 48.98%;
+  top: 20.82%;
+  height: 56.37%;
   display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  align-content: center;
-  gap: 2px;
+  grid-template-rows: repeat(3, 26.35%);
+  align-content: space-between;
   min-width: 0;
 }
 
+.hud-lord .rows > * {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .hud-lord .rows .name {
-  align-self: center;
-  font-size: 12.5px;
-  line-height: 1.1;
+  font-size: 10.6cqh;
+  line-height: 1.05;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -155,21 +172,20 @@
 }
 
 .hud-lord .power-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  gap: 1.8cqh;
 }
 
 .hud-lord .power-row img {
-  width: 13px;
-  height: 13px;
+  width: 11cqh;
+  height: 11cqh;
   max-width: none;
+  flex: none;
   object-fit: contain;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 
 .hud-lord .power-row b {
-  font-size: 11.5px;
+  font-size: 10cqh;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
@@ -177,36 +193,34 @@
 /* Строка состояния: маленькая пилюля VIP и свободное место под будущие иконки бонусов,
    без кружков и ячеек — как в утверждённом концепте. */
 .hud-lord .state-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
+  gap: 1.8cqh;
 }
 
 .hud-lord .state-row .bonuses {
   flex: 1;
   min-width: 0;
-  height: 13px;
+  height: 9.6cqh;
 }
 
 .hud-lord .vipb {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 0 5px 0 3px;
-  height: 13px;
-  border-radius: 7px;
+  gap: 0.8cqh;
+  padding: 0 1.8cqh 0 1cqh;
+  height: 9.6cqh;
+  flex: none;
+  border-radius: 4.8cqh;
   background: linear-gradient(180deg, #f0c866, #c8952e);
   color: #3b2416;
   font-weight: 800;
-  font-size: 8.5px;
+  font-size: 7.4cqh;
   white-space: nowrap;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .hud-lord .vipb img {
-  width: 10px;
-  height: 10px;
+  width: 7.2cqh;
+  height: 7.2cqh;
   max-width: none;
   object-fit: contain;
 }
@@ -257,9 +271,10 @@
 .hud-res .ic-frame {
   display: grid;
   place-items: center;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
+  flex: none;
+  width: min(100%, 24px);
+  aspect-ratio: 1;
+  height: auto;
   padding: 1px;
   border: 1px solid rgba(239, 227, 198, 0.32);
   border-radius: 6px;
@@ -569,23 +584,6 @@
 
 /* узкие телефоны (<390): всё чуть плотнее, квадраты сохраняются */
 @media (max-width: 389px) {
-  /* карточка лорда масштабируется подложкой: на узком экране правим только текст */
-  .hud-lord .rows .name {
-    font-size: 11px;
-  }
-
-  .hud-lord .portrait .lvl-tag {
-    font-size: 8px;
-  }
-
-  .hud-lord .power-row b {
-    font-size: 10.5px;
-  }
-
-  .hud-lord .vipb {
-    height: 14px;
-    font-size: 9px;
-  }
 
   .hud-res {
     gap: 1px;
@@ -598,17 +596,11 @@
   }
 
   .hud-res .ic-frame {
-    flex-basis: 18px;
-    width: 18px;
-    height: 18px;
+    width: min(100%, 20px);
   }
 
   .hud-res .chip b {
     font-size: 7px;
-  }
-
-  .hud-lord .name-row b {
-    max-width: 78px;
   }
 
   .hud-rb {
@@ -655,34 +647,6 @@
 
 /* большие телефоны и малые планшеты (431–767): элементы крупнее */
 @media (min-width: 431px) {
-  .hud-lord {
-    grid-template-columns: 44px 1fr;
-  }
-
-  .hud-lord .portrait {
-    width: 44px;
-    height: 44px;
-  }
-
-  .hud-lord .portrait .hud-ic {
-    width: 42px;
-    height: 42px;
-  }
-
-  .hud-lord .name-row b {
-    font-size: 13.5px;
-    max-width: 126px;
-  }
-
-  .hud-lord .vipb {
-    height: 16px;
-    font-size: 10.5px;
-  }
-
-  .hud-lord .vipb .hud-ic {
-    width: 14px;
-    height: 14px;
-  }
 
   .hud-res {
     gap: 4px;
@@ -690,12 +654,6 @@
 
   .hud-res .chip {
     min-height: 52px;
-  }
-
-  .hud-res .ic-frame {
-    flex-basis: 24px;
-    width: 24px;
-    height: 24px;
   }
 
   .hud-res .chip b {
@@ -755,39 +713,6 @@
 
 /* низкий ландшафт телефонов: вертикали сжаты, док компактный */
 @media (orientation: landscape) and (max-height: 500px) {
-  .hud-lord {
-    grid-template-columns: 30px 1fr;
-    padding: 2px 8px 2px 2px;
-  }
-
-  .hud-lord .portrait {
-    width: 30px;
-    height: 30px;
-  }
-
-  .hud-lord .portrait .hud-ic {
-    width: 20px;
-    height: 20px;
-  }
-
-  .hud-lord .name-row b {
-    font-size: 10.5px;
-  }
-
-  .hud-lord .xp-row .lvl {
-    font-size: 8.5px;
-  }
-
-  .hud-lord .vipb {
-    height: 13px;
-    font-size: 8.5px;
-    padding: 0 5px 0 3px;
-  }
-
-  .hud-lord .vipb .hud-ic {
-    width: 11px;
-    height: 11px;
-  }
 
   .hud-res {
     gap: 2px;
@@ -800,9 +725,7 @@
   }
 
   .hud-res .ic-frame {
-    flex-basis: 18px;
-    width: 18px;
-    height: 18px;
+    width: min(100%, 20px);
   }
 
   .hud-res .chip b {
