@@ -1,0 +1,88 @@
+/**
+ * Снимки Цитадели без интерфейса по стадиям: `corepack pnpm exec tsx tools/shots/citadel.ts [порт] [префикс] [уровни через запятую] [mid] [up]`.
+ * Нужен запущенный dev-сервер (`bash tools/replit-dev.sh`): уровень подменяется через `window.__citadelLevel`
+ * (только dev). Результат в `.tmp/<префикс>-{far,mid}-<уровень>.png`.
+ */
+import { mkdirSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
+import { prepareRuntime } from "./browser.js";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const outDir = join(root, ".tmp");
+mkdirSync(outDir, { recursive: true });
+const port = process.argv[2] ?? "3000";
+const prefix = process.argv[3] ?? "yard";
+const origin = `http://127.0.0.1:${port}`;
+const suffix = Date.now().toString(36);
+
+const browser = await puppeteer.launch({
+  executablePath: prepareRuntime(),
+  args: [...chromium.args, "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--hide-scrollbars"],
+  headless: true,
+  defaultViewport: { width: 390, height: 844, deviceScaleFactor: 1.86 },
+  protocolTimeout: 180_000,
+  timeout: 120_000,
+});
+const page = await browser.newPage();
+page.on("pageerror", (error) => console.warn(`  страница: ${String(error)}`));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+async function clickButton(text: string) {
+  await page.waitForFunction(
+    `[...document.querySelectorAll("button")].some((b) => b.textContent?.trim() === ${JSON.stringify(text)})`,
+    { timeout: 30_000 },
+  );
+  await page.evaluate(
+    `(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent?.trim() === ${JSON.stringify(text)}); b && b.click(); })()`,
+  );
+}
+
+await page.goto(origin, { waitUntil: "load", timeout: 90_000 });
+await clickButton("Дальше");
+await clickButton("Пропустить");
+await clickButton("Регистрация аккаунта");
+await page.waitForFunction(`document.body.textContent.includes("Логин")`, { timeout: 30_000 });
+const inputs = await page.$$("input:not([type=checkbox])");
+await inputs[0]!.type(`shot-${suffix}`);
+await inputs[1]!.type(`shot-${suffix}@example.com`);
+await inputs[2]!.type("shot-password-123");
+await inputs[3]!.type("shot-password-123");
+await (await page.$$("input[type=checkbox]"))[0]!.click();
+await clickButton("Зарегистрироваться");
+await page.waitForFunction(`document.body.textContent.includes("Имя")`, { timeout: 30_000 });
+await (await page.$("input"))!.type(`Снимок ${suffix.slice(-4)}`);
+await clickButton("Занять двор");
+await page.waitForSelector(".hud-lord", { timeout: 60_000 });
+await page.waitForSelector("canvas", { timeout: 60_000 });
+await sleep(6_000);
+// случайное событие закрывает часть кадра: «Ясно» убирает плашку
+await page.evaluate(`(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent?.trim() === "Ясно"); b && b.click(); })()`);
+await sleep(6_000); // текстуры и первые кадры SwiftShader
+// без интерфейса: скрываем всё, кроме холста, и снимаем сцену (общий и ближний планы)
+await page.addStyleTag({ content: "* { visibility: hidden !important; } canvas { visibility: visible !important; }" });
+await sleep(1500);
+const levels = (process.argv[4] ?? "3,8,13,18,23").split(",").map(Number);
+const setLevel = (n: number) => page.evaluate(`window.__citadelLevel = ${n}`);
+// шестой аргумент `up`: показать стройку (молот, пыль, таймер) через `window.__citadelUpgrade`
+if (process.argv[6] === "up") {
+  await page.evaluate(`window.__citadelUpgrade = { startedAt: Date.now() - 6 * 3600e3, endsAt: Date.now() + (1 * 86400e3 + 4 * 3600e3 + 12 * 60e3) }`);
+}
+for (const n of process.argv[5] === "mid" ? [] : levels) {
+  await setLevel(n);
+  await sleep(2500);
+  await page.screenshot({ path: join(outDir, `${prefix}-far-${n}.png`), type: "png" });
+  console.log("far", n);
+}
+await page.mouse.move(195, 420);
+await page.mouse.wheel({ deltaY: -400 });
+await sleep(2500);
+for (const n of levels) {
+  await setLevel(n);
+  await sleep(2500);
+  await page.screenshot({ path: join(outDir, `${prefix}-mid-${n}.png`), type: "png" });
+  console.log("mid", n);
+}
+console.log("ok");
+await browser.close();
