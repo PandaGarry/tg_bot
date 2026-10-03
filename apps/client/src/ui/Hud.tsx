@@ -7,7 +7,6 @@
 import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
-import { swatch } from "./Create.js";
 import { BuildPanel } from "./BuildPanel.js";
 import { ActionButton } from "./ActionButton.js";
 import { ICON_SRC } from "./iconSrc.js";
@@ -31,6 +30,18 @@ const TABS: { kind: Exclude<PanelKind, "build" | "train" | "sci" | null>; icon: 
   { kind: "shop", icon: "shop", key: "shell.hud.shop" },
   { kind: "mail", icon: "mail", key: "shell.hud.mail" },
 ];
+
+/**
+ * Рамки — внешний декор и награда (решение 03.10.2026): рамка профиля и рамка аватара меняются независимо,
+ * базовая выдаётся всем, остальные — за ивенты, сезон и донат. Идентификаторы придут из профиля лорда;
+ * пока в данных их нет, берётся базовая.
+ */
+const LORD_PORTRAIT_SRC = "icons/lord-base.png";
+const PLATE_SRC: Record<string, string> = { base: "icons/lord-plate.png" };
+const AVATAR_FRAME_SRC: Record<string, string> = { base: "icons/lord-frame-base.png" };
+
+const plateSrc = (id?: string) => PLATE_SRC[id ?? "base"] ?? PLATE_SRC.base;
+const avatarFrameSrc = (id?: string) => AVATAR_FRAME_SRC[id ?? "base"] ?? AVATAR_FRAME_SRC.base;
 
 /** Короткий формат чисел: миллионы и миллиарды не ломают строку ресурсов (круг 15). */
 // числа (раунд 5): полностью до 100 999 999; сотни млн — «NNN млн»; миллиарды — «1.2 млрд»
@@ -84,6 +95,8 @@ export function Hud({
   const t = translator(lang);
   const [panel, setPanel] = useState<PanelKind>(null);
   const me = view.me;
+  /** Рамки придут в данных профиля вместе с системой наград; пока их нет — берётся базовая. */
+  const frames = (me ?? {}) as { profileFrame?: string; avatarFrame?: string };
   // Уровень и сила приходят из модуля двора: растут вместе с прогрессом.
   const court = (view.modules.court ?? {}) as { level?: number; power?: number };
   const level = Number(court.level ?? 1);
@@ -108,24 +121,27 @@ export function Hud({
       {/* Профиль слева, все шесть ресурсов справа в одном ряду — и в портрете, и в альбомной ориентации. */}
       <div className="hud-top">
       {me ? (
-        <div className="hud-lord">
-          <span className="portrait" style={{ background: swatch(me.bannerColor) }}>
-            <img className="hud-ic" src="icons/i-lord.png" alt="" />
+        <div className="hud-lord" style={{ backgroundImage: `url("${plateSrc(frames.profileFrame)}")` }}>
+          {/* Карточка лорда по концепту C1: плашка профиля, портрет и рамка аватара — три раздельных слоя,
+              чтобы рамки менялись наградами, не затрагивая лицо (решение 03.10.2026). */}
+          <span className="portrait">
+            <img className="face" src={LORD_PORTRAIT_SRC} alt="" />
+            <img className="frame" src={avatarFrameSrc(frames.avatarFrame)} alt="" />
+            <i className="lvl-tag">{level}</i>
           </span>
           <span className="rows">
-            <span className="name-row">
-              <b>{me.name}</b>
-              <i className="lvl-tag">Ур. {level}</i>
-            </span>
+            <b className="name">{me.name}</b>
             <span className="power-row">
               <img src="icons/i-power.png" alt="" />
               <b>{fmt(power)}</b>
             </span>
-            <span className="vip-row">
+            <span className="state-row">
               <span className="vipb">
-                <img className="hud-ic" src="icons/crown.png" alt="" />
+                <img src="icons/crown.png" alt="" />
                 VIP 1
               </span>
+              {/* Место под иконки бонусов: сами иконки появятся со своими системами. */}
+              <span className="bonuses" aria-hidden="true" />
             </span>
           </span>
         </div>

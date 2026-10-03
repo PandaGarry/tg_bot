@@ -34,7 +34,7 @@
   z-index: 40;
   display: grid;
   /* Один ряд во всех ориентациях: профиль сжимается до 38%, освобождая место ресурсам. */
-  grid-template-columns: minmax(0, min(210px, 38vw)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, min(260px, 46vw)) minmax(0, 1fr);
   gap: 6px;
   align-items: start;
 }
@@ -51,22 +51,22 @@
   }
 }
 
+/* Карточка лорда по концепту C1 (документ 32 §11): плашка-подложка с рамкой профиля задаёт геометрию,
+   портрет и рамка аватара лежат отдельными слоями — рамки меняются наградами, лицо не перерисовывается. */
 .hud-lord {
-  flex: 0 1 auto;
-  align-self: flex-start;
-  width: max-content;
-  max-width: 100%;
-  min-width: 0;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1024 / 551; /* геометрия подложки lord-plate.png */
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 7px;
+  grid-template-columns: 30% minmax(0, 1fr);
   align-items: center;
-  padding: 3px 10px 3px 3px;
-  background: linear-gradient(180deg, #f3e9d0, #e3d2ab);
-  border: 2px solid var(--hud-wood-1);
-  border-radius: 10px;
-  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.6), 0 2px 5px rgba(0, 0, 0, 0.5);
+  column-gap: 3%;
+  padding: 0 4%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
   color: var(--hud-ink);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
 }
 
 .hud-top > .hud-lord {
@@ -76,65 +76,63 @@
 
 .hud-lord .portrait {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--hud-wood-2);
-  box-shadow: inset 0 0 0 2px rgba(247, 240, 226, 0.5), inset 0 2px 3px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
 }
 
-.hud-lord .portrait .hud-ic {
-  width: 38px;
-  height: 38px;
+.hud-lord .portrait .face {
+  position: absolute;
+  inset: 7%;
+  width: 86%;
+  height: 86%;
   object-fit: cover;
+  object-position: center top;
+  border-radius: 12%;
+}
+
+/* Рамка аватара — сменный декор: рисуется поверх портрета и чуть перекрывает базовую рамку подложки. */
+.hud-lord .portrait .frame {
+  position: absolute;
+  inset: -5%;
+  width: 110%;
+  height: 110%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Уровень — плашкой в углу аватара: так строка имени остаётся свободной (требование заказчика). */
+.hud-lord .portrait .lvl-tag {
+  position: absolute;
+  right: -7%;
+  bottom: -5%;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #3b2416;
+  background: linear-gradient(180deg, #f0c866, #c8952e);
+  border-radius: 7px;
+  padding: 0 4px;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .hud-lord .rows {
   display: grid;
   grid-template-rows: auto auto auto;
-  gap: 2px;
   align-content: center;
+  gap: 2px;
   min-width: 0;
 }
 
-.hud-lord .name-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-  min-width: 0;
-}
-
-.hud-lord .name-row b {
-  max-width: 96px;
-  font-size: 12.5px;
+.hud-lord .rows .name {
+  font-size: 12px;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-
-.hud-lord .name-row small {
-  font-size: 8.5px;
-  font-weight: 700;
-  color: var(--hud-muted);
-  white-space: nowrap;
-}
-
-.hud-lord .lvl-tag {
-  font-style: normal;
-  font-size: 9.5px;
-  font-weight: 800;
-  color: #3b2416;
-  background: linear-gradient(180deg, #f0c866, #c8952e);
-  border-radius: 7px;
-  padding: 1px 6px;
-  white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .hud-lord .power-row {
@@ -144,70 +142,52 @@
 }
 
 .hud-lord .power-row img {
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   object-fit: contain;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
 
 .hud-lord .power-row b {
-  font-size: 12px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
-.hud-lord .xp-row {
+/* Строка состояния: маленькая пилюля VIP и свободное место под будущие иконки бонусов.
+   Кружков и ячеек нет — только место, как в утверждённом концепте. */
+.hud-lord .state-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  min-width: 0;
 }
 
-.hud-lord .xp-row .lvl {
-  font-style: normal;
-  font-size: 9.5px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.hud-lord .xp-row .bar {
+.hud-lord .state-row .bonuses {
   flex: 1;
-  height: 6px;
-  border-radius: 4px;
-  background: rgba(42, 30, 20, 0.35);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  min-width: 0;
+  height: 13px;
 }
 
-.hud-lord .xp-row .bar i {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #f0c866, #c8952e);
-}
-
-.hud-lord .vip-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* VIP-значок — как в прототипе: золотая пилюля с короной */
 .hud-lord .vipb {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 0 7px 0 4px;
-  height: 15px;
-  border-radius: 8px;
+  gap: 2px;
+  padding: 0 5px 0 3px;
+  height: 13px;
+  border-radius: 7px;
   background: linear-gradient(180deg, #f0c866, #c8952e);
   color: #3b2416;
   font-weight: 800;
-  font-size: 9.5px;
+  font-size: 8.5px;
+  white-space: nowrap;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.hud-lord .vipb .hud-ic {
-  width: 13px;
-  height: 13px;
+.hud-lord .vipb img {
+  width: 10px;
+  height: 10px;
+  object-fit: contain;
 }
 
 /* ---------- ресурсы: шесть читаемых чипов в одну строку.
@@ -568,24 +548,17 @@
 
 /* узкие телефоны (<390): всё чуть плотнее, квадраты сохраняются */
 @media (max-width: 389px) {
-  .hud-top > .hud-lord {
-    grid-template-columns: 32px minmax(0, 1fr);
-    gap: 4px;
-    padding: 2px 6px 2px 2px;
-  }
-
-  .hud-lord .portrait {
-    width: 32px;
-    height: 32px;
-  }
-
-  .hud-lord .portrait .hud-ic {
-    width: 30px;
-    height: 30px;
-  }
-
-  .hud-lord .name-row b {
+  /* карточка лорда масштабируется подложкой: на узком экране правим только текст */
+  .hud-lord .rows .name {
     font-size: 11px;
+  }
+
+  .hud-lord .portrait .lvl-tag {
+    font-size: 8px;
+  }
+
+  .hud-lord .power-row b {
+    font-size: 10.5px;
   }
 
   .hud-lord .vipb {
