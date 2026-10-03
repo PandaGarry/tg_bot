@@ -1,6 +1,6 @@
 /**
  * HUD-хром главного экрана (этап B, круг 8): материалы Bone-Wood №05.
- * Блок лорда и ресурсы: профиль слева, все ресурсы справа в одном ряду в обеих ориентациях.
+ * Блок лорда и ресурсы сверху, «Строить»/«Карта» слева, вкладки справа.
  * Чисел, которых нет в системах, не рисуем: лорд без уровня и силы, пока их не даст шаг 4+.
  */
 
@@ -9,9 +9,16 @@ import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 import { swatch } from "./Create.js";
 import { BuildPanel } from "./BuildPanel.js";
-import { ActionButton } from "./ActionButton.js";
 import { ICON_SRC } from "./iconSrc.js";
-import { ResourceStrip } from "./ResourceStrip.js";
+
+const RES_ICONS: Record<string, string> = {
+  meat: "meat",
+  wood: "wood",
+  stone: "stone",
+  metal: "metal",
+  mushrooms: "mushroom",
+  gold: "gold",
+};
 
 type PanelKind = "build" | "train" | "sci" | "commanders" | "clan" | "items" | "shop" | "mail" | null;
 
@@ -50,12 +57,7 @@ export function Hud({
   lang,
   placingName,
   pending,
-  selected,
   roadTool,
-  onRotate,
-  onSelectMove,
-  onSelectRemove,
-  onSelectClose,
   onConfirm,
   onRemove,
   onCancel,
@@ -66,13 +68,7 @@ export function Hud({
   view: WorldViewBase;
   lang: Locale;
   placingName: string | null;
-  pending: { name: string; move: boolean; removable: boolean; rotatable: boolean; valid: boolean } | null;
-  /** Здание, выбранное тапом: панель «Переместить / Убрать». */
-  selected: { name: string; removable: boolean } | null;
-  onRotate: (dir: 1 | -1) => void;
-  onSelectMove: () => void;
-  onSelectRemove: () => void;
-  onSelectClose: () => void;
+  pending: { name: string; move: boolean; removable: boolean } | null;
   roadTool: boolean;
   onConfirm: () => void;
   onRemove: () => void;
@@ -88,6 +84,18 @@ export function Hud({
   const court = (view.modules.court ?? {}) as { level?: number; power?: number };
   const level = Number(court.level ?? 1);
   const power = Number(court.power ?? 0);
+  // Ресурсная строка: пять основных ресурсов игры (материалы HUD, круг 4).
+  // Значения берём со склада сервера; пока модуль двора их не выдаёт — честные нули (круг 11).
+  const stock = view.stock ?? {};
+  const resRow: [string, number][] = [
+    ["meat", stock.meat ?? 0],
+    ["wood", stock.wood ?? 0],
+    ["stone", stock.stone ?? 0],
+    ["metal", stock.metal ?? 0],
+    ["mushrooms", stock.mushrooms ?? 0],
+    ["gold", stock.gold ?? 0],
+  ];
+
   const TITLES: Record<Exclude<PanelKind, null>, string> = {
     build: "shell.hud.build",
     train: "shell.hud.queue.train",
@@ -105,7 +113,7 @@ export function Hud({
     <>
       {/* панель персонажа по прототипу HUD: портрет-ячейка, ник, «Ур.» + полоса опыта, VIP.
           Уровень, опыт и VIP появят системы (этап C/D) — пока вид с честными стартовыми значениями. */}
-      {/* Профиль слева, все шесть ресурсов справа в одном ряду — и в портрете, и в альбомной ориентации. */}
+      {/* верхняя строка: карточка лорда и ресурсы — flex не даёт им пересечься */}
       <div className="hud-top">
       {me ? (
         <div className="hud-lord">
@@ -131,8 +139,17 @@ export function Hud({
         </div>
       ) : null}
 
-      {/* ресурсы двора: компактные значения, точные — по нажатию */}
-      <ResourceStrip stock={view.stock ?? {}} lang={lang} />
+      {/* ресурсы двора */}
+      <div className="hud-res">
+        {resRow.map(([id, amount]) => (
+          <span className={`chip${id === "gold" ? " chip-gold" : ""}`} key={id}>
+            <span className="ic">
+              <img className="hud-ic" src={`icons/${RES_ICONS[id] ?? "gear"}.png`} alt="" />
+            </span>
+            <b>{fmt(amount)}</b>
+          </span>
+        ))}
+      </div>
       </div>
 
       {/* левая панель: «Строить» и очереди (карта одна — в нижнем доке, круг 17) */}
@@ -202,32 +219,20 @@ export function Hud({
         </div>
       ) : null}
 
-      {/* выбранное здание: имя и действия-знаки (лента с кнопками аналогов придёт в фазе интерфейса здания) */}
-      {selected && !pending ? (
-        <div className="place-bar select-bar">
-          <span className="place-name">{selected.name}</span>
-          <ActionButton kind="move" label={t("shell.hud.select.move")} tone="ok" onClick={onSelectMove} />
-          {selected.removable ? (
-            <ActionButton kind="remove" label={t("shell.hud.build.remove")} tone="warn" onClick={onSelectRemove} />
-          ) : null}
-          <ActionButton kind="close" label={t("shell.hud.select.close")} onClick={onSelectClose} />
-        </div>
-      ) : null}
-
-      {/* постройка в руках: повернуть, убрать (если можно), подтвердить, отменить */}
+      {/* подтверждение: призрак на клетке — «Подтвердить»; переносимое можно и убрать */}
       {pending ? (
         <div className="place-bar">
-          {pending.rotatable ? (
-            <>
-              <ActionButton kind="rotate-left" label={t("shell.hud.rotate.left")} onClick={() => onRotate(-1)} />
-              <ActionButton kind="rotate-right" label={t("shell.hud.rotate.right")} onClick={() => onRotate(1)} />
-            </>
-          ) : null}
+          <button type="button" className="ok" onClick={onConfirm}>
+            {t("shell.hud.build.confirm")}
+          </button>
           {pending.move && pending.removable ? (
-            <ActionButton kind="remove" label={t("shell.hud.build.remove")} tone="warn" onClick={onRemove} />
+            <button type="button" className="warn" onClick={onRemove}>
+              {t("shell.hud.build.remove")}
+            </button>
           ) : null}
-          <ActionButton kind="confirm" label={t("shell.hud.build.confirm")} tone="ok" disabled={!pending.valid} onClick={onConfirm} />
-          <ActionButton kind="cancel" label={t("shell.hud.build.cancel")} onClick={onCancel} />
+          <button type="button" onClick={onCancel}>
+            {t("shell.hud.build.cancel")}
+          </button>
         </div>
       ) : null}
 

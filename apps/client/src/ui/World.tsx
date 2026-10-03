@@ -12,10 +12,9 @@ import { ICON_SRC } from "./iconSrc.js";
 import { store } from "../store.js";
 import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
-import { CourtScene, type CourtPending, type CourtSelection } from "../court/CourtScene.js";
+import { CourtScene } from "../court/CourtScene.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
-import { ResourceStrip } from "./ResourceStrip.js";
 import "../hud.css";
 import { Diagnostics } from "./Diagnostics.js";
 
@@ -36,19 +35,16 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
   const [roadTool, setRoadTool] = useState(false);
-  const [pending, setPending] = useState<CourtPending | null>(null);
-  // Здание, выбранное тапом: подсветка и панель «Переместить / Убрать».
-  const [selected, setSelected] = useState<CourtSelection | null>(null);
-  // Красный призрак (не лезет в сетку, на постройку или дорогу) подтвердить нельзя.
-  const [ghostOk, setGhostOk] = useState(true);
-  const REMOVABLE = ["lantern", "bench", "well", "flag"];
-  // Данные модуля двора из вида: сетку и уровень Цитадели рисует сцена.
+  const [pending, setPending] = useState<{
+    type: string;
+    x: number;
+    z: number;
+    from?: { x: number; z: number };
+  } | null>(null);
+  // Данные модуля двора из вида: сетку и уровень Ратуши рисует сцена.
   const court = (view.modules.court ?? {}) as {
-    grid?: { size: number; buildings: { type: string; x: number; z: number; rot?: number }[]; roads: { x: number; z: number }[] };
+    grid?: { size: number; buildings: { type: string; x: number; z: number }[]; roads: { x: number; z: number }[] };
     townhallLevel?: number;
-    /** Пока сервер не отдаёт: ворота 1 уровня, скин по умолчанию. */
-    gateLevel?: number;
-    skinId?: string;
   };
 
   useEffect(() => {
@@ -79,29 +75,22 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               texts={{ rotate: t("shell.court.rotate"), nowebgl: t("shell.court.nowebgl") }}
               grid={court.grid ?? null}
               thLevel={Number(court.townhallLevel ?? 1)}
-              gateLevel={Number(court.gateLevel ?? 1)}
-              skinId={court.skinId ?? null}
               tool={placing ? { kind: "place", type: placing } : roadTool ? { kind: "road" } : null}
               pending={pending}
-              selected={pending ? null : selected}
-              onValid={setGhostOk}
-              onSelect={setSelected}
-              onCancelPickup={() => setPending(null)}
               onTarget={(x, z) => {
                 if (pending) setPending({ ...pending, x, z });
                 else if (placing) {
-                  setPending({ type: placing, x, z, rot: 0 });
+                  setPending({ type: placing, x, z });
                   setPlacing(null);
                 }
               }}
               onRoad={(x, z, has) => {
                 if (roadTool) sendCommand("court.road", { x, z, remove: has });
               }}
-              onPickup={(type, x, z, rot) => {
+              onPickup={(type, x, z) => {
                 setPlacing(null);
                 setRoadTool(false);
-                setSelected(null);
-                setPending({ type, x, z, rot, from: { x, z, rot } });
+                setPending({ type, x, z, from: { x, z } });
               }}
             />
           </div>
@@ -115,34 +104,13 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                     name: t(`shell.hud.b.${pending.type}`),
                     move: Boolean(pending.from),
                     // сносить можно только декор и плиты дороги
-                    removable: pending.type === "road" || REMOVABLE.includes(pending.type),
-                    rotatable: pending.type !== "road",
-                    valid: ghostOk,
+                    removable: pending.type === "road" || ["lantern", "bench", "well", "flag"].includes(pending.type),
                   }
                 : null
             }
-            selected={
-              selected && !pending
-                ? { name: t(`shell.hud.b.${selected.type}`), removable: REMOVABLE.includes(selected.type) }
-                : null
-            }
-            onRotate={(dir) => {
-              if (pending) setPending({ ...pending, rot: (pending.rot + dir + 4) % 4 });
-            }}
-            onSelectMove={() => {
-              if (!selected) return;
-              setPending({ ...selected, from: { x: selected.x, z: selected.z, rot: selected.rot } });
-              setSelected(null);
-            }}
-            onSelectRemove={() => {
-              if (!selected) return;
-              sendCommand("court.remove", { type: selected.type, x: selected.x, z: selected.z });
-              setSelected(null);
-            }}
-            onSelectClose={() => setSelected(null)}
             roadTool={roadTool}
             onConfirm={() => {
-              if (!pending || !ghostOk) return;
+              if (!pending) return;
               if (pending.type === "road" && pending.from) {
                 // перенос плиты дороги — одна атомарная команда
                 sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: pending.from });
@@ -153,10 +121,9 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                   fromZ: pending.from.z,
                   toX: pending.x,
                   toZ: pending.z,
-                  rot: pending.rot,
                 });
               } else {
-                sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z, rot: pending.rot });
+                sendCommand("court.place", { type: pending.type, x: pending.x, z: pending.z });
               }
               setPending(null);
             }}
@@ -175,12 +142,10 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               setPlacing(null);
             }}
             onPlaceStart={(type) => {
-              setSelected(null);
               setRoadTool(false);
               setPlacing(type);
             }}
             onRoadTool={() => {
-              setSelected(null);
               setPlacing(null);
               setRoadTool((value) => !value);
             }}
@@ -192,13 +157,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
       {route !== "court" ? (
         <>
       <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/95 pt-[env(safe-area-inset-top)]">
-        <Slot
-          slot={"hud.resources" as SlotId}
-          view={view}
-          lang={lang}
-          serverNow={serverNow}
-          empty={<ResourceStrip stock={view.stock ?? {}} lang={lang} className="resourcebar" />}
-        />
+        <Slot slot={"hud.resources" as SlotId} view={view} lang={lang} serverNow={serverNow} empty={<ResourceBar view={view} lang={lang} />} />
       </header>
 
       <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2 overflow-y-auto p-3 pb-28">
@@ -324,6 +283,28 @@ function CourtTape({ lang }: { lang: Locale }) {
       >
         {t("shell.tape.ok")}
       </button>
+    </div>
+  );
+}
+
+function ResourceBar({ view, lang }: { view: WorldViewBase; lang: Locale }) {
+  const labels = translator(lang);
+  const names: Record<string, string> = {
+    meat: "shell.hud.meat",
+    wood: "shell.hud.wood",
+    stone: "shell.hud.stone",
+    metal: "shell.hud.metal",
+    mushrooms: "shell.hud.mushrooms",
+  };
+  const entries = Object.entries(view.stock ?? {});
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-wrap gap-x-3 gap-y-1 px-3 py-2 text-xs">
+      {entries.length === 0 ? <span className="text-stone-500">склад пуст</span> : null}
+      {entries.map(([id, amount]) => (
+        <span key={id} className="text-stone-400">
+          {names[id] ? labels(names[id] as string) : id}: <span className="font-mono text-bone">{amount}</span>
+        </span>
+      ))}
     </div>
   );
 }
