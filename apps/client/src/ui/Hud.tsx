@@ -127,17 +127,13 @@ export function Hud({
             <img className="frame" src={avatarFrameSrc(frames.avatarFrame)} alt="" />
             <i className="lvl-tag">{level}</i>
           </span>
+          {/* Иконка силы и пилюля VIP с короной уже нарисованы в самой подложке n1:
+              в разметке остаются только живые значения — иначе получается две иконки подряд. */}
           <span className="rows">
             <b className="name">{me.name}</b>
-            <span className="power-row">
-              <img src="icons/i-power.png" alt="" />
-              <b>{fmt(power)}</b>
-            </span>
+            <span className="power-row">{fmt(power)}</span>
             <span className="state-row">
-              <span className="vipb">
-                <img src="icons/crown.png" alt="" />
-                VIP 1
-              </span>
+              <b className="vip-num">VIP 1</b>
               {/* Место под иконки бонусов: сами иконки появятся со своими системами. */}
               <span className="bonuses" aria-hidden="true" />
             </span>

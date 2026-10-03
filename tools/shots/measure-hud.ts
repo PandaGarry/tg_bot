@@ -72,17 +72,23 @@ const report = await page.evaluate(`(() => {
   const portrait = r(".hud-lord .portrait"); const face = r(".hud-lord .portrait .face");
   const frame = r(".hud-lord .portrait .frame"); const tag = r(".hud-lord .portrait .lvl-tag");
   const rows = r(".hud-lord .rows");
-  const overlap = lord && res ? !(lord.x + lord.w <= res.x + 1 || res.x + res.w <= lord.x + 1) : null;
+  /* теперь это два яруса: пересечение считаем по обеим осям, а не только по горизонтали */
+  const overlap = lord && res
+    ? !(lord.x + lord.w <= res.x + 1 || res.x + res.w <= lord.x + 1 ||
+        lord.y + lord.h <= res.y + 1 || res.y + res.h <= lord.y + 1)
+    : null;
 
   /* Ожидаемая геометрия — измеренные доли подложки lord-plate.png (1566x754). */
-  const P = { fx: 0.0834, fy: 0.2168, fw: 0.2701, fh: 0.5610,
-              rx: 0.4042, rw: 0.4898, ry: [0.2082, 0.4151, 0.6233], rh: 0.1485 };
+  /* Подложка n1 (1316x617): гнездо аватара и три зоны надписей, измеренные по пикселям. */
+  const P = { fx: 0.1216, fy: 0.2058, fw: 0.2690, fh: 0.5737,
+              zones: [[0.44, null, 0.2578, 0.0903], [0.56, null, 0.46, 0.125], [0.54, null, 0.67, 0.11]],
+              zoneW: [0.36, 0.24, 0.40] };
   const exp = (px, py, pw, ph) => ({ x: +(lord.x + px * lord.w).toFixed(1), y: +(lord.y + py * lord.h).toFixed(1),
                                      w: +(pw * lord.w).toFixed(1), h: +(ph * lord.h).toFixed(1) });
   const dev = (a, b) => a && b ? { dx: +(a.x - b.x).toFixed(1), dy: +(a.y - b.y).toFixed(1),
                                    dw: +(a.w - b.w).toFixed(1), dh: +(a.h - b.h).toFixed(1) } : null;
   const expPortrait = exp(P.fx, P.fy, P.fw, P.fh);
-  const expRows = P.ry.map((ry) => exp(P.rx, ry, P.rw, P.rh));
+  const expRows = P.zones.map((z, i) => exp(z[0], z[2], P.zoneW[i], z[3]));
 
   const rowSel = [".hud-lord .rows .name", ".hud-lord .power-row", ".hud-lord .state-row"];
   const gotRows = rowSel.map(r);
@@ -102,7 +108,13 @@ const report = await page.evaluate(`(() => {
 
   const chips = [...document.querySelectorAll(".hud-res .chip")].map((c) => {
     const b = c.getBoundingClientRect();
-    return { w: +b.width.toFixed(1), overflow: Math.max(0, c.scrollWidth - c.clientWidth) };
+    const ic = c.querySelector(".hud-ic");
+    const ib = ic ? ic.getBoundingClientRect() : null;
+    const num = c.querySelector("b");
+    return { w: +b.width.toFixed(1), h: +b.height.toFixed(1), overflow: Math.max(0, c.scrollWidth - c.clientWidth),
+             icFillW: ib ? +(ib.width / b.width * 100).toFixed(0) : null,
+             icFillH: ib ? +(ib.height / b.height * 100).toFixed(0) : null,
+             numFont: num ? getComputedStyle(num).fontSize : null };
   });
 
   const cs = (sel, prop) => { const el = document.querySelector(sel); return el ? getComputedStyle(el)[prop] : null; };
