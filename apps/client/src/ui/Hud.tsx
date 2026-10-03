@@ -37,10 +37,8 @@ const TABS: { kind: Exclude<PanelKind, "build" | "train" | "sci" | null>; icon: 
  * пока в данных их нет, берётся базовая.
  */
 const LORD_PORTRAIT_SRC = "icons/lord-base.png";
-const PLATE_SRC: Record<string, string> = { base: "icons/lord-plate.png" };
 const AVATAR_FRAME_SRC: Record<string, string> = { base: "icons/lord-frame-base.png" };
 
-const plateSrc = (id?: string) => PLATE_SRC[id ?? "base"] ?? PLATE_SRC.base;
 const avatarFrameSrc = (id?: string) => AVATAR_FRAME_SRC[id ?? "base"] ?? AVATAR_FRAME_SRC.base;
 
 /** Короткий формат чисел: миллионы и миллиарды не ломают строку ресурсов (круг 15). */
@@ -121,7 +119,7 @@ export function Hud({
       {/* Профиль слева, все шесть ресурсов справа в одном ряду — и в портрете, и в альбомной ориентации. */}
       <div className="hud-top">
       {me ? (
-        <div className="hud-lord" style={{ backgroundImage: `url("${plateSrc(frames.profileFrame)}")` }}>
+        <div className="hud-lord" data-frame={frames.profileFrame ?? "base"}>
           {/* Карточка лорда по концепту C1: плашка профиля, портрет и рамка аватара — три раздельных слоя,
               чтобы рамки менялись наградами, не затрагивая лицо (решение 03.10.2026). */}
           <span className="portrait">
