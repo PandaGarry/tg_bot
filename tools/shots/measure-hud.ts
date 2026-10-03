@@ -53,8 +53,8 @@ await clickButton("Пропустить");
 await clickButton("Регистрация аккаунта");
 await page.waitForFunction(`document.body.textContent.includes("Логин")`, { timeout: 30_000 });
 const inputs = await page.$$("input:not([type=checkbox])");
-await inputs[0]!.type(`measure-${suffix}`);
-await inputs[1]!.type(`measure-${suffix}@example.com`);
+await inputs[0]!.type(`Lord${suffix.slice(-3)}`);
+await inputs[1]!.type(`lord-${suffix}@example.com`);
 await inputs[2]!.type("measure-password-123");
 await inputs[3]!.type("measure-password-123");
 await (await page.$$("input[type=checkbox]"))[0]!.click();
@@ -111,7 +111,8 @@ const report = await page.evaluate(`(() => {
     const ic = c.querySelector(".hud-ic");
     const ib = ic ? ic.getBoundingClientRect() : null;
     const num = c.querySelector("b");
-    return { w: +b.width.toFixed(1), h: +b.height.toFixed(1), overflow: Math.max(0, c.scrollWidth - c.clientWidth),
+    return { w: +b.width.toFixed(1), h: +b.height.toFixed(1), minH: getComputedStyle(c).minHeight,
+             overflow: Math.max(0, c.scrollWidth - c.clientWidth),
              icFillW: ib ? +(ib.width / b.width * 100).toFixed(0) : null,
              icFillH: ib ? +(ib.height / b.height * 100).toFixed(0) : null,
              numFont: num ? getComputedStyle(num).fontSize : null };
@@ -129,7 +130,9 @@ const report = await page.evaluate(`(() => {
     tagFont: cs(".hud-lord .portrait .lvl-tag", "fontSize"),
   };
 
-  return { styles, lord, res, overlap, screen: window.innerWidth,
+  const topBox = (() => { const e = document.querySelector(".hud-top"); if (!e) return null;
+    const b = e.getBoundingClientRect(); return { x: +b.x.toFixed(1), y: +b.y.toFixed(1), w: +b.width.toFixed(1), h: +b.height.toFixed(1) }; })();
+  return { styles, topBox, lord, res, overlap, screen: window.innerWidth,
            portrait: { got: portrait, exp: expPortrait, dev: dev(portrait, expPortrait) },
            frame: { got: frame, face, cPortrait, cFrame, cFace },
            tag,

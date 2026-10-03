@@ -33,12 +33,12 @@
   top: calc(6px + env(safe-area-inset-top));
   z-index: 40;
   display: grid;
-  /* Два яруса: карточка лорда во всю ширину (искусство C1 должно быть видно), ресурсы — под ней,
-     тоже во всю ширину. В один ряд их не втиснуть: на шесть ресурсов оставалось бы 25 px,
-     и картинки были бы спичечными — заказчик требует акцент на картинки и цифры, а не на ячейки. */
-  grid-template-columns: minmax(0, 1fr);
+  /* Один ряд на всех устройствах: профиль слева, шесть ресурсов справа.
+     Ширина профиля — 36 % экрана, но не меньше 132 px (читаемость) и не больше 236 px
+     (ширина плашки из утверждённого прототипа). Остальное достаётся ресурсам. */
+  grid-template-columns: clamp(132px, 36vw, 236px) minmax(0, 1fr);
   gap: 6px;
-  align-items: start;
+  align-items: center;
 }
 
 .hud-top > .hud-res {
@@ -46,11 +46,10 @@
   width: 100%;
 }
 
-/* Низкий ландшафт: по вертикали места мало, поэтому снова один ряд. */
+/* Низкий ландшафт (телефон боком): по вертикали тесно, профиль сжимаем сильнее. */
 @media (orientation: landscape) and (max-height: 560px) {
   .hud-top {
-    grid-template-columns: minmax(0, min(240px, 38vw)) minmax(0, 1fr);
-    align-items: center;
+    grid-template-columns: clamp(112px, min(24vw, 20vh), 200px) minmax(0, 1fr);
   }
 }
 
@@ -67,8 +66,6 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1316 / 617;
-  /* собственный контейнер запросов: 1cqh = 1 % высоты карточки */
-  container-type: size;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
@@ -84,9 +81,7 @@
 
 .hud-top > .hud-lord {
   width: 100%;
-  /* 236 px — ширина плашки лорда из утверждённого прототипа (docs/game/ui/hud/hud.css, круг 6).
-     Больше нельзя: карточка начинает съедать сцену. */
-  max-width: min(236px, 62vw);
+  max-width: none;
 }
 
 /* Слот аватара — квадрат по центру гнезда подложки. */
@@ -133,13 +128,13 @@
   right: -2%;
   bottom: -2%;
   font-style: normal;
-  font-size: 9.9cqh;
+  font-size: clamp(8px, 2.6vw, 11px);
   font-weight: 800;
   line-height: 1.2;
   color: #3b2416;
   background: linear-gradient(180deg, #f0c866, #c8952e);
-  border-radius: 2cqh;
-  padding: 0 1.2cqh;
+  border-radius: 3px;
+  padding: 0 3px;
   white-space: nowrap;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
@@ -151,28 +146,38 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  /* без overflow:hidden — зона короче строки текста, и обрезка сбривала бы буквы сверху и снизу;
+     по горизонтали текст режет внутренний .ellip */
+  overflow: visible;
+}
+
+/* Обрезка по горизонтали — только во внутреннем span, чтобы вертикально текст рисовался целиком. */
+.hud-lord .rows .ellip {
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hud-lord .rows .name {
   left: 44%;
-  width: 36%;
+  /* до 97 %: справа от имени подложка — ровная кость, длинный ник ложится на неё, а не обрезается */
+  right: 3%;
   top: 25.78%;
   height: 9.03%;
-  font-size: 11.3cqh;
+  font-size: clamp(10px, 3.1vw, 12.5px);
   line-height: 1.05;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 /* Число силы — сразу за встроенной иконкой (иконка кончается на 55,09 %). */
 .hud-lord .power-row {
   left: 56%;
-  width: 24%;
+  right: 3%;
   top: 46%;
   height: 12.5%;
-  font-size: 10.4cqh;
+  font-size: clamp(9px, 2.8vw, 11.5px);
   font-variant-numeric: tabular-nums;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
@@ -184,10 +189,13 @@
   right: 4%;
   top: 67%;
   height: 11%;
+  line-height: 1;
+  /* число VIP на 1–2 px выше встроенной пилюли: обрезать его нельзя, иначе цифры сбривает */
+  overflow: visible;
 }
 
 .hud-lord .state-row .vip-num {
-  font-size: 8.6cqh;
+  font-size: clamp(8px, 2.3vw, 9.5px);
   font-weight: 800;
   line-height: 1;
   color: #ffe6a8;
@@ -205,9 +213,10 @@
    Контрастная тёмная подложка нужна поверх светлой снежной сцены. ---------- */
 .hud-res {
   display: grid;
-  /* до 44 px на чип: иконка 43 px — почти как 40 px в прототипе, и шесть чипов встают в ряд по центру */
+  /* до 44 px на чип: иконка 43 px — почти 40 px из прототипа; на широком экране ряд прижат вправо,
+     как у образцов (RoK, Last War), на узком чипы делят всё оставшееся место поровну */
   grid-template-columns: repeat(6, minmax(0, 44px));
-  justify-content: center;
+  justify-content: end;
   gap: 3px;
   width: 100%;
   min-width: 0;
@@ -218,9 +227,12 @@
    число лежит узкой плашкой поверх нижнего края, сама «ячейка» видна только по контуру. */
 .hud-res .chip {
   position: relative;
+  /* честный квадрат: иначе общее правило «кнопка не меньше 44 px» растягивает чип по высоте,
+     и картинка ресурса (object-fit: contain) мельчает относительно ширины ячейки */
   aspect-ratio: 1;
   width: 100%;
   min-width: 0;
+  min-height: 0;
   padding: 0;
   overflow: hidden;
   appearance: none;
@@ -280,7 +292,7 @@
   overflow: hidden;
   background: linear-gradient(180deg, rgba(10, 6, 2, 0) 0%, rgba(10, 6, 2, 0.8) 48%);
   color: #fff8e9;
-  font-size: clamp(9px, 2.9vw, 11.5px);
+  font-size: clamp(8px, 2.4vw, 11.5px);
   font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;

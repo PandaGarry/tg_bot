@@ -130,8 +130,10 @@ export function Hud({
           {/* Иконка силы и пилюля VIP с короной уже нарисованы в самой подложке n1:
               в разметке остаются только живые значения — иначе получается две иконки подряд. */}
           <span className="rows">
-            <b className="name">{me.name}</b>
-            <span className="power-row">{fmt(power)}</span>
+            {/* Обрезка длинного ника — внутренним span: сама строка зоны остаётся без overflow,
+                иначе на узкой карточке (альбомная ориентация) текст сбривается по вертикали. */}
+            <b className="name"><span className="ellip">{me.name}</span></b>
+            <span className="power-row"><span className="ellip">{fmt(power)}</span></span>
             <span className="state-row">
               <b className="vip-num">VIP 1</b>
               {/* Место под иконки бонусов: сами иконки появятся со своими системами. */}
