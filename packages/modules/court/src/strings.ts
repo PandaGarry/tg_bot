@@ -11,7 +11,7 @@ export const strings = {
     "building.townhall": "Цитадель",
     "building.cottage": "Жилой дом",
     "building.farm": "Грибная ферма",
-    "building.sawmill": "Пилорама",
+    "building.sawmill": "Лесопилка",
     "building.quarry": "Каменоломня",
     "building.mine": "Рудник",
     "building.barracks": "Казарма пехоты",

@@ -115,7 +115,7 @@ export const shellStrings = {
     "shell.hud.b.townhall": "Цитадель",
     "shell.hud.b.cottage": "Жилой дом",
     "shell.hud.b.farm": "Грибная ферма",
-    "shell.hud.b.sawmill": "Пилорама",
+    "shell.hud.b.sawmill": "Лесопилка",
     "shell.hud.b.quarry": "Каменоломня",
     "shell.hud.b.mine": "Рудник",
     "shell.hud.b.barracks": "Казарма пехоты",
