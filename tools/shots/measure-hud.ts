@@ -27,7 +27,7 @@ const browser = await puppeteer.launch({
   defaultViewport: {
     width: Number(process.argv[4] ?? 390),
     height: Number(process.argv[5] ?? 844),
-    deviceScaleFactor: 1,
+    deviceScaleFactor: Number(process.argv[6] ?? 1),
     hasTouch: true,
     isMobile: true,
   },

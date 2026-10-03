@@ -134,8 +134,10 @@ export function Hud({
                 иначе на узкой карточке (альбомная ориентация) текст сбривается по вертикали. */}
             <b className="name"><span className="ellip">{me.name}</span></b>
             <span className="power-row"><span className="ellip">{fmt(power)}</span></span>
+            {/* Число VIP — в пустой правой части встроенной пилюли (корона уже в подложке n1):
+                слот 54,5–62,3 % по x и 67,8–76,6 % по y, по замеру самой подложки. */}
+            <b className="vip-num">1</b>
             <span className="state-row">
-              <b className="vip-num">VIP 1</b>
               {/* Место под иконки бонусов: сами иконки появятся со своими системами. */}
               <span className="bonuses" aria-hidden="true" />
             </span>
