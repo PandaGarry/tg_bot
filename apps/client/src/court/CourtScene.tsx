@@ -827,7 +827,17 @@ function RoofSnow({ y, r }: { y: number; r: number }) {
   );
 }
 
-function BuildingBody({ type }: { type: string }) {
+function BuildingBody({ type, level }: { type: string; level: number }) {
+  const stage = THREE.MathUtils.clamp(Math.floor(level || 1), 1, 5);
+  return (
+    <group scale={1 + (stage - 1) * 0.025}>
+      <BuildingModel type={type} />
+      <BuildingStage type={type} stage={stage} />
+    </group>
+  );
+}
+
+function BuildingModel({ type }: { type: string }) {
   switch (type) {
     // жилой дом 2×2: каменный цоколь, фахверк, пирамидальная крыша, труба с дымом
     case "cottage":
@@ -1259,6 +1269,337 @@ function BuildingBody({ type }: { type: string }) {
   }
 }
 
+const LARGE_BUILDINGS = new Set(["cottage", "farm", "sawmill", "quarry", "mine", "barracks", "well"]);
+/** Фракционное знамя на постройке: тонкое древко, ткань, костяной наконечник. */
+function StageBanner({ x, z, scale = 1 }: { x: number; z: number; scale?: number }) {
+  return (
+    <group position={[x, 0, z]} scale={scale}>
+      <mesh position-y={0.55} castShadow>
+        <cylinderGeometry args={[0.018, 0.024, 1.1, 6]} />
+        <meshStandardMaterial color={C.beam} roughness={0.9} />
+      </mesh>
+      <WaveCloth w={0.22} h={0.3} color={C.flag} position={[0.13, 0.92, 0]} />
+      <mesh position-y={1.12}>
+        <coneGeometry args={[0.045, 0.1, 4]} />
+        <meshStandardMaterial color="#d8ae62" metalness={0.45} roughness={0.4} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Золотой навершник — завершающий силуэт пятой ступени. */
+function StageCrown({ y, z = -0.12, scale = 1 }: { y: number; z?: number; scale?: number }) {
+  return (
+    <group position={[0, y, z]} scale={scale}>
+      <mesh position-y={0.06} castShadow>
+        <boxGeometry args={[0.5, 0.12, 0.5]} />
+        <meshStandardMaterial color={C.beam} roughness={0.85} flatShading />
+      </mesh>
+      <mesh position-y={0.15}>
+        <boxGeometry args={[0.56, 0.05, 0.56]} />
+        <meshStandardMaterial color="#d8ae62" metalness={0.4} roughness={0.45} flatShading />
+      </mesh>
+      <mesh position-y={0.4} castShadow>
+        <coneGeometry args={[0.17, 0.46, 5]} />
+        <meshStandardMaterial color="#8b6132" roughness={0.8} flatShading />
+      </mesh>
+      <mesh position-y={0.68}>
+        <octahedronGeometry args={[0.09, 0]} />
+        <meshStandardMaterial color="#f0c866" metalness={0.55} roughness={0.32} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Видимые ступени развития каждой постройки следуют за уровнем Цитадели. */
+function BuildingStage({ type, stage }: { type: string; stage: number }) {
+  if (LARGE_BUILDINGS.has(type)) {
+    return (
+      <group>
+        {stage >= 2 ? (
+          <group>
+            <mesh position-y={0.12} receiveShadow>
+              <boxGeometry args={[1.78, 0.08, 1.78]} />
+              <meshStandardMaterial color="#aaa396" roughness={0.95} flatShading />
+            </mesh>
+            <mesh position={[0, 0.17, 0.91]} castShadow>
+              <boxGeometry args={[0.58, 0.1, 0.22]} />
+              <meshStandardMaterial color="#9a948a" roughness={0.95} flatShading />
+            </mesh>
+          </group>
+        ) : null}
+        {stage >= 3 ? (
+          <group>
+            {[-0.76, 0.76].flatMap((x) => [-0.76, 0.76].map((z) => (
+              <mesh key={`${x}:${z}`} position={[x, 0.31, z]} castShadow>
+                <boxGeometry args={[0.16, 0.36, 0.16]} />
+                <meshStandardMaterial color="#c2b9a8" roughness={0.9} flatShading />
+              </mesh>
+            )))}
+            <mesh position={[0, 0.25, 0.91]}>
+              <boxGeometry args={[0.66, 0.045, 0.035]} />
+              <meshStandardMaterial color="#d8ae62" metalness={0.35} roughness={0.5} />
+            </mesh>
+          </group>
+        ) : null}
+        {type === "cottage" && stage >= 3 ? (
+          <group position={[0, 1.4, -0.23]}>
+            <mesh position-y={0.1} castShadow>
+              <boxGeometry args={[0.48, 0.3, 0.38]} />
+              <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+            </mesh>
+            <mesh position={[0, 0.31, 0.19]}>
+              <boxGeometry args={[0.26, 0.18, 0.04]} />
+              <meshStandardMaterial color={C.window} roughness={0.5} />
+            </mesh>
+            <mesh position-y={0.34} rotation-y={Math.PI / 4} castShadow>
+              <coneGeometry args={[0.38, 0.3, 4]} />
+              <meshStandardMaterial color={C.flag} roughness={0.85} flatShading />
+            </mesh>
+          </group>
+        ) : null}
+        {type === "farm" && stage >= 2 ? (
+          <group>
+            {Array.from({ length: stage + 1 }, (_, i) => (
+              <mesh key={`crop-${i}`} position={[-0.66 + (i % 4) * 0.42, 0.18, -0.63 + Math.floor(i / 4) * 0.36]}>
+                <coneGeometry args={[0.045, 0.17 + stage * 0.025, 5]} />
+                <meshStandardMaterial color={i % 2 ? "#879c56" : "#9cae64"} roughness={1} flatShading />
+              </mesh>
+            ))}
+          </group>
+        ) : null}
+        {type === "farm" && stage >= 4 ? (
+          <group position={[0.48, 0, -0.55]}>
+            <mesh position-y={0.43} castShadow>
+              <cylinderGeometry args={[0.24, 0.28, 0.75, 8]} />
+              <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+            </mesh>
+            <mesh position-y={0.86} rotation-y={Math.PI / 4} castShadow>
+              <coneGeometry args={[0.34, 0.3, 4]} />
+              <meshStandardMaterial color={C.flag} roughness={0.85} flatShading />
+            </mesh>
+            <RoofSnow y={1.02} r={0.2} />
+          </group>
+        ) : null}
+        {type === "sawmill" && stage >= 4 ? (
+          <group>
+            <mesh position={[0.72, 0.54, -0.56]} castShadow>
+              <boxGeometry args={[0.07, 0.92, 0.07]} />
+              <meshStandardMaterial color={C.beam} roughness={0.9} />
+            </mesh>
+            <mesh position={[0.49, 1.0, -0.56]} castShadow>
+              <boxGeometry args={[0.52, 0.07, 0.07]} />
+              <meshStandardMaterial color={C.beam} roughness={0.9} />
+            </mesh>
+            <mesh position={[0.3, 0.79, -0.56]} rotation-z={0.26}>
+              <cylinderGeometry args={[0.014, 0.014, 0.42, 5]} />
+              <meshStandardMaterial color="#c89a62" roughness={0.8} />
+            </mesh>
+          </group>
+        ) : null}
+        {type === "quarry" && stage >= 4 ? (
+          <group>
+            {[-0.58, -0.18].map((x) => (
+              <mesh key={x} position={[x, 0.58, -0.62]} castShadow>
+                <boxGeometry args={[0.07, 1.0, 0.07]} />
+                <meshStandardMaterial color={C.beam} roughness={0.9} />
+              </mesh>
+            ))}
+            <mesh position={[-0.38, 1.08, -0.62]} castShadow>
+              <boxGeometry args={[0.48, 0.07, 0.07]} />
+              <meshStandardMaterial color={C.beam} roughness={0.9} />
+            </mesh>
+            <mesh position={[-0.38, 0.7, -0.62]}>
+              <cylinderGeometry args={[0.015, 0.015, 0.62, 5]} />
+              <meshStandardMaterial color="#a58b64" roughness={0.9} />
+            </mesh>
+          </group>
+        ) : null}
+        {type === "mine" && stage >= 4 ? (
+          <group>
+            {[-0.36, 0.36].map((x) => (
+              <mesh key={x} position={[x, 0.92, 0.56]} castShadow>
+                <boxGeometry args={[0.08, 1.44, 0.08]} />
+                <meshStandardMaterial color={C.beam} roughness={0.9} />
+              </mesh>
+            ))}
+            <mesh position={[0, 1.62, 0.56]} castShadow>
+              <boxGeometry args={[0.82, 0.09, 0.09]} />
+              <meshStandardMaterial color={C.beam} roughness={0.9} />
+            </mesh>
+            <mesh position={[0, 1.42, 0.56]}>
+              <cylinderGeometry args={[0.17, 0.17, 0.06, 10]} />
+              <meshStandardMaterial color="#c1b39b" metalness={0.35} roughness={0.5} />
+            </mesh>
+          </group>
+        ) : null}
+        {type === "barracks" && stage >= 4 ? (
+          <group position={[0, 1.12, -0.25]}>
+            <mesh position-y={0.27} castShadow>
+              <boxGeometry args={[0.58, 0.54, 0.56]} />
+              <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
+            </mesh>
+            <mesh position-y={0.62} rotation-y={Math.PI / 4} castShadow>
+              <coneGeometry args={[0.46, 0.32, 4]} />
+              <meshStandardMaterial color={C.flag} roughness={0.85} flatShading />
+            </mesh>
+            <RoofSnow y={0.81} r={0.2} />
+          </group>
+        ) : null}
+        {type === "cottage" && stage >= 4 ? <StageBanner x={0} z={0.78} scale={0.68} /> : null}
+        {type === "cottage" && stage >= 5 ? <StageCrown y={1.72} scale={0.56} /> : null}
+        {type === "farm" && stage >= 5 ? <StageCrown y={1.0} z={-0.55} scale={0.42} /> : null}
+        {type === "sawmill" && stage >= 5 ? (
+          <mesh position={[0.49, 1.1, -0.53]} rotation-y={Math.PI / 2}>
+            <torusGeometry args={[0.18, 0.035, 6, 12]} />
+            <meshStandardMaterial color="#d8ae62" metalness={0.55} roughness={0.34} />
+          </mesh>
+        ) : null}
+        {type === "quarry" && stage >= 5 ? (
+          <mesh position={[-0.38, 1.15, -0.58]} rotation-y={Math.PI / 2}>
+            <torusGeometry args={[0.18, 0.035, 6, 12]} />
+            <meshStandardMaterial color="#d8ae62" metalness={0.5} roughness={0.38} />
+          </mesh>
+        ) : null}
+        {type === "mine" && stage >= 5 ? (
+          <group position={[0, 1.25, 0.58]}>
+            <StageBanner x={0} z={0} scale={0.5} />
+          </group>
+        ) : null}
+        {type === "barracks" && stage >= 5 ? <StageBanner x={0} z={0.68} scale={0.7} /> : null}
+        {type === "well" && stage >= 4 ? (
+          <group position={[0, 1.32, 0]}>
+            <mesh position-y={0.18} castShadow>
+              <boxGeometry args={[0.44, 0.36, 0.44]} />
+              <meshStandardMaterial color={C.wall} roughness={0.9} flatShading />
+            </mesh>
+            <mesh position-y={0.43} rotation-y={Math.PI / 4} castShadow>
+              <coneGeometry args={[0.36, 0.26, 4]} />
+              <meshStandardMaterial color={C.flag} roughness={0.82} flatShading />
+            </mesh>
+            <RoofSnow y={0.57} r={0.2} />
+          </group>
+        ) : null}
+        {type === "well" && stage >= 5 ? <StageCrown y={1.86} scale={0.48} /> : null}
+      </group>
+    );
+  }
+
+  if (type === "lantern") {
+    return (
+      <group>
+        {stage >= 2 ? (
+          <mesh position-y={0.12}>
+            <cylinderGeometry args={[0.26, 0.31, 0.12, 8]} />
+            <meshStandardMaterial color="#aaa396" roughness={0.9} flatShading />
+          </mesh>
+        ) : null}
+        {stage >= 3 ? (
+          <group>
+            {[-0.3, 0.3].map((x) => (
+              <group key={x} position={[x, 0, 0]}>
+                <mesh position-y={0.66} castShadow>
+                  <cylinderGeometry args={[0.025, 0.035, 1.18, 6]} />
+                  <meshStandardMaterial color={C.beam} roughness={0.85} />
+                </mesh>
+                <LanternFlame y={1.24} />
+              </group>
+            ))}
+          </group>
+        ) : null}
+        {stage >= 4 ? (
+          <group>
+            <mesh position-y={1.34} castShadow>
+              <boxGeometry args={[0.84, 0.08, 0.36]} />
+              <meshStandardMaterial color="#8b6132" roughness={0.8} flatShading />
+            </mesh>
+            <mesh position-y={1.42}>
+              <coneGeometry args={[0.46, 0.22, 4]} />
+              <meshStandardMaterial color="#d8ae62" metalness={0.35} roughness={0.45} flatShading />
+            </mesh>
+          </group>
+        ) : null}
+        {stage >= 5 ? <StageCrown y={1.5} /> : null}
+      </group>
+    );
+  }
+
+  if (type === "bench") {
+    return (
+      <group>
+        {stage >= 2 ? (
+          <mesh position={[0, 0.12, 0]}>
+            <boxGeometry args={[1.56, 0.12, 0.7]} />
+            <meshStandardMaterial color="#aaa396" roughness={0.95} flatShading />
+          </mesh>
+        ) : null}
+        {stage >= 3 ? (
+          <group>
+            {[-0.4, 0.4].map((x) => (
+              <mesh key={x} position={[x, 0.72, -0.15]}>
+                <octahedronGeometry args={[0.09, 0]} />
+                <meshStandardMaterial color="#d8ae62" metalness={0.4} roughness={0.4} />
+              </mesh>
+            ))}
+          </group>
+        ) : null}
+        {stage >= 4 ? (
+          <group>
+            {[-0.72, 0.72].map((x) => (
+              <group key={x} position={[x, 0, 0]}>
+                <mesh position-y={0.62} castShadow>
+                  <cylinderGeometry args={[0.025, 0.035, 1.08, 6]} />
+                  <meshStandardMaterial color={C.beam} roughness={0.9} />
+                </mesh>
+                <mesh position-y={1.1}>
+                  <sphereGeometry args={[0.11, 8, 8]} />
+                  <meshStandardMaterial color="#9b6731" emissive="#ffcb70" emissiveIntensity={0.65} roughness={0.5} />
+                </mesh>
+              </group>
+            ))}
+          </group>
+        ) : null}
+        {stage >= 5 ? (
+          <group>
+            {[-0.68, 0.68].map((x) => [-0.3, 0.3].map((z) => (
+              <mesh key={`${x}:${z}`} position={[x, 1.36, z]} castShadow>
+                <boxGeometry args={[0.05, 1.18, 0.05]} />
+                <meshStandardMaterial color={C.beam} roughness={0.9} />
+              </mesh>
+            )))}
+            <mesh position-y={1.9} castShadow>
+              <boxGeometry args={[1.5, 0.08, 0.78]} />
+              <meshStandardMaterial color={C.wall} roughness={0.9} flatShading />
+            </mesh>
+            <mesh position-y={2.08} rotation-y={Math.PI / 4} castShadow>
+              <coneGeometry args={[0.78, 0.32, 4]} />
+              <meshStandardMaterial color={C.roof} roughness={0.8} flatShading />
+            </mesh>
+          </group>
+        ) : null}
+      </group>
+    );
+  }
+
+  if (type === "flag") {
+    return (
+      <group>
+        {stage >= 2 ? (
+          <mesh position-y={0.12}>
+            <boxGeometry args={[0.44, 0.12, 0.44]} />
+            <meshStandardMaterial color="#aaa396" roughness={0.9} flatShading />
+          </mesh>
+        ) : null}
+        {stage >= 3 ? <StageBanner x={-0.22} z={0.08} scale={0.48} /> : null}
+        {stage >= 4 ? <StageBanner x={0.22} z={-0.08} scale={0.48} /> : null}
+        {stage >= 5 ? <StageCrown y={0.94} z={-0.2} /> : null}
+      </group>
+    );
+  }
+
+  return null;
+}
+
 /** Малое знамя-украшение: волнуется на ветру. */
 function RoofBannerSmall() {
   const flag = useRef<THREE.Mesh>(null);
@@ -1306,7 +1647,7 @@ function Popped({ x, z, children }: { x: number; z: number; children: ReactNode 
 }
 
 /** Все постройки игрока из сетки модуля. */
-function Buildings({ grid }: { grid: CourtGridLite }) {
+function Buildings({ grid, level }: { grid: CourtGridLite; level: number }) {
   return (
     <>
       {grid.buildings.map((b) => {
@@ -1316,7 +1657,7 @@ function Buildings({ grid }: { grid: CourtGridLite }) {
         const cz = gridToWorld(b.z - Math.floor(h / 2) + (h - 1) / 2, grid.size);
         return (
           <Popped key={`${b.type}:${b.x}:${b.z}`} x={cx} z={cz}>
-            <BuildingBody type={b.type} />
+            <BuildingBody type={b.type} level={level} />
           </Popped>
         );
       })}
@@ -1658,6 +1999,42 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       </mesh>
       {/* уровень 3+: знамя на башне */}
       {level >= 3 ? <RoofBanner y={4.52} s={0.9} /> : null}
+      {/* уровень 4+: четыре защитные башенки меняют силуэт Цитадели */}
+      {level >= 4 ? (
+        <group>
+          {[-0.98, 0.98].flatMap((x) => [-0.98, 0.98].map((z) => (
+            <group key={`${x}:${z}`}>
+              <mesh position={[x, 2.82, z]} castShadow receiveShadow>
+                <boxGeometry args={[0.44, 0.72, 0.44]} />
+                <meshStandardMaterial color="#aaa396" roughness={0.9} flatShading />
+              </mesh>
+              <mesh position={[x, 3.25, z]} rotation-y={Math.PI / 4} castShadow>
+                <coneGeometry args={[0.34, 0.34, 4]} />
+                <meshStandardMaterial color="#5a4434" roughness={0.85} flatShading />
+              </mesh>
+              <mesh position={[x, 3.43, z]} rotation-y={Math.PI / 4}>
+                <coneGeometry args={[0.2, 0.12, 4]} />
+                <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
+              </mesh>
+            </group>
+          )))}
+        </group>
+      ) : null}
+      {/* уровень 5: позолоченный карниз и парные штандарты завершают двор */}
+      {level >= 5 ? (
+        <group>
+          <mesh position-y={2.64}>
+            <boxGeometry args={[2.42, 0.07, 2.42]} />
+            <meshStandardMaterial color="#d8ae62" metalness={0.5} roughness={0.38} flatShading />
+          </mesh>
+          <group position={[-0.98, 2.92, 1.12]}>
+            <StageBanner x={0} z={0} scale={0.62} />
+          </group>
+          <group position={[0.98, 2.92, 1.12]}>
+            <StageBanner x={0} z={0} scale={0.62} />
+          </group>
+        </group>
+      ) : null}
       {/* труба с дымом */}
       <mesh position={[0.85, 2.6, -0.75]} castShadow>
         <boxGeometry args={[0.3, 0.7, 0.3]} />
@@ -1909,7 +2286,7 @@ export function CourtScene({
         <Ground grid={grid} />
         <RoadTiles roads={grid?.roads ?? []} size={grid?.size ?? 14} />
         <Palisade />
-        <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} />
+        <Buildings grid={grid ?? { size: 14, buildings: [], roads: [] }} level={thLevel} />
         <TownHall level={thLevel} grid={grid ?? { size: 14, buildings: [], roads: [] }} />
         {bursts.map((b) => (
           <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />

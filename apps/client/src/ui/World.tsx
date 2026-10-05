@@ -3,34 +3,35 @@
  * числа приходят снимком и патчем.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Locale, SlotId, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
-import { Slot, hasSlot } from "../slots.js";
+import { Slot } from "../slots.js";
 import { logout, sendCommand } from "../net.js";
 import { ICON_SRC } from "./iconSrc.js";
 import { store } from "../store.js";
-import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
 import { CourtScene } from "../court/CourtScene.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
+import { ResourceStrip } from "./ResourceStrip.js";
 import "../hud.css";
 import { Diagnostics } from "./Diagnostics.js";
 
-// Карта — в центре дока (решение заказчика, круг 18); по краям — чтение и служебное.
+// Карта мира появится отдельным экраном позже. Пока центральная вкладка возвращает во двор.
 const NAV: { route: string; key: string; icon: string; center?: boolean }[] = [
-  { route: "court", key: "shell.nav.court", icon: "banner" },
-  { route: "reports", key: "shell.nav.reports", icon: "scroll" },
-  { route: "map", key: "shell.nav.map", icon: "map", center: true },
-  { route: "chronicle", key: "shell.nav.chronicle", icon: "quill" },
-  { route: "sheet", key: "shell.nav.sheet", icon: "gear" },
+  { route: "tasks", key: "shell.nav.tasks", icon: "quill" },
+  { route: "reports", key: "shell.nav.mail", icon: "mail" },
+  { route: "court", key: "shell.nav.court", icon: "banner", center: true },
+  { route: "clan", key: "shell.nav.clan", icon: "shield" },
+  { route: "settings", key: "shell.nav.settings", icon: "gear" },
 ];
 
 export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Locale; serverNow: number }) {
   const t = translator(lang);
   const [route, setRoute] = useState("court");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [hudPanelOpen, setHudPanelOpen] = useState(false);
   const [, forceTick] = useState(0);
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
@@ -150,17 +151,18 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               setRoadTool((value) => !value);
             }}
             onUpgrade={() => sendCommand("court.upgrade")}
+            onPanelOpenChange={setHudPanelOpen}
           />
-          <CourtTape lang={lang} />
+          {!hudPanelOpen && !placing && !pending && !roadTool ? <CourtTape lang={lang} /> : null}
         </>
       ) : null}
       {route !== "court" ? (
         <>
-      <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/95 pt-[env(safe-area-inset-top)]">
-        <Slot slot={"hud.resources" as SlotId} view={view} lang={lang} serverNow={serverNow} empty={<ResourceBar view={view} lang={lang} />} />
+      <header className="world-topbar">
+        <ResourceStrip stock={view.stock ?? {}} lang={lang} className="world-resourcebar" />
       </header>
 
-      <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2 overflow-y-auto p-3 pb-28">
+      <section className="world-content">
         {route === "map" ? (
           <Slot
             slot={"map.layers" as SlotId}
@@ -184,7 +186,9 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
           />
         ) : null}
 
+        {route === "tasks" ? <SystemPage lang={lang} title="shell.tasks.title" body="shell.tasks.empty" icon="quill" /> : null}
         {route === "reports" ? <Reports lang={lang} /> : null}
+        {route === "clan" ? <SystemPage lang={lang} title="shell.hud.clan" body="shell.clan.empty" icon="shield" /> : null}
         {route === "chronicle" ? <Chronicle lang={lang} /> : null}
         {route === "sheet" ? (
           <Slot
@@ -193,7 +197,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
             lang={lang}
             serverNow={serverNow}
             extra={{ opened: true, open: () => undefined, close: () => undefined }}
-            empty={<Panel>{t("shell.sheet.title")}: пусто</Panel>}
+            empty={<Panel>{t("shell.sheet.empty")}</Panel>}
           />
         ) : null}
 
@@ -201,41 +205,48 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         </>
       ) : null}
 
-      <nav className="game-nav">
-        <div className="flex">
-          {NAV.map((item) => (
-            <button
-              key={item.route}
-              type="button"
-              onClick={() => {
-                setRoute(item.route);
-                if (item.route === "sheet") setSheetOpen(true);
-              }}
-              className={[
-                item.center ? "nav-map" : "",
-                route === item.route ? "active" : "",
-              ]
-                .filter(Boolean)
-                .join(" ") || undefined}
-            >
-              <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
-              <span>{t(item.key)}</span>
-            </button>
-          ))}
+      <nav className="game-nav" aria-label={t("shell.nav.primary")}>
+        <div className="nav-inner">
+          {NAV.map((item) => {
+            const isSettings = item.route === "settings";
+            const active = isSettings ? sheetOpen : route === item.route;
+            return (
+              <button
+                key={item.route}
+                type="button"
+                className={`nav-item${item.center ? " nav-center" : ""}${active ? " active" : ""}`}
+                aria-current={!isSettings && active ? "page" : undefined}
+                aria-label={t(item.key)}
+                onClick={() => {
+                  if (isSettings) {
+                    setSheetOpen(true);
+                    return;
+                  }
+                  setSheetOpen(false);
+                  setRoute(item.route);
+                }}
+              >
+                <img className="nic" src={ICON_SRC[item.icon] ?? "icons/i-gear.png"} alt="" />
+                <span>{t(item.key)}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 
-      {sheetOpen && !hasSlot("sheet" as SlotId) ? null : null}
       {sheetOpen ? (
-        <div className="fixed inset-0 z-20 flex items-end bg-black/70" onClick={() => setSheetOpen(false)}>
-          <div
-            className="max-h-[80dvh] w-full overflow-y-auto rounded-t-lg border-t border-stone-700 bg-stone-950 p-3"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm text-stone-400">{t("shell.sheet.title")}</span>
-              <button type="button" onClick={() => setSheetOpen(false)} className="min-h-[44px] px-3 text-sm text-stone-400">
-                {t("shell.close")}
+        <div className="hud-overlay" onClick={() => setSheetOpen(false)}>
+          <section className="settings-sheet" role="dialog" aria-modal="true" aria-label={t("shell.nav.settings")} onClick={(event) => event.stopPropagation()}>
+            <header className="settings-head">
+              <div><span className="eyebrow">{t("shell.settings.eyebrow")}</span><h2>{t("shell.nav.settings")}</h2></div>
+              <button type="button" className="hud-panel-close" aria-label={t("shell.close")} onClick={() => setSheetOpen(false)}>×</button>
+            </header>
+            <div className="settings-shortcuts">
+              <button type="button" onClick={() => { setRoute("chronicle"); setSheetOpen(false); }}>
+                <img src={ICON_SRC.quill} alt="" /><span>{t("shell.nav.chronicle")}</span>
+              </button>
+              <button type="button" onClick={() => { setRoute("sheet"); setSheetOpen(false); }}>
+                <img src={ICON_SRC.gear} alt="" /><span>{t("shell.nav.sheet")}</span>
               </button>
             </div>
             <Slot
@@ -244,22 +255,15 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               lang={lang}
               serverNow={serverNow}
               extra={{ opened: sheetOpen, open: () => setSheetOpen(true), close: () => setSheetOpen(false) }}
-              empty={<Panel>пусто</Panel>}
+              empty={<Panel>{t("shell.sheet.empty")}</Panel>}
             />
-            {/* Служебная полоса и аккаунт: пока нет экрана настроек, живут здесь. */}
             <Diagnostics lang={lang} />
-            <div className="mt-3 border-t border-stone-800 pt-3">
-              <div className="mb-1 text-xs uppercase tracking-wide text-stone-500">{t("shell.account.title")}</div>
-              <p className="mb-2 text-xs leading-relaxed text-stone-400">{t("shell.account.note")}</p>
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="min-h-[44px] w-full rounded border border-stone-700 px-3 text-sm text-bone"
-              >
-                {t("shell.account.logout")}
-              </button>
+            <div className="settings-account">
+              <b>{t("shell.account.title")}</b>
+              <p>{t("shell.account.note")}</p>
+              <button type="button" onClick={() => logout()}>{t("shell.account.logout")}</button>
             </div>
-          </div>
+          </section>
         </div>
       ) : null}
     </main>
@@ -287,25 +291,15 @@ function CourtTape({ lang }: { lang: Locale }) {
   );
 }
 
-function ResourceBar({ view, lang }: { view: WorldViewBase; lang: Locale }) {
-  const labels = translator(lang);
-  const names: Record<string, string> = {
-    meat: "shell.hud.meat",
-    wood: "shell.hud.wood",
-    stone: "shell.hud.stone",
-    metal: "shell.hud.metal",
-    mushrooms: "shell.hud.mushrooms",
-  };
-  const entries = Object.entries(view.stock ?? {});
+function SystemPage({ lang, title, body, icon }: { lang: Locale; title: string; body: string; icon: string }) {
+  const t = translator(lang);
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-wrap gap-x-3 gap-y-1 px-3 py-2 text-xs">
-      {entries.length === 0 ? <span className="text-stone-500">склад пуст</span> : null}
-      {entries.map(([id, amount]) => (
-        <span key={id} className="text-stone-400">
-          {names[id] ? labels(names[id] as string) : id}: <span className="font-mono text-bone">{amount}</span>
-        </span>
-      ))}
-    </div>
+    <section className="system-page">
+      <span className="system-page-icon"><img src={ICON_SRC[icon] ?? "icons/i-gear.png"} alt="" /></span>
+      <p className="eyebrow">{t("shell.page.eyebrow")}</p>
+      <h1>{t(title)}</h1>
+      <p className="system-page-note">{t(body)}</p>
+    </section>
   );
 }
 
@@ -313,22 +307,25 @@ function Reports({ lang }: { lang: Locale }) {
   const t = translator(lang);
   const state = store.get();
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-      <h2 className="text-sm text-stone-400">{t("shell.reports.title")}</h2>
+    <section className="inbox-page">
+      <header className="page-heading">
+        <img src={ICON_SRC.mail} alt="" />
+        <div><p className="eyebrow">{t("shell.page.eyebrow")}</p><h1>{t("shell.reports.title")}</h1></div>
+      </header>
       {state.reports.length === 0 ? <Panel>{t("shell.reports.empty")}</Panel> : null}
       {state.reports.map((report, index) => (
         <Panel key={`${report.at}-${index}`}>
-          <ul className="flex flex-col gap-1 text-sm text-stone-300">
+          <ul className="report-rows">
             {report.rows.map((row, rowIndex) => (
               <li key={`${row.key}-${rowIndex}`}>{t(row.key, row.params)}</li>
             ))}
           </ul>
         </Panel>
       ))}
-    </div>
+    </section>
   );
 }
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <div className="rounded border border-stone-800 bg-stone-900/60 p-3 text-sm text-stone-400">{children}</div>;
+  return <div className="world-card">{children}</div>;
 }
