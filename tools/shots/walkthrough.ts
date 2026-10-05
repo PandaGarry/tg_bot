@@ -154,18 +154,18 @@ await sleep(600);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-build.jpg");
 await page.evaluate(() => {
-  const card = [...document.querySelectorAll(".bcard")].find((b) => b.textContent?.includes("Жилой дом"));
+  const card = [...document.querySelectorAll(".bcard")].find((b) => (b.textContent?.includes("Жилой дом") || b.getAttribute("aria-label")?.includes("Жилой дом")));
   (card as HTMLElement | undefined)?.click();
 });
 await page.waitForSelector(".place-bar", { timeout: 10_000 });
 await sleep(400);
-// клетка слева-выше Ратуши: свободная, вне дороги
+// клетка слева-выше Цитадели: свободная, вне дороги
 await page.mouse.click(450, 430);
 await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-confirm.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-confirm.jpg");
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
+  const button = [...document.querySelectorAll(".place-bar button")].find((b) => (b.textContent?.includes("Подтвердить") || b.getAttribute("aria-label")?.includes("Подтвердить")));
   (button as HTMLElement | undefined)?.click();
 });
 await sleep(1500);
@@ -183,7 +183,7 @@ console.log("сохранён game-court-pickup.jpg");
 await page.mouse.click(450, 300);
 await sleep(400);
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
+  const button = [...document.querySelectorAll(".place-bar button")].find((b) => (b.textContent?.includes("Подтвердить") || b.getAttribute("aria-label")?.includes("Подтвердить")));
   (button as HTMLElement | undefined)?.click();
 });
 await sleep(900);
@@ -195,7 +195,7 @@ await page.click(".hud-rb");
 await page.waitForSelector(".hud-build", { timeout: 10_000 });
 await sleep(400);
 await page.evaluate(() => {
-  const tab = [...document.querySelectorAll(".btabs button")].find((b) => b.textContent?.includes("Украшения"));
+  const tab = [...document.querySelectorAll(".btabs button")].find((b) => (b.textContent?.includes("Украшения") || b.getAttribute("aria-label")?.includes("Украшения")));
   (tab as HTMLElement | undefined)?.click();
 });
 await sleep(300);
@@ -212,7 +212,7 @@ await sleep(700);
 await page.screenshot({ path: join(outDir, "game-court-road.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-road.jpg");
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Готово"));
+  const button = [...document.querySelectorAll(".place-bar button")].find((b) => (b.textContent?.includes("Готово") || b.getAttribute("aria-label")?.includes("Готово")));
   (button as HTMLElement | undefined)?.click();
 });
 await sleep(300);
@@ -226,14 +226,14 @@ await sleep(400);
 await page.mouse.click(1036, 89);
 await sleep(400);
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
+  const button = [...document.querySelectorAll(".place-bar button")].find((b) => (b.textContent?.includes("Подтвердить") || b.getAttribute("aria-label")?.includes("Подтвердить")));
   (button as HTMLElement | undefined)?.click();
 });
 await sleep(900);
 await page.screenshot({ path: join(outDir, "game-court-road-move.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-road-move.jpg");
 
-// перенос Ратуши долгим нажатием: нажатие на тело башни, тап по клетке (9,9), «Подтвердить»
+// перенос Цитадели долгим нажатием: нажатие на тело башни, тап по клетке (9,9), «Подтвердить»
 await page.mouse.move(688, 390);
 await page.mouse.down();
 await sleep(800);
@@ -246,7 +246,7 @@ await page.mouse.click(516, 376);
 await sleep(400);
 await page.screenshot({ path: join(outDir, "game-court-hall-target.jpg"), type: "jpeg", quality: 88 });
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
+  const button = [...document.querySelectorAll(".place-bar button")].find((b) => (b.textContent?.includes("Подтвердить") || b.getAttribute("aria-label")?.includes("Подтвердить")));
   (button as HTMLElement | undefined)?.click();
 });
 await sleep(1300);

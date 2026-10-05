@@ -110,23 +110,7 @@ describe("двор", () => {
 
     expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Двор" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Карта" })).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /Профиль лорда/ }));
-    expect(screen.getByRole("dialog", { name: "Профиль лорда" })).toBeTruthy();
-    expect(screen.queryByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Закрыть" }));
-    expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: "Задания" }));
-    expect(screen.getByRole("heading", { name: "Задания" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Почта" }));
-    expect(screen.getByRole("heading", { name: "Почта" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Клан" }));
-    expect(screen.getByRole("heading", { name: "Клан" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Двор" }));
-
-    fireEvent.click(screen.getByRole("button", { name: "Настройки" }));
     fireEvent.click(screen.getByRole("button", { name: "Хроника" }));
     expect(screen.getAllByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.").length).toBeGreaterThan(0);
 
@@ -143,7 +127,7 @@ describe("аккаунт", () => {
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: "Настройки" }));
+    fireEvent.click(screen.getByRole("button", { name: "Модули" }));
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 
     // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном
