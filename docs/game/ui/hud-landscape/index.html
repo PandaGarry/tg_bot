@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>TDL · HUD в горизонтали (пример по плану 34)</title>
+<style>
+  /* ============  палитра «Кость-дерево» №05 (как в игре)  ============ */
+  :root {
+    --bone: #efe3c6;
+    --wood-0: #22130b;
+    --wood-1: #3a2114;
+    --wood-2: #4a2c1a;
+    --wood-3: #6b4128;
+    --ink: #2a1e14;
+    --muted: #6f5b45;
+    --gold: #e0b04a;
+    --white: #f7f0e2;
+    --glass: rgba(16, 11, 8, 0.55);
+  }
+
+  /* ============  ярусы адаптива: телефон / планшет / десктоп  ============ */
+  /* база — телефон-ландшафт (высота ≤ 430) */
+  :root {
+    --pad: 8px;
+    --ava: 46px;  --chip: 40px;  --fig: 32px;  --plaque: 44px;
+    --dock: 58px; --dock-ic: 36px; --dock-gap: 10px; --compass: 64px;
+    --f1: 12px;   --f2: 11px;    --f3: 9.5px;  --rail-gap: 6px;
+    --plate: clamp(190px, 26vw, 300px);
+  }
+  @media (min-height: 431px) and (max-height: 800px) {
+    :root {
+      --pad: 12px;
+      --ava: 56px; --chip: 44px; --fig: 38px; --plaque: 54px;
+      --dock: 84px; --dock-ic: 52px; --dock-gap: 14px; --compass: 84px;
+      --f1: 13px;  --f2: 12.5px; --f3: 10.5px; --rail-gap: 8px;
+    }
+  }
+  @media (min-height: 801px) {
+    :root {
+      --pad: 18px;
+      --ava: 64px; --chip: 52px; --fig: 46px; --plaque: 64px;
+      --dock: 108px; --dock-ic: 68px; --dock-gap: 18px; --compass: 100px;
+      --f1: 14px;  --f2: 14px;   --f3: 11.5px; --rail-gap: 10px;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #0b0806; }
+  body {
+    font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+    color: var(--white);
+    -webkit-user-select: none; user-select: none;
+    touch-action: none;
+  }
+
+  /* ============  сцена: центр кадра свободен  ============ */
+  .scene {
+    position: fixed; inset: 0;
+    background: #14202b url("scene.jpg") center/cover no-repeat;
+    filter: saturate(0.95);
+  }
+  .scene::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.42));
+  }
+
+  .hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; --prof-h: var(--ava); }
+  .hud[data-top="c1"] { --prof-h: calc(var(--plate) * 0.4815); }
+  .hud > * { pointer-events: auto; }
+  .safe { position: absolute; inset: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+  .tappable { display: flex; align-items: center; justify-content: center; }
+  .tappable:active { transform: scale(0.96); }
+
+  /* ============  A. профиль — левый верх  ============ */
+  .z-profile { position: absolute; left: var(--pad); top: var(--pad); display: flex; align-items: center; gap: 8px; }
+
+  /* вариант «формат VR»: круглый портрет, имя, сила */
+  .lord-vr { display: flex; align-items: center; gap: 8px; }
+  .lord-vr .ava {
+    position: relative; width: var(--ava); height: var(--ava);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #6b4a2e, #2a1a10);
+    border: 2px solid rgba(224, 176, 74, 0.75);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+    flex: 0 0 auto;
+  }
+  .lord-vr .ava img.face { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: cover; border-radius: 50%; }
+  .lord-vr .ava img.frame { position: absolute; inset: -6%; width: 112%; height: 112%; object-fit: contain; pointer-events: none; }
+  .lord-vr .ava .lvl {
+    position: absolute; right: -6%; bottom: -6%;
+    min-width: 44%; height: 44%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: var(--f3); font-style: normal; font-weight: 700;
+    color: var(--ink);
+    background: linear-gradient(180deg, #f3e3b8, #d9b876);
+    border: 1.5px solid #7a5320; border-radius: 6px;
+  }
+  .lord-vr .meta { display: flex; flex-direction: column; gap: 2px; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+  .lord-vr .nm { font-size: var(--f1); font-weight: 700; letter-spacing: 0.01em; }
+  .lord-vr .pw { display: flex; align-items: center; gap: 4px; font-size: var(--f2); color: var(--bone); }
+  .lord-vr .pw img { width: calc(var(--f2) * 1.25); height: calc(var(--f2) * 1.25); }
+
+  /* вариант «C1»: наша утверждённая плашка, поля — по замерам подложки */
+  .lord-c1 { position: relative; width: var(--plate); aspect-ratio: 1566 / 754; display: none; }
+  .lord-c1 img.plate { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lord-c1 .slot { position: absolute; left: 8.34%; top: 21.68%; width: 27.01%; height: 56.1%; }
+  .lord-c1 .slot img.face { position: absolute; inset: 6%; width: 88%; height: 88%; object-fit: cover; border-radius: 50%; }
+  .lord-c1 .name { position: absolute; left: 52.31%; top: 25.55%; height: 9.1%; width: 44%; font-size: calc(var(--plate) * 0.4815 * 0.091); font-weight: 700; color: var(--white); }
+  .lord-c1 .power { position: absolute; left: 57.26%; top: 48.91%; height: 10%; width: 40%; font-size: calc(var(--plate) * 0.4815 * 0.10); color: var(--bone); }
+  .lord-c1 .vip { position: absolute; left: 54.5%; top: 67.8%; width: 7.8%; height: 8.8%; font-size: calc(var(--plate) * 0.4815 * 0.082); color: var(--white); }
+  .lord-c1 .ellip { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  [data-top="c1"] .lord-c1 { display: block; }
+  [data-top="c1"] .lord-vr { display: none; }
+
+  /* ============  B. ресурсы — правый верх  ============ */
+  .z-res { position: absolute; right: var(--pad); top: var(--pad); display: flex; gap: var(--rail-gap); }
+  .chip {
+    position: relative; width: var(--chip); height: var(--chip);
+    border-radius: 9px;
+    background: linear-gradient(180deg, rgba(243, 233, 208, 0.96), rgba(214, 190, 148, 0.96));
+    border: 1.5px solid var(--wood-0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 240, 214, 0.55);
+  }
+  .chip img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
+  .chip b {
+    position: absolute; left: 50%; bottom: -1px; transform: translate(-50%, 40%);
+    font-size: var(--f3); font-weight: 700; color: var(--white);
+    padding: 0 4px; border-radius: 5px;
+    background: rgba(22, 14, 9, 0.9); border: 1px solid rgba(224, 176, 74, 0.55);
+    white-space: nowrap;
+  }
+  .chip.gold { background: linear-gradient(180deg, #f6dfa4, #d9a63f); }
+
+  /* ============  C. часы — под ресурсами  ============ */
+  .z-clock {
+    position: absolute; right: var(--pad); top: calc(var(--pad) + var(--chip) + 10px);
+    font-size: var(--f3); color: var(--bone); letter-spacing: 0.02em;
+    padding: 3px 8px; border-radius: 7px;
+    background: var(--glass); border: 1px solid rgba(224, 176, 74, 0.35);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  /* ============  D. лента заданий — слева, под профилем  ============ */
+  .z-quests {
+    position: absolute; left: var(--pad); top: calc(var(--pad) + var(--prof-h) + 8px);
+    width: min(36vw, 340px);
+    background: var(--glass);
+    border: 1.5px solid rgba(224, 176, 74, 0.4);
+    border-radius: 10px;
+    backdrop-filter: blur(3px);
+    overflow: hidden;
+  }
+  .quest-chip {
+    display: none; align-items: center; gap: 5px; min-height: 34px;
+    padding: 0 10px; border-radius: 9px; white-space: nowrap;
+    font: inherit; font-size: var(--f3); font-weight: 700; color: var(--bone);
+    background: linear-gradient(180deg, rgba(74, 44, 26, 0.94), rgba(38, 22, 12, 0.95));
+    border: 1.5px solid rgba(224, 176, 74, 0.5);
+  }
+  .quest-chip b { color: var(--gold); }
+  .quest-chip i { font-style: normal; color: var(--muted); }
+  body.quests-open .quest-chip i { transform: rotate(180deg); }
+
+  .z-quests header {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 8px;
+    background: linear-gradient(180deg, rgba(74, 44, 26, 0.95), rgba(42, 25, 14, 0.95));
+    border-bottom: 1px solid rgba(224, 176, 74, 0.35);
+    font-size: var(--f2); font-weight: 700;
+  }
+  .z-quests header .cnt { margin-left: auto; color: var(--gold); font-size: var(--f3); }
+  .z-quests ul { list-style: none; padding: 5px 8px 6px; display: flex; flex-direction: column; gap: 4px; }
+  .z-quests li { display: flex; gap: 6px; font-size: var(--f3); line-height: 1.25; color: #e8dcc2; }
+  .z-quests li i { font-style: normal; color: var(--gold); flex: 0 0 auto; }
+  .z-quests li.done { color: #9c8f79; text-decoration: line-through; }
+  .z-quests li.done i { color: #79b463; }
+
+  /* ============  E. левое меню очередей  ============ */
+  .z-rail {
+    position: absolute; left: var(--pad); bottom: calc(var(--pad) + var(--compass) + 10px);
+    display: flex; flex-direction: column; gap: var(--rail-gap);
+  }
+  .plaque {
+    position: relative; width: var(--plaque); height: var(--plaque);
+    border-radius: 11px;
+    background: linear-gradient(180deg, rgba(60, 35, 18, 0.9), rgba(28, 16, 9, 0.94));
+    border: 1.5px solid rgba(224, 176, 74, 0.6);
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(240, 210, 150, 0.25);
+  }
+  .plaque img { width: 76%; height: 76%; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+  .plaque .badge {
+    position: absolute; right: -5px; top: -6px; min-width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; border-radius: 10px;
+    background: linear-gradient(180deg, #d8533f, #a72a1c);
+    border: 1.5px solid #f0d3a0;
+    font-size: var(--f3); font-weight: 700;
+  }
+
+  /* ============  F. компас — левый низ  ============ */
+  .z-compass {
+    position: absolute; left: var(--pad); bottom: var(--pad);
+    width: var(--compass); height: var(--compass); border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, rgba(107, 65, 40, 0.95), rgba(34, 19, 11, 0.97));
+    border: 2px solid rgba(224, 176, 74, 0.7);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+  }
+  .z-compass img { width: 58%; height: 58%; }
+
+  /* ============  G. нижний док — правый низ, «утоплен» кромкой  ============ */
+  .z-dock {
+    position: absolute; right: var(--pad); bottom: 0;
+    display: flex; align-items: flex-end; gap: var(--dock-gap);
+    transform: translateY(16%);
+    padding-bottom: 0;
+  }
+  .dock-item {
+    position: relative; width: var(--dock); height: var(--dock);
+    transform: rotate(45deg);
+    background: linear-gradient(180deg, rgba(60, 35, 18, 0.92), rgba(26, 15, 8, 0.95));
+    border: 2px solid rgba(224, 176, 74, 0.55);
+    border-radius: calc(var(--dock) * 0.12);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.55);
+  }
+  .dock-item img { width: 66%; height: 66%; transform: rotate(-45deg); filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6)); }
+  .dock-item.active { background: linear-gradient(180deg, rgba(118, 80, 42, 0.96), rgba(70, 42, 18, 0.98)); border-color: var(--gold); }
+  /* «Карта» — старшая в доке: крупнее прочих (решение круга 17) */
+  .dock-item.nav-main { width: calc(var(--dock) * 1.18); height: calc(var(--dock) * 1.18); border-color: var(--gold); }
+  .dock-item.nav-main img { width: 70%; height: 70%; }
+
+  /* ============  H. правый столбец вкладок  ============ */
+  .z-tabs {
+    position: absolute; right: var(--pad); top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: var(--rail-gap);
+  }
+
+  /* на телефоне-ландшафте высоты мало: очереди — по центру левого края,
+     а лента заданий уходит вправо от них, чтобы полосы не наезжали друг на друга */
+  @media (max-height: 430px) {
+    .quest-chip { display: flex; }
+    .z-quests { display: none; }
+    body.quests-open .z-quests {
+      display: block; width: min(38vw, 320px); max-height: 62vh; overflow: auto;
+    }
+  }
+
+  /* ============  демонстрационные надстройки (в игру не идут)  ============ */
+  #demo-toggle {
+    position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
+    z-index: 21; width: 26px; height: 26px; border-radius: 50%;
+    font-size: 13px; line-height: 1; color: var(--bone);
+    background: rgba(12, 8, 5, 0.85); border: 1px solid rgba(224, 176, 74, 0.45);
+  }
+  #demo-toggle[aria-pressed="true"] { background: linear-gradient(180deg, #6b4128, #3a2114); }
+  .demo-bar {
+    position: absolute; left: 50%; top: 34px; transform: translateX(-50%);
+    display: none; align-items: center; gap: 6px; z-index: 20;
+    padding: 4px 6px; border-radius: 999px;
+    background: rgba(12, 8, 5, 0.82); border: 1px solid rgba(224, 176, 74, 0.4);
+    font-size: var(--f3);
+  }
+  .demo-bar.on { display: flex; }
+  .demo-bar button {
+    font: inherit; font-size: 10px; color: var(--bone); background: rgba(58, 33, 20, 0.9);
+    border: 1px solid rgba(224, 176, 74, 0.45); border-radius: 999px;
+    padding: 3px 9px; cursor: pointer;
+  }
+  .demo-bar button[aria-pressed="true"] { background: linear-gradient(180deg, #6b4128, #3a2114); color: var(--white); border-color: var(--gold); }
+  .demo-bar .size { color: var(--muted); }
+
+  .measure {
+    position: absolute; left: var(--pad); top: 50%; transform: translateY(-50%);
+    z-index: 30; width: min(420px, 42vw); max-height: 88vh; overflow: auto;
+    padding: 10px 12px; border-radius: 10px;
+    background: rgba(10, 7, 5, 0.92); border: 1px solid rgba(224, 176, 74, 0.45);
+    font: 11px/1.45 ui-monospace, Menlo, Consolas, monospace; color: #e7dcc4;
+    display: none;
+  }
+  .measure.on { display: block; }
+  .measure h3 { font-size: 11.5px; color: var(--gold); margin-bottom: 6px; }
+  .measure table { width: 100%; border-collapse: collapse; }
+  .measure td { padding: 1px 0; vertical-align: top; }
+  .measure td:last-child { text-align: right; color: #fff; }
+  .measure .ok { color: #8fc978; }
+  .measure .bad { color: #e08a6a; }
+  .measure .sec { margin-top: 7px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .rotate-hint {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 10px;
+    background: #0b0806; text-align: center; padding: 20px;
+  }
+  .rotate-hint img { width: 56px; height: 56px; opacity: 0.9; }
+  .rotate-hint p { font-size: 13px; color: var(--bone); max-width: 26ch; }
+  @media (orientation: portrait) and (max-width: 560px) {
+    .rotate-hint { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="scene"></div>
+
+<div class="hud" id="hud" data-top="vr">
+  <div class="safe"></div>
+
+  <!-- A. профиль -->
+  <div class="z-profile zone" data-zone="A профиль">
+    <div class="lord-vr">
+      <span class="tappable ava">
+        <img class="face" src="icons/lord-base.png" alt="" />
+        <img class="frame" src="icons/lord-frame-base.png" alt="" />
+        <i class="lvl">30</i>
+      </span>
+      <span class="meta">
+        <b class="nm">Garry</b>
+        <span class="pw"><img src="icons/i-power.png" alt="" />40 930</span>
+      </span>
+    </div>
+    <div class="lord-c1" data-top="c1">
+      <img class="plate" src="icons/lord-plate.png" alt="" />
+      <span class="slot"><img class="face" src="icons/lord-base.png" alt="" /></span>
+      <span class="name"><span class="ellip">Garry</span></span>
+      <span class="power"><span class="ellip">40 930</span></span>
+      <span class="vip">1</span>
+    </div>
+    <button class="tappable quest-chip" type="button" id="quests-chip" title="Задания главы">Глава 16 <b>4/7</b><i>▾</i></button>
+  </div>
+
+  <!-- B. ресурсы -->
+  <div class="z-res zone" data-zone="B ресурсы">
+    <span class="tappable chip"><img src="icons/meat.png" alt="" /><b>1,2К</b></span>
+    <span class="tappable chip"><img src="icons/wood.png" alt="" /><b>9,4К</b></span>
+    <span class="tappable chip"><img src="icons/stone.png" alt="" /><b>3,1К</b></span>
+    <span class="tappable chip"><img src="icons/metal.png" alt="" /><b>740</b></span>
+    <span class="tappable chip"><img src="icons/mushroom.png" alt="" /><b>216</b></span>
+    <span class="tappable chip gold"><img src="icons/gold.png" alt="" /><b>85</b></span>
+  </div>
+
+  <!-- C. часы -->
+  <div class="z-clock zone" data-zone="C часы">День 14 · 19:09 (UTC+3)</div>
+
+  <!-- D. лента заданий: чип рядом с профилем, полный список — по нажатию -->
+  <div class="z-quests zone" data-zone="D лента">
+    <header>Глава 16 <span class="cnt">4/7</span></header>
+    <ul>
+      <li><i>(6/7)</i>Укрепить частокол</li>
+      <li><i>(0/1)</i>Занять Забытый двор</li>
+      <li><i>(1/2)</i>Срубить сухостой</li>
+      <li class="done"><i>(8/8)</i>Возвести Ратушу</li>
+    </ul>
+    </div>
+  </div>
+
+  <!-- E. очереди -->
+  <div class="z-rail zone" data-zone="E очереди">
+    <button class="tappable plaque" type="button" title="Строить"><img src="icons/hammer.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Марш"><img src="icons/swords.png" alt="" /><i class="badge">2</i></button>
+    <button class="tappable plaque" type="button" title="Тренировка"><img src="icons/helmet.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Исследование"><img src="icons/scroll.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Лечение"><img src="icons/i-flask.png" alt="" /></button>
+  </div>
+
+  <!-- F. компас -->
+  <button class="tappable z-compass zone" data-zone="F компас" type="button" title="Обзор"><img src="icons/map.png" alt="" /></button>
+
+  <!-- G. док — правый низ -->
+  <div class="z-dock zone" data-zone="G док">
+    <button class="tappable dock-item" type="button" title="Хроника"><img src="icons/quill.png" alt="" /></button>
+    <button class="tappable dock-item" type="button" title="Отчёты"><img src="icons/scroll.png" alt="" /></button>
+    <button class="tappable dock-item" type="button" title="Двор"><img src="icons/banner.png" alt="" /></button>
+    <button class="tappable dock-item nav-main active" type="button" title="Карта"><img src="icons/map.png" alt="" /></button>
+  </div>
+
+  <!-- H. правый столбец -->
+  <div class="z-tabs zone" data-zone="H вкладки">
+    <button class="tappable plaque" type="button" title="Командиры"><img src="icons/helmet.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Клан"><img src="icons/clan.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Предметы"><img src="icons/bag.png" alt="" /></button>
+    <button class="tappable plaque" type="button" title="Магазин"><img src="icons/shop.png" alt="" /><i class="badge">4</i></button>
+  </div>
+</div>
+
+<!-- демо: переключатель верха, замеры, зоны (в игру не идут) -->
+<button type="button" id="demo-toggle" title="Показать служебные переключатели">⚙</button>
+<div class="demo-bar" id="demo-bar">
+  <button type="button" id="btn-vr" aria-pressed="true">Верх: формат VR</button>
+  <button type="button" id="btn-c1" aria-pressed="false">Верх: наш C1</button>
+  <button type="button" id="btn-m">Замеры</button>
+  <button type="button" id="btn-z">Зоны</button>
+  <span class="size" id="size-tag">—</span>
+  <span class="size">док: Хроника · Отчёты · Двор · Карта</span>
+</div>
+
+<div class="measure" id="measure"></div>
+
+<div class="rotate-hint">
+  <img src="icons/map.png" alt="" />
+  <p>Поверни телефон — двор живёт в ширине.</p>
+</div>
+
+<script>
+const hud = document.getElementById("hud");
+const measureEl = document.getElementById("measure");
+const sizeTag = document.getElementById("size-tag");
+const zonesOn = new URLSearchParams(location.search).has("z");
+
+const TIERS = [[0, 430, "телефон-ландшафт"], [431, 800, "планшет"], [801, 9999, "десктоп"]];
+const tierOf = (h) => TIERS.find(([a, b]) => h >= a && h <= b)[2];
+
+function avgFont() { return parseFloat(getComputedStyle(document.documentElement).fontSize); }
+
+function measure() {
+  const W = innerWidth, H = innerHeight;
+  const r = (el) => el.getBoundingClientRect();
+  const node = (sel) => document.querySelector(sel);
+  const fmt = (v) => Math.round(v * 10) / 10;
+
+  const box = (sel) => { const el = node(sel); const b = el.getBoundingClientRect();
+    return b.width > 1 && b.height > 1 ? b : { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 }; };
+  const prof = box(".z-profile"), res = box(".z-res"), clock = box(".z-clock");
+  const dock = box(".z-dock"), tabs = box(".z-tabs"), rail = box(".z-rail");
+  const quests = box(".z-quests"), comp = box(".z-compass");
+  const topHud = Math.max(prof.bottom, res.bottom, clock.bottom) - Math.min(prof.top, res.top);
+
+  const pairs = [
+    ["профиль", prof, "ресурсы", res], ["профиль", prof, "лента", quests],
+    ["лента", quests, "очереди", rail], ["очереди", rail, "компас", comp],
+    ["док", dock, "столбец вкладок", tabs], ["док", dock, "компас", comp]
+  ];
+  const overlap = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
+  const clashes = pairs.filter(([an, a, bn, b]) => overlap(a, b)).map(([an, , bn]) => an + " × " + bn);
+
+  const targets = [...document.querySelectorAll(".tappable")].map((el) => {
+    const b = el.getBoundingClientRect();
+    if (b.width < 1 || b.height < 1) return null; // скрытый вариант верха не считаем
+    return { name: (el.title || el.textContent.trim().slice(0, 12) || "?"), w: b.width, h: b.height };
+  }).filter(Boolean);
+  const small = targets.filter((t) => t.w < 40 || t.h < 40);
+
+  /* свободный центр: прямоугольник между левым краем, доком и столбцом вкладок */
+  const x0 = Math.max(rail.right, quests.right), x1 = Math.min(tabs.left, dock.left);
+  const y0 = Math.max(prof.bottom, quests.bottom, res.bottom);
+  const y1 = Math.min(dock.top, tabs.bottom);
+  const freeW = Math.max(0, x1 - x0);
+  const freeH = Math.max(0, y1 - y0);
+
+  const rows = [
+    ["Экран", W + " × " + H + " · " + tierOf(H)],
+    ["Шапка (профиль+ресурсы)", fmt(topHud) + " px · " + fmt(topHud / H * 100) + " %"],
+    ["Профиль", fmt(prof.width) + " × " + fmt(prof.height) + " px"],
+    ["Ресурсный чип", fmt(res.height / 6) + " px"],
+    ["Док: ромб", fmt(dock.height / 1.16) + " px · шаг " + fmt(dock.width / 4) + " px"],
+    ["Док: отступ от правой кромки", fmt(W - dock.right) + " px"],
+    ["Очередь: плашка", fmt(rail.width) + " px · шаг " + fmt(rail.height / 5) + " px"],
+    ["Свободный центр", fmt(freeW) + " × " + fmt(freeH) + " px"]
+  ];
+  const html = [
+    "<h3>Замер · " + tierOf(H) + "</h3><table>",
+    ...rows.map(([k, v]) => "<tr><td>" + k + "</td><td>" + v + "</td></tr>"),
+    "</table>",
+    '<div class="sec">Пересечения зон</div><table><tr><td>' +
+      (clashes.length ? '<span class="bad">' + clashes.join(", ") + "</span>" : '<span class="ok">нет</span>') +
+      "</td></tr></table>",
+    '<div class="sec">Цели нажатия ≥ 40 px</div><table><tr><td>' +
+      (small.length ? '<span class="bad">' + small.map((s) => s.name + " " + fmt(s.w) + "×" + fmt(s.h)).join(", ") + "</span>"
+                    : '<span class="ok">все ' + targets.length + "</span>") +
+      "</td></tr></table>",
+    '<div class="sec">Переполнение</div><table><tr><td>' +
+      (document.documentElement.scrollWidth > W || document.documentElement.scrollHeight > H
+        ? '<span class="bad">есть</span>' : '<span class="ok">нет</span>') +
+      "</td></tr></table>"
+  ].join("");
+  measureEl.innerHTML = html;
+  sizeTag.textContent = W + "×" + H + " · " + tierOf(H);
+  window.__measure = { W, H, tier: tierOf(H), topHud: fmt(topHud), topHudPct: fmt(topHud / H * 100),
+    clashes, smallTargets: small.length, freeW: fmt(freeW), freeH: fmt(freeH),
+    dockRight: fmt(W - dock.right), dockStep: fmt(dock.width / 4) };
+}
+
+/* переключатель верха и панели */
+const setTop = (v) => {
+  hud.dataset.top = v;
+  document.getElementById("btn-vr").setAttribute("aria-pressed", String(v === "vr"));
+  document.getElementById("btn-c1").setAttribute("aria-pressed", String(v === "c1"));
+  requestAnimationFrame(measure);
+};
+document.getElementById("quests-chip").onclick = () => document.body.classList.toggle("quests-open");
+const bar = document.getElementById("demo-bar");
+document.getElementById("demo-toggle").onclick = () => {
+  const on = bar.classList.toggle("on");
+  document.getElementById("demo-toggle").setAttribute("aria-pressed", String(on));
+  requestAnimationFrame(measure);
+};
+document.getElementById("btn-vr").onclick = () => setTop("vr");
+document.getElementById("btn-c1").onclick = () => setTop("c1");
+document.getElementById("btn-m").onclick = () => { measureEl.classList.toggle("on"); measure(); };
+document.getElementById("btn-z").onclick = () => {
+  const on = hud.classList.toggle("zones-visible");
+  document.querySelectorAll(".zone").forEach((el) => {
+    el.style.outline = on ? "2px solid rgba(255,60,60,0.9)" : "";
+    el.style.outlineOffset = on ? "1px" : "";
+  });
+  document.getElementById("btn-z").setAttribute("aria-pressed", String(on));
+};
+document.querySelectorAll(".dock-item").forEach((el) => el.addEventListener("click", () => {
+  document.querySelectorAll(".dock-item").forEach((x) => x.classList.remove("active"));
+  el.classList.add("active");
+}));
+
+const params = new URLSearchParams(location.search);
+if (params.get("top") === "c1") setTop("c1");
+if (params.has("bar")) { bar.classList.add("on"); document.getElementById("demo-toggle").setAttribute("aria-pressed", "true"); }
+if (params.has("quests")) document.body.classList.add("quests-open");
+if (params.has("m")) measureEl.classList.add("on");
+if (params.has("z")) document.getElementById("btn-z").click();
+
+addEventListener("resize", measure);
+addEventListener("orientationchange", () => setTimeout(measure, 120));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+measure();
+</script>
+</body>
+</html>
