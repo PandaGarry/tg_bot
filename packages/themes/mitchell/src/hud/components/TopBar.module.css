@@ -10,15 +10,15 @@
   height: var(--mt-topbar-h);
   display: flex;
   align-items: center;
-  gap: calc(var(--mt-unit) * 2);
-  padding: calc(var(--mt-unit) * 1.2) calc(var(--mt-space) + var(--mt-safe-r)) 0 calc(var(--mt-space) + var(--mt-safe-l));
-  padding-top: calc(var(--mt-unit) * 1.2 + var(--mt-safe-t));
+  gap: 12px;
+  padding: 8px calc(var(--mt-space) + var(--mt-safe-r)) 0 calc(var(--mt-space) + var(--mt-safe-l));
+  padding-top: calc(8px + var(--mt-safe-t));
   background: linear-gradient(180deg,
-    rgba(10,16,30,0.6) 0%,
-    rgba(10,16,30,0.2) 65%,
+    rgba(8,4,0,0.55) 0%,
+    rgba(8,4,0,0.15) 65%,
     rgba(0,0,0,0) 100%);
   z-index: 30;
-  font-size: var(--mt-fs-md);
+  font-size: 14px;
   pointer-events: none;
 }
 .topbar > * { pointer-events: auto; }
@@ -27,14 +27,12 @@
 .lord {
   display: flex;
   align-items: center;
-  gap: calc(var(--mt-unit) * 1.2);
+  gap: 8px;
   flex: 0 0 auto;
   position: relative;
   background: none;
   margin: 0;
   padding: 0;
-  /* Профиль занимает ~10-12% ширины — зададим шириной содержимого */
-  min-width: calc(var(--mt-unit)*24);
 }
 
 .avatar {
