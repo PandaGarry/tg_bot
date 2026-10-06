@@ -7,10 +7,39 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
     <meta name="theme-color" content="#0c0a09" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Мёртвые лорды</title>
+    <style>
+      /* Резерв на случай если JS/CSS не загрузился — фон должен быть тёмный */
+      html, body, #root { background: #0c0704; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Запрашиваем полный экран по первому тапу — убирает адресную строку
+      // в мобильных Chrome/Android и в Replit webview. Политика браузера
+      // разрешает полный экран ТОЛЬКО в ответ на жест пользователя.
+      (function () {
+        function enterFullscreen() {
+          var el = document.documentElement;
+          var req = el.requestFullscreen
+            || el.webkitRequestFullscreen
+            || el.mozRequestFullScreen
+            || el.msRequestFullscreen;
+          try { if (req && !document.fullscreenElement) req.call(el); } catch (e) {}
+          // После первого успешного входа больше не слушаем
+          document.removeEventListener("pointerdown", enterFullscreen);
+          document.removeEventListener("touchstart", enterFullscreen);
+          document.removeEventListener("keydown", enterFullscreen);
+        }
+        document.addEventListener("pointerdown", enterFullscreen, { passive: true });
+        document.addEventListener("touchstart", enterFullscreen, { passive: true });
+        document.addEventListener("keydown", enterFullscreen);
+      })();
+    </script>
   </body>
 </html>

@@ -1,31 +1,66 @@
-.panel {
+/* Иконка свитка у левого края (по умолчанию свёрнута) */
+.icon {
   position: absolute;
   left: calc(var(--mt-space) + var(--mt-safe-l));
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
-  width: clamp(calc(var(--mt-unit)*30), 18vw, calc(var(--mt-unit)*40));
-  max-width: 280px;
-  padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.5) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*7);
-  background: linear-gradient(180deg, rgba(30,40,65,0.88), rgba(15,22,40,0.92));
-  border: calc(var(--mt-unit)*0.22) solid rgba(90,160,238,0.35);
-  border-radius: var(--mt-radius-md);
-  box-shadow: var(--mt-shadow-panel);
-  z-index: 20;
-  color: var(--mt-text);
-}
-.scroll {
-  position: absolute;
-  left: calc(var(--mt-unit)*-1.4);
-  top: calc(var(--mt-unit)*-1.2);
-  width: calc(var(--mt-unit)*8);
-  height: calc(var(--mt-unit)*8);
-  border-radius: 50%;
-  background: linear-gradient(180deg, #d8b070, #8a6030);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-panel-dark);
+  width: var(--mt-btn-md);
+  height: var(--mt-btn-md);
+  min-width: var(--mt-touch-min);
+  min-height: var(--mt-touch-min);
+  border-radius: var(--mt-radius-md) 0 0 var(--mt-radius-md);
+  background: linear-gradient(180deg, rgba(206,168,88,0.9), rgba(138,96,48,0.9));
+  border: var(--mt-panel-border-width) solid var(--mt-gold-dark);
+  border-right: none;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--mt-panel-dark);
+  font-size: calc(var(--mt-unit)*3);
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3.8);
-  color: var(--mt-panel-dark);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.6);
+  cursor: pointer;
+  z-index: 20;
+  padding: 0;
+  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,240,200,0.3);
+  transition: transform 0.1s ease;
+}
+.icon:active { transform: scale(0.95); }
+.arrow {
+  position: absolute;
+  right: calc(var(--mt-unit)*-0.8);
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(var(--mt-unit)*2);
+  height: calc(var(--mt-unit)*3);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: calc(var(--mt-unit)*2);
+  background: rgba(0,0,0,0.4);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+/* Развёрнутая панель (показывается только если isOpen) */
+.panel {
+  position: absolute;
+  left: calc(var(--mt-space) + var(--mt-btn-md) - var(--mt-panel-border-width) + var(--mt-safe-l));
+  top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
+  width: clamp(calc(var(--mt-unit)*30), 18vw, calc(var(--mt-unit)*40));
+  max-width: 280px;
+  padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.5) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*2);
+  background: linear-gradient(180deg, rgba(30,40,65,0.82), rgba(15,22,40,0.9));
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  border: var(--mt-panel-border-width) solid rgba(90,160,238,0.4);
+  border-left: none;
+  border-radius: 0 var(--mt-radius-md) var(--mt-radius-md) 0;
+  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.55);
+  z-index: 20;
+  color: var(--mt-text);
+  animation: quest-in 0.2s ease-out;
+}
+@keyframes quest-in {
+  from { transform: translateX(-8px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
 }
 .head {
   display: flex;
@@ -33,7 +68,7 @@
   justify-content: space-between;
   font-size: var(--mt-fs-sm);
   font-weight: 800;
-  margin-bottom: calc(var(--mt-unit)*0.8);
+  margin-bottom: calc(var(--mt-unit)*0.6);
   letter-spacing: 0.02em;
 }
 .nav {
@@ -43,26 +78,25 @@
   font-size: var(--mt-fs-md);
   cursor: pointer;
   min-height: 0;
-  width: calc(var(--mt-unit)*3.4);
+  width: calc(var(--mt-unit)*3);
   padding: 0;
 }
 .list {
   display: grid;
-  gap: calc(var(--mt-unit)*0.5);
+  gap: calc(var(--mt-unit)*0.4);
   font-size: var(--mt-fs-xs);
   line-height: 1.35;
 }
-.prog { color: var(--mt-text); font-weight: 700; margin-right: calc(var(--mt-unit)*0.5); }
+.prog { color: var(--mt-text); font-weight: 700; margin-right: calc(var(--mt-unit)*0.4); }
 .todo { color: var(--mt-text); }
 .done, .doneText { color: var(--mt-green); }
-.done { font-weight: 800; margin-right: calc(var(--mt-unit)*0.5); }
+.done { font-weight: 800; margin-right: calc(var(--mt-unit)*0.4); }
 
-/* xs/sm — более компактный квестовый свиток */
+/* xs — более компактно */
 @media (orientation: landscape) and (max-height: 699px) {
   .panel {
     width: clamp(calc(var(--mt-unit)*28), 24vw, calc(var(--mt-unit)*34));
-    padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*1) calc(var(--mt-unit)*6.4);
+    padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.6);
   }
-  .scroll { width: calc(var(--mt-unit)*6.8); height: calc(var(--mt-unit)*6.8); font-size: calc(var(--mt-unit)*3); }
-  .list { gap: calc(var(--mt-unit)*0.3); }
+  .list { gap: calc(var(--mt-unit)*0.25); }
 }

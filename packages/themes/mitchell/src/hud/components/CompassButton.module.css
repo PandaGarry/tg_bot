@@ -2,17 +2,19 @@
   position: absolute;
   left: calc(var(--mt-space) + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
-  width: calc(var(--mt-unit)*10.2);
-  height: calc(var(--mt-unit)*10.2);
+  width: calc(var(--mt-unit)*10);
+  height: calc(var(--mt-unit)*10);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #5a4428, var(--mt-panel-dark) 72%);
-  border: calc(var(--mt-unit)*0.42) solid var(--mt-gold);
+  background: radial-gradient(circle at 30% 30%, rgba(90,68,40,0.85), rgba(12,7,4,0.9));
+  border: calc(var(--mt-unit)*0.3) solid var(--mt-gold);
   box-shadow:
-    0 0 0 calc(var(--mt-unit)*0.3) var(--mt-gold-dark),
-    0 calc(var(--mt-unit)*1) calc(var(--mt-unit)*2.4) rgba(0,0,0,0.7),
-    var(--mt-gold-inset);
+    0 0 0 1px rgba(168,124,40,0.6),
+    0 calc(var(--mt-unit)*0.7) calc(var(--mt-unit)*1.6) rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(255,220,160,0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: var(--mt-gold-light);
   cursor: pointer;
   z-index: 25;

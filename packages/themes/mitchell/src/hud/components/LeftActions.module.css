@@ -12,14 +12,16 @@
   width: var(--mt-btn-md);
   height: var(--mt-btn-md);
   border-radius: var(--mt-radius-md);
-  background: linear-gradient(180deg, var(--mt-panel-wood), var(--mt-panel-dark));
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-panel-border);
-  box-shadow: var(--mt-gold-inset), 0 2px calc(var(--mt-unit)*1) rgba(0,0,0,0.6);
-  color: var(--mt-text);
+  background: linear-gradient(180deg, rgba(48,30,18,0.7), rgba(12,7,4,0.85));
+  border: var(--mt-panel-border-width) solid var(--mt-gold-dark);
+  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,220,160,0.15);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--mt-gold-light);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3.3);
+  font-size: calc(var(--mt-unit)*3);
   padding: 0;
   transition: transform 0.08s ease, filter 0.1s ease;
 }

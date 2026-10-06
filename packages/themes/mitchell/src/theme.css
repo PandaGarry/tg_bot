@@ -28,13 +28,14 @@
      - xs : h < 500          (телефон в ландшафте)   — максимально компактный
 ===================================================================== */
 :root {
-  /* Палитра — панели/дерево */
-  --mt-panel-dark:   #1f1208;
-  --mt-panel-mid:    #2a1a0f;
-  --mt-panel-wood:   #3a2618;
+  /* Палитра — панели/дерево (лёгкий стеклянный Mitchell) */
+  --mt-panel-dark:   rgba(12,7,4,0.85);
+  --mt-panel-mid:    rgba(26,18,10,0.82);
+  --mt-panel-wood:   rgba(38,24,14,0.78);
   --mt-panel-edge:   #7c5028;
   --mt-panel-border: #0c0704;
-  --mt-glass:        rgba(16, 11, 8, 0.55);
+  --mt-glass:        rgba(16, 11, 8, 0.45);
+  --mt-panel-border-width: 1.2px;
 
   /* Золото */
   --mt-gold:       #d4a84b;
@@ -112,6 +113,12 @@
 
 /* ====== Базовые стили документа ====== */
 html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
+/* Используем dvh/dvw чтобы интерфейс занимал реальную видимую область
+   (вместо 100vh, который на мобильных браузерах и Replit включает адресную строку).
+   Fallback на 100vh для старых браузеров. */
+@supports (height: 100dvh) {
+  html, body, #root { height: 100dvh; }
+}
 html {
   background: var(--mt-panel-dark);
   color: var(--mt-text);
@@ -149,6 +156,10 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   height: 100vh;
   overflow: hidden;
   overscroll-behavior: none;
+}
+@supports (height: 100dvh) {
+  .app-mode,
+  .court-mode { height: 100dvh; }
 }
 @media (min-width: 821px) {
   .court-mode { box-shadow: none; }
@@ -210,28 +221,54 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
    переиспользуют те же имена переменных и автоматически сжимаются/раздуваются.
    ===================================================================== */
 
-/* xs: телефон в ландшафте — максимальная компактность, 360×640 / 375×812 */
-@media (orientation: landscape) and (max-height: 499px) {
+/* xxs: совсем маленькие высоты (Replit webview с толстой панелью сверху)
+   ~300px видимой высоты — прижимаем всё максимально, но не скрываем. */
+@media (orientation: landscape) and (max-height: 380px) {
   :root {
-    --mt-unit: 4.2px;
-    --mt-topbar-h: 36px;
-    --mt-btn-sm: 38px;
-    --mt-btn-md: 44px;
-    --mt-corner: 50px;
-    --mt-top-stack-gap: 6px;
-    --mt-quest-to-q: 78px;
-    --mt-q-to-actions: 52px;
-    --mt-banner-offset-x: 6px;
-    --mt-fs-xs: 9.5px;
-    --mt-fs-sm: 11px;
-    --mt-fs-md: 12.5px;
-    --mt-fs-lg: 15px;
-    --mt-fs-xl: 18px;
+    --mt-unit: 3.4px;
+    --mt-space: 3px;
+    --mt-topbar-h: 30px;
+    --mt-btn-sm: 32px;
+    --mt-btn-md: 38px;
+    --mt-corner: 38px;
+    --mt-top-stack-gap: 4px;
+    --mt-quest-to-q: 46px;
+    --mt-q-to-actions: 32px;
+    --mt-banner-offset-x: 3px;
+    --mt-fs-xs: 8.5px;
+    --mt-fs-sm: 10px;
+    --mt-fs-md: 11.5px;
+    --mt-fs-lg: 13px;
+    --mt-fs-xl: 15px;
+  }
+}
+
+/* xs: телефон в ландшафте — максимальная компактность, 360×640 / 375×812
+   Специально под вебвью Replit/браузера с панелью сверху — используем очень
+   плотные отступы и зажим вверх, чтобы элементы не уехали за край. */
+@media (orientation: landscape) and (min-height: 381px) and (max-height: 520px) {
+  :root {
+    --mt-unit: 4px;
+    --mt-space: 4px;
+    --mt-topbar-h: 34px;
+    --mt-btn-sm: 36px;
+    --mt-btn-md: 42px;
+    --mt-corner: 44px;
+    --mt-top-stack-gap: 5px;
+    --mt-quest-to-q: 60px;
+    --mt-q-to-actions: 40px;
+    --mt-banner-offset-x: 4px;
+    --mt-fs-xs: 9px;
+    --mt-fs-sm: 10.5px;
+    --mt-fs-md: 12px;
+    --mt-fs-lg: 14px;
+    --mt-fs-xl: 17px;
     --mt-chat-lines: 2;
+    --mt-panel-border-width: 1px;
   }
 }
 /* sm: нетбуки/планшеты — 1024×600, 1280×720, iPad landscape невысокий */
-@media (orientation: landscape) and (min-height: 500px) and (max-height: 699px) {
+@media (orientation: landscape) and (min-height: 520px) and (max-height: 699px) {
   :root {
     --mt-unit: clamp(5px, 0.9vmin, 6.5px);
     --mt-topbar-h: calc(var(--mt-unit) * 7);

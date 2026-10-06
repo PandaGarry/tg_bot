@@ -6,6 +6,7 @@ import { Badge } from "./Badge.js";
  * Столбец круглых быстрых кнопок справа (собрать, помощь, события, почта) — А/Б.
  */
 export function QuickActions({ actions }: { actions: HudActionButton[] }) {
+  if (actions.length === 0) return null;
   return (
     <div className={styles.quick}>
       {actions.map((a) => {
