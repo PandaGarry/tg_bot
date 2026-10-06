@@ -28,16 +28,16 @@
 .tapeActions { display: flex; gap: calc(var(--mt-unit)*0.8); flex-shrink: 0; }
 .tapeBtn {
   min-height: 0;
-  padding: calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.2);
+  padding: 6px 12px;
   border-radius: var(--mt-radius-sm);
-  background: rgba(80,150,230,0.25);
+  background: rgba(184,138,64,0.25);
   border: 1px solid var(--mt-stroke-accent);
-  color: var(--mt-blue-light);
+  color: var(--mt-gold-light);
   font-weight: 500;
   cursor: pointer;
   font-size: var(--mt-fs-xs);
 }
-.tapeBtn:active { background: rgba(80,150,230,0.45); }
+.tapeBtn:active { background: rgba(184,138,64,0.45); }
 
 .slot { position: relative; z-index: 40; }
 

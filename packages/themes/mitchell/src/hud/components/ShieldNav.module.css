@@ -15,45 +15,42 @@
 
 .shield {
   position: relative;
-  width: var(--mt-hex-size);
-  height: var(--mt-hex-size);
-  min-width: var(--mt-hex-size);
-  min-height: var(--mt-hex-size);
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
   display: grid;
   place-items: center;
-  /* Flat-top гексагон (плоской стороной вверх) */
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  /* "Каменная плита" в плоском стиле: тёмно-синий градиент с более светлой
-     верхней кромкой и тёмным низом — создаёт лёгкий объём без текстур. */
   background:
     linear-gradient(180deg,
       var(--mt-glass-nav-hi) 0%,
       var(--mt-glass-nav) 45%,
-      rgba(18,30,58,0.95) 100%);
+      rgba(18,24,40,0.95) 100%);
   border: none;
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: #ffffff;
   cursor: pointer;
-  font-size: calc(var(--mt-unit)*4.4);
+  /* ИКОНКА 85% = ~54-56px при кнопке 64px */
+  font-size: 54px;
+  line-height: 1;
   text-shadow: 0 2px 3px rgba(0,0,20,0.7);
-  /* Мягкая парящая тень + светлая кромка сверху через inner highlight */
   box-shadow:
-    0 6px 18px rgba(0,0,0,0.6),
-    inset 0 2px 0 rgba(160,200,255,0.35),
-    inset 0 -3px 6px rgba(0,8,24,0.5);
+    0 5px 16px rgba(0,0,0,0.55),
+    inset 0 2px 0 rgba(255,225,180,0.2),
+    inset 0 -3px 5px rgba(0,0,0,0.5);
   padding: 0;
   transition: transform 0.1s ease, filter 0.15s ease;
 }
-/* Светлая кромка по контуру гекса (inset stroke через псевдо-элемент) */
 .shield::before {
   content: "";
   position: absolute;
   inset: 1px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.18),
-    inset 0 0 0 2px rgba(90,134,196,0.35);
+    inset 0 0 0 1px rgba(255,225,180,0.18),
+    inset 0 0 0 2px rgba(138,106,52,0.4);
   pointer-events: none;
 }
 .shield:hover { filter: brightness(1.12); }
@@ -61,5 +58,9 @@
 .shield[disabled] { opacity: 0.45; cursor: default; }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .nav { gap: calc(var(--mt-unit)*0.7); }
+  .nav { gap: 8px; }
+  .shield { width: 56px; height: 56px; min-width: 56px; min-height: 56px; font-size: 46px; }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .shield { width: 48px; height: 48px; min-width: 48px; min-height: 48px; font-size: 40px; }
 }

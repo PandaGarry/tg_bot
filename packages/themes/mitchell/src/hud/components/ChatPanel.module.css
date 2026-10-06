@@ -1,30 +1,29 @@
-/* Чат — одна круглая кнопка над компасом, с тем же "каменным" стилем. */
 .icon {
   position: absolute;
-  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-unit)*0.6 + var(--mt-safe-l));
+  left: calc(var(--mt-space) + 64px + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
-  width: calc(var(--mt-unit)*7.4);
-  height: calc(var(--mt-unit)*7.4);
+  width: 44px;
+  height: 44px;
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
   background: linear-gradient(180deg,
     var(--mt-glass-graphite-hi) 0%,
     var(--mt-glass-graphite) 50%,
-    rgba(22,28,40,0.96) 100%);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff;
-  font-size: calc(var(--mt-unit)*3);
+    rgba(18,12,4,0.96) 100%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--mt-stroke);
+  color: var(--mt-text);
+  font-size: 22px;
   cursor: pointer;
   display: grid;
   place-items: center;
   padding: 0;
   box-shadow:
-    0 4px 14px rgba(0,0,0,0.5),
-    inset 0 2px 0 rgba(255,255,255,0.2),
-    inset 0 -2px 4px rgba(0,0,0,0.4);
+    0 4px 12px rgba(0,0,0,0.55),
+    inset 0 2px 0 rgba(255,225,180,0.2),
+    inset 0 -2px 4px rgba(0,0,0,0.45);
   z-index: 18;
   transition: transform 0.1s ease, filter 0.15s ease;
 }
@@ -33,22 +32,22 @@
 
 .panel {
   position: absolute;
-  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l));
-  bottom: calc(var(--mt-space) + var(--mt-unit)*8.4 + var(--mt-safe-b));
-  width: clamp(calc(var(--mt-unit)*34), 22vw, calc(var(--mt-unit)*52));
-  max-width: 340px;
-  padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.2);
+  left: calc(var(--mt-space) + 64px + var(--mt-safe-l));
+  bottom: calc(var(--mt-space) + 52px + var(--mt-safe-b));
+  width: clamp(220px, 22vw, 320px);
+  max-width: 320px;
+  padding: 8px 10px;
   background: var(--mt-glass-bg-strong);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
   backdrop-filter: blur(14px) saturate(120%);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: var(--mt-radius-md);
+  border: 1px solid var(--mt-stroke);
+  border-radius: 10px;
   box-shadow: var(--mt-shadow-panel);
   z-index: 18;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.3);
-  max-height: calc(var(--mt-unit)*20);
+  gap: 2px;
+  max-height: 140px;
   overflow-y: auto;
   animation: chat-in 0.15s ease-out;
 }
@@ -57,7 +56,7 @@
   to   { transform: translateY(0); opacity: 1; }
 }
 .line {
-  font-size: var(--mt-fs-xs);
+  font-size: 11px;
   line-height: 1.4;
   color: var(--mt-text);
   text-shadow: 0 1px 2px rgba(0,0,0,0.6);
@@ -66,9 +65,15 @@
   text-overflow: ellipsis;
   font-weight: 500;
 }
-.name { font-weight: 600; color: var(--mt-blue-light); margin-right: calc(var(--mt-unit)*0.4); }
+.name { font-weight: 600; color: var(--mt-blue-light); margin-right: 4px; }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .icon { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 18px;
-    left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l)); }
+  .icon { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 20px;
+    left: calc(var(--mt-space) + 56px + var(--mt-safe-l)); }
+  .panel { left: calc(var(--mt-space) + 56px + var(--mt-safe-l)); bottom: calc(var(--mt-space) + 48px + var(--mt-safe-b)); }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .icon { width: 38px; height: 38px; min-width: 38px; min-height: 38px; font-size: 18px;
+    left: calc(var(--mt-space) + 52px + var(--mt-safe-l)); }
+  .panel { display: none; }
 }

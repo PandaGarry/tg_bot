@@ -375,7 +375,8 @@
   font-size: 12px;
 }
 
-/* ---------- навигация-док: один и тот же на всех экранах, без прыжков (круг 17) ---------- */
+/* ---------- навигация-док: скрыт на экране Двора (используется MitchellHud с собственным HUD).
+   Показывается только на маршрутах reports/map/chronicle/sheet (не-court страницах). */
 .game-nav {
   position: fixed;
   left: 50%;
@@ -390,6 +391,7 @@
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 225, 190, 0.3);
 }
+.court-mode .game-nav { display: none !important; }
 
 .game-nav button {
   display: flex;

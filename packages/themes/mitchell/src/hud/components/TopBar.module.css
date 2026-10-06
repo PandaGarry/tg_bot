@@ -38,42 +38,39 @@
 }
 
 .avatar {
-  width: calc(var(--mt-unit) * 8.4);
-  height: calc(var(--mt-unit) * 8.4);
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(180deg, #3a2818, #140a04);
-  /* Бронзовая плоская рамка — чёткий контур без текстуры металла */
-  border: calc(var(--mt-unit)*0.38) solid var(--mt-bronze);
+  background: linear-gradient(180deg, #2a1a0c, #140a04);
+  border: 2px solid var(--mt-bronze);
   box-shadow:
-    0 4px 12px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(0,0,0,0.3),
-    0 0 0 3px rgba(198,148,80,0.15);
+    0 4px 10px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(0,0,0,0.3);
   display: grid;
   place-items: center;
   color: var(--mt-text);
   font-weight: 600;
   overflow: visible;
-  font-size: calc(var(--mt-unit) * 4.6);
+  font-size: 24px;
   position: relative;
 }
 
 .lordInfo {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.35);
+  gap: 3px;
   min-width: 0;
 }
 .lordName { display: none; }
 
 .lordPower {
-  font-size: var(--mt-fs-lg);
+  font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--mt-text);
   display: flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*0.6);
-  /* Лёгкая тёмная тень для читаемости — без жирной обводки */
+  gap: 5px;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -81,8 +78,8 @@
   white-space: nowrap;
 }
 .icPower {
-  color: #dfe4ee;
-  font-size: calc(var(--mt-unit)*2.4);
+  color: #e8e0cc;
+  font-size: 16px;
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
 }
@@ -90,72 +87,70 @@
 .lordXp {
   display: block;
   width: 100%;
-  height: calc(var(--mt-unit)*0.55);
+  height: 3px;
   background: rgba(0,0,0,0.45);
-  border-radius: calc(var(--mt-unit)*0.3);
+  border-radius: 2px;
   overflow: hidden;
-  min-width: calc(var(--mt-unit)*14);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+  min-width: 90px;
 }
 .lordXp > i {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--mt-blue-dark), var(--mt-blue-light));
   border-radius: inherit;
-  box-shadow: 0 0 6px rgba(90,170,240,0.6);
 }
 
-/* Уровень — крупный золотой щит в углу аватара */
+/* Уровень — маленький круг 16px в правом нижнем углу аватара */
 .lordBadges {
   display: flex;
   gap: 2px;
   position: absolute;
-  left: calc(var(--mt-unit)*5.8);
-  top: calc(var(--mt-unit)*6);
+  right: -2px;
+  bottom: -2px;
   z-index: 3;
 }
 .buff {
-  min-width: calc(var(--mt-unit)*3.4);
-  height: calc(var(--mt-unit)*3.4);
-  padding: 0 calc(var(--mt-unit)*0.7);
-  border-radius: calc(var(--mt-unit)*0.8);
-  background: linear-gradient(180deg, var(--mt-gold-light), var(--mt-bronze));
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--mt-gold-light), var(--mt-gold-dark));
   color: #2a1a00;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*1.8);
+  font-size: 10px;
   font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   line-height: 1;
-  border: 2px solid rgba(30,18,0,0.7);
+  border: 1px solid rgba(30,18,0,0.7);
 }
 
-/* ---------- Капсула ресурсов — единая тёмная полупрозрачная подложка ---------- */
+/* ---------- Капсула ресурсов — прижата к правому верхнему углу ---------- */
 .resources {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  margin-left: auto;       /* ВАЖНО: прижатие вправо */
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: calc(var(--mt-unit)*2);
-  padding: 0 calc(var(--mt-unit)*2.4);
-  height: calc(var(--mt-unit)*7.4);
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 calc(var(--mt-unit)*2);
+  height: calc(var(--mt-unit)*7);
   background: var(--mt-glass-capsule);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
-  border: 1px solid rgba(255,255,255,0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-pill);
   box-shadow:
-    0 6px 20px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  margin: 0 auto;
+    0 4px 14px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,225,180,0.08);
 }
 
 .res {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*0.6);
-  color: #ffffff;
-  font-size: var(--mt-fs-md);
+  gap: calc(var(--mt-unit)*0.5);
+  color: var(--mt-text);
+  font-size: 16px;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0,0,0,0.7);
   font-variant-numeric: tabular-nums;
@@ -164,113 +159,104 @@
 }
 
 .resIc {
-  width: calc(var(--mt-unit)*4.4);
-  height: calc(var(--mt-unit)*4.4);
-  min-width: 40px;
-  min-height: 40px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.12), rgba(0,0,0,0.35) 80%);
-  border: 1px solid rgba(255,255,255,0.2);
-  font-size: calc(var(--mt-unit)*2.4);
+  background: radial-gradient(circle at 30% 25%, rgba(255,225,180,0.14), rgba(0,0,0,0.35) 80%);
+  border: 1px solid var(--mt-stroke);
+  font-size: 18px;
   box-shadow:
     0 2px 6px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.18);
+    inset 0 1px 0 rgba(255,225,180,0.15);
   flex-shrink: 0;
 }
 .resGem .resIc {
-  background: radial-gradient(circle at 30% 25%, rgba(255,110,110,0.4), rgba(80,0,0,0.6) 80%);
-  border-color: rgba(255,100,100,0.55);
+  background: radial-gradient(circle at 30% 25%, rgba(200,70,60,0.45), rgba(50,0,0,0.6) 80%);
+  border-color: rgba(224,100,90,0.5);
   box-shadow:
     0 2px 6px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,200,200,0.25),
-    0 0 8px rgba(255,80,80,0.3);
+    inset 0 1px 0 rgba(255,200,190,0.2),
+    0 0 8px rgba(200,60,50,0.3);
 }
 
-/* Синяя кнопка «+» в капсуле — плоская квадратная, заметная */
 .resPlus {
-  width: calc(var(--mt-unit)*4.6);
-  height: calc(var(--mt-unit)*4.6);
-  border-radius: calc(var(--mt-unit)*0.8);
-  background: linear-gradient(180deg, #5b9aea, #2e62b0);
-  border: 1px solid #88b8f5;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #4a7fc0, #254880);
+  border: 1px solid #6a9ae0;
   color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
   padding: 0;
-  margin-left: calc(var(--mt-unit)*0.4);
+  margin-left: 2px;
   box-shadow:
-    0 3px 8px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.28);
-  font-size: calc(var(--mt-unit)*2.6);
+    0 2px 6px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  font-size: 16px;
   font-weight: 700;
   line-height: 1;
   flex-shrink: 0;
 }
-.resPlus b { line-height: 1; display: block; font-size: calc(var(--mt-unit)*2.8); }
+.resPlus b { line-height: 1; display: block; font-size: 18px; }
 
 /* ---------- Правая часть (часы + иконки) ---------- */
 .topRight {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*1);
+  gap: 6px;
   padding: 0;
   background: none;
+  margin-left: 8px;
 }
-.clock {
-  color: var(--mt-text-muted);
-  font-size: var(--mt-fs-sm);
-  font-weight: 500;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.settings { display: flex; gap: calc(var(--mt-unit)*0.6); }
+.clock { display: none; } /* UTC — в настройки/второй план, не загромождает верх */
+.settings { display: flex; gap: 4px; }
 .iconBtn {
-  width: calc(var(--mt-unit)*4.4);
-  height: calc(var(--mt-unit)*4.4);
+  width: 32px;
+  height: 32px;
   min-height: 0;
   border-radius: 50%;
   background: var(--mt-glass-graphite);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: var(--mt-text);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--mt-stroke);
+  color: var(--mt-text-muted);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*2.1);
+  font-size: 16px;
   padding: 0;
   box-shadow: var(--mt-shadow-soft);
 }
-.iconBtn:hover { background: var(--mt-glass-graphite-hi); }
+.iconBtn:hover { color: var(--mt-text); border-color: var(--mt-stroke-bright); }
 
-/* ---------- Адаптив ---------- */
-@media (orientation: landscape) and (max-height: 699px) {
-  .resources { gap: calc(var(--mt-unit)*1.4); padding: 0 calc(var(--mt-unit)*1.6); height: calc(var(--mt-unit)*6.8); }
-  .resIc { width: calc(var(--mt-unit)*3.9); height: calc(var(--mt-unit)*3.9); min-width: 32px; min-height: 32px; font-size: calc(var(--mt-unit)*2); }
-  .res { font-size: var(--mt-fs-sm); }
-  .avatar { width: calc(var(--mt-unit)*7.4); height: calc(var(--mt-unit)*7.4); }
-  .lordBadges { left: calc(var(--mt-unit)*5); top: calc(var(--mt-unit)*5.2); }
-}
+/* ---------- Адаптив (экраны <520px — чуть поджать; <380px — пол Replit) ---------- */
 @media (orientation: landscape) and (max-height: 520px) {
-  .resources { gap: calc(var(--mt-unit)*1); padding: 0 calc(var(--mt-unit)*1); height: calc(var(--mt-unit)*5.8); }
-  .resIc { width: calc(var(--mt-unit)*3.4); height: calc(var(--mt-unit)*3.4); min-width: 28px; min-height: 28px; font-size: calc(var(--mt-unit)*1.7); }
-  .res { font-size: calc(var(--mt-fs-xs) * 1.05); gap: calc(var(--mt-unit)*0.4); }
-  .avatar { width: calc(var(--mt-unit)*6.2); height: calc(var(--mt-unit)*6.2); }
-  .lordBadges { left: calc(var(--mt-unit)*4.2); top: calc(var(--mt-unit)*4.2); }
-  .lord { min-width: auto; gap: calc(var(--mt-unit)*0.8); }
-  .lordPower { font-size: var(--mt-fs-md); }
+  .resources { gap: 8px; padding: 0 10px; height: 40px; }
+  .resIc { width: 28px; height: 28px; min-width: 28px; min-height: 28px; font-size: 15px; }
+  .res { font-size: 13px; gap: 4px; }
+  .avatar { width: 40px; height: 40px; font-size: 20px; }
+  .lordPower { font-size: 13px; }
+  .lordXp { min-width: 70px; }
+  .buff { width: 14px; height: 14px; font-size: 9px; }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .resources { gap: calc(var(--mt-unit)*0.7); padding: 0 calc(var(--mt-unit)*0.8); height: 30px; }
-  .resIc { width: 22px; height: 22px; min-width: 0; min-height: 0; font-size: 12px; }
-  .res { font-size: 10px; }
-  .avatar { width: 28px; height: 28px; border-width: 2px; font-size: 14px; }
-  .lordBadges { left: 18px; top: 18px; }
-  .buff { width: 16px; height: 16px; font-size: 9px; min-width: 0; padding: 0 3px; }
+  .resources { gap: 6px; padding: 0 8px; height: 34px; }
+  .resIc { width: 24px; height: 24px; min-width: 24px; min-height: 24px; font-size: 13px; }
+  .res { font-size: 11px; gap: 3px; }
+  .resPlus { width: 22px; height: 22px; font-size: 13px; }
+  .resPlus b { font-size: 14px; }
+  .avatar { width: 36px; height: 36px; font-size: 18px; border-width: 2px; }
+  .lordPower { font-size: 12px; gap: 3px; }
+  .icPower { font-size: 12px; }
+  .lordXp { min-width: 60px; height: 2px; }
+  .buff { width: 12px; height: 12px; font-size: 8px; }
+  .iconBtn { width: 26px; height: 26px; font-size: 13px; }
+  .topRight { gap: 4px; margin-left: 4px; }
 }

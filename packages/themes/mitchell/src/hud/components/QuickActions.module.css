@@ -1,56 +1,54 @@
-/* Правый столбец быстрых действий — круглые цветные "каменные" кнопки */
+/* Правый столбец быстрых действий (почта/книга/и т.п.) — круглые
+   небольшие кнопки, тонкие, в цвете графита/дерева с цветными акцентами. */
 .quick {
   position: absolute;
   right: calc(var(--mt-space) + var(--mt-safe-r));
-  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2.2 + var(--mt-safe-b));
+  bottom: calc(64px + var(--mt-space) + var(--mt-unit)*2 + var(--mt-safe-b));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.8);
+  gap: 8px;
   z-index: 20;
 }
 .btn {
   position: relative;
-  width: calc(var(--mt-unit)*8);
-  height: calc(var(--mt-unit)*8);
-  min-width: var(--mt-touch-min);
-  min-height: var(--mt-touch-min);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   background: linear-gradient(180deg,
     var(--mt-glass-graphite-hi) 0%,
     var(--mt-glass-graphite) 50%,
-    rgba(22,28,40,0.96) 100%);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.18);
+    rgba(18,12,4,0.96) 100%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--mt-stroke);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3.4);
-  color: #fff;
+  font-size: 22px;
+  color: var(--mt-text);
   padding: 0;
   box-shadow:
-    0 4px 14px rgba(0,0,0,0.5),
-    inset 0 2px 0 rgba(255,255,255,0.22),
+    0 3px 10px rgba(0,0,0,0.5),
+    inset 0 2px 0 rgba(255,225,180,0.18),
     inset 0 -2px 4px rgba(0,0,0,0.45);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 .btn:hover { filter: brightness(1.12); }
 .btn:active { transform: scale(0.94); }
-/* Цветные вариации */
-.green { background: linear-gradient(180deg,#5ec898 0%,#2f8c60 50%,#16543a 100%); border-color: rgba(120,230,170,0.4); }
-.blue  { background: linear-gradient(180deg,#5e96e8 0%,#2c5ea8 50%,#183870 100%); border-color: rgba(120,180,240,0.45); }
-.dark  { background: linear-gradient(180deg,var(--mt-glass-graphite-hi),var(--mt-glass-graphite) 50%,rgba(22,28,40,0.96)); }
-.red   { background: linear-gradient(180deg,#ee7070 0%,#c03030 50%,#7a1414 100%); border-color: rgba(255,130,130,0.45); }
-.teal  { background: linear-gradient(180deg,#4ec0a0 0%,#2a8a6c 50%,#145040 100%); border-color: rgba(120,220,190,0.4); }
+.green { background: linear-gradient(180deg,#4a7238 0%,#2e4a1e 50%,#182c10 100%); border-color: rgba(160,200,90,0.35); }
+.blue  { background: linear-gradient(180deg,#3a6fb4 0%,#234a7c 50%,#102448 100%); border-color: rgba(130,170,230,0.4); }
+.dark  { background: linear-gradient(180deg,var(--mt-glass-graphite-hi),var(--mt-glass-graphite) 50%,rgba(18,12,4,0.96)); }
+.red   { background: linear-gradient(180deg,#a84838 0%,#6c241c 50%,#3a100a 100%); border-color: rgba(220,120,100,0.4); }
+.teal  { background: linear-gradient(180deg,#4a7238 0%,#2e4a1e 50%,#182c10 100%); border-color: rgba(160,200,90,0.35); }
 
-@media (orientation: landscape) and (max-height: 699px) {
-  .quick { gap: calc(var(--mt-unit)*0.6); }
-  .btn { width: calc(var(--mt-unit)*7.2); height: calc(var(--mt-unit)*7.2); font-size: calc(var(--mt-unit)*3); }
-}
-@media (orientation: landscape) and (max-height: 499px) {
-  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 1.8); gap: calc(var(--mt-unit)*0.5); }
+@media (orientation: landscape) and (max-height: 520px) {
+  .quick { gap: 6px; bottom: calc(56px + var(--mt-space) + 6px + var(--mt-safe-b)); }
+  .btn { width: 40px; height: 40px; font-size: 20px; min-width: 40px; min-height: 40px; }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 18px; }
+  .quick { bottom: calc(48px + var(--mt-space) + 4px + var(--mt-safe-b)); gap: 4px; }
+  .btn { width: 36px; height: 36px; font-size: 18px; min-width: 36px; min-height: 36px; }
 }
