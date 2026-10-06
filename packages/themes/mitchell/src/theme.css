@@ -1,107 +1,86 @@
-/* =====================================================================
-   @tdl/theme-mitchell  —  глобальные токены + базовые стили оболочки
-   Тема Mitchell (северно-скандинавский SLG-стиль), ландшафтный HUD.
-
-   ВАЖНО: этот файл содержит только
-     - палитру (CSS custom properties)
-     - базовый reset и типографику
-     - позиционирование корневых контейнеров сцены
-     - блокировку вертикальной ориентации
-     - утилиты (всплывающий bubble animation, скрытие старых костных навигаций)
-   Компонентные стили лежат рядом с каждым компонентом в *.module.css.
-   ===================================================================== */
-
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-/* ====== Токены темы Mitchell (масштабируемые) ======
-   Размеры построены вокруг базового юнита --mt-unit, который зависит
-   одновременно от ширины и высоты вьюпорта (landscape-first).
-   На крайних точках жёстко clamp()-имся, чтобы интерфейс не раздувался
-   на 4К и не становился нечитаемым на маленьком ландшафте телефона.
-
-   Ярусы (ландшафт):
-     - xl : height >= 1000px (2K/4K мониторы)   — чуть просторнее
-     - md : 700 <= h < 1000  (стандартный десктоп/ноут 1080p/768p) — база
-     - sm : 500 <= h < 700   (нетбуки 600p, планшеты) — уплотнённый
-     - xs : h < 500          (телефон в ландшафте)   — максимально компактный
-===================================================================== */
 :root {
-  /* Палитра Mitchell — Flat Low-poly Matte Glass (Viking Race style).
-     Холодная, геометричная, без текстур дерева/металла/золота. */
-  --mt-glass-bg:      rgba(18,24,40,0.55);   /* основное матовое стекло */
-  --mt-glass-bg-strong: rgba(20,28,46,0.72);
-  --mt-glass-nav:     rgba(22,34,58,0.6);    /* навигация (нижние гексы) */
-  --mt-glass-nav-hi:  rgba(40,72,128,0.65);
-  --mt-glass-graphite: rgba(44,50,62,0.6);
-  --mt-stroke:        rgba(255,255,255,0.14);
+  /* Палитра Mitchell — сочный Flat Low-poly (Viking Race commercial grade).
+     Контрастные цвета, плотные полупрозрачные панели, мягкие "парящие" тени,
+     бронзовые/золотые акценты плоские (без текстур металла). */
+  --mt-glass-bg:      rgba(16,24,44,0.82);
+  --mt-glass-bg-strong: rgba(14,22,40,0.9);
+  --mt-glass-capsule: rgba(20,30,52,0.85);   /* капсула ресурсов */
+  --mt-glass-nav:     rgba(28,44,76,0.88);   /* нижние гексы (т.-синий) */
+  --mt-glass-nav-edge:#5a86c4;               /* светлая скошенная кромка */
+  --mt-glass-nav-hi:  rgba(52,80,136,0.92);
+  --mt-glass-graphite: rgba(42,50,64,0.85);
+  --mt-glass-graphite-hi: rgba(62,72,92,0.9);
+  --mt-stroke:        rgba(255,255,255,0.12);
   --mt-stroke-bright: rgba(255,255,255,0.28);
-  --mt-stroke-accent: rgba(110,170,240,0.5);
+  --mt-stroke-accent: rgba(110,170,240,0.55);
 
-  /* Редкие акценты (золото только как плоский цвет, без текстур/бликов) */
-  --mt-gold:        #e8c560;
-  --mt-gold-light:  #f0d680;
-  --mt-gold-dark:   #c9a43a;
+  /* Бронза/золото плоские (без текстур) */
+  --mt-bronze:        #c69450;
+  --mt-bronze-light:  #e0b46c;
+  --mt-gold:          #e8c560;
+  --mt-gold-light:    #f4d980;
 
   /* Холодная основная палитра */
   --mt-blue:        #4a90e2;
-  --mt-blue-light:  #7ab4f0;
+  --mt-blue-light:  #7abcf5;
   --mt-blue-dark:   #2c5ea8;
-  --mt-emerald:     #3fa984;
-  --mt-emerald-hi:  #5cd0a5;
+  --mt-emerald:     #43b88c;
+  --mt-emerald-hi:  #66d8a8;
   --mt-graphite:    #3a4250;
-  --mt-red:         #e05858;
-  --mt-purple:      #8c6bd4;
-  --mt-orange:      #e89652;
+  --mt-red:         #e85858;
+  --mt-red-light:   #ff8080;
+  --mt-purple:      #9674e0;
 
-  /* Текст — тонкий sans-serif, белый/светло-серый */
-  --mt-text:        #f0f4fa;
-  --mt-text-muted:  rgba(240,244,250,0.65);
-  --mt-text-dim:    rgba(240,244,250,0.4);
+  /* Текст */
+  --mt-text:        #ffffff;
+  --mt-text-muted:  rgba(255,255,255,0.7);
+  --mt-text-dim:    rgba(255,255,255,0.45);
 
-  /* Сцена (не трогаем low-poly арт) */
+  /* Сцена */
   --mt-grass:    #5a8c3a;
   --mt-grass-hl: #78aa48;
   --mt-sky-top:  #5a82b0;
   --mt-sky-bot:  #9ab8d8;
   --mt-mountain: #6c7c8c;
 
-  /* Адаптивный размерный масштаб — БАЗА (768..1000px высоты) */
-  --mt-unit: clamp(6px, 0.8vmin, 8.5px);
-  --mt-space: calc(var(--mt-unit) * 1.8);
-  --mt-topbar-h: calc(var(--mt-unit) * 7);
-  --mt-corner: calc(var(--mt-unit) * 9.5);
-  --mt-btn-sm: calc(var(--mt-unit) * 6);
-  --mt-btn-md: calc(var(--mt-unit) * 7.8);
-  --mt-panel-pad: calc(var(--mt-unit) * 1.4);
-  --mt-radius-sm: calc(var(--mt-unit) * 0.8);
-  --mt-radius-md: calc(var(--mt-unit) * 1.2);
-  --mt-radius-lg: calc(var(--mt-unit) * 2);
+  /* Адаптивный размерный масштаб — БАЗА — юнит чуть крупнее прошлой версии */
+  --mt-unit: clamp(6.5px, 0.9vmin, 9.5px);
+  --mt-space: calc(var(--mt-unit) * 1.6);
+  --mt-topbar-h: calc(var(--mt-unit) * 8.4);
+  --mt-corner: calc(var(--mt-unit) * 11.2);
+  --mt-btn-sm: calc(var(--mt-unit) * 7);
+  --mt-btn-md: calc(var(--mt-unit) * 9.2);
+  --mt-panel-pad: calc(var(--mt-unit) * 1.6);
+  --mt-radius-sm: calc(var(--mt-unit) * 0.9);
+  --mt-radius-md: calc(var(--mt-unit) * 1.5);
+  --mt-radius-lg: calc(var(--mt-unit) * 2.2);
+  --mt-radius-pill: 999px;
 
-  /* Вертикальные отступы */
-  --mt-top-stack-gap: calc(var(--mt-unit) * 1.6);
-  --mt-quest-to-q: calc(var(--mt-unit) * 16);
-  --mt-q-to-actions: calc(var(--mt-unit) * 12);
-  --mt-banner-offset-x: calc(var(--mt-unit) * 1.5);
+  /* Вертикальные отступы — больше воздуха */
+  --mt-top-stack-gap: calc(var(--mt-unit) * 2);
+  --mt-quest-to-q: calc(var(--mt-unit) * 18);
+  --mt-q-to-actions: calc(var(--mt-unit) * 13);
+  --mt-banner-offset-x: calc(var(--mt-unit) * 1.6);
 
-  /* Типографика — тонкий современный sans-serif, без засечек */
+  /* Типографика — читаемая, уверенная, но без жирных чёрных обводок */
   --mt-font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --mt-fs-xs:  calc(var(--mt-unit) * 1.55);
-  --mt-fs-sm:  calc(var(--mt-unit) * 1.8);
-  --mt-fs-md:  calc(var(--mt-unit) * 2.1);
-  --mt-fs-lg:  calc(var(--mt-unit) * 2.6);
-  --mt-fs-xl:  calc(var(--mt-unit) * 3.1);
+  --mt-fs-xs:  calc(var(--mt-unit) * 1.7);
+  --mt-fs-sm:  calc(var(--mt-unit) * 2);
+  --mt-fs-md:  calc(var(--mt-unit) * 2.3);
+  --mt-fs-lg:  calc(var(--mt-unit) * 2.9);
+  --mt-fs-xl:  calc(var(--mt-unit) * 3.6);
   --mt-fw-normal: 500;
   --mt-fw-semibold: 600;
+  --mt-fw-bold: 700;
 
-  /* Минимальный тач-таргет */
+  /* Тач-таргет — МИНИМУМ 44px, но гексы навигации >= 60px */
   --mt-touch-min: 44px;
+  --mt-hex-size: calc(var(--mt-unit)*10); /* гексы навигации ~60-95px */
 
-  /* Мягкие лёгкие тени для отделения от сцены */
-  --mt-shadow-soft:  0 calc(var(--mt-unit)*0.3) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.35);
-  --mt-shadow-panel: 0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.6) rgba(0,0,0,0.4);
-  --mt-shadow-deep:  0 calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*2.4) rgba(0,0,0,0.5);
+  /* "Парящие" тени — мягкие, но заметные, отделяют от мира */
+  --mt-shadow-soft:   0 2px 8px rgba(0,0,0,0.35);
+  --mt-shadow-panel:  0 4px 14px rgba(0,0,0,0.5);
+  --mt-shadow-deep:   0 6px 22px rgba(0,0,0,0.55);
 
   /* Безопасные отступы */
   --mt-safe-b: env(safe-area-inset-bottom, 0px);
@@ -114,14 +93,11 @@
 
 /* ====== Базовые стили документа ====== */
 html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
-/* Используем dvh/dvw чтобы интерфейс занимал реальную видимую область
-   (вместо 100vh, который на мобильных браузерах и Replit включает адресную строку).
-   Fallback на 100vh для старых браузеров. */
 @supports (height: 100dvh) {
   html, body, #root { height: 100dvh; }
 }
 html {
-  background: #0e1522;
+  background: #0a101c;
   color: var(--mt-text);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -147,7 +123,7 @@ button {
   min-height: calc(var(--mt-unit) * 6);
   font-weight: 500;
 }
-button:disabled { cursor: default; opacity: 0.45; }
+button:disabled { cursor: default; opacity: 0.4; }
 ul, ol { list-style: none; margin: 0; padding: 0; }
 
 /* ====== Корневые контейнеры сцены ====== */
@@ -161,14 +137,10 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   overscroll-behavior: none;
 }
 @supports (height: 100dvh) {
-  .app-mode,
-  .court-mode { height: 100dvh; }
-}
-@media (min-width: 821px) {
-  .court-mode { box-shadow: none; }
+  .app-mode, .court-mode { height: 100dvh; }
 }
 
-/* ====== Портретная ориентация — ЗАБЛОКИРОВАНА ====== */
+/* ====== Портретная заглушка ====== */
 .mt-portrait-guard {
   position: fixed;
   inset: 0;
@@ -180,25 +152,25 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   gap: calc(var(--mt-unit) * 2.5);
   padding: calc(var(--mt-unit) * 4);
   text-align: center;
-  background: radial-gradient(circle at 50% 40%, #2a1a0f, #0c0704);
+  background: linear-gradient(180deg, #12203a, #08101c);
   color: var(--mt-text);
 }
 .mt-portrait-guard__icon {
   width: calc(var(--mt-unit) * 12);
   height: calc(var(--mt-unit) * 8);
   border-radius: var(--mt-radius-md);
-  border: 2px solid var(--mt-gold);
-  background: rgba(212,168,75,0.08);
+  border: 2px solid var(--mt-bronze);
+  background: rgba(198,148,80,0.12);
   display: grid;
   place-items: center;
   font-size: calc(var(--mt-unit) * 4);
-  color: var(--mt-gold);
+  color: var(--mt-bronze-light);
   animation: mt-rotate-hint 1.8s ease-in-out infinite alternate;
 }
 .mt-portrait-guard__title {
   font-size: calc(var(--mt-unit) * 3);
-  font-weight: 800;
-  color: var(--mt-gold-light);
+  font-weight: 700;
+  color: var(--mt-text);
   letter-spacing: 0.02em;
 }
 .mt-portrait-guard__text {
@@ -211,127 +183,76 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   from { transform: rotate(-90deg); }
   to   { transform: rotate(0deg); }
 }
-
-/* Показываем заглушку только в портрете на узких экранах;
-   на ландшафтных ноутбуках/мониторах даже при 1280×720 мы не мешаем. */
 @media (orientation: portrait) and (max-width: 1000px) {
   .mt-portrait-guard { display: flex; }
 }
 
 /* =====================================================================
-   ЯРУСЫ АДАПТИВА (ландшафт)
-   Каждый ярус переопределяет только нужные кастомные свойства, компоненты
-   переиспользуют те же имена переменных и автоматически сжимаются/раздуваются.
+   ЯРУСЫ АДАПТИВА (ландшафт). Каждый ярус поджимает юнит и размеры так,
+   чтобы элементы оставались КРУПНЫМИ и читаемыми, но не налезали друг
+   на друга в узком Replit webview / телефоне.
    ===================================================================== */
 
-/* xxs: совсем маленькие высоты (Replit webview с толстой панелью сверху)
-   ~300px видимой высоты — прижимаем всё максимально, но не скрываем. */
+/* xxs — самые крошечные высоты (~280-380px, Replit webview с топ-баром) */
 @media (orientation: landscape) and (max-height: 380px) {
   :root {
-    --mt-unit: 3.4px;
-    --mt-space: 3px;
-    --mt-topbar-h: 30px;
-    --mt-btn-sm: 32px;
-    --mt-btn-md: 38px;
-    --mt-corner: 38px;
-    --mt-top-stack-gap: 4px;
-    --mt-quest-to-q: 46px;
-    --mt-q-to-actions: 32px;
-    --mt-banner-offset-x: 3px;
-    --mt-fs-xs: 8.5px;
-    --mt-fs-sm: 10px;
-    --mt-fs-md: 11.5px;
-    --mt-fs-lg: 13px;
-    --mt-fs-xl: 15px;
-  }
-}
-
-/* xs: телефон в ландшафте — максимальная компактность, 360×640 / 375×812
-   Специально под вебвью Replit/браузера с панелью сверху — используем очень
-   плотные отступы и зажим вверх, чтобы элементы не уехали за край. */
-@media (orientation: landscape) and (min-height: 381px) and (max-height: 520px) {
-  :root {
     --mt-unit: 4px;
-    --mt-space: 4px;
-    --mt-topbar-h: 34px;
-    --mt-btn-sm: 36px;
-    --mt-btn-md: 42px;
+    --mt-space: 6px;
+    --mt-topbar-h: 36px;
     --mt-corner: 44px;
-    --mt-top-stack-gap: 5px;
-    --mt-quest-to-q: 60px;
+    --mt-hex-size: 40px;
+    --mt-top-stack-gap: 6px;
+    --mt-quest-to-q: 56px;
     --mt-q-to-actions: 40px;
     --mt-banner-offset-x: 4px;
     --mt-fs-xs: 9px;
-    --mt-fs-sm: 10.5px;
-    --mt-fs-md: 12px;
-    --mt-fs-lg: 14px;
-    --mt-fs-xl: 17px;
-    --mt-chat-lines: 2;
-    --mt-panel-border-width: 1px;
+    --mt-fs-sm: 10px;
+    --mt-fs-md: 11px;
+    --mt-fs-lg: 13px;
+    --mt-fs-xl: 16px;
   }
 }
-/* sm: нетбуки/планшеты — 1024×600, 1280×720, iPad landscape невысокий */
-@media (orientation: landscape) and (min-height: 520px) and (max-height: 699px) {
+/* xs — телефон в ландшафте (380-520px) */
+@media (orientation: landscape) and (min-height: 381px) and (max-height: 520px) {
   :root {
-    --mt-unit: clamp(5px, 0.9vmin, 6.5px);
-    --mt-topbar-h: calc(var(--mt-unit) * 7);
-    --mt-btn-sm: calc(var(--mt-unit) * 6);
-    --mt-btn-md: calc(var(--mt-unit) * 7.6);
-    --mt-corner: calc(var(--mt-unit) * 10.4);
-    --mt-top-stack-gap: calc(var(--mt-unit) * 1.3);
-    --mt-quest-to-q: calc(var(--mt-unit) * 16);
-    --mt-q-to-actions: calc(var(--mt-unit) * 12);
-    --mt-chat-lines: 2;
+    --mt-unit: 5px;
+    --mt-space: 8px;
+    --mt-topbar-h: 42px;
+    --mt-corner: 52px;
+    --mt-hex-size: 50px;
+    --mt-top-stack-gap: 8px;
+    --mt-quest-to-q: 72px;
+    --mt-q-to-actions: 48px;
+    --mt-fs-xs: 10px;
+    --mt-fs-sm: 12px;
+    --mt-fs-md: 13px;
+    --mt-fs-lg: 15px;
+    --mt-fs-xl: 18px;
   }
 }
-/* md: базовый десктоп — 1366×768, 1536×864, 1920×1080 (значения по умолчанию в :root) */
-
-/* xl: большие/4K мониторы — height >= 1000px, чуть просторнее */
+/* sm — нетбуки/планшеты (520-699px) */
+@media (orientation: landscape) and (min-height: 521px) and (max-height: 699px) {
+  :root {
+    --mt-unit: 6.5px;
+    --mt-hex-size: 62px;
+  }
+}
+/* md база — 700..999 */
+/* xl — большие десктопы >=1000 */
 @media (orientation: landscape) and (min-height: 1000px) {
   :root {
-    --mt-unit: clamp(8px, 0.85vmin, 10px);
-    --mt-topbar-h: calc(var(--mt-unit) * 7.8);
-    --mt-btn-sm: calc(var(--mt-unit) * 6.8);
-    --mt-btn-md: calc(var(--mt-unit) * 8.8);
-    --mt-corner: calc(var(--mt-unit) * 11.6);
-    --mt-top-stack-gap: calc(var(--mt-unit) * 2);
-    --mt-quest-to-q: calc(var(--mt-unit) * 20);
-    --mt-q-to-actions: calc(var(--mt-unit) * 16);
+    --mt-unit: clamp(9px, 0.85vmin, 11px);
+    --mt-hex-size: 96px;
   }
 }
-
-/* Дополнительная защита: на очень узких ландшафтах (соотношение > 2.3:1,
-   например супер-ультраширокие мониторы или небольшой планшет в окошке)
-   чуть сужаем правые/левые колонки, чтобы оставить максимум места сцене. */
-@media (orientation: landscape) and (max-width: 900px) {
-  :root {
-    --mt-space: calc(var(--mt-unit) * 1);
-  }
-}
-
-/* Очень широкие вьюпорты (>=2500px) — чуть ограничиваем чат и квест по ширине,
-   чтобы не тянулись в нелепо длинные полосы. */
-@media (orientation: landscape) and (min-width: 2400px) {
-  :root {
-    --mt-chat-maxw: 28vw;
-  }
-}
-/* По умолчанию */
-:root { --mt-chat-maxw: 34vw; }
-
-
-/* ====== Скрываем старую bone-wood навигацию ====== */
-.game-nav { display: none !important; }
-.hud-nav { display: none !important; }
 
 /* ====== Общие анимации ====== */
-@keyframes mt-spin { to { transform: rotate(360deg); } }
 @keyframes mt-pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(212,168,75,0.55); }
-  50%     { box-shadow: 0 0 0 calc(var(--mt-unit) * 0.8) rgba(212,168,75,0); }
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.1); opacity: 0.85; }
 }
+@keyframes mt-spin { to { transform: rotate(360deg); } }
 @keyframes mt-pop-in {
-  0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
-  60%  { transform: translate(-50%,-50%) scale(1.12); opacity: 1; }
-  100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  from { transform: translate(-50%,-50%) scale(0.5); opacity: 0; }
+  to   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
 }

@@ -1,61 +1,65 @@
-/* Нижняя навигация — ГЕКСАГОНАЛЬНЫЕ плоские матовые кнопки
-   (плоская вершина — flat-top hex), полупрозрачные тёмно-синие/графитовые,
-   с тонкой светлой обводкой и мягкой тенью. */
+/* Нижняя навигация — ГЕКСАГОНАЛЬНЫЕ "каменные плиты" с лёгким объёмом.
+   Плоский low-poly стиль, без текстур, но с градиентом, имитирующим
+   скошенную фаску (светлая кромка сверху, тёмный низ).
+   Размер >=60px, удобный для пальца. */
 
 .nav {
   position: absolute;
   right: calc(var(--mt-space) + var(--mt-safe-r));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
   display: flex;
-  gap: calc(var(--mt-unit)*1);
+  gap: calc(var(--mt-unit)*1.1);
   z-index: 25;
-  padding: calc(var(--mt-unit)*0.4) 0;
+  padding: calc(var(--mt-unit)*0.6) 0;
 }
 
 .shield {
   position: relative;
-  width: calc(var(--mt-unit)*8.8);
-  height: calc(var(--mt-unit)*8.8);
-  min-width: var(--mt-touch-min);
-  min-height: var(--mt-touch-min);
+  width: var(--mt-hex-size);
+  height: var(--mt-hex-size);
+  min-width: var(--mt-hex-size);
+  min-height: var(--mt-hex-size);
   display: grid;
   place-items: center;
-  /* Гексагон flat-top (плоской стороной вверх) */
+  /* Flat-top гексагон (плоской стороной вверх) */
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  /* Плоское матовое стекло, темно-синее */
-  background: var(--mt-glass-nav);
+  /* "Каменная плита" в плоском стиле: тёмно-синий градиент с более светлой
+     верхней кромкой и тёмным низом — создаёт лёгкий объём без текстур. */
+  background:
+    linear-gradient(180deg,
+      var(--mt-glass-nav-hi) 0%,
+      var(--mt-glass-nav) 45%,
+      rgba(18,30,58,0.95) 100%);
   border: none;
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  backdrop-filter: blur(10px) saturate(120%);
-  color: var(--mt-text);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  color: #ffffff;
   cursor: pointer;
-  font-size: calc(var(--mt-unit)*3.8);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  box-shadow: var(--mt-shadow-panel);
+  font-size: calc(var(--mt-unit)*4.4);
+  text-shadow: 0 2px 3px rgba(0,0,20,0.7);
+  /* Мягкая парящая тень + светлая кромка сверху через inner highlight */
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.6),
+    inset 0 2px 0 rgba(160,200,255,0.35),
+    inset 0 -3px 6px rgba(0,8,24,0.5);
   padding: 0;
-  transition: background 0.15s ease, transform 0.08s ease;
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
-/* Тонкая светлая обводка гекса рисуется через outline на внутреннем псевдо-элементе,
-   т.к. clip-path режет border. */
+/* Светлая кромка по контуру гекса (inset stroke через псевдо-элемент) */
 .shield::before {
   content: "";
   position: absolute;
   inset: 1px;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--mt-stroke);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.18),
+    inset 0 0 0 2px rgba(90,134,196,0.35);
   pointer-events: none;
 }
-.shield:hover {
-  background: var(--mt-glass-nav-hi);
-}
+.shield:hover { filter: brightness(1.12); }
 .shield:active { transform: scale(0.94); }
 .shield[disabled] { opacity: 0.45; cursor: default; }
 
 @media (orientation: landscape) and (max-height: 520px) {
   .nav { gap: calc(var(--mt-unit)*0.7); }
-  .shield { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
-}
-@media (orientation: landscape) and (max-height: 380px) {
-  .shield { width: calc(var(--mt-unit)*7.2); height: calc(var(--mt-unit)*7.2); font-size: calc(var(--mt-unit)*3); }
 }

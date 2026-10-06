@@ -1,49 +1,54 @@
-/* Чат-иконка над компасом — маленькая круглая полупрозрачная кнопка. */
+/* Чат — одна круглая кнопка над компасом, с тем же "каменным" стилем. */
 .icon {
   position: absolute;
-  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-unit)*0.5 + var(--mt-safe-l));
+  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-unit)*0.6 + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
-  width: calc(var(--mt-unit)*6.4);
-  height: calc(var(--mt-unit)*6.4);
-  min-width: 40px;
-  min-height: 40px;
+  width: calc(var(--mt-unit)*7.4);
+  height: calc(var(--mt-unit)*7.4);
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  background: var(--mt-glass-graphite);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--mt-stroke);
-  color: var(--mt-text);
-  font-size: calc(var(--mt-unit)*2.6);
+  background: linear-gradient(180deg,
+    var(--mt-glass-graphite-hi) 0%,
+    var(--mt-glass-graphite) 50%,
+    rgba(22,28,40,0.96) 100%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: calc(var(--mt-unit)*3);
   cursor: pointer;
   display: grid;
   place-items: center;
   padding: 0;
-  box-shadow: var(--mt-shadow-soft);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.5),
+    inset 0 2px 0 rgba(255,255,255,0.2),
+    inset 0 -2px 4px rgba(0,0,0,0.4);
   z-index: 18;
-  transition: background 0.15s ease, transform 0.08s ease;
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
-.icon:hover { background: rgba(60,70,85,0.7); }
+.icon:hover { filter: brightness(1.12); }
 .icon:active { transform: scale(0.94); }
 
-/* Развёрнутая панель чата — маленькая пилюля над иконкой */
 .panel {
   position: absolute;
   left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l));
-  bottom: calc(var(--mt-space) + var(--mt-unit)*7.2 + var(--mt-safe-b));
-  width: clamp(calc(var(--mt-unit)*34), 22vw, calc(var(--mt-unit)*50));
-  max-width: 320px;
-  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1);
+  bottom: calc(var(--mt-space) + var(--mt-unit)*8.4 + var(--mt-safe-b));
+  width: clamp(calc(var(--mt-unit)*34), 22vw, calc(var(--mt-unit)*52));
+  max-width: 340px;
+  padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.2);
   background: var(--mt-glass-bg-strong);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--mt-stroke);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--mt-radius-md);
   box-shadow: var(--mt-shadow-panel);
   z-index: 18;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.2);
-  max-height: calc(var(--mt-unit)*18);
+  gap: calc(var(--mt-unit)*0.3);
+  max-height: calc(var(--mt-unit)*20);
   overflow-y: auto;
   animation: chat-in 0.15s ease-out;
 }
@@ -53,17 +58,17 @@
 }
 .line {
   font-size: var(--mt-fs-xs);
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--mt-text);
-  text-shadow: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 400;
+  font-weight: 500;
 }
 .name { font-weight: 600; color: var(--mt-blue-light); margin-right: calc(var(--mt-unit)*0.4); }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .icon { width: calc(var(--mt-unit)*5.8); height: calc(var(--mt-unit)*5.8); font-size: calc(var(--mt-unit)*2.3);
+  .icon { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 18px;
     left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l)); }
 }

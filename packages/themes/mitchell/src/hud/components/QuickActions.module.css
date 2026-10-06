@@ -1,53 +1,56 @@
-/* Правый столбец быстрых действий (почта/книга/альянс и т.п.)
-   — маленькие круглые полупрозрачные кнопки, а не большие квадраты.
-   В брифе: "панели справа убраны, скрыты за иконками". */
-
+/* Правый столбец быстрых действий — круглые цветные "каменные" кнопки */
 .quick {
   position: absolute;
   right: calc(var(--mt-space) + var(--mt-safe-r));
-  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2 + var(--mt-safe-b));
+  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2.2 + var(--mt-safe-b));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.7);
+  gap: calc(var(--mt-unit)*0.8);
   z-index: 20;
 }
 .btn {
   position: relative;
-  width: calc(var(--mt-unit)*7.2);
-  height: calc(var(--mt-unit)*7.2);
+  width: calc(var(--mt-unit)*8);
+  height: calc(var(--mt-unit)*8);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
   border-radius: 50%;
-  /* Плоские круглые кнопки — матовое стекло */
-  background: var(--mt-glass-graphite);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--mt-stroke);
+  background: linear-gradient(180deg,
+    var(--mt-glass-graphite-hi) 0%,
+    var(--mt-glass-graphite) 50%,
+    rgba(22,28,40,0.96) 100%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.18);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3);
-  color: var(--mt-text);
+  font-size: calc(var(--mt-unit)*3.4);
+  color: #fff;
   padding: 0;
-  box-shadow: var(--mt-shadow-panel);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-  transition: background 0.15s ease, transform 0.08s ease;
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.5),
+    inset 0 2px 0 rgba(255,255,255,0.22),
+    inset 0 -2px 4px rgba(0,0,0,0.45);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
-.btn:hover { background: rgba(60,70,85,0.7); }
+.btn:hover { filter: brightness(1.12); }
 .btn:active { transform: scale(0.94); }
-.green { background: rgba(40,110,75,0.55); border-color: rgba(100,210,150,0.35); }
-.blue  { background: rgba(40,70,130,0.55); border-color: rgba(100,160,230,0.35); }
-.dark  { background: var(--mt-glass-graphite); }
-.red   { background: rgba(130,40,40,0.55); border-color: rgba(230,90,90,0.35); }
-.teal  { background: rgba(40,120,100,0.55); border-color: rgba(100,200,170,0.35); }
+/* Цветные вариации */
+.green { background: linear-gradient(180deg,#5ec898 0%,#2f8c60 50%,#16543a 100%); border-color: rgba(120,230,170,0.4); }
+.blue  { background: linear-gradient(180deg,#5e96e8 0%,#2c5ea8 50%,#183870 100%); border-color: rgba(120,180,240,0.45); }
+.dark  { background: linear-gradient(180deg,var(--mt-glass-graphite-hi),var(--mt-glass-graphite) 50%,rgba(22,28,40,0.96)); }
+.red   { background: linear-gradient(180deg,#ee7070 0%,#c03030 50%,#7a1414 100%); border-color: rgba(255,130,130,0.45); }
+.teal  { background: linear-gradient(180deg,#4ec0a0 0%,#2a8a6c 50%,#145040 100%); border-color: rgba(120,220,190,0.4); }
 
 @media (orientation: landscape) and (max-height: 699px) {
-  .quick { gap: calc(var(--mt-unit)*0.5); }
-  .btn { width: calc(var(--mt-unit)*6.8); height: calc(var(--mt-unit)*6.8); font-size: calc(var(--mt-unit)*2.8); }
+  .quick { gap: calc(var(--mt-unit)*0.6); }
+  .btn { width: calc(var(--mt-unit)*7.2); height: calc(var(--mt-unit)*7.2); font-size: calc(var(--mt-unit)*3); }
 }
 @media (orientation: landscape) and (max-height: 499px) {
-  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 1.8); gap: calc(var(--mt-unit)*0.4); }
+  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 1.8); gap: calc(var(--mt-unit)*0.5); }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .btn { width: calc(var(--mt-unit)*6.2); height: calc(var(--mt-unit)*6.2); font-size: calc(var(--mt-unit)*2.5); }
+  .btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 18px; }
 }
