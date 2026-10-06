@@ -12,6 +12,7 @@
   "dependencies": {
     "@tdl/modules": "workspace:*",
     "@tdl/protocol": "workspace:*",
+    "@tdl/theme-mitchell": "workspace:*",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "@react-three/fiber": "9.5.0",

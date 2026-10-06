@@ -1,5 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import "@tdl/theme-mitchell/styles";
 import "./styles.css";
 import { connect } from "./net.js";
 import { store } from "./store.js";
