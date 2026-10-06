@@ -3,26 +3,30 @@
   right: calc(var(--mt-space) + var(--mt-safe-r));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
   display: flex;
-  gap: calc(var(--mt-unit)*1);
+  gap: calc(var(--mt-unit)*1.1);
   z-index: 25;
 }
 .shield {
   position: relative;
-  width: calc(var(--mt-unit)*8.4);
-  height: calc(var(--mt-unit)*8.4);
+  width: calc(var(--mt-unit)*9.4);
+  height: calc(var(--mt-unit)*9.4);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, rgba(52,34,20,0.8), rgba(16,10,6,0.9));
-  border: var(--mt-panel-border-width) solid var(--mt-gold);
+  background: linear-gradient(180deg, rgba(52,34,20,0.92), rgba(20,10,4,0.96));
+  border: calc(var(--mt-unit)*0.28) solid var(--mt-gold);
   clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
   color: var(--mt-gold-light);
   cursor: pointer;
-  font-size: calc(var(--mt-unit)*3.5);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.9) rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,220,160,0.15);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  font-size: calc(var(--mt-unit)*3.9);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  box-shadow:
+    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.4) rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,220,160,0.22),
+    0 0 calc(var(--mt-unit)*1.2) rgba(212,168,75,0.15);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding: 0;
   transition: filter 0.1s ease, transform 0.08s ease;
 }
