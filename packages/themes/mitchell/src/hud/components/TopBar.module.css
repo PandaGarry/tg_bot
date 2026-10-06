@@ -1,0 +1,197 @@
+.topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: var(--mt-topbar-h);
+  display: flex;
+  align-items: stretch;
+  gap: calc(var(--mt-unit) * 1.6);
+  padding: calc(var(--mt-unit) * 0.9) calc(var(--mt-space) + var(--mt-safe-r)) calc(var(--mt-unit) * 0.9) calc(var(--mt-space) + var(--mt-safe-l));
+  padding-top: calc(var(--mt-unit) * 0.9 + var(--mt-safe-t));
+  background:
+    linear-gradient(180deg,
+      rgba(12,7,4,0.97) 0%,
+      rgba(26,18,10,0.94) 60%,
+      rgba(26,18,10,0.84) 100%);
+  border-bottom: 1px solid rgba(212,168,75,0.25);
+  box-shadow: 0 2px calc(var(--mt-unit) * 1.2) rgba(0,0,0,0.55);
+  z-index: 30;
+  font-size: var(--mt-fs-md);
+}
+
+/* ===== Лорд ===== */
+.lord {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--mt-unit) * 1.1);
+  padding-right: calc(var(--mt-unit) * 1.3);
+  flex: 0 0 auto;
+  position: relative;
+  min-width: 0;
+}
+.avatar {
+  width: calc(var(--mt-unit) * 7);
+  height: calc(var(--mt-unit) * 7);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--mt-panel-edge), var(--mt-panel-wood));
+  border: calc(var(--mt-unit) * 0.35) solid var(--mt-gold);
+  box-shadow: 0 2px calc(var(--mt-unit) * 0.8) rgba(0,0,0,0.6);
+  display: grid;
+  place-items: center;
+  color: var(--mt-gold-light);
+  font-weight: 900;
+  overflow: hidden;
+}
+.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.lordInfo { display:grid; gap: calc(var(--mt-unit)*0.2); min-width:0; }
+.lordName {
+  font-size: var(--mt-fs-sm);
+  color: var(--mt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--mt-unit)*0.7);
+  max-width: calc(var(--mt-unit)*22);
+}
+.lordName b { font-weight: 800; }
+.lordTag {
+  color: var(--mt-text-muted);
+  font-size: var(--mt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.lordPower {
+  font-size: var(--mt-fs-lg);
+  font-weight: 800;
+  color: var(--mt-gold-light);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--mt-unit)*0.6);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  font-variant-numeric: tabular-nums;
+}
+.icPower {
+  font-size: calc(var(--mt-unit)*2.2);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
+}
+.lordBadges {
+  display: flex;
+  gap: calc(var(--mt-unit)*0.5);
+  position: absolute;
+  left: calc(var(--mt-unit)*5.3);
+  top: calc(var(--mt-unit)*4.6);
+}
+
+.buff {
+  width: calc(var(--mt-unit)*3);
+  height: calc(var(--mt-unit)*3);
+  display: grid;
+  place-items: center;
+  background: var(--mt-green);
+  border-radius: 50%;
+  border: calc(var(--mt-unit)*0.2) solid var(--mt-green-dark);
+  color: #fff;
+  font-size: calc(var(--mt-unit)*1.7);
+  font-weight: 900;
+  box-shadow: 0 1px calc(var(--mt-unit)*0.4) rgba(0,0,0,0.6);
+}
+
+/* ===== Ресурсы ===== */
+.resources {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--mt-unit)*2);
+  min-width: 0;
+  padding: 0 calc(var(--mt-unit)*1);
+  overflow: hidden;
+}
+.res {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--mt-unit)*0.7);
+  color: var(--mt-text);
+  font-size: var(--mt-fs-md);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.resIc {
+  width: calc(var(--mt-unit)*3.6);
+  height: calc(var(--mt-unit)*3.6);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: calc(var(--mt-unit)*0.22) solid var(--mt-gold);
+  background: var(--mt-panel-dark);
+  font-size: calc(var(--mt-unit)*1.9);
+  box-shadow: 0 0 calc(var(--mt-unit)*0.6) rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+.resGem b { color: var(--mt-red-light); }
+.resPlus {
+  width: calc(var(--mt-unit)*3.8);
+  height: calc(var(--mt-unit)*3.8);
+  min-height: 0;
+  border-radius: var(--mt-radius-sm);
+  background: transparent;
+  border: calc(var(--mt-unit)*0.22) solid var(--mt-blue);
+  color: var(--mt-blue-light);
+  font-size: calc(var(--mt-unit)*2.4);
+  font-weight: 900;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  margin-left: calc(var(--mt-unit)*0.2);
+  flex-shrink: 0;
+}
+.resPlus:active { filter: brightness(1.2); }
+
+/* ===== Часы и настройки ===== */
+.topRight {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--mt-unit)*1);
+  flex-direction: column;
+  justify-content: center;
+}
+.clock {
+  font-size: var(--mt-fs-xs);
+  font-weight: 700;
+  color: var(--mt-text-muted);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.settings { display: flex; gap: calc(var(--mt-unit)*0.5); }
+.iconBtn {
+  width: calc(var(--mt-unit)*4);
+  height: calc(var(--mt-unit)*4);
+  min-height: 0;
+  border-radius: 50%;
+  background: rgba(26,18,10,0.7);
+  border: 1px solid rgba(212,168,75,0.3);
+  color: var(--mt-text-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: calc(var(--mt-unit)*2);
+  padding: 0;
+}
+.iconBtn:active { color: var(--mt-gold-light); }
+
+/* Адаптив: на узких ландшафтах уплотняем отступы ресурсов */
+@media (max-width: 1100px) {
+  .resources { gap: calc(var(--mt-unit)*1.3); }
+  .res { font-size: var(--mt-fs-sm); }
+  .resIc { width: calc(var(--mt-unit)*3.2); height: calc(var(--mt-unit)*3.2); font-size: calc(var(--mt-unit)*1.7); }
+  .lordName { max-width: calc(var(--mt-unit)*16); }
+}

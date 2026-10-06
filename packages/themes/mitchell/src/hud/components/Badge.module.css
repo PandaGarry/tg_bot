@@ -1,0 +1,33 @@
+.badge {
+  position: absolute;
+  top: calc(var(--mt-unit) * -0.6);
+  right: calc(var(--mt-unit) * -0.6);
+  min-width: calc(var(--mt-unit) * 2.6);
+  height: calc(var(--mt-unit) * 2.6);
+  padding: 0 calc(var(--mt-unit) * 0.7);
+  border-radius: 999px;
+  background: var(--mt-red);
+  color: #fff;
+  font-size: var(--mt-fs-xs);
+  font-weight: 800;
+  line-height: calc(var(--mt-unit) * 2.6);
+  text-align: center;
+  box-shadow: 0 1px calc(var(--mt-unit) * 0.4) rgba(0,0,0,0.6);
+  z-index: 2;
+  font-variant-numeric: tabular-nums;
+}
+.purple { background: var(--mt-purple); }
+.green  { background: var(--mt-green); }
+.blue   { background: var(--mt-blue); }
+.gold   {
+  background: radial-gradient(circle at 30% 30%, var(--mt-gold-light), var(--mt-gold-dark));
+  color: var(--mt-panel-border);
+  border: 1px solid #5a3a0c;
+}
+.exclamation::before {
+  content: "!";
+}
+/* Пульсация только для тревожных бейджей (атака, готовность) */
+.alert {
+  animation: mt-pulse 1.4s infinite;
+}
