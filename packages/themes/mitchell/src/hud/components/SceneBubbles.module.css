@@ -1,3 +1,4 @@
+/* Пузыри на сцене — маленькие круглые flat-кнопки, цветовые акценты. */
 .layer {
   position: absolute;
   inset: 0;
@@ -6,57 +7,41 @@
 }
 .bubble {
   position: absolute;
-  width: clamp(36px, calc(var(--mt-unit)*7.4), 60px);
-  height: clamp(36px, calc(var(--mt-unit)*7.4), 60px);
+  width: clamp(36px, calc(var(--mt-unit)*7), 54px);
+  height: clamp(36px, calc(var(--mt-unit)*7), 54px);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3.2);
-  color: #fff;
-  box-shadow: 0 2px calc(var(--mt-unit)*1) rgba(0,0,0,0.6);
+  font-size: calc(var(--mt-unit)*2.8);
+  color: var(--mt-text);
+  box-shadow: var(--mt-shadow-soft);
   transform: translate(-50%, -50%);
-  animation: mt-pop-in 0.35s ease-out;
+  animation: mt-pop-in 0.3s ease-out;
   pointer-events: auto;
   padding: 0;
   cursor: pointer;
+  border: 1px solid var(--mt-stroke);
+  font-weight: 500;
 }
-.build {
-  background: radial-gradient(circle at 30% 30%, #3a3a40, #101014);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-gold);
-}
-.upgrade {
-  background: var(--mt-blue);
-  border: calc(var(--mt-unit)*0.3) solid #a8d0ff;
-  font-size: calc(var(--mt-unit)*3.8);
-  font-weight: 900;
-}
-.idle {
-  background: rgba(26,18,10,0.7);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-text-muted);
-  color: var(--mt-text);
-  font-size: calc(var(--mt-unit)*2.8);
-  font-weight: 800;
-}
-.collect {
-  background: radial-gradient(circle at 30% 30%, #3a6a30, #1a3810);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-green);
-}
-.help {
-  background: radial-gradient(circle at 30% 30%, #2a5a80, #0e2038);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-blue-light);
-}
-.attack {
-  background: radial-gradient(circle at 30% 30%, #7a2020, #3a0a0a);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-red-light);
-  animation: mt-pop-in 0.35s ease-out, mt-pulse 1.2s infinite;
+.build   { background: var(--mt-glass-graphite); }
+.upgrade { background: var(--mt-blue); color: #fff; border-color: var(--mt-blue-light); font-weight: 600; }
+.idle    { background: var(--mt-glass-bg); }
+.collect { background: var(--mt-emerald); color: #fff; border-color: var(--mt-emerald-hi); }
+.help    { background: var(--mt-blue-dark); color: #fff; border-color: var(--mt-blue-light); }
+.attack  {
+  background: var(--mt-red);
+  color: #fff;
+  border-color: #ff8080;
+  animation: mt-pop-in 0.3s ease-out, mt-pulse 1.2s infinite;
 }
 .ring {
   position: absolute;
-  inset: calc(var(--mt-unit)*-0.7);
+  inset: calc(var(--mt-unit)*-0.6);
   border-radius: 50%;
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-gold);
+  border: 2px solid var(--mt-stroke-accent);
   border-top-color: transparent;
   border-right-color: transparent;
   animation: mt-spin 3s linear infinite;
   pointer-events: none;
+  opacity: 0.6;
 }

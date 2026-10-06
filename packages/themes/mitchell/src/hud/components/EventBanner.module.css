@@ -1,57 +1,69 @@
+/* Ивентовый баннер — плоский прямоугольник матового стекла с
+   иконкой слева и тонкой светлой обводкой. Без дерева/золота. */
+
 .banner {
   position: absolute;
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
   right: calc(var(--mt-banner-offset-x) + var(--mt-safe-r));
   width: clamp(calc(var(--mt-unit)*22), 14vw, calc(var(--mt-unit)*26));
-  min-height: calc(var(--mt-unit)*8.2);
-  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.4) calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*8.4);
-  background: linear-gradient(180deg, rgba(58,38,24,0.94), rgba(26,16,8,0.96));
-  border: calc(var(--mt-unit)*0.22) solid var(--mt-gold-dark);
+  min-height: calc(var(--mt-unit)*7.2);
+  padding: calc(var(--mt-unit)*0.7) calc(var(--mt-unit)*1) calc(var(--mt-unit)*0.7) calc(var(--mt-unit)*7.2);
+  background: var(--mt-glass-bg-strong);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-md);
-  box-shadow: var(--mt-shadow-deep);
+  box-shadow: var(--mt-shadow-panel);
   z-index: 25;
   color: var(--mt-text);
   cursor: pointer;
   font-size: var(--mt-fs-sm);
+  font-weight: 500;
+  transition: background 0.15s ease, transform 0.08s ease;
 }
+.banner:hover { background: rgba(30,40,60,0.85); }
+.banner:active { transform: scale(0.98); }
+
 .icon {
   position: absolute;
-  left: calc(var(--mt-unit)*-1.4);
-  top: calc(var(--mt-unit)*-1.2);
-  width: calc(var(--mt-unit)*9.5);
-  height: calc(var(--mt-unit)*9.5);
-  border-radius: 50%;
-  border: calc(var(--mt-unit)*0.4) solid var(--mt-gold);
-  background: radial-gradient(circle at 30% 30%, #4a3620, #1a1008 70%);
+  left: calc(var(--mt-unit)*-0.8);
+  top: 50%;
+  transform: translateY(-50%);
+  width: calc(var(--mt-unit)*7.2);
+  height: calc(var(--mt-unit)*7.2);
+  border-radius: var(--mt-radius-sm);
+  border: 1px solid var(--mt-stroke-bright);
+  background: var(--mt-glass-nav);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*4.4);
-  color: var(--mt-red-light);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.6);
+  font-size: calc(var(--mt-unit)*3.2);
+  color: var(--mt-gold);
+  box-shadow: var(--mt-shadow-soft);
 }
-.title { font-size: var(--mt-fs-md); font-weight: 800; line-height: 1.1; margin-bottom: calc(var(--mt-unit)*0.3); }
-.timer { font-size: var(--mt-fs-xs); color: var(--mt-gold-light); font-weight: 700; font-variant-numeric: tabular-nums; }
+.title { font-size: var(--mt-fs-sm); font-weight: 600; line-height: 1.2; margin-bottom: calc(var(--mt-unit)*0.2); }
+.timer { font-size: var(--mt-fs-xs); color: var(--mt-text-muted); font-weight: 500; font-variant-numeric: tabular-nums; }
 .new {
   position: absolute;
-  top: calc(var(--mt-unit)*-0.8);
-  right: calc(var(--mt-unit)*-0.8);
-  padding: calc(var(--mt-unit)*0.2) calc(var(--mt-unit)*0.9);
-  border-radius: var(--mt-radius-sm);
-  background: var(--mt-green);
+  top: calc(var(--mt-unit)*-0.6);
+  right: calc(var(--mt-unit)*-0.6);
+  padding: calc(var(--mt-unit)*0.15) calc(var(--mt-unit)*0.7);
+  border-radius: calc(var(--mt-unit)*0.8);
+  background: var(--mt-emerald);
   color: #fff;
-  font-size: var(--mt-fs-xs);
-  font-weight: 900;
+  font-size: calc(var(--mt-fs-xs)*0.9);
+  font-weight: 600;
   letter-spacing: 0.04em;
+  border: 1px solid rgba(255,255,255,0.2);
 }
-.banner:active { filter: brightness(1.1); }
 
-/* xs/sm — баннер компактнее и не цепляется за квест-панель */
 @media (orientation: landscape) and (max-height: 699px) {
   .banner {
-    width: calc(var(--mt-unit)*21);
-    min-height: calc(var(--mt-unit)*7.4);
-    padding-left: calc(var(--mt-unit)*7.4);
-    padding-right: calc(var(--mt-unit)*1);
+    width: calc(var(--mt-unit)*20);
+    min-height: calc(var(--mt-unit)*6.6);
+    padding-left: calc(var(--mt-unit)*6.4);
+    padding-right: calc(var(--mt-unit)*0.8);
   }
-  .icon { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); left: calc(var(--mt-unit)*-1.2); top: calc(var(--mt-unit)*-1); }
+  .icon { width: calc(var(--mt-unit)*6.4); height: calc(var(--mt-unit)*6.4); font-size: calc(var(--mt-unit)*2.8); }
 }

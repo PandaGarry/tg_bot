@@ -1,137 +1,135 @@
-/* Иконка свитка/задания у левого края (по умолчанию свёрнута).
-   В VR это золотая шестиугольная плашка с огнём/свитком и красной цифрой
-   текущей главы сверху. */
+/* Квестовая панель: свёрнута в маленькую гексагональную иконку у левого края.
+   Без свитков, без золотых завитушек — плоская геометрия. */
+
 .icon {
   position: absolute;
   left: calc(var(--mt-space) + var(--mt-safe-l));
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
-  width: calc(var(--mt-unit)*9.4);
-  height: calc(var(--mt-unit)*9.4);
+  width: calc(var(--mt-unit)*8);
+  height: calc(var(--mt-unit)*8);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
-  /* Золотая плашка с мягкой формой «щита» — шестиугольник,
-     похож на VR, но не ромб (мы сохраняем собственные формы). */
+  /* Гексагон pointy-top (как кнопки слева) */
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: linear-gradient(180deg, #e8bc58 0%, #b88430 50%, #7c5618 100%);
-  border: none;
-  color: #2a1a04;
-  font-size: calc(var(--mt-unit)*4.2);
+  background: var(--mt-glass-graphite);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--mt-text);
+  font-size: calc(var(--mt-unit)*3.4);
   display: grid;
   place-items: center;
   cursor: pointer;
   z-index: 20;
   padding: 0;
-  box-shadow:
-    0 calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.4) rgba(0,0,0,0.7),
-    inset 0 2px 0 rgba(255,240,200,0.4),
-    inset 0 -3px 4px rgba(80,48,10,0.6),
-    0 0 calc(var(--mt-unit)*2) rgba(230,180,70,0.3);
-  transition: transform 0.1s ease, filter 0.1s ease;
+  box-shadow: var(--mt-shadow-panel);
+  transition: background 0.15s ease, transform 0.08s ease;
 }
-.icon:hover { filter: brightness(1.1); }
+.icon::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: inset 0 0 0 1px var(--mt-stroke);
+  pointer-events: none;
+}
+.icon:hover { background: rgba(60,70,85,0.7); }
 .icon:active { transform: scale(0.94); }
 
-/* Стрелка-индикатор «есть новая глава» */
+/* Индикатор "есть новая глава" — маленький голубой шеврон */
 .arrow {
   position: absolute;
-  right: calc(var(--mt-unit)*-0.6);
+  right: calc(var(--mt-unit)*-1);
   top: 50%;
   transform: translateY(-50%);
-  width: calc(var(--mt-unit)*3.4);
-  height: calc(var(--mt-unit)*3.4);
+  width: calc(var(--mt-unit)*2.4);
+  height: calc(var(--mt-unit)*2.4);
   border-radius: 50%;
+  background: var(--mt-blue);
+  border: 1px solid var(--mt-blue-light);
+  color: #fff;
   display: grid;
   place-items: center;
-  color: #fff;
-  font-size: calc(var(--mt-unit)*2.2);
-  font-weight: 900;
-  background: radial-gradient(circle at 30% 30%, #1a1a1a, #000);
-  border: calc(var(--mt-unit)*0.22) solid var(--mt-gold);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.4) rgba(0,0,0,0.7);
+  font-size: calc(var(--mt-unit)*1.8);
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--mt-shadow-soft);
   z-index: 2;
 }
 
-/* Развёрнутая панель квестов — тёмно-коричневая доска с золотой окантовкой,
-   как в VR. */
+/* Развёрнутая панель квестов — матовое тёмно-синее стекло без деревянных рам. */
 .panel {
   position: absolute;
-  left: calc(var(--mt-space) + var(--mt-unit)*9.8 + var(--mt-safe-l));
+  left: calc(var(--mt-space) + var(--mt-unit)*8.6 + var(--mt-safe-l));
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
-  width: clamp(calc(var(--mt-unit)*34), 20vw, calc(var(--mt-unit)*48));
-  max-width: 320px;
-  padding: calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*1.6);
-  background: linear-gradient(180deg, rgba(26,16,6,0.94), rgba(14,8,3,0.96));
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: calc(var(--mt-unit)*0.28) solid var(--mt-gold);
+  width: clamp(calc(var(--mt-unit)*32), 18vw, calc(var(--mt-unit)*42));
+  max-width: 280px;
+  padding: calc(var(--mt-unit)*1.1) calc(var(--mt-unit)*1.4);
+  background: var(--mt-glass-bg-strong);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-md);
-  box-shadow:
-    0 calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*2) rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,220,160,0.2),
-    0 0 calc(var(--mt-unit)*1.5) rgba(212,168,75,0.2);
+  box-shadow: var(--mt-shadow-panel);
   z-index: 20;
   color: var(--mt-text);
-  animation: quest-in 0.2s ease-out;
+  animation: quest-in 0.18s ease-out;
 }
 @keyframes quest-in {
-  from { transform: translateX(-8px); opacity: 0; }
+  from { transform: translateX(-6px); opacity: 0; }
   to   { transform: translateX(0); opacity: 1; }
 }
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--mt-fs-lg);
-  font-weight: 900;
-  margin-bottom: calc(var(--mt-unit)*0.8);
+  font-size: var(--mt-fs-sm);
+  font-weight: 600;
+  margin-bottom: calc(var(--mt-unit)*0.6);
   letter-spacing: 0.02em;
-  color: var(--mt-gold-light);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  border-bottom: 1px solid rgba(212,168,75,0.3);
-  padding-bottom: calc(var(--mt-unit)*0.6);
+  color: var(--mt-text);
+  border-bottom: 1px solid var(--mt-stroke);
+  padding-bottom: calc(var(--mt-unit)*0.5);
 }
 .nav {
   background: none;
   border: none;
-  color: var(--mt-gold);
-  font-size: calc(var(--mt-unit)*2.6);
+  color: var(--mt-text-muted);
+  font-size: calc(var(--mt-unit)*2.2);
   cursor: pointer;
   min-height: 0;
-  width: calc(var(--mt-unit)*3.6);
-  height: calc(var(--mt-unit)*3.6);
+  width: calc(var(--mt-unit)*3);
   padding: 0;
-  border-radius: 50%;
-  line-height: 1;
+  font-weight: 500;
 }
-.nav:hover { background: rgba(212,168,75,0.15); }
-.nav:disabled { opacity: 0.3; cursor: default; }
+.nav:hover { color: var(--mt-text); }
+.nav:disabled { opacity: 0.3; }
 
 .list {
   display: grid;
-  gap: calc(var(--mt-unit)*0.5);
-  font-size: var(--mt-fs-sm);
+  gap: calc(var(--mt-unit)*0.4);
+  font-size: var(--mt-fs-xs);
   line-height: 1.4;
   list-style: none;
   margin: 0;
   padding: 0;
+  font-weight: 400;
 }
-.prog { color: var(--mt-gold-light); font-weight: 800; margin-right: calc(var(--mt-unit)*0.5); }
+.prog { color: var(--mt-blue-light); font-weight: 500; margin-right: calc(var(--mt-unit)*0.4); }
 .todo { color: var(--mt-text); }
-.done, .doneText { color: var(--mt-green); }
-.done { font-weight: 800; margin-right: calc(var(--mt-unit)*0.4); }
+.done, .doneText { color: var(--mt-emerald-hi); }
+.done { font-weight: 600; margin-right: calc(var(--mt-unit)*0.3); }
 
-/* xs — компактнее */
 @media (orientation: landscape) and (max-height: 699px) {
-  .icon { width: calc(var(--mt-unit)*8.6); height: calc(var(--mt-unit)*8.6); font-size: calc(var(--mt-unit)*3.8); }
+  .icon { width: calc(var(--mt-unit)*7.4); height: calc(var(--mt-unit)*7.4); font-size: calc(var(--mt-unit)*3.1); }
   .panel {
-    left: calc(var(--mt-space) + var(--mt-unit)*9 + var(--mt-safe-l));
-    width: clamp(calc(var(--mt-unit)*30), 26vw, calc(var(--mt-unit)*40));
-    padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.2);
+    left: calc(var(--mt-space) + var(--mt-unit)*8 + var(--mt-safe-l));
+    width: clamp(calc(var(--mt-unit)*28), 24vw, calc(var(--mt-unit)*36));
+    padding: calc(var(--mt-unit)*0.9) calc(var(--mt-unit)*1.1);
   }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-  .icon { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
+  .icon { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*2.9); }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .icon { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*3); }
+  .icon { width: calc(var(--mt-unit)*6.4); height: calc(var(--mt-unit)*6.4); font-size: calc(var(--mt-unit)*2.6); }
 }

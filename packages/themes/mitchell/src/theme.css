@@ -28,86 +28,87 @@
      - xs : h < 500          (телефон в ландшафте)   — максимально компактный
 ===================================================================== */
 :root {
-  /* Палитра — панели/дерево (лёгкий стеклянный Mitchell) */
-  --mt-panel-dark:   rgba(12,7,4,0.85);
-  --mt-panel-mid:    rgba(26,18,10,0.82);
-  --mt-panel-wood:   rgba(38,24,14,0.78);
-  --mt-panel-edge:   #7c5028;
-  --mt-panel-border: #0c0704;
-  --mt-glass:        rgba(16, 11, 8, 0.45);
-  --mt-panel-border-width: 1.2px;
+  /* Палитра Mitchell — Flat Low-poly Matte Glass (Viking Race style).
+     Холодная, геометричная, без текстур дерева/металла/золота. */
+  --mt-glass-bg:      rgba(18,24,40,0.55);   /* основное матовое стекло */
+  --mt-glass-bg-strong: rgba(20,28,46,0.72);
+  --mt-glass-nav:     rgba(22,34,58,0.6);    /* навигация (нижние гексы) */
+  --mt-glass-nav-hi:  rgba(40,72,128,0.65);
+  --mt-glass-graphite: rgba(44,50,62,0.6);
+  --mt-stroke:        rgba(255,255,255,0.14);
+  --mt-stroke-bright: rgba(255,255,255,0.28);
+  --mt-stroke-accent: rgba(110,170,240,0.5);
 
-  /* Золото */
-  --mt-gold:       #d4a84b;
-  --mt-gold-light: #f0c866;
-  --mt-gold-dark:  #a87c28;
+  /* Редкие акценты (золото только как плоский цвет, без текстур/бликов) */
+  --mt-gold:        #e8c560;
+  --mt-gold-light:  #f0d680;
+  --mt-gold-dark:   #c9a43a;
 
-  /* Скандинавский синий */
-  --mt-blue:       #2f6fb5;
-  --mt-blue-light: #5aa0ee;
-  --mt-blue-dark:  #1e4a7a;
+  /* Холодная основная палитра */
+  --mt-blue:        #4a90e2;
+  --mt-blue-light:  #7ab4f0;
+  --mt-blue-dark:   #2c5ea8;
+  --mt-emerald:     #3fa984;
+  --mt-emerald-hi:  #5cd0a5;
+  --mt-graphite:    #3a4250;
+  --mt-red:         #e05858;
+  --mt-purple:      #8c6bd4;
+  --mt-orange:      #e89652;
 
-  /* Статусные */
-  --mt-green:       #4caf40;
-  --mt-green-dark:  #2d7a25;
-  --mt-red:         #b82c28;
-  --mt-red-light:   #e05550;
-  --mt-purple:      #8040c0;
-  --mt-orange:      #dd6e2b;
+  /* Текст — тонкий sans-serif, белый/светло-серый */
+  --mt-text:        #f0f4fa;
+  --mt-text-muted:  rgba(240,244,250,0.65);
+  --mt-text-dim:    rgba(240,244,250,0.4);
 
-  /* Текст */
-  --mt-text:       #f0e6d0;
-  --mt-text-muted: #a59780;
-  --mt-text-dim:   #7a6b55;
-
-  /* Сцена */
+  /* Сцена (не трогаем low-poly арт) */
   --mt-grass:    #5a8c3a;
   --mt-grass-hl: #78aa48;
   --mt-sky-top:  #5a82b0;
   --mt-sky-bot:  #9ab8d8;
   --mt-mountain: #6c7c8c;
 
-  /* Адаптивный размерный масштаб — БАЗА (десктоп 768..1000px высоты) */
-  --mt-unit: clamp(6px, 0.85vmin, 9px);
-  --mt-space: calc(var(--mt-unit) * 1.4);
-  --mt-topbar-h: calc(var(--mt-unit) * 7.4);
-  --mt-corner: calc(var(--mt-unit) * 11);
-  --mt-btn-sm: calc(var(--mt-unit) * 6.4);
-  --mt-btn-md: calc(var(--mt-unit) * 8.2);
+  /* Адаптивный размерный масштаб — БАЗА (768..1000px высоты) */
+  --mt-unit: clamp(6px, 0.8vmin, 8.5px);
+  --mt-space: calc(var(--mt-unit) * 1.8);
+  --mt-topbar-h: calc(var(--mt-unit) * 7);
+  --mt-corner: calc(var(--mt-unit) * 9.5);
+  --mt-btn-sm: calc(var(--mt-unit) * 6);
+  --mt-btn-md: calc(var(--mt-unit) * 7.8);
   --mt-panel-pad: calc(var(--mt-unit) * 1.4);
-  --mt-radius-sm: calc(var(--mt-unit) * 0.85);
-  --mt-radius-md: calc(var(--mt-unit) * 1.4);
+  --mt-radius-sm: calc(var(--mt-unit) * 0.8);
+  --mt-radius-md: calc(var(--mt-unit) * 1.2);
   --mt-radius-lg: calc(var(--mt-unit) * 2);
 
-  /* Вертикальные отступы между зонами (подстраиваются отдельно от размеров) */
-  --mt-top-stack-gap: calc(var(--mt-unit) * 1.8);   /* зазор под топбаром */
-  --mt-quest-to-q: calc(var(--mt-unit) * 18);       /* расстояние от квеста до очередей */
-  --mt-q-to-actions: calc(var(--mt-unit) * 14);     /* от очередей до левых кнопок */
-  --mt-banner-offset-x: calc(var(--mt-unit) * 1.5); /* отступ ивент-баннера от края */
+  /* Вертикальные отступы */
+  --mt-top-stack-gap: calc(var(--mt-unit) * 1.6);
+  --mt-quest-to-q: calc(var(--mt-unit) * 16);
+  --mt-q-to-actions: calc(var(--mt-unit) * 12);
+  --mt-banner-offset-x: calc(var(--mt-unit) * 1.5);
 
-  /* Типографика */
-  --mt-font: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --mt-fs-xs:  calc(var(--mt-unit) * 1.6);
-  --mt-fs-sm:  calc(var(--mt-unit) * 1.9);
-  --mt-fs-md:  calc(var(--mt-unit) * 2.2);
-  --mt-fs-lg:  calc(var(--mt-unit) * 2.8);
-  --mt-fs-xl:  calc(var(--mt-unit) * 3.4);
+  /* Типографика — тонкий современный sans-serif, без засечек */
+  --mt-font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --mt-fs-xs:  calc(var(--mt-unit) * 1.55);
+  --mt-fs-sm:  calc(var(--mt-unit) * 1.8);
+  --mt-fs-md:  calc(var(--mt-unit) * 2.1);
+  --mt-fs-lg:  calc(var(--mt-unit) * 2.6);
+  --mt-fs-xl:  calc(var(--mt-unit) * 3.1);
+  --mt-fw-normal: 500;
+  --mt-fw-semibold: 600;
 
-  /* Минимальный тач-таргет для мобильных — всегда не меньше 44 CSS-пикселей */
+  /* Минимальный тач-таргет */
   --mt-touch-min: 44px;
 
-  /* Тени и подсветки */
-  --mt-shadow-panel: 0 calc(var(--mt-unit) * 0.3) calc(var(--mt-unit) * 1) rgba(0,0,0,0.55);
-  --mt-shadow-deep:  0 calc(var(--mt-unit) * 0.8) calc(var(--mt-unit) * 2.4) rgba(0,0,0,0.6);
-  --mt-gold-inset: inset 0 1px 0 rgba(255,220,160,0.12);
+  /* Мягкие лёгкие тени для отделения от сцены */
+  --mt-shadow-soft:  0 calc(var(--mt-unit)*0.3) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.35);
+  --mt-shadow-panel: 0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.6) rgba(0,0,0,0.4);
+  --mt-shadow-deep:  0 calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*2.4) rgba(0,0,0,0.5);
 
-  /* Безопасные отступы (mobile/tablet notches) */
+  /* Безопасные отступы */
   --mt-safe-b: env(safe-area-inset-bottom, 0px);
   --mt-safe-t: env(safe-area-inset-top, 0px);
   --mt-safe-l: env(safe-area-inset-left, 0px);
   --mt-safe-r: env(safe-area-inset-right, 0px);
 
-  /* Количество строк чата (уплотняется на маленьких экранах) */
   --mt-chat-lines: 3;
 }
 
@@ -120,7 +121,7 @@ html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
   html, body, #root { height: 100dvh; }
 }
 html {
-  background: var(--mt-panel-dark);
+  background: #0e1522;
   color: var(--mt-text);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -130,11 +131,12 @@ body {
   touch-action: manipulation;
   overscroll-behavior: none;
   font-family: var(--mt-font);
-  font-weight: 600;
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: var(--mt-fs-sm);
   line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 button, input, select, textarea { font: inherit; touch-action: manipulation; color: inherit; }
 button {
@@ -143,6 +145,7 @@ button {
   border: none;
   padding: 0;
   min-height: calc(var(--mt-unit) * 6);
+  font-weight: 500;
 }
 button:disabled { cursor: default; opacity: 0.45; }
 ul, ol { list-style: none; margin: 0; padding: 0; }

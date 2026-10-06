@@ -1,43 +1,46 @@
 .root { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 .root > * { pointer-events: auto; }
 
-/* Хроника / лента событий внизу (если передана) */
+/* Хроника / лента событий — плоская полоска матового стекла */
 .tape {
   position: absolute;
-  left: calc(var(--mt-unit)*13 + var(--mt-safe-l));
-  right: calc(var(--mt-corner) * 1.8 + var(--mt-safe-r));
-  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*4 + var(--mt-safe-b));
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*3 + var(--mt-safe-b));
   z-index: 15;
   display: flex;
   align-items: center;
   gap: calc(var(--mt-unit)*1);
-  background: rgba(26,18,10,0.9);
-  border: 1px solid rgba(212,168,75,0.35);
+  background: var(--mt-glass-bg-strong);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-md);
-  padding: calc(var(--mt-unit)*0.9) calc(var(--mt-unit)*1.5);
+  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.4);
   color: var(--mt-text);
   font-size: var(--mt-fs-sm);
+  font-weight: 500;
   line-height: 1.4;
   box-shadow: var(--mt-shadow-panel);
+  max-width: 60vw;
 }
 .tapeMsg { flex: 1; min-width: 0; }
 .tapeActions { display: flex; gap: calc(var(--mt-unit)*0.8); flex-shrink: 0; }
 .tapeBtn {
   min-height: 0;
-  padding: calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.4);
+  padding: calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.2);
   border-radius: var(--mt-radius-sm);
-  background: linear-gradient(180deg, rgba(212,168,75,0.25), rgba(168,124,40,0.25));
-  border: 1px solid var(--mt-gold-dark);
-  color: var(--mt-gold-light);
-  font-weight: 800;
+  background: rgba(80,150,230,0.25);
+  border: 1px solid var(--mt-stroke-accent);
+  color: var(--mt-blue-light);
+  font-weight: 500;
   cursor: pointer;
+  font-size: var(--mt-fs-xs);
 }
-.tapeBtn:active { filter: brightness(1.2); }
+.tapeBtn:active { background: rgba(80,150,230,0.45); }
 
-/* Обёртка для модалов/панелей, которые клиент может вставить как children */
 .slot { position: relative; z-index: 40; }
 
-/* xs — лента хроники на телефоне в ландшафте прячется, чтобы не налезать на чат */
 @media (orientation: landscape) and (max-height: 499px) {
   .tape { display: none; }
 }

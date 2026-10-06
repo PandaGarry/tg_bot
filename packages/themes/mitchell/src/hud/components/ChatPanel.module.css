@@ -1,51 +1,69 @@
-.chat {
+/* Чат-иконка над компасом — маленькая круглая полупрозрачная кнопка. */
+.icon {
   position: absolute;
-  left: calc(var(--mt-unit)*13.2 + var(--mt-safe-l));
-  bottom: calc(var(--mt-space) + var(--mt-corner) + var(--mt-unit)*1.6 + var(--mt-safe-b));
-  width: clamp(calc(var(--mt-unit)*36), 26vw, calc(var(--mt-unit)*60));
-  max-width: var(--mt-chat-maxw, 34vw);
+  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-unit)*0.5 + var(--mt-safe-l));
+  bottom: calc(var(--mt-space) + var(--mt-safe-b));
+  width: calc(var(--mt-unit)*6.4);
+  height: calc(var(--mt-unit)*6.4);
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  background: var(--mt-glass-graphite);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--mt-stroke);
+  color: var(--mt-text);
+  font-size: calc(var(--mt-unit)*2.6);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  box-shadow: var(--mt-shadow-soft);
   z-index: 18;
-  pointer-events: auto;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.icon:hover { background: rgba(60,70,85,0.7); }
+.icon:active { transform: scale(0.94); }
+
+/* Развёрнутая панель чата — маленькая пилюля над иконкой */
+.panel {
+  position: absolute;
+  left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l));
+  bottom: calc(var(--mt-space) + var(--mt-unit)*7.2 + var(--mt-safe-b));
+  width: clamp(calc(var(--mt-unit)*34), 22vw, calc(var(--mt-unit)*50));
+  max-width: 320px;
+  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1);
+  background: var(--mt-glass-bg-strong);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--mt-stroke);
+  border-radius: var(--mt-radius-md);
+  box-shadow: var(--mt-shadow-panel);
+  z-index: 18;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.15);
-  padding: calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*0.9);
-  background: linear-gradient(180deg, rgba(10,6,3,0.7), rgba(10,6,3,0.55));
-  border-radius: var(--mt-radius-sm);
-  border: 1px solid rgba(212,168,75,0.2);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  cursor: pointer;
+  gap: calc(var(--mt-unit)*0.2);
+  max-height: calc(var(--mt-unit)*18);
+  overflow-y: auto;
+  animation: chat-in 0.15s ease-out;
+}
+@keyframes chat-in {
+  from { transform: translateY(4px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 .line {
   font-size: var(--mt-fs-xs);
   line-height: 1.35;
   color: var(--mt-text);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  text-shadow: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: calc(var(--mt-unit)*0.6);
+  font-weight: 400;
 }
-.line::before {
-  content: "";
-  width: calc(var(--mt-unit)*0.8);
-  height: calc(var(--mt-unit)*0.8);
-  border-radius: 50%;
-  background: linear-gradient(180deg, #4a7a30, #2a4818);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
-}
-.name {
-  font-weight: 800;
-  color: var(--mt-gold-light);
-  margin-right: 0;
-}
-/* Красный бейдж непрочитанных рендерится данными из модели (в VR это глитч
-   при новом сообщении). Здесь задан стиль бейджа, если ChatLine его добавит. */
+.name { font-weight: 600; color: var(--mt-blue-light); margin-right: calc(var(--mt-unit)*0.4); }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .chat { left: calc(var(--mt-unit)*12 + var(--mt-safe-l)); width: clamp(calc(var(--mt-unit)*30), 30vw, calc(var(--mt-unit)*48)); }
+  .icon { width: calc(var(--mt-unit)*5.8); height: calc(var(--mt-unit)*5.8); font-size: calc(var(--mt-unit)*2.3);
+    left: calc(var(--mt-space) + var(--mt-corner) + var(--mt-safe-l)); }
 }

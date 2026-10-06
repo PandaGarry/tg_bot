@@ -1,48 +1,61 @@
+/* Нижняя навигация — ГЕКСАГОНАЛЬНЫЕ плоские матовые кнопки
+   (плоская вершина — flat-top hex), полупрозрачные тёмно-синие/графитовые,
+   с тонкой светлой обводкой и мягкой тенью. */
+
 .nav {
   position: absolute;
   right: calc(var(--mt-space) + var(--mt-safe-r));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
   display: flex;
-  gap: calc(var(--mt-unit)*1.2);
+  gap: calc(var(--mt-unit)*1);
   z-index: 25;
-  padding: calc(var(--mt-unit)*0.8) 0 calc(var(--mt-unit)*0.4);
+  padding: calc(var(--mt-unit)*0.4) 0;
 }
 
 .shield {
   position: relative;
-  width: calc(var(--mt-unit)*10.2);
-  height: calc(var(--mt-unit)*10.2);
+  width: calc(var(--mt-unit)*8.8);
+  height: calc(var(--mt-unit)*8.8);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
   display: grid;
   place-items: center;
-  /* ПЛОТНЫЙ синий эмалированный восьмиугольник — форма НАША (не VR-ромб),
-     но цвет/насыщенность как в VR: яркий синий, без прозрачности. */
-  background: linear-gradient(180deg, #4a7fd0 0%, #2a58a8 40%, #163470 100%);
-  border: calc(var(--mt-unit)*0.34) solid #6ea4ea;
-  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
-  color: #ffffff;
+  /* Гексагон flat-top (плоской стороной вверх) */
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  /* Плоское матовое стекло, темно-синее */
+  background: var(--mt-glass-nav);
+  border: none;
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+  color: var(--mt-text);
   cursor: pointer;
-  font-size: calc(var(--mt-unit)*4.5);
-  text-shadow:
-    0 1px 2px rgba(0,0,30,0.7),
-    0 0 4px rgba(0,0,0,0.3);
-  box-shadow:
-    0 calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.8) rgba(0,0,0,0.85),
-    inset 0 2px 0 rgba(255,255,255,0.3),
-    inset 0 -2px 4px rgba(0,10,40,0.5),
-    0 0 calc(var(--mt-unit)*1.5) rgba(70,130,230,0.3);
+  font-size: calc(var(--mt-unit)*3.8);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: var(--mt-shadow-panel);
   padding: 0;
-  transition: filter 0.1s ease, transform 0.08s ease;
+  transition: background 0.15s ease, transform 0.08s ease;
 }
-.shield:hover { filter: brightness(1.15); }
-.shield:active { transform: scale(0.94); filter: brightness(1.3); }
-.shield[disabled] { opacity: 0.55; cursor: default; }
+/* Тонкая светлая обводка гекса рисуется через outline на внутреннем псевдо-элементе,
+   т.к. clip-path режет border. */
+.shield::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--mt-stroke);
+  pointer-events: none;
+}
+.shield:hover {
+  background: var(--mt-glass-nav-hi);
+}
+.shield:active { transform: scale(0.94); }
+.shield[disabled] { opacity: 0.45; cursor: default; }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .nav { gap: calc(var(--mt-unit)*0.9); }
-  .shield { width: calc(var(--mt-unit)*9.2); height: calc(var(--mt-unit)*9.2); font-size: calc(var(--mt-unit)*4); }
+  .nav { gap: calc(var(--mt-unit)*0.7); }
+  .shield { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .shield { width: calc(var(--mt-unit)*8.2); height: calc(var(--mt-unit)*8.2); font-size: calc(var(--mt-unit)*3.5); }
+  .shield { width: calc(var(--mt-unit)*7.2); height: calc(var(--mt-unit)*7.2); font-size: calc(var(--mt-unit)*3); }
 }
