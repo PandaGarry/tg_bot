@@ -11,35 +11,38 @@
   position: relative;
   width: calc(var(--mt-unit)*9.4);
   height: calc(var(--mt-unit)*9.4);
+  min-width: var(--mt-touch-min);
+  min-height: var(--mt-touch-min);
   border-radius: var(--mt-radius-md);
-  /* В VR левые кнопки — тёмно-графитовые/стальные с золотой иконкой.
-     Наш дизайн: закруглённый квадрат (не ромб!) в серо-синей гамме с золотой окантовкой. */
-  background: linear-gradient(180deg, #42526a, #1d2638);
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-gold);
+  /* В VR кнопка молотка — ГРАФИТОВО-СЕРАЯ (не синяя!) с золотой окантовкой
+     и золотой иконкой. ПЛОТНАЯ, без прозрачности. */
+  background: linear-gradient(180deg, #4a4640 0%, #26221c 50%, #16120c 100%);
+  border: calc(var(--mt-unit)*0.3) solid #c89640;
   box-shadow:
-    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,220,160,0.2),
-    inset 0 -2px 3px rgba(0,0,20,0.4);
+    0 calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.4) rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,220,160,0.25),
+    inset 0 -2px 4px rgba(0,0,0,0.5),
+    0 0 calc(var(--mt-unit)*1) rgba(0,0,0,0.3);
   color: var(--mt-gold-light);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*4.2);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  font-size: calc(var(--mt-unit)*4.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.85);
   padding: 0;
   transition: transform 0.08s ease, filter 0.1s ease;
 }
-.sq:hover { filter: brightness(1.12); }
-.sq:active { transform: scale(0.94); filter: brightness(1.25); }
+.sq:hover { filter: brightness(1.15); }
+.sq:active { transform: scale(0.94); filter: brightness(1.3); }
 .sq[disabled] { opacity: 0.5; cursor: default; }
 
 /* xs/sm */
 @media (orientation: landscape) and (max-height: 699px) {
-  .actions { gap: calc(var(--mt-unit)*0.5); }
-  .sq { width: calc(var(--mt-unit)*8.6); height: calc(var(--mt-unit)*8.6); font-size: calc(var(--mt-unit)*3.8); }
+  .actions { gap: calc(var(--mt-unit)*0.6); }
+  .sq { width: calc(var(--mt-unit)*8.6); height: calc(var(--mt-unit)*8.6); font-size: calc(var(--mt-unit)*3.9); }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-  .sq { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
+  .sq { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.5); }
 }
 @media (orientation: landscape) and (max-height: 380px) {
   .sq { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*3); }

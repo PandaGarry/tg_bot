@@ -8,9 +8,10 @@ const fmt = (n: number) =>
   String(n);
 
 /**
- * Карточка лорда в левом углу: аватар с золотой окантовкой,
- * справа имя/клан, мощи и тонкая полоска опыта. Бейдж уровня
- * наложен на аватар снизу-справа (как в VR).
+ * Лорд в левом верхнем углу: большой золотой круглый портрет,
+ * рядом БЕЛЫМ жирным цифра мощи (⚔ 1.1K), под ней тонкая синяя полоса XP.
+ * Имя на главном экране НЕ показывается (как в VR). Бейдж уровня
+ * наложен на портрет снизу-справа.
  */
 export function LordCard({ lord }: { lord: HudLord }) {
   return (
@@ -19,6 +20,8 @@ export function LordCard({ lord }: { lord: HudLord }) {
         {lord.avatarNode ?? lord.name.charAt(0)}
       </span>
       <span className={styles.lordInfo}>
+        {/* Имя скрыто на главном экране — оно только в профиле (VR pattern).
+            Оставляем в DOM для accessibility/data, но display:none в CSS. */}
         <span className={styles.lordName}>
           <b>{lord.name}</b>
           {lord.clanTag ? <small className={styles.lordTag}>[{lord.clanTag}]</small> : null}
@@ -27,12 +30,10 @@ export function LordCard({ lord }: { lord: HudLord }) {
           <span className={styles.icPower}>⚔</span>
           <b>{fmt(lord.power)}</b>
         </span>
-        {/* Полоска опыта — в VR тонкая синяя под цифрой мощи */}
         <span className={styles.lordXp}><i style={{ width: "62%" }} /></span>
       </span>
       <span className={styles.lordBadges}>
         <span className={styles.buff} title={`Уровень ${lord.level}`}>{lord.level}</span>
-        {lord.buffActive ? <span className={styles.buff} title="Активный бафф">↑</span> : null}
       </span>
     </div>
   );
