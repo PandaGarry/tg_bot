@@ -1,12 +1,14 @@
 .btn {
   position: absolute;
-  left: calc(var(--mt-unit)*2 + var(--mt-safe-l));
-  bottom: calc(var(--mt-unit)*2 + var(--mt-safe-b));
-  width: calc(var(--mt-unit)*10.6);
-  height: calc(var(--mt-unit)*10.6);
+  left: calc(var(--mt-space) + var(--mt-safe-l));
+  bottom: calc(var(--mt-space) + var(--mt-safe-b));
+  width: calc(var(--mt-unit)*10.2);
+  height: calc(var(--mt-unit)*10.2);
+  min-width: var(--mt-touch-min);
+  min-height: var(--mt-touch-min);
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #5a4428, var(--mt-panel-dark) 72%);
-  border: calc(var(--mt-unit)*0.45) solid var(--mt-gold);
+  border: calc(var(--mt-unit)*0.42) solid var(--mt-gold);
   box-shadow:
     0 0 0 calc(var(--mt-unit)*0.3) var(--mt-gold-dark),
     0 calc(var(--mt-unit)*1) calc(var(--mt-unit)*2.4) rgba(0,0,0,0.7),

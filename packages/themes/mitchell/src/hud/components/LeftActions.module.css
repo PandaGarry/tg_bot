@@ -1,10 +1,10 @@
 .actions {
   position: absolute;
-  left: calc(var(--mt-unit)*1.5 + var(--mt-safe-l));
-  top: calc(var(--mt-topbar-h) + var(--mt-unit)*44);
+  left: calc(var(--mt-space) + var(--mt-safe-l));
+  top: calc(var(--mt-topbar-h) + var(--mt-q-to-actions));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.9);
+  gap: calc(var(--mt-unit)*0.7);
   z-index: 20;
 }
 .sq {
@@ -26,7 +26,7 @@
 .sq:active { transform: scale(0.95); filter: brightness(1.15); }
 .sq[disabled] { opacity: 0.5; cursor: default; }
 
-@media (max-width: 1100px) {
-  .actions { top: calc(var(--mt-topbar-h) + var(--mt-unit)*38); }
-  .sq { width: var(--mt-btn-sm); height: var(--mt-btn-sm); font-size: calc(var(--mt-unit)*2.8); }
+/* xs/sm — кнопки уже размером --mt-btn-sm из переменной, просто поджимаем gap */
+@media (orientation: landscape) and (max-height: 699px) {
+  .actions { gap: calc(var(--mt-unit)*0.5); }
 }

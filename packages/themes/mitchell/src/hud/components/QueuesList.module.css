@@ -1,16 +1,17 @@
 .queues {
   position: absolute;
-  left: calc(var(--mt-unit)*1.5 + var(--mt-safe-l));
-  top: calc(var(--mt-topbar-h) + var(--mt-unit)*25);
+  left: calc(var(--mt-space) + var(--mt-safe-l));
+  top: calc(var(--mt-topbar-h) + var(--mt-quest-to-q));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.8);
+  gap: calc(var(--mt-unit)*0.6);
   z-index: 20;
 }
 .queue {
   position: relative;
-  width: clamp(calc(var(--mt-unit)*33), 20vw, calc(var(--mt-unit)*40));
-  padding: calc(var(--mt-unit)*0.9) calc(var(--mt-unit)*1.4) calc(var(--mt-unit)*0.9) calc(var(--mt-unit)*6.4);
+  width: clamp(calc(var(--mt-unit)*30), 18vw, calc(var(--mt-unit)*38));
+  max-width: 240px;
+  padding: calc(var(--mt-unit)*0.7) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*0.7) calc(var(--mt-unit)*6);
   background: rgba(26,18,10,0.9);
   border: calc(var(--mt-unit)*0.22) solid rgba(212,168,75,0.28);
   border-radius: var(--mt-radius-md);
@@ -79,8 +80,11 @@
 }
 .speedUp:active { filter: brightness(1.2); }
 
-@media (max-width: 1100px) {
-  .queues { top: calc(var(--mt-topbar-h) + var(--mt-unit)*22); }
-  .queue { width: clamp(calc(var(--mt-unit)*29), 22vw, calc(var(--mt-unit)*35)); padding-left: calc(var(--mt-unit)*5.6); }
-  .ic { width: calc(var(--mt-unit)*4.2); height: calc(var(--mt-unit)*4.2); font-size: calc(var(--mt-unit)*2.1); }
+/* xs/sm — очереди ещё плотнее */
+@media (orientation: landscape) and (max-height: 699px) {
+  .queue {
+    width: clamp(calc(var(--mt-unit)*28), 22vw, calc(var(--mt-unit)*34));
+    padding: calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1) calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*5.4);
+  }
+  .ic { width: calc(var(--mt-unit)*4.2); height: calc(var(--mt-unit)*4.2); font-size: calc(var(--mt-unit)*2); }
 }

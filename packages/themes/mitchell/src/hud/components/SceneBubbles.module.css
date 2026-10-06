@@ -6,8 +6,8 @@
 }
 .bubble {
   position: absolute;
-  width: calc(var(--mt-unit)*7.6);
-  height: calc(var(--mt-unit)*7.6);
+  width: clamp(36px, calc(var(--mt-unit)*7.4), 60px);
+  height: clamp(36px, calc(var(--mt-unit)*7.4), 60px);
   border-radius: 50%;
   display: grid;
   place-items: center;

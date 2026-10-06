@@ -1,10 +1,10 @@
 .banner {
   position: absolute;
-  top: calc(var(--mt-topbar-h) + var(--mt-unit)*1.2);
-  right: calc(var(--mt-unit)*1.6 + var(--mt-safe-r));
-  width: calc(var(--mt-unit)*24);
-  min-height: calc(var(--mt-unit)*8.4);
-  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.5) calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*8.6);
+  top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
+  right: calc(var(--mt-banner-offset-x) + var(--mt-safe-r));
+  width: clamp(calc(var(--mt-unit)*22), 14vw, calc(var(--mt-unit)*26));
+  min-height: calc(var(--mt-unit)*8.2);
+  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.4) calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*8.4);
   background: linear-gradient(180deg, rgba(58,38,24,0.94), rgba(26,16,8,0.96));
   border: calc(var(--mt-unit)*0.22) solid var(--mt-gold-dark);
   border-radius: var(--mt-radius-md);
@@ -45,7 +45,13 @@
 }
 .banner:active { filter: brightness(1.1); }
 
-@media (max-width: 1100px) {
-  .banner { width: calc(var(--mt-unit)*21); padding-left: calc(var(--mt-unit)*7.6); }
-  .icon { width: calc(var(--mt-unit)*8.4); height: calc(var(--mt-unit)*8.4); font-size: calc(var(--mt-unit)*3.6); }
+/* xs/sm — баннер компактнее и не цепляется за квест-панель */
+@media (orientation: landscape) and (max-height: 699px) {
+  .banner {
+    width: calc(var(--mt-unit)*21);
+    min-height: calc(var(--mt-unit)*7.4);
+    padding-left: calc(var(--mt-unit)*7.4);
+    padding-right: calc(var(--mt-unit)*1);
+  }
+  .icon { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); left: calc(var(--mt-unit)*-1.2); top: calc(var(--mt-unit)*-1); }
 }

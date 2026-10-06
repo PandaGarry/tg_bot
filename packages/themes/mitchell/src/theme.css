@@ -16,9 +16,16 @@
 *::after { box-sizing: border-box; }
 
 /* ====== Токены темы Mitchell (масштабируемые) ======
-   Размеры привязаны к vmin, чтобы HUD сохранял пропорции при любом
-   ландшафтном разрешении (1024×600 … 2560×1440). Базу берём от
-   высоты в 768px: 1vmin ≈ 6px → clamp() даёт разумные min/max.
+   Размеры построены вокруг базового юнита --mt-unit, который зависит
+   одновременно от ширины и высоты вьюпорта (landscape-first).
+   На крайних точках жёстко clamp()-имся, чтобы интерфейс не раздувался
+   на 4К и не становился нечитаемым на маленьком ландшафте телефона.
+
+   Ярусы (ландшафт):
+     - xl : height >= 1000px (2K/4K мониторы)   — чуть просторнее
+     - md : 700 <= h < 1000  (стандартный десктоп/ноут 1080p/768p) — база
+     - sm : 500 <= h < 700   (нетбуки 600p, планшеты) — уплотнённый
+     - xs : h < 500          (телефон в ландшафте)   — максимально компактный
 ===================================================================== */
 :root {
   /* Палитра — панели/дерево */
@@ -59,29 +66,38 @@
   --mt-sky-bot:  #9ab8d8;
   --mt-mountain: #6c7c8c;
 
-  /* Адаптивный размерный масштаб (карта) */
-  --mt-unit: clamp(5px, 0.78vmin, 8px);            /* 1 юнит HUD */
-  --mt-space: calc(var(--mt-unit) * 1.5);          /* стандартный отступ */
-  --mt-topbar-h: calc(var(--mt-unit) * 8);         /* высота топбара ~40-64px */
-  --mt-corner: calc(var(--mt-unit) * 12);          /* крупный угловой элемент (щит, компас) */
-  --mt-btn-sm: calc(var(--mt-unit) * 6.5);         /* маленькая квадратная кнопка ~34-52px */
-  --mt-btn-md: calc(var(--mt-unit) * 8.5);         /* средняя круглая/щитовая кнопка ~45-68px */
-  --mt-panel-pad: calc(var(--mt-unit) * 1.5);
-  --mt-radius-sm: calc(var(--mt-unit) * 0.9);
-  --mt-radius-md: calc(var(--mt-unit) * 1.5);
-  --mt-radius-lg: calc(var(--mt-unit) * 2.2);
+  /* Адаптивный размерный масштаб — БАЗА (десктоп 768..1000px высоты) */
+  --mt-unit: clamp(6px, 0.85vmin, 9px);
+  --mt-space: calc(var(--mt-unit) * 1.4);
+  --mt-topbar-h: calc(var(--mt-unit) * 7.4);
+  --mt-corner: calc(var(--mt-unit) * 11);
+  --mt-btn-sm: calc(var(--mt-unit) * 6.4);
+  --mt-btn-md: calc(var(--mt-unit) * 8.2);
+  --mt-panel-pad: calc(var(--mt-unit) * 1.4);
+  --mt-radius-sm: calc(var(--mt-unit) * 0.85);
+  --mt-radius-md: calc(var(--mt-unit) * 1.4);
+  --mt-radius-lg: calc(var(--mt-unit) * 2);
+
+  /* Вертикальные отступы между зонами (подстраиваются отдельно от размеров) */
+  --mt-top-stack-gap: calc(var(--mt-unit) * 1.8);   /* зазор под топбаром */
+  --mt-quest-to-q: calc(var(--mt-unit) * 18);       /* расстояние от квеста до очередей */
+  --mt-q-to-actions: calc(var(--mt-unit) * 14);     /* от очередей до левых кнопок */
+  --mt-banner-offset-x: calc(var(--mt-unit) * 1.5); /* отступ ивент-баннера от края */
 
   /* Типографика */
   --mt-font: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  --mt-fs-xs:  calc(var(--mt-unit) * 1.7);   /* ~10-13px — бейджи, таймеры */
-  --mt-fs-sm:  calc(var(--mt-unit) * 2);     /* ~12-16px — списки, мелкий текст */
-  --mt-fs-md:  calc(var(--mt-unit) * 2.3);   /* ~14-18px — ресурсы, кнопки */
-  --mt-fs-lg:  calc(var(--mt-unit) * 2.9);   /* ~17-23px — ключевые цифры */
-  --mt-fs-xl:  calc(var(--mt-unit) * 3.6);   /* ~22-29px — мощь лорда */
+  --mt-fs-xs:  calc(var(--mt-unit) * 1.6);
+  --mt-fs-sm:  calc(var(--mt-unit) * 1.9);
+  --mt-fs-md:  calc(var(--mt-unit) * 2.2);
+  --mt-fs-lg:  calc(var(--mt-unit) * 2.8);
+  --mt-fs-xl:  calc(var(--mt-unit) * 3.4);
+
+  /* Минимальный тач-таргет для мобильных — всегда не меньше 44 CSS-пикселей */
+  --mt-touch-min: 44px;
 
   /* Тени и подсветки */
   --mt-shadow-panel: 0 calc(var(--mt-unit) * 0.3) calc(var(--mt-unit) * 1) rgba(0,0,0,0.55);
-  --mt-shadow-deep:  0 calc(var(--mt-unit) * 0.8) calc(var(--mt-unit) * 2) rgba(0,0,0,0.6);
+  --mt-shadow-deep:  0 calc(var(--mt-unit) * 0.8) calc(var(--mt-unit) * 2.4) rgba(0,0,0,0.6);
   --mt-gold-inset: inset 0 1px 0 rgba(255,220,160,0.12);
 
   /* Безопасные отступы (mobile/tablet notches) */
@@ -89,6 +105,9 @@
   --mt-safe-t: env(safe-area-inset-top, 0px);
   --mt-safe-l: env(safe-area-inset-left, 0px);
   --mt-safe-r: env(safe-area-inset-right, 0px);
+
+  /* Количество строк чата (уплотняется на маленьких экранах) */
+  --mt-chat-lines: 3;
 }
 
 /* ====== Базовые стили документа ====== */
@@ -184,6 +203,82 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
 @media (orientation: portrait) and (max-width: 1000px) {
   .mt-portrait-guard { display: flex; }
 }
+
+/* =====================================================================
+   ЯРУСЫ АДАПТИВА (ландшафт)
+   Каждый ярус переопределяет только нужные кастомные свойства, компоненты
+   переиспользуют те же имена переменных и автоматически сжимаются/раздуваются.
+   ===================================================================== */
+
+/* xs: телефон в ландшафте — максимальная компактность, 360×640 / 375×812 */
+@media (orientation: landscape) and (max-height: 499px) {
+  :root {
+    --mt-unit: 4.2px;
+    --mt-topbar-h: 36px;
+    --mt-btn-sm: 38px;
+    --mt-btn-md: 44px;
+    --mt-corner: 50px;
+    --mt-top-stack-gap: 6px;
+    --mt-quest-to-q: 78px;
+    --mt-q-to-actions: 52px;
+    --mt-banner-offset-x: 6px;
+    --mt-fs-xs: 9.5px;
+    --mt-fs-sm: 11px;
+    --mt-fs-md: 12.5px;
+    --mt-fs-lg: 15px;
+    --mt-fs-xl: 18px;
+    --mt-chat-lines: 2;
+  }
+}
+/* sm: нетбуки/планшеты — 1024×600, 1280×720, iPad landscape невысокий */
+@media (orientation: landscape) and (min-height: 500px) and (max-height: 699px) {
+  :root {
+    --mt-unit: clamp(5px, 0.9vmin, 6.5px);
+    --mt-topbar-h: calc(var(--mt-unit) * 7);
+    --mt-btn-sm: calc(var(--mt-unit) * 6);
+    --mt-btn-md: calc(var(--mt-unit) * 7.6);
+    --mt-corner: calc(var(--mt-unit) * 10.4);
+    --mt-top-stack-gap: calc(var(--mt-unit) * 1.3);
+    --mt-quest-to-q: calc(var(--mt-unit) * 16);
+    --mt-q-to-actions: calc(var(--mt-unit) * 12);
+    --mt-chat-lines: 2;
+  }
+}
+/* md: базовый десктоп — 1366×768, 1536×864, 1920×1080 (значения по умолчанию в :root) */
+
+/* xl: большие/4K мониторы — height >= 1000px, чуть просторнее */
+@media (orientation: landscape) and (min-height: 1000px) {
+  :root {
+    --mt-unit: clamp(8px, 0.85vmin, 10px);
+    --mt-topbar-h: calc(var(--mt-unit) * 7.8);
+    --mt-btn-sm: calc(var(--mt-unit) * 6.8);
+    --mt-btn-md: calc(var(--mt-unit) * 8.8);
+    --mt-corner: calc(var(--mt-unit) * 11.6);
+    --mt-top-stack-gap: calc(var(--mt-unit) * 2);
+    --mt-quest-to-q: calc(var(--mt-unit) * 20);
+    --mt-q-to-actions: calc(var(--mt-unit) * 16);
+  }
+}
+
+/* Дополнительная защита: на очень узких ландшафтах (соотношение > 2.3:1,
+   например супер-ультраширокие мониторы или небольшой планшет в окошке)
+   чуть сужаем правые/левые колонки, чтобы оставить максимум места сцене. */
+@media (orientation: landscape) and (max-width: 900px) {
+  :root {
+    --mt-space: calc(var(--mt-unit) * 1);
+  }
+}
+
+/* Очень широкие вьюпорты (>=2500px) — чуть ограничиваем чат и квест по ширине,
+   чтобы не тянулись в нелепо длинные полосы. */
+@media (orientation: landscape) and (min-width: 2400px) {
+  :root {
+    --mt-chat-maxw: 28vw;
+  }
+}
+/* По умолчанию */
+:root { --mt-chat-maxw: 34vw; }
+
 
 /* ====== Скрываем старую bone-wood навигацию ====== */
 .game-nav { display: none !important; }

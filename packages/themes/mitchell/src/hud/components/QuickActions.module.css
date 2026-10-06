@@ -1,22 +1,24 @@
 .quick {
   position: absolute;
-  right: calc(var(--mt-unit)*1.6 + var(--mt-safe-r));
-  bottom: calc(var(--mt-unit)*15);
+  right: calc(var(--mt-space) + var(--mt-safe-r));
+  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2 + var(--mt-safe-b));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*1);
+  gap: calc(var(--mt-unit)*0.8);
   z-index: 20;
 }
 .btn {
   position: relative;
   width: var(--mt-btn-md);
   height: var(--mt-btn-md);
+  min-width: var(--mt-touch-min);
+  min-height: var(--mt-touch-min);
   border-radius: 50%;
   border: calc(var(--mt-unit)*0.3) solid var(--mt-panel-border);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3.1);
+  font-size: calc(var(--mt-unit)*3);
   color: #fff;
   padding: 0;
   box-shadow: 0 2px calc(var(--mt-unit)*1) rgba(0,0,0,0.6), var(--mt-gold-inset);
@@ -28,7 +30,7 @@
 .dark  { background: radial-gradient(circle at 30% 30%, #3a3a3a, #151518); }
 .red   { background: radial-gradient(circle at 30% 30%, #7a2020, #3a0a0a); }
 
-@media (max-width: 1100px) {
-  .quick { bottom: calc(var(--mt-unit)*13); }
-  .btn { width: var(--mt-btn-sm); height: var(--mt-btn-sm); font-size: calc(var(--mt-unit)*2.6); }
+/* xs — кнопки чуть прижаты выше (чтобы не наезжать на щит на маленьких) */
+@media (orientation: landscape) and (max-height: 499px) {
+  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 2); gap: calc(var(--mt-unit)*0.4); }
 }

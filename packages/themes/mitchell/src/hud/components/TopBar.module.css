@@ -4,9 +4,9 @@
   height: var(--mt-topbar-h);
   display: flex;
   align-items: stretch;
-  gap: calc(var(--mt-unit) * 1.6);
-  padding: calc(var(--mt-unit) * 0.9) calc(var(--mt-space) + var(--mt-safe-r)) calc(var(--mt-unit) * 0.9) calc(var(--mt-space) + var(--mt-safe-l));
-  padding-top: calc(var(--mt-unit) * 0.9 + var(--mt-safe-t));
+  gap: calc(var(--mt-unit) * 1.4);
+  padding: calc(var(--mt-unit) * 0.8) calc(var(--mt-space) + var(--mt-safe-r)) calc(var(--mt-unit) * 0.8) calc(var(--mt-space) + var(--mt-safe-l));
+  padding-top: calc(var(--mt-unit) * 0.8 + var(--mt-safe-t));
   background:
     linear-gradient(180deg,
       rgba(12,7,4,0.97) 0%,
@@ -121,6 +121,17 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.7);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+/* xs: скрываем подпись работников (число оставляем), сужаем gap ресурсов */
+@media (orientation: landscape) and (max-height: 499px) {
+  .resources { gap: calc(var(--mt-unit)*0.9); overflow: hidden; }
+  .lordName b { max-width: 7ch; overflow: hidden; text-overflow: ellipsis; }
+  .lordTag { display: none; }
+}
+@media (orientation: landscape) and (max-width: 700px) {
+  .resources { gap: calc(var(--mt-unit)*0.7); }
+  .res { font-size: var(--mt-fs-sm); }
+  .resIc { width: calc(var(--mt-unit)*3); height: calc(var(--mt-unit)*3); font-size: calc(var(--mt-unit)*1.6); }
 }
 .resIc {
   width: calc(var(--mt-unit)*3.6);

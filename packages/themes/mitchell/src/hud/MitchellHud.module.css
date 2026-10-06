@@ -4,17 +4,17 @@
 /* Хроника / лента событий внизу (если передана) */
 .tape {
   position: absolute;
-  left: calc(var(--mt-unit)*14 + var(--mt-safe-l));
-  right: calc(var(--mt-unit)*20 + var(--mt-safe-r));
-  bottom: calc(var(--mt-unit)*14 + var(--mt-safe-b));
+  left: calc(var(--mt-unit)*13 + var(--mt-safe-l));
+  right: calc(var(--mt-corner) * 1.8 + var(--mt-safe-r));
+  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*4 + var(--mt-safe-b));
   z-index: 15;
   display: flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*1.2);
+  gap: calc(var(--mt-unit)*1);
   background: rgba(26,18,10,0.9);
   border: 1px solid rgba(212,168,75,0.35);
   border-radius: var(--mt-radius-md);
-  padding: calc(var(--mt-unit)*1.1) calc(var(--mt-unit)*1.8);
+  padding: calc(var(--mt-unit)*0.9) calc(var(--mt-unit)*1.5);
   color: var(--mt-text);
   font-size: var(--mt-fs-sm);
   line-height: 1.4;
@@ -37,6 +37,7 @@
 /* Обёртка для модалов/панелей, которые клиент может вставить как children */
 .slot { position: relative; z-index: 40; }
 
-@media (max-width: 1100px) {
-  .tape { left: calc(var(--mt-unit)*12); right: calc(var(--mt-unit)*17); bottom: calc(var(--mt-unit)*12); }
+/* xs — лента хроники на телефоне в ландшафте прячется, чтобы не налезать на чат */
+@media (orientation: landscape) and (max-height: 499px) {
+  .tape { display: none; }
 }
