@@ -5,51 +5,44 @@
   display: flex;
   gap: calc(var(--mt-unit)*1.1);
   z-index: 25;
+  /* Очень лёгкая приподнятая «дорожка» снизу, как в VR — тонкий заштрихованный
+     тёмный градиент под иконками, без явных рамок. */
+  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*0.4) calc(var(--mt-unit)*0.4);
 }
+
 .shield {
   position: relative;
-  width: calc(var(--mt-unit)*9.4);
-  height: calc(var(--mt-unit)*9.4);
+  width: calc(var(--mt-unit)*9.8);
+  height: calc(var(--mt-unit)*9.8);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, rgba(52,34,20,0.92), rgba(20,10,4,0.96));
-  border: calc(var(--mt-unit)*0.28) solid var(--mt-gold);
+  /* В VR кнопки синие с белой иконкой; у нас форма восьмиугольная (не ромб!) —
+     наш собственный стиль. Синий градиент повторяет палитру VR. */
+  background: linear-gradient(180deg, #3d6ab8, #1b3570);
+  border: calc(var(--mt-unit)*0.32) solid #5d8ed6;
   clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
-  color: var(--mt-gold-light);
+  color: #fff;
   cursor: pointer;
-  font-size: calc(var(--mt-unit)*3.9);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  font-size: calc(var(--mt-unit)*4.2);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
   box-shadow:
-    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.4) rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,220,160,0.22),
-    0 0 calc(var(--mt-unit)*1.2) rgba(212,168,75,0.15);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.6) rgba(0,0,0,0.75),
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -2px 4px rgba(0,0,20,0.35),
+    0 0 calc(var(--mt-unit)*1.2) rgba(70,130,220,0.25);
   padding: 0;
   transition: filter 0.1s ease, transform 0.08s ease;
 }
-.shield:active { transform: scale(0.96); filter: brightness(1.18); }
+.shield:hover { filter: brightness(1.12); }
+.shield:active { transform: scale(0.94); filter: brightness(1.25); }
 .shield[disabled] { opacity: 0.5; cursor: default; }
 
-.dots {
-  position: relative;
-  width: calc(var(--mt-unit)*3.4);
-  height: calc(var(--mt-unit)*3.4);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(var(--mt-unit)*0.5);
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav { gap: calc(var(--mt-unit)*0.8); }
+  .shield { width: calc(var(--mt-unit)*9); height: calc(var(--mt-unit)*9); font-size: calc(var(--mt-unit)*3.8); }
 }
-.dots i {
-  width: calc(var(--mt-unit)*1.4);
-  height: calc(var(--mt-unit)*1.4);
-  background: var(--mt-gold-light);
-  border-radius: 1px;
-}
-
-/* xs — щиты чуть компактнее, теснее стоят */
-@media (orientation: landscape) and (max-height: 499px) {
-  .nav { gap: calc(var(--mt-unit)*0.5); }
-  .shield { width: var(--mt-btn-md); height: var(--mt-btn-md); font-size: calc(var(--mt-unit)*3.2); }
+@media (orientation: landscape) and (max-height: 380px) {
+  .shield { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.3); }
 }

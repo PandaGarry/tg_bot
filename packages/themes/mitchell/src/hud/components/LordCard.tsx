@@ -8,7 +8,9 @@ const fmt = (n: number) =>
   String(n);
 
 /**
- * Карточка лорда в левом углу топбара (аватар, имя, клан-тег, мощь, уровень, бафф).
+ * Карточка лорда в левом углу: аватар с золотой окантовкой,
+ * справа имя/клан, мощи и тонкая полоска опыта. Бейдж уровня
+ * наложен на аватар снизу-справа (как в VR).
  */
 export function LordCard({ lord }: { lord: HudLord }) {
   return (
@@ -25,6 +27,8 @@ export function LordCard({ lord }: { lord: HudLord }) {
           <span className={styles.icPower}>⚔</span>
           <b>{fmt(lord.power)}</b>
         </span>
+        {/* Полоска опыта — в VR тонкая синяя под цифрой мощи */}
+        <span className={styles.lordXp}><i style={{ width: "62%" }} /></span>
       </span>
       <span className={styles.lordBadges}>
         <span className={styles.buff} title={`Уровень ${lord.level}`}>{lord.level}</span>

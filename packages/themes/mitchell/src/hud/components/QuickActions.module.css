@@ -1,7 +1,7 @@
 .quick {
   position: absolute;
   right: calc(var(--mt-space) + var(--mt-safe-r));
-  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2 + var(--mt-safe-b));
+  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*2.4 + var(--mt-safe-b));
   display: flex;
   flex-direction: column;
   gap: calc(var(--mt-unit)*0.8);
@@ -9,28 +9,47 @@
 }
 .btn {
   position: relative;
-  width: var(--mt-btn-md);
-  height: var(--mt-btn-md);
+  width: calc(var(--mt-unit)*8.8);
+  height: calc(var(--mt-unit)*8.8);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
-  border-radius: 50%;
-  border: calc(var(--mt-unit)*0.3) solid var(--mt-panel-border);
+  border-radius: var(--mt-radius-md);
+  /* В VR правые кнопки — зелёные «ромбы» с белой иконкой.
+     Наш вариант — закруглённый квадрат (не ромб!) с изумрудно-травяным
+     градиентом и тонкой золотой окантовкой. */
+  border: calc(var(--mt-unit)*0.28) solid rgba(212,168,75,0.4);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*3);
+  font-size: calc(var(--mt-unit)*4);
   color: #fff;
   padding: 0;
-  box-shadow: 0 2px calc(var(--mt-unit)*1) rgba(0,0,0,0.6), var(--mt-gold-inset);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  box-shadow:
+    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -2px 3px rgba(0,30,0,0.35);
   transition: transform 0.08s ease, filter 0.1s ease;
 }
-.btn:active { transform: scale(0.95); filter: brightness(1.15); }
-.green { background: radial-gradient(circle at 30% 30%, #3a6a30, #1a3810); }
-.blue  { background: radial-gradient(circle at 30% 30%, #2a5a80, #0e2038); }
-.dark  { background: radial-gradient(circle at 30% 30%, #3a3a3a, #151518); }
-.red   { background: radial-gradient(circle at 30% 30%, #7a2020, #3a0a0a); }
+.btn:hover { filter: brightness(1.12); }
+.btn:active { transform: scale(0.94); filter: brightness(1.25); }
 
-/* xs — кнопки чуть прижаты выше (чтобы не наезжать на щит на маленьких) */
+/* В VR цвета: зелёный (книга/события), изумрудный (растение), голубой (почта),
+   синий (щит). У нас повторяем по тону. */
+.green { background: linear-gradient(180deg, #3a8a48, #1d4828); border-color: #54b068; }
+.blue  { background: linear-gradient(180deg, #3a68b8, #1a3068); border-color: #6090d8; }
+.dark  { background: linear-gradient(180deg, #555e68, #242a34); border-color: #808894; }
+.red   { background: linear-gradient(180deg, #b84040, #601818); border-color: #e06050; }
+.teal  { background: linear-gradient(180deg, #3a9a6a, #185038); border-color: #54c088; }
+
+/* xs */
+@media (orientation: landscape) and (max-height: 699px) {
+  .quick { gap: calc(var(--mt-unit)*0.6); }
+  .btn { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.5); }
+}
 @media (orientation: landscape) and (max-height: 499px) {
-  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 2); gap: calc(var(--mt-unit)*0.4); }
+  .quick { bottom: calc(var(--mt-corner) + var(--mt-space) * 2); gap: calc(var(--mt-unit)*0.5); }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .btn { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*3); }
 }

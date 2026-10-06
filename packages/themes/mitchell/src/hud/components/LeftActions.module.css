@@ -4,35 +4,43 @@
   top: calc(var(--mt-topbar-h) + var(--mt-q-to-actions));
   display: flex;
   flex-direction: column;
-  gap: calc(var(--mt-unit)*0.7);
+  gap: calc(var(--mt-unit)*0.8);
   z-index: 20;
 }
 .sq {
   position: relative;
-  width: calc(var(--mt-unit)*9.2);
-  height: calc(var(--mt-unit)*9.2);
+  width: calc(var(--mt-unit)*9.4);
+  height: calc(var(--mt-unit)*9.4);
   border-radius: var(--mt-radius-md);
-  background: linear-gradient(180deg, rgba(48,30,18,0.92), rgba(20,10,4,0.95));
-  border: calc(var(--mt-unit)*0.28) solid var(--mt-gold);
+  /* В VR левые кнопки — тёмно-графитовые/стальные с золотой иконкой.
+     Наш дизайн: закруглённый квадрат (не ромб!) в серо-синей гамме с золотой окантовкой. */
+  background: linear-gradient(180deg, #42526a, #1d2638);
+  border: calc(var(--mt-unit)*0.3) solid var(--mt-gold);
   box-shadow:
-    0 2px calc(var(--mt-unit)*1) rgba(0,0,0,0.65),
-    inset 0 1px 0 rgba(255,220,160,0.22),
-    0 0 calc(var(--mt-unit)*1) rgba(212,168,75,0.2);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+    0 calc(var(--mt-unit)*0.5) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,220,160,0.2),
+    inset 0 -2px 3px rgba(0,0,20,0.4);
   color: var(--mt-gold-light);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*4);
+  font-size: calc(var(--mt-unit)*4.2);
   text-shadow: 0 1px 2px rgba(0,0,0,0.7);
   padding: 0;
   transition: transform 0.08s ease, filter 0.1s ease;
 }
-.sq:active { transform: scale(0.95); filter: brightness(1.15); }
+.sq:hover { filter: brightness(1.12); }
+.sq:active { transform: scale(0.94); filter: brightness(1.25); }
 .sq[disabled] { opacity: 0.5; cursor: default; }
 
-/* xs/sm — кнопки уже размером --mt-btn-sm из переменной, просто поджимаем gap */
+/* xs/sm */
 @media (orientation: landscape) and (max-height: 699px) {
   .actions { gap: calc(var(--mt-unit)*0.5); }
+  .sq { width: calc(var(--mt-unit)*8.6); height: calc(var(--mt-unit)*8.6); font-size: calc(var(--mt-unit)*3.8); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .sq { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .sq { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*3); }
 }

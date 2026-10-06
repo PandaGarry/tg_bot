@@ -1,59 +1,74 @@
-/* Иконка свитка у левого края (по умолчанию свёрнута) */
+/* Иконка свитка/задания у левого края (по умолчанию свёрнута).
+   В VR это золотая шестиугольная плашка с огнём/свитком и красной цифрой
+   текущей главы сверху. */
 .icon {
   position: absolute;
   left: calc(var(--mt-space) + var(--mt-safe-l));
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
-  width: var(--mt-btn-md);
-  height: var(--mt-btn-md);
+  width: calc(var(--mt-unit)*9.4);
+  height: calc(var(--mt-unit)*9.4);
   min-width: var(--mt-touch-min);
   min-height: var(--mt-touch-min);
-  border-radius: var(--mt-radius-md) 0 0 var(--mt-radius-md);
-  background: linear-gradient(180deg, rgba(206,168,88,0.9), rgba(138,96,48,0.9));
-  border: var(--mt-panel-border-width) solid var(--mt-gold-dark);
-  border-right: none;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  color: var(--mt-panel-dark);
-  font-size: calc(var(--mt-unit)*3);
+  /* Золотая плашка с мягкой формой «щита» — шестиугольник,
+     похож на VR, но не ромб (мы сохраняем собственные формы). */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(180deg, #e8bc58 0%, #b88430 50%, #7c5618 100%);
+  border: none;
+  color: #2a1a04;
+  font-size: calc(var(--mt-unit)*4.2);
   display: grid;
   place-items: center;
   cursor: pointer;
   z-index: 20;
   padding: 0;
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,240,200,0.3);
-  transition: transform 0.1s ease;
+  box-shadow:
+    0 calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.4) rgba(0,0,0,0.7),
+    inset 0 2px 0 rgba(255,240,200,0.4),
+    inset 0 -3px 4px rgba(80,48,10,0.6),
+    0 0 calc(var(--mt-unit)*2) rgba(230,180,70,0.3);
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
-.icon:active { transform: scale(0.95); }
+.icon:hover { filter: brightness(1.1); }
+.icon:active { transform: scale(0.94); }
+
+/* Стрелка-индикатор «есть новая глава» */
 .arrow {
   position: absolute;
-  right: calc(var(--mt-unit)*-0.8);
+  right: calc(var(--mt-unit)*-0.6);
   top: 50%;
   transform: translateY(-50%);
-  width: calc(var(--mt-unit)*2);
-  height: calc(var(--mt-unit)*3);
+  width: calc(var(--mt-unit)*3.4);
+  height: calc(var(--mt-unit)*3.4);
+  border-radius: 50%;
   display: grid;
   place-items: center;
   color: #fff;
-  font-size: calc(var(--mt-unit)*2);
-  background: rgba(0,0,0,0.4);
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  font-size: calc(var(--mt-unit)*2.2);
+  font-weight: 900;
+  background: radial-gradient(circle at 30% 30%, #1a1a1a, #000);
+  border: calc(var(--mt-unit)*0.22) solid var(--mt-gold);
+  box-shadow: 0 2px calc(var(--mt-unit)*0.4) rgba(0,0,0,0.7);
+  z-index: 2;
 }
 
-/* Развёрнутая панель (показывается только если isOpen) */
+/* Развёрнутая панель квестов — тёмно-коричневая доска с золотой окантовкой,
+   как в VR. */
 .panel {
   position: absolute;
-  left: calc(var(--mt-space) + var(--mt-btn-md) - var(--mt-panel-border-width) + var(--mt-safe-l));
+  left: calc(var(--mt-space) + var(--mt-unit)*9.8 + var(--mt-safe-l));
   top: calc(var(--mt-topbar-h) + var(--mt-top-stack-gap));
-  width: clamp(calc(var(--mt-unit)*30), 18vw, calc(var(--mt-unit)*40));
-  max-width: 280px;
-  padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.5) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*2);
-  background: linear-gradient(180deg, rgba(30,40,65,0.82), rgba(15,22,40,0.9));
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  backdrop-filter: blur(10px) saturate(120%);
-  border: var(--mt-panel-border-width) solid rgba(90,160,238,0.4);
-  border-left: none;
-  border-radius: 0 var(--mt-radius-md) var(--mt-radius-md) 0;
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.55);
+  width: clamp(calc(var(--mt-unit)*34), 20vw, calc(var(--mt-unit)*48));
+  max-width: 320px;
+  padding: calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*1.6);
+  background: linear-gradient(180deg, rgba(26,16,6,0.94), rgba(14,8,3,0.96));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: calc(var(--mt-unit)*0.28) solid var(--mt-gold);
+  border-radius: var(--mt-radius-md);
+  box-shadow:
+    0 calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*2) rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,220,160,0.2),
+    0 0 calc(var(--mt-unit)*1.5) rgba(212,168,75,0.2);
   z-index: 20;
   color: var(--mt-text);
   animation: quest-in 0.2s ease-out;
@@ -66,37 +81,57 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--mt-fs-sm);
-  font-weight: 800;
-  margin-bottom: calc(var(--mt-unit)*0.6);
+  font-size: var(--mt-fs-lg);
+  font-weight: 900;
+  margin-bottom: calc(var(--mt-unit)*0.8);
   letter-spacing: 0.02em;
+  color: var(--mt-gold-light);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  border-bottom: 1px solid rgba(212,168,75,0.3);
+  padding-bottom: calc(var(--mt-unit)*0.6);
 }
 .nav {
   background: none;
   border: none;
-  color: var(--mt-text-muted);
-  font-size: var(--mt-fs-md);
+  color: var(--mt-gold);
+  font-size: calc(var(--mt-unit)*2.6);
   cursor: pointer;
   min-height: 0;
-  width: calc(var(--mt-unit)*3);
+  width: calc(var(--mt-unit)*3.6);
+  height: calc(var(--mt-unit)*3.6);
   padding: 0;
+  border-radius: 50%;
+  line-height: 1;
 }
+.nav:hover { background: rgba(212,168,75,0.15); }
+.nav:disabled { opacity: 0.3; cursor: default; }
+
 .list {
   display: grid;
-  gap: calc(var(--mt-unit)*0.4);
-  font-size: var(--mt-fs-xs);
-  line-height: 1.35;
+  gap: calc(var(--mt-unit)*0.5);
+  font-size: var(--mt-fs-sm);
+  line-height: 1.4;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.prog { color: var(--mt-text); font-weight: 700; margin-right: calc(var(--mt-unit)*0.4); }
+.prog { color: var(--mt-gold-light); font-weight: 800; margin-right: calc(var(--mt-unit)*0.5); }
 .todo { color: var(--mt-text); }
 .done, .doneText { color: var(--mt-green); }
 .done { font-weight: 800; margin-right: calc(var(--mt-unit)*0.4); }
 
-/* xs — более компактно */
+/* xs — компактнее */
 @media (orientation: landscape) and (max-height: 699px) {
+  .icon { width: calc(var(--mt-unit)*8.6); height: calc(var(--mt-unit)*8.6); font-size: calc(var(--mt-unit)*3.8); }
   .panel {
-    width: clamp(calc(var(--mt-unit)*28), 24vw, calc(var(--mt-unit)*34));
-    padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.2) calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.6);
+    left: calc(var(--mt-space) + var(--mt-unit)*9 + var(--mt-safe-l));
+    width: clamp(calc(var(--mt-unit)*30), 26vw, calc(var(--mt-unit)*40));
+    padding: calc(var(--mt-unit)*1) calc(var(--mt-unit)*1.2);
   }
-  .list { gap: calc(var(--mt-unit)*0.25); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .icon { width: calc(var(--mt-unit)*8); height: calc(var(--mt-unit)*8); font-size: calc(var(--mt-unit)*3.4); }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .icon { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); font-size: calc(var(--mt-unit)*3); }
 }

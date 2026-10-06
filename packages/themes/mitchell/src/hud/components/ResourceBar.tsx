@@ -8,9 +8,8 @@ const fmt = (n: number) =>
   String(n);
 
 /**
- * Панель ресурсов в центре топбара.
- * Кнопка "+" отображается только если хотя бы у одного ресурса canRecharge=true
- * (ставится на первую такую запись, по дизайну — у золота/гемов).
+ * Панель ресурсов по центру: ряд плавающих иконка+цифра без общего контейнера.
+ * В конце может быть синяя ромб-кнопка «+» для пополнения.
  */
 export function ResourceBar({
   resources,
@@ -40,7 +39,9 @@ export function ResourceBar({
         </span>
       ))}
       {onRecharge ? (
-        <button type="button" className={styles.resPlus} title="Пополнить" onClick={onRecharge}>+</button>
+        <button type="button" className={styles.resPlus} title="Пополнить" onClick={onRecharge} aria-label="Пополнить">
+          <b>+</b>
+        </button>
       ) : null}
     </div>
   );

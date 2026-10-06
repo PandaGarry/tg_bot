@@ -1,19 +1,25 @@
+/* =========================================================
+   Mitchell TopBar — floating elements, NO containers.
+   В VR на главном экране нет общих плашек — каждый элемент
+   висит сам по себе с лёгкой тенью под ним.
+   ========================================================= */
+
 .topbar {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: var(--mt-topbar-h);
   display: flex;
-  align-items: stretch;
-  gap: calc(var(--mt-unit) * 1.4);
-  padding: calc(var(--mt-unit) * 0.8) calc(var(--mt-space) + var(--mt-safe-r)) calc(var(--mt-unit) * 0.8) calc(var(--mt-space) + var(--mt-safe-l));
+  align-items: flex-start;
+  gap: calc(var(--mt-unit) * 1.5);
+  padding: calc(var(--mt-unit) * 0.8) calc(var(--mt-space) + var(--mt-safe-r)) 0 calc(var(--mt-space) + var(--mt-safe-l));
   padding-top: calc(var(--mt-unit) * 0.8 + var(--mt-safe-t));
-  /* Убираем сплошной фон на всю ширину — каждый элемент хрома «парит» сам по себе.
-     Оставляем очень лёгкий градиент-тень у самого верха, чтобы не было дырки над горячими зонами. */
+  /* НИКАКОГО фона — только очень лёгкий верхний vignette-тень,
+     чтобы белый текст не терялся на снегу/небе. */
   background: linear-gradient(180deg,
-    rgba(8,5,3,0.65) 0%,
-    rgba(12,7,4,0.35) 50%,
-    rgba(12,7,4,0) 100%);
-  border-bottom: none;
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.12) 55%,
+    rgba(0,0,0,0) 100%);
+  border: none;
   box-shadow: none;
   z-index: 30;
   font-size: var(--mt-fs-md);
@@ -21,222 +27,289 @@
 }
 .topbar > * { pointer-events: auto; }
 
-/* ===== Лорд ===== */
+/* ---------- Лорд ---------- */
 .lord {
   display: flex;
   align-items: center;
   gap: calc(var(--mt-unit) * 1.1);
-  padding: 0 calc(var(--mt-unit) * 1.2) 0 0;
   flex: 0 0 auto;
   position: relative;
   min-width: 0;
-  background: linear-gradient(180deg, rgba(18,12,8,0.75), rgba(12,7,4,0.55));
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
-  border-radius: 0 0 var(--mt-radius-md) var(--mt-radius-md);
-  border: var(--mt-panel-border-width) solid rgba(212,168,75,0.35);
-  border-top: none;
-  box-shadow: 0 2px calc(var(--mt-unit) * 1) rgba(0,0,0,0.55);
-  margin-left: calc(var(--mt-unit) * -0.5);
-  padding-left: calc(var(--mt-unit) * 0.5);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  margin: 0;
+  padding: 0;
 }
+
 .avatar {
-  width: calc(var(--mt-unit) * 7.4);
-  height: calc(var(--mt-unit) * 7.4);
+  width: calc(var(--mt-unit) * 7.8);
+  height: calc(var(--mt-unit) * 7.8);
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--mt-panel-edge), var(--mt-panel-wood));
+  background: linear-gradient(180deg, #3a2a1a, #1a1008);
   border: calc(var(--mt-unit) * 0.32) solid var(--mt-gold);
-  box-shadow: 0 2px calc(var(--mt-unit) * 0.8) rgba(0,0,0,0.65), 0 0 calc(var(--mt-unit)*0.8) rgba(212,168,75,0.3);
+  box-shadow:
+    0 calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1.2) rgba(0,0,0,0.65),
+    0 0 0 1px rgba(168,124,40,0.6),
+    0 0 calc(var(--mt-unit)*1.5) rgba(212,168,75,0.2);
   display: grid;
   place-items: center;
   color: var(--mt-gold-light);
   font-weight: 900;
-  overflow: hidden;
-  margin: calc(var(--mt-unit)*-0.2) 0 calc(var(--mt-unit)*-0.2) calc(var(--mt-unit)*-0.2);
+  overflow: visible;
+  font-size: calc(var(--mt-unit) * 4);
 }
-.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 
-.lordInfo { display:grid; gap: calc(var(--mt-unit)*0.2); min-width:0; }
+.lordInfo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--mt-unit)*0.25);
+  min-width: 0;
+  padding-top: calc(var(--mt-unit)*0.4);
+}
+
 .lordName {
-  font-size: var(--mt-fs-sm);
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--mt-unit)*0.5);
   color: var(--mt-text);
+  font-size: var(--mt-fs-lg);
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.6);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-  display: flex;
-  align-items: baseline;
-  gap: calc(var(--mt-unit)*0.7);
-  max-width: calc(var(--mt-unit)*22);
+  max-width: calc(var(--mt-unit)*28);
 }
-.lordName b { font-weight: 800; }
+.lordName b { color: var(--mt-text); }
 .lordTag {
-  color: var(--mt-text-muted);
-  font-size: var(--mt-fs-xs);
+  color: var(--mt-gold);
+  font-size: var(--mt-fs-sm);
   font-weight: 700;
-  letter-spacing: 0.03em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
 }
+
 .lordPower {
-  font-size: var(--mt-fs-lg);
+  font-size: var(--mt-fs-xl);
   font-weight: 900;
   color: var(--mt-gold-light);
   display: flex;
   align-items: center;
   gap: calc(var(--mt-unit)*0.5);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 .icPower {
-  font-size: calc(var(--mt-unit)*2.2);
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.6));
+  color: var(--mt-gold);
+  font-size: calc(var(--mt-unit)*2.3);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9));
 }
+
+/* Полоска опыта под мощью */
+.lordXp {
+  display: block;
+  width: 100%;
+  height: calc(var(--mt-unit)*0.5);
+  margin-top: calc(var(--mt-unit)*0.2);
+  background: rgba(0,0,0,0.5);
+  border-radius: calc(var(--mt-unit)*0.3);
+  overflow: hidden;
+  border: 1px solid rgba(212,168,75,0.3);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+}
+.lordXp > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--mt-blue), var(--mt-blue-light));
+  box-shadow: 0 0 4px rgba(80,160,255,0.6);
+  border-radius: inherit;
+}
+
+/* Бейджи на аватаре (уровень, VIP, красная точка и т.п.) */
 .lordBadges {
   display: flex;
-  gap: calc(var(--mt-unit)*0.4);
+  gap: calc(var(--mt-unit)*0.3);
   position: absolute;
-  left: calc(var(--mt-unit)*5.4);
-  top: calc(var(--mt-unit)*5);
+  left: calc(var(--mt-unit)*5.6);
+  top: calc(var(--mt-unit)*5.4);
 }
-
 .buff {
-  width: calc(var(--mt-unit)*2.8);
-  height: calc(var(--mt-unit)*2.8);
+  width: calc(var(--mt-unit)*3.4);
+  height: calc(var(--mt-unit)*3.4);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #2a1d0c, #140a03);
+  border: calc(var(--mt-unit)*0.25) solid var(--mt-gold);
   display: grid;
   place-items: center;
-  background: var(--mt-green);
-  border-radius: 50%;
-  border: 1px solid var(--mt-green-dark);
-  color: #fff;
-  font-size: calc(var(--mt-unit)*1.5);
+  font-size: calc(var(--mt-unit)*1.9);
   font-weight: 900;
-  box-shadow: 0 1px calc(var(--mt-unit)*0.3) rgba(0,0,0,0.5);
+  color: var(--mt-gold-light);
+  box-shadow: 0 2px calc(var(--mt-unit)*0.5) rgba(0,0,0,0.6);
+}
+.dotRed {
+  position: absolute;
+  top: calc(var(--mt-unit)*-0.2);
+  right: calc(var(--mt-unit)*-0.2);
+  width: calc(var(--mt-unit)*1.5);
+  height: calc(var(--mt-unit)*1.5);
+  border-radius: 50%;
+  background: var(--mt-red);
+  border: 1px solid #fff;
+  box-shadow: 0 0 calc(var(--mt-unit)*0.6) rgba(255,50,50,0.8);
 }
 
-/* ===== Ресурсы ===== */
+/* ---------- Ресурсы (в центре, БЕЗ контейнера) ---------- */
 .resources {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--mt-unit)*2);
+  gap: calc(var(--mt-unit)*1.8);
   min-width: 0;
-  padding: 0 calc(var(--mt-unit)*1.6);
+  padding: 0;
   overflow: hidden;
-  height: calc(var(--mt-topbar-h) - var(--mt-unit)*1.2);
+  height: auto;
   align-self: center;
-  background: linear-gradient(180deg, rgba(18,12,8,0.7), rgba(12,7,4,0.5));
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
-  border-radius: var(--mt-radius-md);
-  border: var(--mt-panel-border-width) solid rgba(212,168,75,0.35);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.45);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
+
 .res {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*0.8);
+  gap: calc(var(--mt-unit)*0.55);
   color: var(--mt-text);
-  font-size: var(--mt-fs-md);
+  font-size: var(--mt-fs-lg);
   font-weight: 800;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.6);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-/* xs: скрываем подпись работников (число оставляем), сужаем gap ресурсов */
-@media (orientation: landscape) and (max-height: 499px) {
-  .resources { gap: calc(var(--mt-unit)*0.9); overflow: hidden; }
-  .lordName b { max-width: 7ch; overflow: hidden; text-overflow: ellipsis; }
-  .lordTag { display: none; }
-}
-@media (orientation: landscape) and (max-width: 700px) {
-  .resources { gap: calc(var(--mt-unit)*0.7); }
-  .res { font-size: var(--mt-fs-sm); }
-  .resIc { width: calc(var(--mt-unit)*3); height: calc(var(--mt-unit)*3); font-size: calc(var(--mt-unit)*1.6); }
-}
+
 .resIc {
-  width: calc(var(--mt-unit)*3.9);
-  height: calc(var(--mt-unit)*3.9);
+  width: calc(var(--mt-unit)*4.2);
+  height: calc(var(--mt-unit)*4.2);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  border: calc(var(--mt-unit)*0.2) solid var(--mt-gold);
-  background: radial-gradient(circle at 30% 30%, rgba(60,40,20,0.8), rgba(10,6,3,0.85));
-  font-size: calc(var(--mt-unit)*2);
-  box-shadow: 0 2px calc(var(--mt-unit)*0.5) rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,220,160,0.2);
+  /* В VR у иконок ресурсов свой цвет:
+     еда/дерево/камень = коричнево-серый обод, золото = жёлтый, гемы = красный. */
+  border: calc(var(--mt-unit)*0.28) solid rgba(212,168,75,0.6);
+  background: radial-gradient(circle at 30% 25%, #5a4028, #1a0f05 80%);
+  font-size: calc(var(--mt-unit)*2.2);
+  box-shadow:
+    0 2px calc(var(--mt-unit)*0.5) rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,220,160,0.25);
   flex-shrink: 0;
 }
-.resGem b { color: var(--mt-red-light); }
+.resGem .resIc {
+  background: radial-gradient(circle at 30% 25%, #8a2828, #2a0505 80%);
+  border-color: #ff4444;
+  box-shadow:
+    0 2px calc(var(--mt-unit)*0.5) rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,150,150,0.3),
+    0 0 calc(var(--mt-unit)*0.8) rgba(255,60,60,0.35);
+}
+
 .resPlus {
-  width: calc(var(--mt-unit)*3.8);
-  height: calc(var(--mt-unit)*3.8);
-  min-height: 0;
-  border-radius: var(--mt-radius-sm);
-  background: transparent;
-  border: calc(var(--mt-unit)*0.22) solid var(--mt-blue);
-  color: var(--mt-blue-light);
-  font-size: calc(var(--mt-unit)*2.4);
-  font-weight: 900;
+  width: calc(var(--mt-unit)*4.6);
+  height: calc(var(--mt-unit)*4.6);
+  border-radius: calc(var(--mt-unit)*0.5);
+  transform: rotate(45deg);
+  background: linear-gradient(180deg, #4a76c2, #1f3b75);
+  border: calc(var(--mt-unit)*0.22) solid #6a98d8;
+  color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
   padding: 0;
-  margin-left: calc(var(--mt-unit)*0.2);
-  flex-shrink: 0;
+  margin-left: calc(var(--mt-unit)*0.4);
+  box-shadow:
+    0 2px calc(var(--mt-unit)*0.6) rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 0 calc(var(--mt-unit)*0.8) rgba(80,140,230,0.3);
 }
-.resPlus:active { filter: brightness(1.2); }
+.resPlus b {
+  transform: rotate(-45deg);
+  font-size: calc(var(--mt-unit)*2.8);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  display: block;
+}
 
-/* ===== Часы и настройки ===== */
+/* ---------- Правая часть (часы + иконки) БЕЗ контейнера ---------- */
 .topRight {
   flex: 0 0 auto;
   display: flex;
-  align-items: flex-end;
-  gap: calc(var(--mt-unit)*0.8);
-  flex-direction: column;
-  justify-content: center;
-  padding: calc(var(--mt-unit)*0.3) calc(var(--mt-unit)*0.8);
-  background: linear-gradient(180deg, rgba(18,12,8,0.7), rgba(12,7,4,0.5));
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  backdrop-filter: blur(10px) saturate(130%);
-  border-radius: 0 0 var(--mt-radius-md) var(--mt-radius-md);
-  border: var(--mt-panel-border-width) solid rgba(212,168,75,0.35);
-  border-top: none;
-  box-shadow: 0 2px calc(var(--mt-unit)*0.8) rgba(0,0,0,0.45);
-  margin-right: calc(var(--mt-unit)*-0.5);
-  padding-right: calc(var(--mt-unit)*1);
+  align-items: center;
+  gap: calc(var(--mt-unit)*1);
+  justify-content: flex-end;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  margin: 0;
+  height: 100%;
 }
+
 .clock {
-  font-size: var(--mt-fs-xs);
-  font-weight: 700;
   color: var(--mt-text-muted);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-  text-align: right;
+  font-size: var(--mt-fs-sm);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
-.settings { display: flex; gap: calc(var(--mt-unit)*0.5); }
+
+.settings {
+  display: flex;
+  gap: calc(var(--mt-unit)*0.6);
+}
 .iconBtn {
-  width: calc(var(--mt-unit)*4.4);
-  height: calc(var(--mt-unit)*4.4);
+  width: calc(var(--mt-unit)*4.2);
+  height: calc(var(--mt-unit)*4.2);
   min-height: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(60,40,20,0.6), rgba(10,6,3,0.7));
-  border: 1px solid rgba(212,168,75,0.4);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  color: var(--mt-gold-light);
+  background: radial-gradient(circle at 30% 30%, rgba(60,40,20,0.55), rgba(0,0,0,0.6));
+  border: 1px solid rgba(212,168,75,0.25);
+  color: var(--mt-text-muted);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: calc(var(--mt-unit)*2.1);
+  font-size: calc(var(--mt-unit)*2);
   padding: 0;
-  box-shadow: 0 1px calc(var(--mt-unit)*0.4) rgba(0,0,0,0.5);
+  box-shadow: 0 2px calc(var(--mt-unit)*0.5) rgba(0,0,0,0.5);
 }
-.iconBtn:active { color: var(--mt-gold-light); }
+.iconBtn:hover { color: var(--mt-gold-light); border-color: rgba(212,168,75,0.5); }
 
-/* Адаптив: на узких ландшафтах уплотняем отступы ресурсов */
-@media (max-width: 1100px) {
+/* ---------- Адаптив ---------- */
+@media (orientation: landscape) and (max-height: 699px) {
   .resources { gap: calc(var(--mt-unit)*1.3); }
-  .res { font-size: var(--mt-fs-sm); }
-  .resIc { width: calc(var(--mt-unit)*3.2); height: calc(var(--mt-unit)*3.2); font-size: calc(var(--mt-unit)*1.7); }
-  .lordName { max-width: calc(var(--mt-unit)*16); }
+  .lordName { max-width: calc(var(--mt-unit)*18); }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .resIc { width: calc(var(--mt-unit)*3.7); height: calc(var(--mt-unit)*3.7); font-size: calc(var(--mt-unit)*1.9); }
+  .resources { gap: calc(var(--mt-unit)*1.1); }
+  .avatar { width: calc(var(--mt-unit)*7); height: calc(var(--mt-unit)*7); }
+  .lordBadges { left: calc(var(--mt-unit)*4.8); top: calc(var(--mt-unit)*4.8); }
+}
+@media (orientation: landscape) and (max-height: 380px) {
+  .resIc { width: calc(var(--mt-unit)*3.3); height: calc(var(--mt-unit)*3.3); font-size: calc(var(--mt-unit)*1.7); }
+  .resources { gap: calc(var(--mt-unit)*0.9); }
+  .avatar { width: calc(var(--mt-unit)*6.4); height: calc(var(--mt-unit)*6.4); }
+  .lordBadges { left: calc(var(--mt-unit)*4.4); top: calc(var(--mt-unit)*4.4); }
 }
