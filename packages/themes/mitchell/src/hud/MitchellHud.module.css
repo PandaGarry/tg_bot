@@ -1,8 +1,0 @@
-.root {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1000;
-}
-.root > * { pointer-events: auto; }
-.slot { position: relative; z-index: 1040; }

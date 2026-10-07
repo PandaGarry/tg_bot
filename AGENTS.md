@@ -40,7 +40,7 @@ pnpm db:reset             # снести схему базы разработк�
 ```
 apps/client/src/
 ├── game/   — PixiJS. НЕ импортирует React. НЕ использует хуки. Чистый TS.
-├── ui/     — React + Tailwind (World, Hud-адаптер, панели). НЕ импортирует Pixi.
+├── ui/     — React + Tailwind (World, Hud, панели). НЕ импортирует Pixi.
 ├── shell/  — хроника, первый запуск, формы (React).
 ├── i18n/   — словарь ru/en (паритет проверяется `pnpm check`).
 ├── net.ts  — транспорт @tdl/protocol (WS). Только транспорт.
@@ -49,8 +49,10 @@ apps/client/src/
 
 - **ЕДИНСТВЕННАЯ точка связи** Pixi ↔ React — `src/game/bridge.ts` (EventTarget).
   Никаких прямых вызовов методов между `game/` и `ui/`.
-- HUD — тема `packages/themes/mitchell` (`<MitchellHud/>`) + `src/ui/`.
-  Палитра для canvas/спрайтов — `@tdl/theme-mitchell/palette`.
+- HUD — `src/ui/` + `hud.css` (единый источник правды). Визуальный дизайн UI
+  согласуется с заказчиком по процессу «разбор → скелет → варианты → выбор»
+  (этап 2.5, [docs/game/28-pixi-migration.md](docs/game/28-pixi-migration.md)).
+  Палитра для canvas/спрайтов — из палитры дизайна (`hud.css` / дизайн-документ).
 
 ### Правила Pixi (src/game/)
 
@@ -61,7 +63,7 @@ apps/client/src/
 - Статичные контейнеры — `cacheAsTexture()`.
 - Слои: фон → тайлы → здания → эффекты.
 
-### Правила HUD (src/ui/ + packages/themes/mitchell)
+### Правила HUD (src/ui/ + hud.css)
 
 - Tailwind-классы; без inline-стилей, кроме динамики (позиции, прогрессы).
 - `#hud-root { pointer-events: none }`, панели — `pointer-events: auto` —
@@ -87,14 +89,14 @@ apps/client/src/
 - Импортировать `three`, `@react-three/*` (3D вырезан решением заказчика 08.10.2026).
 - Смешивать Pixi и React в одном файле.
 - Прямые вызовы методов между `game/` и `ui/` (только bridge).
-- Хардкодить цвета — CSS-переменные темы Mitchell / `palette.ts`.
+- Хардкодить цвета — CSS-переменные палитры из `hud.css` / дизайн-документа.
 - Добавлять npm-зависимости без согласования с заказчиком.
 - Тронуть рабочую базу `tdl` из тестов.
 
 ## При добавлении нового экрана/сцены
 
 1. Класс сцены — `game/<scene>/<Name>Scene.ts` (Pixi, без React).
-2. HUD-компоненты — `ui/` (или зона темы Mitchell, если это зона HUD).
+2. HUD-компоненты — `ui/` (зоны HUD — в рамках согласованного с заказчиком дизайна).
 3. Связь — только через `bridge.ts` (новые события объявить в bridge).
 4. Unit-тесты на математику (координаты, глубина, границы).
 5. Словарь ru/en для всех новых текстов.

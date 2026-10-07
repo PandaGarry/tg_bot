@@ -12,7 +12,6 @@
   "dependencies": {
     "@tdl/modules": "workspace:*",
     "@tdl/protocol": "workspace:*",
-    "@tdl/theme-mitchell": "workspace:*",
     "pixi.js": "^8.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

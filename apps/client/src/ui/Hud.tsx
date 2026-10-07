@@ -1,55 +1,69 @@
 /**
- * Клиентский адаптер HUD темы Mitchell.
- *
- * ВАЖНО: в этом файле рендерятся ТОЛЬКО элементы, подкреплённые РЕАЛЬНЫМИ
- * данными от сервера. Демо/мок-данные и «заглушки чтобы было» — запрещены.
- * Пока соответствующий модуль не готов и не отдаёт данных, элемент не
- * отображается (не рисуем даже пустую плашку или пузырь «для вида»).
- *
- * Добавление каждого нового визуального элемента согласуется с заказчиком:
- * постоянный это хром или событийный, от каких данных зависит, когда
- * появляется и исчезает.
+ * HUD-хром главного экрана (этап B, круг 8): материалы Bone-Wood №05.
+ * Блок лорда и ресурсы сверху, «Строить»/«Карта» слева, вкладки справа.
+ * Чисел, которых нет в системах, не рисуем: лорд без уровня и силы, пока их не даст шаг 4+.
  */
 
-import { useState, useMemo } from "react";
-import type { ReactNode } from "react";
+import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
-import { MitchellHud, MenuDotsIcon } from "@tdl/theme-mitchell/hud";
-import type {
-  HudMitchellViewModel,
-  HudActionButton,
-  HudEventBadge,
-} from "@tdl/theme-mitchell/hud";
+import { translator } from "../i18n/index.js";
 import { swatch } from "./Create.js";
 import { BuildPanel } from "./BuildPanel.js";
+import { ICON_SRC } from "./iconSrc.js";
 
-type PanelKind = "build" | null;
+const RES_ICONS: Record<string, string> = {
+  meat: "meat",
+  wood: "wood",
+  stone: "stone",
+  metal: "metal",
+  mushrooms: "mushroom",
+  gold: "gold",
+};
 
+type PanelKind = "build" | "train" | "sci" | "commanders" | "clan" | "items" | "shop" | "mail" | null;
+
+/** Левый столбик (по RoK-референсу 2.6): «Строить» + очереди тренировки и исследования.
+    Все иконки HUD уникальны — повторов нет (круг 18). */
+const QUEUES: { kind: "train" | "sci"; icon: string; key: string }[] = [
+  { kind: "train", icon: "swords", key: "shell.hud.queue.train" },
+  { kind: "sci", icon: "flask", key: "shell.hud.queue.sci" },
+];
+
+/** Правая колонка — служебные механики (решение заказчика из круга 4):
+    командиры (шлем), клан (щит), предметы (сумка), лавка, почта. */
+const TABS: { kind: Exclude<PanelKind, "build" | "train" | "sci" | null>; icon: string; key: string }[] = [
+  { kind: "commanders", icon: "helmet", key: "shell.hud.commanders" },
+  { kind: "clan", icon: "clan", key: "shell.hud.clan" },
+  { kind: "items", icon: "bag", key: "shell.hud.items" },
+  { kind: "shop", icon: "shop", key: "shell.hud.shop" },
+  { kind: "mail", icon: "mail", key: "shell.hud.mail" },
+];
+
+/** Короткий формат чисел: миллионы и миллиарды не ломают строку ресурсов (круг 15). */
+// числа (раунд 5): полностью до 100 999 999; сотни млн — «NNN млн»; миллиарды — «1.2 млрд»
 const fmt = (n: number) =>
-  n >= 1e9 ? `${(n / 1e9).toFixed(n % 1e9 ? 1 : 0)}B` :
-  n >= 1e6 ? `${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` :
-  n >= 1e3 ? `${(n / 1e3).toFixed(n % 1e3 ? 1 : 0)}K` :
+  n >= 1e9 ? `${(n / 1e9).toFixed(n % 1e9 ? 1 : 0)} млрд` :
+  n >= 1e8 ? `${Math.floor(n / 1e6)} млн` :
   String(n);
 
-function utcNow(): string {
-  const d = new Date();
-  const pad = (x: number) => x.toString().padStart(2, "0");
-  return `UTC ${d.getUTCFullYear()}/${pad(d.getUTCMonth() + 1)}/${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-}
+/** Целевое левое меню (требования заказчика, круг 14) рисуется только из данных систем:
+    постройка (обычная + ускоренная за донат), марш ×5 с подменю и прогрессом,
+    тренировка ×4 (воины, лучники, всадники, осадное) с таймерами, исследование ×2 с подменю,
+    лазарет — только при раненых. Систем ставит этап C; пустых мест-заглушек больше нет. */
+type QueueCell = { icon: string; key: string };
 
 export function Hud({
   view,
-  lang: _lang,
+  lang,
   placingName,
-  pending: _pending,
+  pending,
   roadTool,
-  onConfirm: _onConfirm,
-  onRemove: _onRemove,
+  onConfirm,
+  onRemove,
   onCancel,
   onPlaceStart,
   onRoadTool,
   onUpgrade,
-  onSettings,
 }: {
   view: WorldViewBase;
   lang: Locale;
@@ -62,119 +76,174 @@ export function Hud({
   onPlaceStart: (type: string) => void;
   onRoadTool: () => void;
   onUpgrade: () => void;
-  onSettings?: () => void;
 }) {
+  const t = translator(lang);
   const [panel, setPanel] = useState<PanelKind>(null);
   const me = view.me;
-  const court = (view.modules.court ?? {}) as { level?: number; power?: number; vipLevel?: number };
+  // Уровень и сила приходят из модуля двора: растут вместе с прогрессом.
+  const court = (view.modules.court ?? {}) as { level?: number; power?: number };
   const level = Number(court.level ?? 1);
   const power = Number(court.power ?? 0);
-  const vipLevel = typeof court.vipLevel === "number" && Number.isFinite(court.vipLevel)
-    ? court.vipLevel
-    : undefined;
+  // Ресурсная строка: пять основных ресурсов игры (материалы HUD, круг 4).
+  // Значения берём со склада сервера; пока модуль двора их не выдаёт — честные нули (круг 11).
   const stock = view.stock ?? {};
-
-  // --- Реальные ресурсы из stock (показываем только те, что реально есть в модели) ---
-  const resources = [
-    stock.meat !== undefined       && { id: "meat",       label: "Мясо",       amount: stock.meat,       icon: "🍖" as const },
-    stock.wood !== undefined       && { id: "wood",       label: "Дерево",      amount: stock.wood,       icon: "🪵" as const },
-    stock.stone !== undefined      && { id: "stone",      label: "Камень",      amount: stock.stone,      icon: "🪨" as const },
-    stock.gold !== undefined       && { id: "gold",       label: "Золото",      amount: stock.gold,       icon: "💰" as const, canRecharge: true },
-    stock.mushrooms !== undefined  && { id: "mushrooms",  label: "Самоцветы",   amount: stock.mushrooms,  icon: "💎" as const, accentColor: "gem" as const },
-  ].filter(Boolean) as HudMitchellViewModel["resources"];
-
-  // --- Навигация: только кнопка стройки на данный момент реально работает ---
-  const noBadge: HudEventBadge = { kind: "none" };
-
-  // Левые кнопки: 🔨 реально открывает BuildPanel, остальные — структура
-  // (пока модули не готовы, оставляем кнопки видимыми как хром, но без клика и бейджей).
-  const leftActions: HudActionButton[] = [
-    { id: "build",    icon: "⛏️", label: "Строительство", onClick: () => setPanel(panel === "build" ? null : "build"), badge: noBadge },
-    // TODO: кнопка «Задания» появится с модулем квестов (пока прячем, нет данных).
-    // TODO: кнопка «Рабочие» появится с модулем населения/армии (пока прячем).
+  const resRow: [string, number][] = [
+    ["meat", stock.meat ?? 0],
+    ["wood", stock.wood ?? 0],
+    ["stone", stock.stone ?? 0],
+    ["metal", stock.metal ?? 0],
+    ["mushrooms", stock.mushrooms ?? 0],
+    ["gold", stock.gold ?? 0],
   ];
 
-  // Быстрые кнопки справа — пока без бейджей и без действий (модули в разработке).
-  // Постоянный хром А: кнопки видны, но клик пока ничего не делает.
-  const quickActions: HudActionButton[] = [
-    // TODO: «Собрать» показываем как пузырь с анимацией ТОЛЬКО когда ферма
-    //       накопила ресурс (по реальному циклу сбора здания). Пока НЕ рисуем.
-    // TODO: «Помощь клана» — после введения клан-модуля. Пока НЕ рисуем.
-    // TODO: «События» — после введения ивентового модуля. Пока НЕ рисуем.
-    // TODO: «Почта» — после модуля почты. Пока НЕ рисуем.
-  ];
-
-  // Щитовая навигация — постоянный хром А.
-  // На данный момент только кнопки-скелеты без действий (все будущие экраны в разработке).
-  const shieldNav: HudActionButton[] = [
-    { id: "heroes", icon: "⛑",  label: "Герои",    badge: noBadge },
-    { id: "items",  icon: "🎒",  label: "Предметы", badge: noBadge },
-    { id: "army",   icon: "⚔",   label: "Армия",    badge: noBadge },
-    { id: "clan",   icon: "🚩",  label: "Клан",     badge: noBadge },
-    { id: "more",   icon: <MenuDotsIcon />,  label: "Ещё",      badge: noBadge },
-  ];
-
-  // --- Собираем модель ---
-  const model = useMemo<HudMitchellViewModel>(() => {
-    return {
-      utcClock: utcNow(),
-      soundOn: true,
-      lord: me ? {
-        name: me.name,
-        clanTag: undefined, // TODO: клан-тег из клан-модуля, когда будет
-        power,
-        level,
-        vipLevel,
-        bannerColor: swatch(me.bannerColor),
-        avatarNode: (
-          <img
-            src="icons/i-lord.png"
-            alt=""
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ),
-        buffActive: false, // TODO: реальный buff из модуля эффектов
-      } : {
-        name: "Лорд",
-        power,
-        level,
-        buffActive: false,
-      },
-      // Работники/армия — пока нет модуля, не показываем.
-      idleWorkers: undefined,
-      resources,
-      // Баннеры/квесты/очереди/марши/чат-пузыри: модули в разработке — не рендерим.
-      eventBanner: undefined,
-      quest: undefined,
-      queues: [],
-      leftActions,
-      compassLabel: "Карта мира",
-      chat: [],
-      marches: [],
-      quickActions,
-      shieldNav,
-      bubbles: [],
-      placingHint: placingName ? { label: placingName, onCancel } : null,
-      tapeMessage: undefined,
-      tapeActions: undefined,
-    };
-  }, [me, power, level, vipLevel, resources, leftActions, quickActions, shieldNav, placingName, onCancel]);
-
-  // Дети HUD — только реальная панель строительства при открытии
-  const children: ReactNode = panel === "build" ? (
-    <BuildPanel
-      view={view}
-      lang={_lang}
-      roadTool={roadTool}
-      onPlaceStart={(type) => { setPanel(null); onPlaceStart(type); }}
-      onRoadTool={() => { setPanel(null); onRoadTool(); }}
-      onUpgrade={onUpgrade}
-    />
-  ) : null;
+  const TITLES: Record<Exclude<PanelKind, null>, string> = {
+    build: "shell.hud.build",
+    train: "shell.hud.queue.train",
+    sci: "shell.hud.queue.sci",
+    commanders: "shell.hud.commanders",
+    clan: "shell.hud.clan",
+    items: "shell.hud.items",
+    shop: "shell.hud.shop",
+    mail: "shell.hud.mail",
+  };
+  const panelTitle = panel ? t(TITLES[panel]) : "";
+  const panelText = panel === "build" ? t("shell.hud.soon.build") : t("shell.hud.soon");
 
   return (
-    <MitchellHud model={model} on={onSettings ? { settings: onSettings } : undefined}>
-      {children}
-    </MitchellHud>
+    <>
+      {/* панель персонажа по прототипу HUD: портрет-ячейка, ник, «Ур.» + полоса опыта, VIP.
+          Уровень, опыт и VIP появят системы (этап C/D) — пока вид с честными стартовыми значениями. */}
+      {/* верхняя строка: карточка лорда и ресурсы — flex не даёт им пересечься */}
+      <div className="hud-top">
+      {me ? (
+        <div className="hud-lord">
+          <span className="portrait" style={{ background: swatch(me.bannerColor) }}>
+            <img className="hud-ic" src="icons/i-lord.png" alt="" />
+          </span>
+          <span className="rows">
+            <span className="name-row">
+              <b>{me.name}</b>
+              <i className="lvl-tag">Ур. {level}</i>
+            </span>
+            <span className="power-row">
+              <img src="icons/i-power.png" alt="" />
+              <b>{fmt(power)}</b>
+            </span>
+            <span className="vip-row">
+              <span className="vipb">
+                <img className="hud-ic" src="icons/crown.png" alt="" />
+                VIP 1
+              </span>
+            </span>
+          </span>
+        </div>
+      ) : null}
+
+      {/* ресурсы двора */}
+      <div className="hud-res">
+        {resRow.map(([id, amount]) => (
+          <span className={`chip${id === "gold" ? " chip-gold" : ""}`} key={id}>
+            <span className="ic">
+              <img className="hud-ic" src={`icons/${RES_ICONS[id] ?? "gear"}.png`} alt="" />
+            </span>
+            <b>{fmt(amount)}</b>
+          </span>
+        ))}
+      </div>
+      </div>
+
+      {/* левая панель: «Строить» и очереди (карта одна — в нижнем доке, круг 17) */}
+      <div className="hud-rb-row">
+        <button type="button" className="hud-rb" onClick={() => setPanel(panel === "build" ? null : "build")}>
+          <img className="hud-ic" src={ICON_SRC.hammer} alt="" />
+        </button>
+        {QUEUES.map((q) => (
+          <button
+            key={q.kind}
+            type="button"
+            className="hud-queue"
+            onClick={() => setPanel(panel === q.kind ? null : q.kind)}
+          >
+            <img className="hud-ic" src={ICON_SRC[q.icon] ?? "icons/gear.png"} alt="" />
+          </button>
+        ))}
+      </div>
+
+      {/* правая панель: полководцы, клан, предметы, лавка */}
+      <div className="hud-tabs">
+        {TABS.map((tab) => (
+          <button
+            key={tab.kind}
+            type="button"
+            className="hud-tab"
+            onClick={() => setPanel(panel === tab.kind ? null : tab.kind)}
+          >
+            <img className="hud-ic" src={ICON_SRC[tab.icon] ?? "icons/gear.png"} alt="" />
+          </button>
+        ))}
+      </div>
+
+      {/* панель строительства: живые вкладки и карточки; остальные панели — честное «придёт позже» */}
+      {panel === "build" ? (
+        <BuildPanel
+          view={view}
+          lang={lang}
+          roadTool={roadTool}
+          onPlaceStart={(type) => {
+            setPanel(null);
+            onPlaceStart(type);
+          }}
+          onRoadTool={() => {
+            setPanel(null);
+            onRoadTool();
+          }}
+          onUpgrade={onUpgrade}
+        />
+      ) : null}
+      {panel && panel !== "build" ? (
+        <div className="hud-panel">
+          <b>{panelTitle}</b>
+          <p>{panelText}</p>
+          <button type="button" onClick={() => setPanel(null)}>
+            {t("shell.tape.ok")}
+          </button>
+        </div>
+      ) : null}
+
+      {/* выбор клетки: только отмена — текст не нужен */}
+      {!pending && !roadTool && placingName ? (
+        <div className="place-bar">
+          <button type="button" onClick={onCancel}>
+            {t("shell.hud.build.cancel")}
+          </button>
+        </div>
+      ) : null}
+
+      {/* подтверждение: призрак на клетке — «Подтвердить»; переносимое можно и убрать */}
+      {pending ? (
+        <div className="place-bar">
+          <button type="button" className="ok" onClick={onConfirm}>
+            {t("shell.hud.build.confirm")}
+          </button>
+          {pending.move && pending.removable ? (
+            <button type="button" className="warn" onClick={onRemove}>
+              {t("shell.hud.build.remove")}
+            </button>
+          ) : null}
+          <button type="button" onClick={onCancel}>
+            {t("shell.hud.build.cancel")}
+          </button>
+        </div>
+      ) : null}
+
+      {/* режим дороги: тап кладёт или убирает плиту */}
+      {!pending && roadTool ? (
+        <div className="place-bar">
+          <button type="button" onClick={onCancel}>
+            {t("shell.hud.road.done")}
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 }

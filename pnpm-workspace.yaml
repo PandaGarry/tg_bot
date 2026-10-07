@@ -2,7 +2,6 @@ packages:
   - "apps/*"
   - "packages/*"
   - "packages/modules/*"
-  - "packages/themes/*"
   - "tools"
 
 # Сборка бинарных зависимостей, которым она нужна.
