@@ -19,7 +19,7 @@ export function ShieldNav({ actions }: { actions: HudActionButton[] }) {
           onClick={a.onClick}
           disabled={!a.onClick}
         >
-          {a.icon}
+          <span className={styles.icon} aria-hidden="true">{a.icon}</span>
           <Badge badge={a.badge} />
         </button>
       ))}

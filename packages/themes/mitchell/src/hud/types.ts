@@ -21,6 +21,8 @@ export interface HudLord {
   clanTag?: string;
   power: number;
   level: number;
+  /** Реальный VIP-уровень из игровых данных; не подменять уровнем ратуши. */
+  vipLevel?: number;
   /** Содержимое аватара (emoji или <img> уже в разметке адаптера). */
   bannerColor?: string;
   avatarNode?: ReactNode;

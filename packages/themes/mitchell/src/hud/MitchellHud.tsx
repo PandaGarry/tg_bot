@@ -96,22 +96,6 @@ export function MitchellHud({ model, on, children }: MitchellHudProps) {
         <PlacingHint label={model.placingHint.label} onCancel={model.placingHint.onCancel} />
       ) : null}
 
-      {/* Лента-хроника */}
-      {model.tapeMessage ? (
-        <div className={styles.tape}>
-          <div className={styles.tapeMsg}>{model.tapeMessage}</div>
-          {model.tapeActions && model.tapeActions.length > 0 ? (
-            <div className={styles.tapeActions}>
-              {model.tapeActions.map((a, i) => (
-                <button key={i} type="button" className={styles.tapeBtn} onClick={a.onClick}>
-                  {a.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       {/* Слот для модалов и оверлеев клиента (строительная панель и т.п.) */}
       {children ? <div className={styles.slot}>{children}</div> : null}
     </div>

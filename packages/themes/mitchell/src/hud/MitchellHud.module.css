@@ -1,46 +1,8 @@
-.root { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
 .root > * { pointer-events: auto; }
-
-/* Хроника / лента событий — плоская полоска матового стекла */
-.tape {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(var(--mt-corner) + var(--mt-space) + var(--mt-unit)*3 + var(--mt-safe-b));
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: calc(var(--mt-unit)*1);
-  background: var(--mt-glass-bg-strong);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--mt-stroke);
-  border-radius: var(--mt-radius-md);
-  padding: calc(var(--mt-unit)*0.8) calc(var(--mt-unit)*1.4);
-  color: var(--mt-text);
-  font-size: var(--mt-fs-sm);
-  font-weight: 500;
-  line-height: 1.4;
-  box-shadow: var(--mt-shadow-panel);
-  max-width: 60vw;
-}
-.tapeMsg { flex: 1; min-width: 0; }
-.tapeActions { display: flex; gap: calc(var(--mt-unit)*0.8); flex-shrink: 0; }
-.tapeBtn {
-  min-height: 0;
-  padding: 6px 12px;
-  border-radius: var(--mt-radius-sm);
-  background: rgba(184,138,64,0.25);
-  border: 1px solid var(--mt-stroke-accent);
-  color: var(--mt-gold-light);
-  font-weight: 500;
-  cursor: pointer;
-  font-size: var(--mt-fs-xs);
-}
-.tapeBtn:active { background: rgba(184,138,64,0.45); }
-
-.slot { position: relative; z-index: 40; }
-
-@media (orientation: landscape) and (max-height: 499px) {
-  .tape { display: none; }
-}
+.slot { position: relative; z-index: 1040; }

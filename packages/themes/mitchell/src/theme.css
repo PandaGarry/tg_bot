@@ -9,6 +9,27 @@
   --mt-glass-nav-hi:  rgba(52,62,86,0.92);
   --mt-glass-graphite: rgba(40,32,22,0.88);  /* дерево-графит */
   --mt-glass-graphite-hi: rgba(58,44,30,0.92);
+  /* Плоские UI-поверхности пяти основных зон HUD */
+  --mt-nav-flat-hi:   #303a50;
+  --mt-nav-flat:      #1a2234;
+  --mt-nav-flat-low:  #0e121e;
+  --mt-wood-deep:      #160e06;
+  --mt-resource-capsule: rgba(22,14,6,0.7);
+  --mt-resource-stroke: rgba(224,176,74,0.3);
+  --mt-avatar-surface: #2a1a0c;
+  --mt-topbar-shade: rgba(16,10,4,0.48);
+  --mt-topbar-shade-soft: rgba(16,10,4,0.12);
+  --mt-inset-highlight: rgba(255,225,180,0.22);
+  --mt-ink-shadow: rgba(0,0,0,0.55);
+  --mt-resource-text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  --mt-white: #ffffff;
+  --mt-wash-gold: rgba(184,138,64,0.2);
+  --mt-wash-red: rgba(168,56,44,0.2);
+  --mt-wash-blue: rgba(58,111,180,0.2);
+  --mt-wash-green: rgba(90,128,56,0.2);
+  --mt-wash-bone: rgba(243,233,208,0.1);
+  --mt-stroke-soft: rgba(243,233,208,0.12);
+  --mt-stroke-white: rgba(255,255,255,0.3);
   --mt-stroke:        rgba(255,225,180,0.12);
   --mt-stroke-bright: rgba(255,225,180,0.28);
   --mt-stroke-accent: rgba(224,176,74,0.45);
@@ -27,12 +48,12 @@
   --mt-green:       #5a8038;          /* болотно-зелёный */
   --mt-green-dark:  #3d5a24;
   --mt-emerald:     #5a8038;          /* псевдоним на болотный */
-  --mt-emerald-hi:  #88b050;
+  --mt-emerald-hi:  #77914a;          /* muted swamp-green highlight */
   --mt-graphite:    #3a3530;
   --mt-red:         #a8382c;
-  --mt-red-light:   #d45848;
-  --mt-purple:      #6e4a8a;
-  --mt-orange:      #c06a24;
+  --mt-red-light:   #c45e4a;
+  --mt-purple:      var(--mt-red);    /* non-original purple accents map to muted red */
+  --mt-orange:      var(--mt-bronze);
 
   /* Текст — кость/золото */
   --mt-text:        #f3e9d0;
@@ -95,16 +116,19 @@
 }
 
 /* ====== Базовые стили документа ====== */
-html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; }
+html, body, #root { height: 100%; min-height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
 @supports (height: 100dvh) {
-  html, body, #root { height: 100dvh; }
+  html, body, #root { height: 100dvh; min-height: 100dvh; }
 }
 html {
-  background: #0a101c;
+  background: var(--mt-glass-bg-strong);
   color: var(--mt-text);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+/* Скрыть скроллбары везде (мобильный webview) */
+::-webkit-scrollbar { display: none; width: 0; height: 0; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
 body {
   overflow: hidden;
   touch-action: manipulation;
@@ -155,7 +179,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   gap: calc(var(--mt-unit) * 2.5);
   padding: calc(var(--mt-unit) * 4);
   text-align: center;
-  background: linear-gradient(180deg, #12203a, #08101c);
+  background: linear-gradient(180deg, var(--mt-glass-bg), var(--mt-wood-deep));
   color: var(--mt-text);
 }
 .mt-portrait-guard__icon {
@@ -163,7 +187,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   height: calc(var(--mt-unit) * 8);
   border-radius: var(--mt-radius-md);
   border: 2px solid var(--mt-bronze);
-  background: rgba(198,148,80,0.12);
+  background: var(--mt-wash-gold);
   display: grid;
   place-items: center;
   font-size: calc(var(--mt-unit) * 4);
@@ -201,7 +225,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   :root {
     --mt-unit: 4px;
     --mt-space: 6px;
-    --mt-topbar-h: 36px;
+    --mt-topbar-h: 64px;
     --mt-corner: 44px;
     --mt-hex-size: 40px;
     --mt-top-stack-gap: 6px;
@@ -220,7 +244,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   :root {
     --mt-unit: 5px;
     --mt-space: 8px;
-    --mt-topbar-h: 42px;
+    --mt-topbar-h: 64px;
     --mt-corner: 52px;
     --mt-hex-size: 50px;
     --mt-top-stack-gap: 8px;

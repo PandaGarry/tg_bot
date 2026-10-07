@@ -17,8 +17,6 @@
   min-height: 42px;
   border-radius: 50%;
   background: var(--mt-glass-graphite);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   border: 1px solid var(--mt-stroke);
   display: grid;
   place-items: center;
@@ -29,9 +27,9 @@
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.slot:hover { background: rgba(60,70,85,0.7); }
+.slot:hover { background: var(--mt-glass-graphite-hi); }
 .slotEmpty {
-  border-color: rgba(255,255,255,0.08);
+  border-color: var(--mt-stroke-soft);
   opacity: 0.5;
 }
 .ph {
@@ -44,12 +42,12 @@
   font-size: calc(var(--mt-unit)*2.2);
   color: var(--mt-text-dim);
 }
-.slotEmpty .ph { border-color: rgba(255,255,255,0.1); color: var(--mt-text-dim); }
+.slotEmpty .ph { border-color: var(--mt-stroke-soft); color: var(--mt-text-dim); }
 .time {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: calc(var(--mt-unit)*1.6);
-  background: linear-gradient(180deg, transparent, rgba(30,50,90,0.85));
+  background: linear-gradient(180deg, transparent, var(--mt-glass-bg-strong));
   color: var(--mt-text);
   font-size: calc(var(--mt-fs-xs)*0.85);
   text-align: center;

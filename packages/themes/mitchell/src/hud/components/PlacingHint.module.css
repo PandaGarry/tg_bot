@@ -1,12 +1,10 @@
 .hint {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(var(--mt-corner) + var(--mt-space) * 3 + var(--mt-safe-b));
+  position: fixed;
+  left: calc(var(--mt-space) + var(--mt-safe-l));
+  transform: none;
+  bottom: calc(56px + var(--mt-space) * 2 + var(--mt-safe-b));
   z-index: 35;
   background: var(--mt-glass-bg-strong);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
   color: var(--mt-text);
   border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-md);

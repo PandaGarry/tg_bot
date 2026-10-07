@@ -16,8 +16,6 @@
   max-width: 210px;
   padding: calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*1) calc(var(--mt-unit)*0.6) calc(var(--mt-unit)*5.4);
   background: var(--mt-glass-bg-strong);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
   border: 1px solid var(--mt-stroke);
   border-radius: var(--mt-radius-md);
   color: var(--mt-text);
@@ -40,14 +38,14 @@
   background: var(--mt-glass-graphite);
   border: 1px solid var(--mt-stroke);
 }
-.icBuild    { background: rgba(200,160,60,0.2); border-color: rgba(200,160,60,0.4); color: var(--mt-gold); }
-.icTrain    { background: rgba(224,88,88,0.2); border-color: rgba(224,88,88,0.4); color: var(--mt-red); }
-.icResearch { background: rgba(80,150,230,0.2); border-color: rgba(80,150,230,0.4); color: var(--mt-blue-light); }
+.icBuild    { background: var(--mt-wash-gold); border-color: var(--mt-stroke-accent); color: var(--mt-gold); }
+.icTrain    { background: var(--mt-wash-red); border-color: var(--mt-red-light); color: var(--mt-red); }
+.icResearch { background: var(--mt-wash-blue); border-color: var(--mt-blue); color: var(--mt-blue-light); }
 
 .name { font-weight: 600; font-size: var(--mt-fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar {
   height: calc(var(--mt-unit)*0.5);
-  background: rgba(255,255,255,0.1);
+  background: var(--mt-wash-bone);
   border-radius: calc(var(--mt-unit)*0.3);
   margin: calc(var(--mt-unit)*0.4) 0 calc(var(--mt-unit)*0.2);
   overflow: hidden;
@@ -60,7 +58,7 @@
   transition: width 0.3s linear;
 }
 .fillBuild    { background: linear-gradient(90deg, var(--mt-gold-dark), var(--mt-gold-light)); }
-.fillTrain    { background: linear-gradient(90deg, #a82828, var(--mt-red)); }
+.fillTrain    { background: linear-gradient(90deg, var(--mt-red), var(--mt-red-light)); }
 .fillResearch { background: linear-gradient(90deg, var(--mt-blue-dark), var(--mt-blue-light)); }
 .time {
   font-size: var(--mt-fs-xs);
@@ -77,9 +75,9 @@
   height: calc(var(--mt-unit)*3.4);
   min-height: 0;
   border-radius: 50%;
-  background: rgba(140,107,212,0.25);
-  border: 1px solid rgba(140,107,212,0.5);
-  color: #d0bcff;
+  background: var(--mt-wash-gold);
+  border: 1px solid var(--mt-stroke-accent);
+  color: var(--mt-gold-light);
   font-size: calc(var(--mt-unit)*1.6);
   display: grid;
   place-items: center;
@@ -87,7 +85,7 @@
   box-shadow: var(--mt-shadow-soft);
   cursor: pointer;
 }
-.speedUp:active { background: rgba(140,107,212,0.45); }
+.speedUp:active { background: var(--mt-wash-gold); }
 
 @media (orientation: landscape) and (max-height: 699px) {
   .queue {

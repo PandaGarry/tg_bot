@@ -1,66 +1,71 @@
-/* Нижняя навигация — ГЕКСАГОНАЛЬНЫЕ "каменные плиты" с лёгким объёмом.
-   Плоский low-poly стиль, без текстур, но с градиентом, имитирующим
-   скошенную фаску (светлая кромка сверху, тёмный низ).
-   Размер >=60px, удобный для пальца. */
-
+/* Bottom-right navigation: 64px pointy-top hexes with 54px icon slots. */
 .nav {
-  position: absolute;
+  position: fixed;
   right: calc(var(--mt-space) + var(--mt-safe-r));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
   display: flex;
-  gap: calc(var(--mt-unit)*1.1);
-  z-index: 25;
-  padding: calc(var(--mt-unit)*0.6) 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  z-index: 1020;
 }
-
 .shield {
   position: relative;
+  box-sizing: border-box;
   width: 64px;
   height: 64px;
   min-width: 64px;
   min-height: 64px;
+  flex: 0 0 64px;
   display: grid;
   place-items: center;
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background:
-    linear-gradient(180deg,
-      var(--mt-glass-nav-hi) 0%,
-      var(--mt-glass-nav) 45%,
-      rgba(18,24,40,0.95) 100%);
-  border: none;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  color: #ffffff;
-  cursor: pointer;
-  /* ИКОНКА 85% = ~54-56px при кнопке 64px */
-  font-size: 54px;
-  line-height: 1;
-  text-shadow: 0 2px 3px rgba(0,0,20,0.7);
-  box-shadow:
-    0 5px 16px rgba(0,0,0,0.55),
-    inset 0 2px 0 rgba(255,225,180,0.2),
-    inset 0 -3px 5px rgba(0,0,0,0.5);
   padding: 0;
+  border: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(180deg, var(--mt-nav-flat-hi), var(--mt-nav-flat) 48%, var(--mt-nav-flat-low));
+  color: var(--mt-white);
+  cursor: pointer;
+  box-shadow: 0 4px 10px var(--mt-ink-shadow);
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 .shield::before {
   content: "";
   position: absolute;
-  inset: 1px;
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,225,180,0.18),
-    inset 0 0 0 2px rgba(138,106,52,0.4);
+  inset: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--mt-bronze);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   pointer-events: none;
+  z-index: 2;
 }
-.shield:hover { filter: brightness(1.12); }
+/* Icon viewport occupies 54/64px (84.4%). Emoji assets are rendered white. */
+.icon {
+  position: relative;
+  z-index: 1;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--mt-white);
+  font-size: 54px;
+  line-height: 1;
+  filter: grayscale(1) brightness(0) invert(1) drop-shadow(0 1px 2px var(--mt-ink-shadow));
+}
+.dots {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+}
+.dots i {
+  display: block;
+  border-radius: 50%;
+  background: currentColor;
+}
+.shield:hover { filter: brightness(1.1); }
 .shield:active { transform: scale(0.94); }
-.shield[disabled] { opacity: 0.45; cursor: default; }
-
-@media (orientation: landscape) and (max-height: 520px) {
-  .nav { gap: 8px; }
-  .shield { width: 56px; height: 56px; min-width: 56px; min-height: 56px; font-size: 46px; }
-}
-@media (orientation: landscape) and (max-height: 380px) {
-  .shield { width: 48px; height: 48px; min-width: 48px; min-height: 48px; font-size: 40px; }
-}
+.shield[disabled] { opacity: 0.72; cursor: default; }

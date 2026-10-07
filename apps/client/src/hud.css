@@ -375,8 +375,7 @@
   font-size: 12px;
 }
 
-/* ---------- навигация-док: скрыт на экране Двора (используется MitchellHud с собственным HUD).
-   Показывается только на маршрутах reports/map/chronicle/sheet (не-court страницах). */
+/* Legacy navigation remains on non-court routes; court uses the top-right menu. */
 .game-nav {
   position: fixed;
   left: 50%;
@@ -961,4 +960,50 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Route shortcuts moved out of the bottom-center dock into the top-right gear menu. */
+.court-menu {
+  position: fixed;
+  top: calc(var(--mt-topbar-h) + var(--mt-safe-t) + 4px);
+  right: calc(var(--mt-space) + var(--mt-safe-r));
+  z-index: 1100;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: min(260px, calc(100vw - 24px - var(--mt-safe-l) - var(--mt-safe-r)));
+  max-height: calc(100dvh - var(--mt-topbar-h) - var(--mt-safe-t) - var(--mt-safe-b) - 16px);
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--mt-stroke-accent);
+  border-radius: 12px;
+  background: var(--mt-glass-bg-strong);
+  color: var(--mt-text);
+  box-shadow: var(--mt-shadow-deep);
+}
+.court-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mt-text);
+  text-align: left;
+  font-size: 14px;
+}
+.court-menu button.active {
+  background: var(--mt-glass-capsule);
+  outline: 1px solid var(--mt-stroke-accent);
+}
+.court-menu button:hover { background: var(--mt-glass-graphite); }
+.court-menu .nic {
+  display: block;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }

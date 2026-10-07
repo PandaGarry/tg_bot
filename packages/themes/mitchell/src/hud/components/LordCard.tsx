@@ -8,27 +8,30 @@ const fmt = (n: number) =>
   String(n);
 
 /**
- * Компактный профиль в левом верхнем углу: круглый матово-стеклянный
- * аватар с тонкой светлой обводкой, рядом БЕЛЫМ тонким шрифтом мощи,
- * под ними тонкая синяя полоса XP. Бейдж уровня в углу аватара.
- * Flat low-poly — никаких текстур/завитушек.
+ * Top-left player profile: 48px avatar, overlaid 16px level badge, power
+ * and an optional VIP badge. No XP strip or fabricated VIP value on the HUD.
  */
 export function LordCard({ lord }: { lord: HudLord }) {
   return (
     <div className={styles.lord}>
       <span className={styles.avatar} style={lord.bannerColor ? { background: lord.bannerColor } : undefined}>
         {lord.avatarNode ?? lord.name.charAt(0)}
+        <span className={styles.lordBadges}>
+          <span className={styles.buff}>{lord.level}</span>
+        </span>
       </span>
       <span className={styles.lordInfo}>
         <span className={styles.lordName}><b>{lord.name}</b></span>
         <span className={styles.lordPower}>
-          <span className={styles.icPower}>⚔</span>
+          <span className={styles.icPower} aria-hidden="true">⚔</span>
           <b>{fmt(lord.power)}</b>
+          {typeof lord.vipLevel === "number" && lord.vipLevel > 0 ? (
+            <span className={styles.lordVip} aria-label={`VIP ${lord.vipLevel}`} title={`VIP ${lord.vipLevel}`}>
+              <span className={styles.lordVipIcon} aria-hidden="true">♛</span>
+              <span className={styles.lordVipValue}>{lord.vipLevel}</span>
+            </span>
+          ) : null}
         </span>
-        <span className={styles.lordXp}><i style={{ width: "62%" }} /></span>
-      </span>
-      <span className={styles.lordBadges}>
-        <span className={styles.buff}>{lord.level}</span>
       </span>
     </div>
   );

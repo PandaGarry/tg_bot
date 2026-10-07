@@ -24,14 +24,14 @@
   font-weight: 500;
 }
 .build   { background: var(--mt-glass-graphite); }
-.upgrade { background: var(--mt-blue); color: #fff; border-color: var(--mt-blue-light); font-weight: 600; }
+.upgrade { background: var(--mt-blue); color: var(--mt-white); border-color: var(--mt-blue-light); font-weight: 600; }
 .idle    { background: var(--mt-glass-bg); }
-.collect { background: var(--mt-emerald); color: #fff; border-color: var(--mt-emerald-hi); }
-.help    { background: var(--mt-blue-dark); color: #fff; border-color: var(--mt-blue-light); }
+.collect { background: var(--mt-emerald); color: var(--mt-white); border-color: var(--mt-emerald-hi); }
+.help    { background: var(--mt-blue-dark); color: var(--mt-white); border-color: var(--mt-blue-light); }
 .attack  {
   background: var(--mt-red);
-  color: #fff;
-  border-color: #ff8080;
+  color: var(--mt-white);
+  border-color: var(--mt-red-light);
   animation: mt-pop-in 0.3s ease-out, mt-pulse 1.2s infinite;
 }
 .ring {

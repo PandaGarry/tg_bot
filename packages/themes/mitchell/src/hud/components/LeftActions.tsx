@@ -18,7 +18,7 @@ export function LeftActions({ actions }: { actions: HudActionButton[] }) {
           onClick={a.onClick}
           disabled={!a.onClick}
         >
-          <span>{a.icon}</span>
+          <span className={styles.icon} aria-hidden="true">{a.icon}</span>
           <Badge badge={a.badge} />
         </button>
       ))}

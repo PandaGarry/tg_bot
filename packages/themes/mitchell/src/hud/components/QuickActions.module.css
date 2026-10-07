@@ -1,54 +1,56 @@
-/* Правый столбец быстрых действий (почта/книга/и т.п.) — круглые
-   небольшие кнопки, тонкие, в цвете графита/дерева с цветными акцентами. */
+/* Optional right-side quick actions: palette tokens only, no cold glass. */
 .quick {
-  position: absolute;
+  position: fixed;
   right: calc(var(--mt-space) + var(--mt-safe-r));
   bottom: calc(64px + var(--mt-space) + var(--mt-unit)*2 + var(--mt-safe-b));
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 20;
+  z-index: 1010;
 }
 .btn {
   position: relative;
+  box-sizing: border-box;
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
-  background: linear-gradient(180deg,
-    var(--mt-glass-graphite-hi) 0%,
-    var(--mt-glass-graphite) 50%,
-    rgba(18,12,4,0.96) 100%);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--mt-stroke);
+  border: 1px solid var(--mt-stroke-accent);
+  background: linear-gradient(180deg, var(--mt-glass-graphite-hi), var(--mt-glass-graphite) 55%, var(--mt-wood-deep));
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 22px;
   color: var(--mt-text);
+  font-size: 22px;
   padding: 0;
-  box-shadow:
-    0 3px 10px rgba(0,0,0,0.5),
-    inset 0 2px 0 rgba(255,225,180,0.18),
-    inset 0 -2px 4px rgba(0,0,0,0.45);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  box-shadow: 0 3px 9px var(--mt-ink-shadow), inset 0 1px 0 var(--mt-inset-highlight);
+  text-shadow: 0 1px 2px var(--mt-ink-shadow);
   transition: transform 0.1s ease, filter 0.15s ease;
+}
+.btn > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  line-height: 1;
 }
 .btn:hover { filter: brightness(1.12); }
 .btn:active { transform: scale(0.94); }
-.green { background: linear-gradient(180deg,#4a7238 0%,#2e4a1e 50%,#182c10 100%); border-color: rgba(160,200,90,0.35); }
-.blue  { background: linear-gradient(180deg,#3a6fb4 0%,#234a7c 50%,#102448 100%); border-color: rgba(130,170,230,0.4); }
-.dark  { background: linear-gradient(180deg,var(--mt-glass-graphite-hi),var(--mt-glass-graphite) 50%,rgba(18,12,4,0.96)); }
-.red   { background: linear-gradient(180deg,#a84838 0%,#6c241c 50%,#3a100a 100%); border-color: rgba(220,120,100,0.4); }
-.teal  { background: linear-gradient(180deg,#4a7238 0%,#2e4a1e 50%,#182c10 100%); border-color: rgba(160,200,90,0.35); }
+.green { background: linear-gradient(180deg, var(--mt-green), var(--mt-green-dark)); border-color: var(--mt-green); }
+.blue  { background: linear-gradient(180deg, var(--mt-blue), var(--mt-blue-dark)); border-color: var(--mt-blue); }
+.dark  { background: linear-gradient(180deg, var(--mt-glass-graphite-hi), var(--mt-glass-graphite) 55%, var(--mt-wood-deep)); }
+.red   { background: linear-gradient(180deg, var(--mt-red-light), var(--mt-red)); border-color: var(--mt-red-light); }
+.teal  { background: linear-gradient(180deg, var(--mt-green), var(--mt-green-dark)); border-color: var(--mt-green); }
 
 @media (orientation: landscape) and (max-height: 520px) {
   .quick { gap: 6px; bottom: calc(56px + var(--mt-space) + 6px + var(--mt-safe-b)); }
-  .btn { width: 40px; height: 40px; font-size: 20px; min-width: 40px; min-height: 40px; }
+  .btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+  .btn > span { width: 32px; height: 32px; font-size: 26px; }
 }
 @media (orientation: landscape) and (max-height: 380px) {
   .quick { bottom: calc(48px + var(--mt-space) + 4px + var(--mt-safe-b)); gap: 4px; }
-  .btn { width: 36px; height: 36px; font-size: 18px; min-width: 36px; min-height: 36px; }
+  .btn { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+  .btn > span { width: 30px; height: 30px; font-size: 24px; }
 }

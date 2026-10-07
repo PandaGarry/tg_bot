@@ -49,6 +49,7 @@ export function Hud({
   onPlaceStart,
   onRoadTool,
   onUpgrade,
+  onSettings,
 }: {
   view: WorldViewBase;
   lang: Locale;
@@ -61,12 +62,16 @@ export function Hud({
   onPlaceStart: (type: string) => void;
   onRoadTool: () => void;
   onUpgrade: () => void;
+  onSettings?: () => void;
 }) {
   const [panel, setPanel] = useState<PanelKind>(null);
   const me = view.me;
-  const court = (view.modules.court ?? {}) as { level?: number; power?: number };
+  const court = (view.modules.court ?? {}) as { level?: number; power?: number; vipLevel?: number };
   const level = Number(court.level ?? 1);
   const power = Number(court.power ?? 0);
+  const vipLevel = typeof court.vipLevel === "number" && Number.isFinite(court.vipLevel)
+    ? court.vipLevel
+    : undefined;
   const stock = view.stock ?? {};
 
   // --- Реальные ресурсы из stock (показываем только те, что реально есть в модели) ---
@@ -84,7 +89,7 @@ export function Hud({
   // Левые кнопки: 🔨 реально открывает BuildPanel, остальные — структура
   // (пока модули не готовы, оставляем кнопки видимыми как хром, но без клика и бейджей).
   const leftActions: HudActionButton[] = [
-    { id: "build",    icon: "🔨", label: "Строительство", onClick: () => setPanel(panel === "build" ? null : "build"), badge: noBadge },
+    { id: "build",    icon: "⛏️", label: "Строительство", onClick: () => setPanel(panel === "build" ? null : "build"), badge: noBadge },
     // TODO: кнопка «Задания» появится с модулем квестов (пока прячем, нет данных).
     // TODO: кнопка «Рабочие» появится с модулем населения/армии (пока прячем).
   ];
@@ -119,6 +124,7 @@ export function Hud({
         clanTag: undefined, // TODO: клан-тег из клан-модуля, когда будет
         power,
         level,
+        vipLevel,
         bannerColor: swatch(me.bannerColor),
         avatarNode: (
           <img
@@ -152,7 +158,7 @@ export function Hud({
       tapeMessage: undefined,
       tapeActions: undefined,
     };
-  }, [me, power, level, resources, leftActions, quickActions, shieldNav, placingName, onCancel]);
+  }, [me, power, level, vipLevel, resources, leftActions, quickActions, shieldNav, placingName, onCancel]);
 
   // Дети HUD — только реальная панель строительства при открытии
   const children: ReactNode = panel === "build" ? (
@@ -166,5 +172,9 @@ export function Hud({
     />
   ) : null;
 
-  return <MitchellHud model={model}>{children}</MitchellHud>;
+  return (
+    <MitchellHud model={model} on={onSettings ? { settings: onSettings } : undefined}>
+      {children}
+    </MitchellHud>
+  );
 }

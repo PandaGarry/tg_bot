@@ -18,7 +18,7 @@ import { Hud } from "./Hud.js";
 import "../hud.css";
 import { Diagnostics } from "./Diagnostics.js";
 
-// Карта — в центре дока (решение заказчика, круг 18); по краям — чтение и служебное.
+// Маршруты доступны из верхнего меню на экране двора и legacy-дока на остальных страницах.
 const NAV: { route: string; key: string; icon: string; center?: boolean }[] = [
   { route: "court", key: "shell.nav.court", icon: "banner" },
   { route: "reports", key: "shell.nav.reports", icon: "scroll" },
@@ -31,6 +31,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   const t = translator(lang);
   const [route, setRoute] = useState("court");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [, forceTick] = useState(0);
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
@@ -150,7 +151,27 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               setRoadTool((value) => !value);
             }}
             onUpgrade={() => sendCommand("court.upgrade")}
+            onSettings={() => setNavMenuOpen((open) => !open)}
           />
+          {navMenuOpen ? (
+            <nav id="court-navigation-menu" className="court-menu" aria-label="Меню игры">
+              {NAV.map((item) => (
+                <button
+                  key={item.route}
+                  type="button"
+                  className={route === item.route ? "active" : undefined}
+                  onClick={() => {
+                    setRoute(item.route);
+                    if (item.route === "sheet") setSheetOpen(true);
+                    setNavMenuOpen(false);
+                  }}
+                >
+                  <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
+                  <span>{t(item.key)}</span>
+                </button>
+              ))}
+            </nav>
+          ) : null}
           <CourtTape lang={lang} />
         </>
       ) : null}
@@ -201,29 +222,31 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         </>
       ) : null}
 
-      <nav className="game-nav">
-        <div className="flex">
-          {NAV.map((item) => (
-            <button
-              key={item.route}
-              type="button"
-              onClick={() => {
-                setRoute(item.route);
-                if (item.route === "sheet") setSheetOpen(true);
-              }}
-              className={[
-                item.center ? "nav-map" : "",
-                route === item.route ? "active" : "",
-              ]
-                .filter(Boolean)
-                .join(" ") || undefined}
-            >
-              <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
-              <span>{t(item.key)}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {route !== "court" ? (
+        <nav className="game-nav">
+          <div className="flex">
+            {NAV.map((item) => (
+              <button
+                key={item.route}
+                type="button"
+                onClick={() => {
+                  setRoute(item.route);
+                  if (item.route === "sheet") setSheetOpen(true);
+                }}
+                className={[
+                  item.center ? "nav-map" : "",
+                  route === item.route ? "active" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined}
+              >
+                <img className="nic" src={ICON_SRC[item.icon] ?? "icons/gear.png"} alt="" />
+                <span>{t(item.key)}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+      ) : null}
 
       {sheetOpen && !hasSlot("sheet" as SlotId) ? null : null}
       {sheetOpen ? (

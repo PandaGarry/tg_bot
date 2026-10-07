@@ -1,260 +1,266 @@
-/* =========================================================
-   Mitchell TopBar — сочный Flat Low-poly, коммерческий вид.
-   Профиль слева (крупный, акцентный), ресурсы в единой
-   тёмной капсуле по центру, часы/настройки справа.
-   ========================================================= */
-
+/* Five HUD zones: profile at top-left, resource capsule and controls at top-right. */
 .topbar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: var(--mt-topbar-h);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  height: calc(var(--mt-topbar-h) + var(--mt-safe-t));
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px calc(var(--mt-space) + var(--mt-safe-r)) 0 calc(var(--mt-space) + var(--mt-safe-l));
-  padding-top: calc(8px + var(--mt-safe-t));
+  gap: 8px;
+  padding: calc(8px + var(--mt-safe-t)) calc(var(--mt-space) + var(--mt-safe-r)) 0 calc(var(--mt-space) + var(--mt-safe-l));
   background: linear-gradient(180deg,
-    rgba(8,4,0,0.55) 0%,
-    rgba(8,4,0,0.15) 65%,
-    rgba(0,0,0,0) 100%);
-  z-index: 30;
+    var(--mt-topbar-shade) 0%,
+    var(--mt-topbar-shade-soft) 65%,
+    transparent 100%);
+  z-index: 1000;
   font-size: 14px;
   pointer-events: none;
 }
 .topbar > * { pointer-events: auto; }
 
-/* ---------- Профиль (слева, крупный, заметный акцент) ---------- */
+/* Player profile — fixed 48px avatar with a thin bronze contour. */
 .lord {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
   position: relative;
-  background: none;
   margin: 0;
   padding: 0;
+  background: none;
 }
-
 .avatar {
+  position: relative;
+  box-sizing: border-box;
   width: 48px;
   height: 48px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #2a1a0c, #140a04);
+  flex: 0 0 48px;
   border: 2px solid var(--mt-bronze);
-  box-shadow:
-    0 4px 10px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(0,0,0,0.3);
+  border-radius: 50%;
+  background: var(--mt-avatar-surface);
   display: grid;
   place-items: center;
-  color: var(--mt-text);
-  font-weight: 600;
   overflow: visible;
+  color: var(--mt-text);
   font-size: 24px;
-  position: relative;
+  font-weight: 600;
+  box-shadow: 0 3px 8px var(--mt-ink-shadow);
 }
-
+.avatar > img {
+  display: block;
+  border-radius: 50%;
+}
 .lordInfo {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 .lordName { display: none; }
-
 .lordPower {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--mt-text);
   display: flex;
   align-items: center;
   gap: 5px;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  color: var(--mt-white);
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: var(--mt-resource-text-shadow);
 }
 .icPower {
-  color: #e8e0cc;
+  color: var(--mt-white);
   font-size: 16px;
   line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 1px 2px var(--mt-ink-shadow));
 }
 
-.lordXp {
-  display: block;
-  width: 100%;
-  height: 3px;
-  background: rgba(0,0,0,0.45);
-  border-radius: 2px;
-  overflow: hidden;
-  min-width: 90px;
-}
-.lordXp > i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--mt-blue-dark), var(--mt-blue-light));
-  border-radius: inherit;
-}
-
-/* Уровень — маленький круг 16px в правом нижнем углу аватара */
-.lordBadges {
-  display: flex;
+/* Optional real VIP level: shown only when supplied by the game model. */
+.lordVip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 2px;
+  height: 18px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  margin-left: 2px;
+  border: 1px solid var(--mt-bronze);
+  border-radius: 9px;
+  background: var(--mt-wood-deep);
+  color: var(--mt-gold-light);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 1px 3px var(--mt-ink-shadow);
+}
+.lordVipIcon { color: var(--mt-gold-light); font-size: 12px; line-height: 1; }
+.lordVipValue { color: var(--mt-white); font-size: 11px; line-height: 1; }
+
+/* 16px level marker overlaid at bottom-right of the avatar. */
+.lordBadges {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
+  right: -4px;
+  bottom: -4px;
   z-index: 3;
 }
 .buff {
+  box-sizing: border-box;
   width: 16px;
   height: 16px;
   padding: 0;
+  border: 1px solid var(--mt-bronze);
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--mt-gold-light), var(--mt-gold-dark));
-  color: #2a1a00;
+  background: var(--mt-gold-dark);
+  color: var(--mt-white);
   display: grid;
   place-items: center;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
   line-height: 1;
-  border: 1px solid rgba(30,18,0,0.7);
+  box-shadow: 0 1px 3px var(--mt-ink-shadow);
 }
 
-/* ---------- Капсула ресурсов — прижата к правому верхнему углу ---------- */
+/* One dark 70% capsule for all resources; no individual icon tiles. */
 .resources {
+  box-sizing: border-box;
   flex: 0 0 auto;
-  margin-left: auto;       /* ВАЖНО: прижатие вправо */
+  margin-left: auto;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 0 calc(var(--mt-unit)*2);
-  height: calc(var(--mt-unit)*7);
-  background: var(--mt-glass-capsule);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--mt-stroke);
-  border-radius: var(--mt-radius-pill);
-  box-shadow:
-    0 4px 14px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,225,180,0.08);
+  gap: 16px;
+  padding: 8px 16px;
+  background: var(--mt-resource-capsule);
+  border: 1px solid var(--mt-resource-stroke);
+  border-radius: 20px;
+  box-shadow: 0 3px 9px var(--mt-ink-shadow);
 }
-
 .res {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--mt-unit)*0.5);
-  color: var(--mt-text);
+  gap: 6px;
+  color: var(--mt-white);
   font-size: 16px;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: var(--mt-resource-text-shadow);
 }
-
 .resIc {
+  box-sizing: border-box;
   width: 32px;
   height: 32px;
   min-width: 32px;
   min-height: 32px;
-  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 30% 25%, rgba(255,225,180,0.14), rgba(0,0,0,0.35) 80%);
-  border: 1px solid var(--mt-stroke);
-  font-size: 18px;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,225,180,0.15);
-  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  flex: 0 0 32px;
+  color: var(--mt-white);
+  font-size: 32px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px var(--mt-ink-shadow));
 }
-.resGem .resIc {
-  background: radial-gradient(circle at 30% 25%, rgba(200,70,60,0.45), rgba(50,0,0,0.6) 80%);
-  border-color: rgba(224,100,90,0.5);
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,200,190,0.2),
-    0 0 8px rgba(200,60,50,0.3);
-}
-
+.resGem .resIc { filter: drop-shadow(0 1px 2px var(--mt-ink-shadow)); }
 .resPlus {
+  box-sizing: border-box;
   width: 28px;
   height: 28px;
+  min-height: 28px;
+  border: 1px solid var(--mt-blue);
   border-radius: 6px;
-  background: linear-gradient(180deg, #4a7fc0, #254880);
-  border: 1px solid #6a9ae0;
-  color: #fff;
-  cursor: pointer;
+  background: var(--mt-blue-dark);
+  color: var(--mt-white);
   display: grid;
   place-items: center;
   padding: 0;
   margin-left: 2px;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.25);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
-  flex-shrink: 0;
+  flex: 0 0 28px;
+  box-shadow: 0 2px 5px var(--mt-ink-shadow);
 }
-.resPlus b { line-height: 1; display: block; font-size: 18px; }
+.resPlus b { display: block; font-size: 18px; line-height: 1; }
 
-/* ---------- Правая часть (часы + иконки) ---------- */
+/* Sound and settings controls — 40px pointy-top hexagons, 32px icons. */
 .topRight {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-left: 0;
   padding: 0;
   background: none;
-  margin-left: 8px;
 }
-.clock { display: none; } /* UTC — в настройки/второй план, не загромождает верх */
-.settings { display: flex; gap: 4px; }
+.clock { display: none; }
+.settings { display: flex; gap: 6px; }
 .iconBtn {
-  width: 32px;
-  height: 32px;
-  min-height: 0;
-  border-radius: 50%;
-  background: var(--mt-glass-graphite);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--mt-stroke);
-  color: var(--mt-text-muted);
-  cursor: pointer;
+  position: relative;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
   display: grid;
   place-items: center;
-  font-size: 16px;
   padding: 0;
-  box-shadow: var(--mt-shadow-soft);
+  border: 0;
+  background: transparent;
+  color: var(--mt-white);
+  cursor: pointer;
+  line-height: 1;
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
-.iconBtn:hover { color: var(--mt-text); border-color: var(--mt-stroke-bright); }
+/* The painted pointy-top hex is 40x40; transparent 2px around it keeps a 44px hit target. */
+.iconBtn::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: linear-gradient(180deg, var(--mt-glass-graphite-hi), var(--mt-glass-graphite) 55%, var(--mt-glass-bg-strong));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: inset 0 0 0 1px var(--mt-bronze), 0 3px 8px var(--mt-ink-shadow);
+  pointer-events: none;
+}
+.controlIcon {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--mt-white);
+  font-size: 28px;
+  line-height: 1;
+  filter: grayscale(1) brightness(0) invert(1);
+}
+.iconBtn:hover { filter: brightness(1.12); }
+.iconBtn:active { transform: scale(0.94); }
 
-/* ---------- Адаптив (экраны <520px — чуть поджать; <380px — пол Replit) ---------- */
-@media (orientation: landscape) and (max-height: 520px) {
-  .resources { gap: 8px; padding: 0 10px; height: 40px; }
-  .resIc { width: 28px; height: 28px; min-width: 28px; min-height: 28px; font-size: 15px; }
-  .res { font-size: 13px; gap: 4px; }
-  .avatar { width: 40px; height: 40px; font-size: 20px; }
-  .lordPower { font-size: 13px; }
-  .lordXp { min-width: 70px; }
-  .buff { width: 14px; height: 14px; font-size: 9px; }
-}
-@media (orientation: landscape) and (max-height: 380px) {
-  .resources { gap: 6px; padding: 0 8px; height: 34px; }
-  .resIc { width: 24px; height: 24px; min-width: 24px; min-height: 24px; font-size: 13px; }
-  .res { font-size: 11px; gap: 3px; }
-  .resPlus { width: 22px; height: 22px; font-size: 13px; }
-  .resPlus b { font-size: 14px; }
-  .avatar { width: 36px; height: 36px; font-size: 18px; border-width: 2px; }
-  .lordPower { font-size: 12px; gap: 3px; }
-  .icPower { font-size: 12px; }
-  .lordXp { min-width: 60px; height: 2px; }
-  .buff { width: 12px; height: 12px; font-size: 8px; }
-  .iconBtn { width: 26px; height: 26px; font-size: 13px; }
-  .topRight { gap: 4px; margin-left: 4px; }
+/* Compact landscape tier: keep the required avatar, resource icons and nav controls. */
+@media (orientation: landscape) and (max-width: 720px) {
+  .topbar { gap: 5px; }
+  .lord { gap: 5px; }
+  /* Keep the 32px icon/16px text/gap16 capsule; scroll only if a very narrow
+     landscape viewport cannot fit the complete resource row beside the profile. */
+  .resources {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: calc(100vw - 270px - var(--mt-safe-l) - var(--mt-safe-r));
+    overflow-x: auto;
+  }
+  .res, .resPlus { flex-shrink: 0; }
+  .topRight, .settings { gap: 4px; }
 }

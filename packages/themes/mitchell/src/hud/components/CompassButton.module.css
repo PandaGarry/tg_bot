@@ -1,35 +1,29 @@
-/* Компас — круглая "каменная плита" с розой ветров.
-   Плотная, заметная, без текстур металла. */
-
+/* Compass at bottom-left, outside the center play area and inside the iOS safe area. */
 .btn {
-  position: absolute;
+  position: fixed;
   left: calc(var(--mt-space) + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
+  box-sizing: border-box;
   width: 56px;
   height: 56px;
   min-width: 56px;
   min-height: 56px;
+  border: 2px solid var(--mt-bronze);
   border-radius: 50%;
   background: linear-gradient(180deg,
     var(--mt-glass-graphite-hi) 0%,
-    var(--mt-glass-graphite) 50%,
-    rgba(18,12,4,0.96) 100%);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 2px solid var(--mt-bronze);
-  box-shadow:
-    0 5px 14px rgba(0,0,0,0.6),
-    inset 0 2px 0 rgba(255,225,180,0.2),
-    inset 0 -3px 5px rgba(0,0,0,0.55);
+    var(--mt-glass-graphite) 52%,
+    var(--mt-wood-deep) 100%);
   color: var(--mt-text);
   cursor: pointer;
-  z-index: 25;
+  z-index: 1020;
   padding: 0;
+  box-shadow: 0 4px 10px var(--mt-ink-shadow), inset 0 1px 0 var(--mt-inset-highlight);
+  filter: drop-shadow(0 1px 2px var(--mt-ink-shadow));
   transition: transform 0.1s ease, filter 0.15s ease;
 }
-.btn:hover { filter: brightness(1.1); }
+.btn:hover { filter: drop-shadow(0 1px 2px var(--mt-ink-shadow)) brightness(1.1); }
 .btn:active { transform: scale(0.94); }
-
 .rose {
   position: relative;
   width: 38px;
@@ -39,59 +33,67 @@
 }
 .cross {
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%;
+  top: 50%;
   width: 32px;
   height: 2px;
-  background: rgba(255,225,180,0.6);
-  transform: translate(-50%,-50%);
   border-radius: 1px;
+  background: var(--mt-text-muted);
+  transform: translate(-50%, -50%);
 }
 .cross::after {
   content: "";
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%;
+  top: 50%;
   width: 2px;
   height: 32px;
-  background: rgba(255,225,180,0.6);
-  transform: translate(-50%,-50%);
   border-radius: 1px;
+  background: var(--mt-text-muted);
+  transform: translate(-50%, -50%);
 }
 .rose::after {
   content: "";
   position: absolute;
-  left: 50%; top: 50%;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--mt-bronze);
-  transform: translate(-50%,-50%);
-  z-index: 2;
-  box-shadow: 0 0 0 2px rgba(20,12,4,0.9);
+  box-shadow: 0 0 0 2px var(--mt-wood-deep);
+  transform: translate(-50%, -50%);
 }
 .n, .s, .w, .e {
   position: absolute;
+  color: var(--mt-text);
+  font-family: var(--mt-font);
   font-size: 10px;
   font-weight: 700;
-  color: var(--mt-text);
   line-height: 1;
-  font-family: var(--mt-font);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  text-shadow: 0 1px 2px var(--mt-ink-shadow);
 }
-.n { top: -9px; left: 50%; transform: translateX(-50%); color: var(--mt-red-light); }
-.s { bottom: -9px; left: 50%; transform: translateX(-50%); }
-.w { left: -9px; top: 50%; transform: translateY(-50%); }
-.e { right: -9px; top: 50%; transform: translateY(-50%); }
+.n { top: -8px; left: 50%; transform: translateX(-50%); color: var(--mt-red-light); }
+.s { bottom: -8px; left: 50%; transform: translateX(-50%); }
+.w { left: -8px; top: 50%; transform: translateY(-50%); }
+.e { right: -8px; top: 50%; transform: translateY(-50%); }
 
 @media (orientation: landscape) and (max-height: 520px) {
   .btn { width: 48px; height: 48px; min-width: 48px; min-height: 48px; }
   .rose { width: 32px; height: 32px; }
-  .cross { width: 26px; } .cross::after { height: 26px; }
+  .cross { width: 26px; }
+  .cross::after { height: 26px; }
 }
 @media (orientation: landscape) and (max-height: 380px) {
-  .btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-width: 2px; }
+  .btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   .rose { width: 28px; height: 28px; }
-  .cross { width: 22px; } .cross::after { height: 22px; }
+  .cross { width: 22px; }
+  .cross::after { height: 22px; }
   .rose::after { width: 6px; height: 6px; }
   .n, .s, .w, .e { font-size: 9px; }
-  .n { top: -8px; } .s { bottom: -8px; } .w { left: -8px; } .e { right: -8px; }
+  .n { top: -7px; }
+  .s { bottom: -7px; }
+  .w { left: -7px; }
+  .e { right: -7px; }
 }

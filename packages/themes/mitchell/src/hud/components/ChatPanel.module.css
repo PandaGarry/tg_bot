@@ -1,49 +1,39 @@
 .icon {
-  position: absolute;
+  position: fixed;
   left: calc(var(--mt-space) + 64px + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + var(--mt-safe-b));
+  box-sizing: border-box;
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
+  border: 1px solid var(--mt-stroke-accent);
   border-radius: 50%;
-  background: linear-gradient(180deg,
-    var(--mt-glass-graphite-hi) 0%,
-    var(--mt-glass-graphite) 50%,
-    rgba(18,12,4,0.96) 100%);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--mt-stroke);
+  background: linear-gradient(180deg, var(--mt-glass-graphite-hi), var(--mt-glass-graphite) 55%, var(--mt-wood-deep));
   color: var(--mt-text);
   font-size: 22px;
   cursor: pointer;
   display: grid;
   place-items: center;
   padding: 0;
-  box-shadow:
-    0 4px 12px rgba(0,0,0,0.55),
-    inset 0 2px 0 rgba(255,225,180,0.2),
-    inset 0 -2px 4px rgba(0,0,0,0.45);
-  z-index: 18;
+  box-shadow: 0 3px 9px var(--mt-ink-shadow), inset 0 1px 0 var(--mt-inset-highlight);
+  z-index: 1010;
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 .icon:hover { filter: brightness(1.12); }
 .icon:active { transform: scale(0.94); }
-
 .panel {
-  position: absolute;
+  position: fixed;
   left: calc(var(--mt-space) + 64px + var(--mt-safe-l));
   bottom: calc(var(--mt-space) + 52px + var(--mt-safe-b));
   width: clamp(220px, 22vw, 320px);
   max-width: 320px;
   padding: 8px 10px;
   background: var(--mt-glass-bg-strong);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
-  border: 1px solid var(--mt-stroke);
+  border: 1px solid var(--mt-stroke-accent);
   border-radius: 10px;
   box-shadow: var(--mt-shadow-panel);
-  z-index: 18;
+  z-index: 1010;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -59,7 +49,7 @@
   font-size: 11px;
   line-height: 1.4;
   color: var(--mt-text);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 2px var(--mt-ink-shadow);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
