@@ -116,7 +116,8 @@ export function connect(): void {
   });
 
   next.addEventListener("error", () => {
-    next.close();
+    // close() до open() браузер кидает как uncaught-ошибку — закрываем только открытое.
+    if (next.readyState === WebSocket.OPEN) next.close();
   });
 }
 

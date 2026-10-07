@@ -108,19 +108,29 @@ R3F), `src/three-jsx.d.ts`. Оставляем: `tools/shots/*` (boot-shot, walk
 
 ### Этап 1. Ядро Pixi
 
-- [ ] `game/core/application.ts` — GameApp.init(container) (resizeTo, фон 0x0c0704,
-      antialias, autoDensity, resolution = devicePixelRatio), destroy(), singleton.
-- [ ] `game/core/resize.ts`, `game/core/ticker.ts`, `game/core/assets.ts` (кэш).
-- [ ] `game/bridge.ts` — класс Bridge на EventTarget, события из §Целевая структура,
-      singleton, без циклических импортов.
-- [ ] `main.tsx`: сначала `gameApp.init(#pixi-root)`, потом React в `#hud-root`.
+- [x] `game/core/application.ts` — GameApp.init(container)/destroy(), singleton.
+      Решение: `preference: "webgl"` (2D-спрайт-сцене WebGPU ничего не даёт, а WebGL
+      предсказуемее в webview/Replit), `resolution = min(dpr, 2)`.
+- [x] `game/core/resize.ts` (orientationchange-синхронизация для iOS; обычный ресайз
+      держит resizeTo), `game/core/ticker.ts` (deltaTime, отписка), `game/core/assets.ts`
+      ( PIXI.Assets, кэш текстур; атласы добавим, когда появятся).
+- [x] `game/bridge.ts` — класс Bridge (обычная карта слушателей, без зависимостей),
+      события: tile:click, building:click, camera:moved, state:update, hud:action.
+- [x] `main.tsx`: сначала `gameApp.init(#pixi-root)` (не блокирует рендер),
+      потом React в `#hud-root`.
+- [x] Смоук-приёмка: `tools/shots/pixi-smoke.ts` (canvas в #pixi-root, «[Pixi] Initialized»
+      в консоли, HUD смонтирован, реальные ошибки страницы) — кадр
+      `docs/game/ui/client/pixi-stage1.jpg`.
+- [x] Попутно: фикс net.ts — `close()` по WS-ошибке до open() кидал uncaught-ошибку
+      «WebSocket closed without opened» (срезало смоук-тест).
 
 Критерий приёмки:
 
-- [ ] Экран: тёмный canvas на весь вьюпорт; в консоли `[Pixi] Initialized`.
-- [ ] Ресайз окна/поворот — canvas следует.
-- [ ] HUD React поверх, клики по кнопкам HUD работают; клики «сквозь» пустые места HUD
-      доходят до canvas (pointer-events).
+- [x] Экран: тёмный canvas на весь вьюпорт (1376×768 в смоке); в консоли `[Pixi] Initialized`.
+- [x] Ресайз окна/поворот — canvas следует (resizeTo + orientationchange-обёртка).
+- [x] HUD React поверх, клики по кнопкам HUD работают (проверено смоком на живых экранах).
+- [ ] Клики «сквозь» пустые места HUD доходят до canvas (pointer-events настроены;
+      фактически подтвердится в этапе 2, когда у сцены появится ввод).
 
 ### Этап 2. Двор (Pixi)
 

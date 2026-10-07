@@ -11,6 +11,7 @@ import { Register } from "./ui/Register.js";
 import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
 import { statusKey } from "./i18n/index.js";
+import { gameApp } from "./game/core/application.js";
 
 function App() {
   const state = useStore();
@@ -48,7 +49,10 @@ function App() {
   return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
 }
 
-// HUD монтируется в #hud-root; сцена (Pixi, этап 1+) получит #pixi-root.
+// Сначала сцена: canvas занимает #pixi-root. HUD (React) монтируется в
+// #hud-root поверх. Инициализация Pixi не блокирует рендер HUD.
+void gameApp.init(document.getElementById("pixi-root") as HTMLElement);
+
 createRoot(document.getElementById("hud-root") as HTMLElement).render(
   <StrictMode>
     <App />

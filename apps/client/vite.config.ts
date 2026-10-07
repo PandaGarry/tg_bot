@@ -17,6 +17,6 @@ export default defineConfig({
   // Тесты оболочки идут в jsdom: разметка и порядок экранов проверяются без браузера.
   test: {
     environment: "jsdom",
-    include: ["tests/**/*.test.tsx"],
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
   },
 });
