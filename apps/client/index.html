@@ -12,12 +12,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Мёртвые лорды</title>
     <style>
-      /* Резерв на случай если JS/CSS не загрузился — фон должен быть тёмный */
-      html, body, #root { background: #0c0704; }
+      /* Резерв на случай если JS/CSS не загрузился — фон должен быть тёмный.
+         #pixi-root — canvas сцены (Pixi), #hud-root — React HUD поверх. */
+      html, body, #pixi-root, #hud-root { background: #0c0704; }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="pixi-root"></div>
+    <div id="hud-root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Запрашиваем полный экран по первому тапу — убирает адресную строку

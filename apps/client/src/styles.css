@@ -6,21 +6,30 @@
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
   min-height: 100%;
   width: 100%;
   overflow: hidden;
 }
 
-@supports (height: 100dvh) {
-  html,
-  body,
-  #root {
-    height: 100dvh;
-    min-height: 100dvh;
-  }
+/* Сцена (Pixi) — полноэкранный canvas внизу; HUD — поверх, клики по пустому
+   месту проходят в сцену (pointer-events разводятся). */
+#pixi-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+#hud-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#hud-root > * {
+  pointer-events: auto;
 }
 
 ::-webkit-scrollbar {

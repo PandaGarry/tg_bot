@@ -3,7 +3,7 @@
  *
  * Поднимается Chromium с программным WebGL, открывается игра, пропускается
  * вступление, заводится аккаунт и лорд, снимается двор с 3D-сценой.
- * Снимки — в docs/game/ui/court3d/: game-register.jpg, game-create.jpg, game-court-day.jpg.
+ * Снимки — в docs/game/ui/client/: game-register.jpg, game-create.jpg, game-court-day.jpg.
  */
 
 import { mkdirSync } from "node:fs";
@@ -14,7 +14,7 @@ import puppeteer, { type Page } from "puppeteer-core";
 import { prepareRuntime } from "./browser.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const outDir = join(root, "docs", "game", "ui", "court3d");
+const outDir = join(root, "docs", "game", "ui", "client");
 mkdirSync(outDir, { recursive: true });
 
 const port = process.argv[2] ?? "3000";

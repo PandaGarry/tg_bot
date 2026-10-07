@@ -109,8 +109,8 @@ describe("двор", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
 
     expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Двор" })).toBeTruthy();
-
+    // В HUD Mitchell навигация двора — в меню «Меню и настройки».
+    fireEvent.click(screen.getByRole("button", { name: "Меню и настройки" }));
     fireEvent.click(screen.getByRole("button", { name: "Хроника" }));
     expect(screen.getAllByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.").length).toBeGreaterThan(0);
 
@@ -127,6 +127,8 @@ describe("аккаунт", () => {
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
     render(<World view={view()} lang="ru" serverNow={1} />);
+    // В HUD Mitchell: ⚙ «Меню и настройки» → пункт «Модули» → выход.
+    fireEvent.click(screen.getByRole("button", { name: "Меню и настройки" }));
     fireEvent.click(screen.getByRole("button", { name: "Модули" }));
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 

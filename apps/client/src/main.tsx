@@ -49,7 +49,8 @@ function App() {
   return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
 }
 
-createRoot(document.getElementById("root") as HTMLElement).render(
+// HUD монтируется в #hud-root; сцена (Pixi, этап 1+) получит #pixi-root.
+createRoot(document.getElementById("hud-root") as HTMLElement).render(
   <StrictMode>
     <App />
   </StrictMode>,

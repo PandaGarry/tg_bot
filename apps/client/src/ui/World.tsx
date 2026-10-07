@@ -12,7 +12,7 @@ import { ICON_SRC } from "./iconSrc.js";
 import { store } from "../store.js";
 import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
-import { CourtScene } from "../court/CourtScene.js";
+import { CourtPlaceholder } from "./CourtPlaceholder.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
 import "../hud.css";
@@ -72,28 +72,8 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
       {route === "court" ? (
         <>
           <div className="fixed inset-0 z-0">
-            <CourtScene
-              texts={{ rotate: t("shell.court.rotate"), nowebgl: t("shell.court.nowebgl") }}
-              grid={court.grid ?? null}
-              thLevel={Number(court.townhallLevel ?? 1)}
-              tool={placing ? { kind: "place", type: placing } : roadTool ? { kind: "road" } : null}
-              pending={pending}
-              onTarget={(x, z) => {
-                if (pending) setPending({ ...pending, x, z });
-                else if (placing) {
-                  setPending({ type: placing, x, z });
-                  setPlacing(null);
-                }
-              }}
-              onRoad={(x, z, has) => {
-                if (roadTool) sendCommand("court.road", { x, z, remove: has });
-              }}
-              onPickup={(type, x, z) => {
-                setPlacing(null);
-                setRoadTool(false);
-                setPending({ type, x, z, from: { x, z } });
-              }}
-            />
+            {/* 2D-заглушка: сцена двора на Pixi встанет на этом месте (этап 2). */}
+            <CourtPlaceholder size={Number(court.grid?.size ?? 14)} label={t("shell.court.scene2d")} />
           </div>
           <Hud
             view={view}
