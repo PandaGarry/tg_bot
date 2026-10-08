@@ -18,26 +18,26 @@ const SIZES: Record<Orient, { w: number; h: number }> = {
 
 // Ресурсы: иконка сверху крупно, количество под ней. Золото — отдельный чип.
 const RESOURCES: { key: string; name: string; icon: string }[] = [
-  { key: "meat", name: "Мясо", icon: "/icons/meat.png" },
-  { key: "wood", name: "Дерево", icon: "/icons/wood.png" },
-  { key: "stone", name: "Камень", icon: "/icons/stone.png" },
-  { key: "metal", name: "Металл", icon: "/icons/metal.png" },
-  { key: "mushroom", name: "Грибы", icon: "/icons/mushroom.png" },
+  { key: "meat", name: "Мясо", icon: "/proto-icons/res-meat.png" },
+  { key: "wood", name: "Дерево", icon: "/proto-icons/res-wood.png" },
+  { key: "stone", name: "Камень", icon: "/proto-icons/res-stone.png" },
+  { key: "metal", name: "Металл", icon: "/proto-icons/res-metal.png" },
+  { key: "mushroom", name: "Грибы", icon: "/proto-icons/res-mushroom.png" },
 ];
-const GOLD = { key: "gold", name: "Золото", icon: "/icons/gold.png" };
+const GOLD = { key: "gold", name: "Золото", icon: "/proto-icons/res-gold.png" };
 
-// Действия и события: при переключении меняются иконка, название и назначение.
+// Действия и события: короткие подписи. При переключении меняются иконка и название.
 const ACTIONS = [
-  { icon: "/icons/i-swords.png", title: "Марш", purpose: "Отправить войско" },
-  { icon: "/icons/i-hammer.png", title: "Строительство", purpose: "Возвести здание" },
-  { icon: "/icons/i-flask.png", title: "Исследование", purpose: "Изучить ветку" },
-  { icon: "/icons/i-shield.png", title: "Лечение", purpose: "Вернуть раненых" },
+  { icon: "/proto-icons/act-march.png", title: "Марш" },
+  { icon: "/proto-icons/act-build.png", title: "Стройка" },
+  { icon: "/proto-icons/act-research.png", title: "Исследование" },
+  { icon: "/proto-icons/act-heal.png", title: "Лечение" },
 ];
 const EVENTS = [
-  { icon: "/icons/i-swords.png", title: "Нападение", purpose: "Атака на ваш двор" },
-  { icon: "/icons/i-hammer.png", title: "Стройка", purpose: "Постройка завершена" },
-  { icon: "/icons/i-flask.png", title: "Наука", purpose: "Исследование готово" },
-  { icon: "/icons/i-banner.png", title: "Клан", purpose: "Событие клана" },
+  { icon: "/proto-icons/act-march.png", title: "Нападение" },
+  { icon: "/proto-icons/act-build.png", title: "Стройка" },
+  { icon: "/proto-icons/act-research.png", title: "Наука" },
+  { icon: "/proto-icons/act-heal.png", title: "Раненые" },
 ];
 
 // Квесты: активный сверху, до трёх строк. Заглушки.
@@ -100,29 +100,30 @@ function ActionColumn() {
       {list.map((item) => (
         <button key={item.title} type="button" className="action">
           <img src={item.icon} alt="" />
-          <span className="action__copy">
-            <b>{item.title}</b>
-            <small>{item.purpose}</small>
-          </span>
+          <span>{item.title}</span>
         </button>
       ))}
     </div>
   );
 }
 
-// Слева внизу: квесты и свёрнутая строка чата. Нажатие на чат — выдвижная панель слева.
-function LeftStack({ onChat }: { onChat: () => void }) {
+// Квесты — отдельный блок под верхней панелью слева.
+function Quests() {
   return (
-    <div className="left-stack">
-      <ul className="quests" aria-label="Задания">
-        {QUESTS.map((q, i) => (
-          <li key={q} className={i === 0 ? "is-active" : ""}>{q}</li>
-        ))}
-      </ul>
-      <button type="button" className="chat-strip" onClick={onChat} aria-label="Открыть чат">
-        <b>{CHAT_LATEST.who}:</b> {CHAT_LATEST.text}
-      </button>
-    </div>
+    <ul className="quests" aria-label="Задания">
+      {QUESTS.map((q, i) => (
+        <li key={q} className={i === 0 ? "is-active" : ""}>{q}</li>
+      ))}
+    </ul>
+  );
+}
+
+// Чат — свёрнутая строка у нижнего меню слева. Нажатие открывает выдвижную панель.
+function ChatStrip({ onChat }: { onChat: () => void }) {
+  return (
+    <button type="button" className="chat-strip" onClick={onChat} aria-label="Открыть чат">
+      <b>{CHAT_LATEST.who}:</b> {CHAT_LATEST.text}
+    </button>
   );
 }
 
@@ -160,16 +161,18 @@ function Device({ orient, screen }: { orient: Orient; screen: Screen }) {
       </div>
       <TopBar />
       <ActionColumn />
-      <LeftStack onChat={() => setChatOpen(true)} />
+      <Quests />
+      <ChatStrip onChat={() => setChatOpen(true)} />
 
       <nav className="bottom" aria-label="Нижнее меню">
         <div className="bottom__group bottom__group--left">
-          <button type="button" className="nav-btn">Отчёты</button>
+          <button type="button" className="nav-btn">Почта</button>
           <button type="button" className="nav-btn">Клан</button>
         </div>
         <button type="button" className="map-btn" aria-label={mapLabel}>{mapLabel}</button>
         <div className="bottom__group bottom__group--right">
           <button type="button" className="nav-btn">Лавка</button>
+          <button type="button" className="nav-btn">Меню</button>
         </div>
       </nav>
 

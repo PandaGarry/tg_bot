@@ -25,27 +25,26 @@
 .profile__copy small { color: #9a968a; font-size: 11px; }
 .res-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
 .res { flex: 1 1 0; min-width: 0; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 8px; background: rgba(255,255,255,.04); }
-.res img { width: 24px; height: 24px; object-fit: contain; }
+.res img { width: 34px; height: 34px; object-fit: contain; mix-blend-mode: screen; }
 .res b { font-size: 11px; font-weight: 600; }
 .res--gold { flex: 0 0 60px; border: 1px solid rgba(230,195,92,.45); color: #e6c35c; background: rgba(230,195,92,.08); }
 
-/* Правая колонка: переключатель и действия. Высота действия — 48 px, ширина — 136 px. */
-.actions { position: absolute; right: 8px; top: 76px; width: 158px; display: flex; flex-direction: column; gap: 6px; }
+/* Правая колонка: переключатель и плитки действий (иконка + короткая подпись) */
+.actions { position: absolute; right: 8px; top: 76px; width: 150px; display: flex; flex-direction: column; gap: 6px; }
 .switch { display: grid; grid-template-columns: 1fr 1fr; background: rgba(20,23,31,.9); border-radius: 8px; padding: 2px; border: 1px solid rgba(255,255,255,.07); }
 .switch button { border: 0; background: transparent; height: 24px; border-radius: 6px; font-size: 11px; color: #9a968a; cursor: pointer; }
 .switch button.is-on { background: #2a2f3a; color: #e7e4dc; }
-.action { height: 48px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); text-align: left; cursor: pointer; }
-.action img { width: 28px; height: 28px; object-fit: contain; flex: none; }
-.action__copy { display: flex; flex-direction: column; min-width: 0; }
-.action__copy b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.action__copy small { color: #9a968a; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.action { height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); text-align: left; cursor: pointer; font-size: 12px; white-space: nowrap; }
+.action img { width: 34px; height: 34px; object-fit: contain; flex: none; mix-blend-mode: screen; }
+.action span { overflow: hidden; text-overflow: ellipsis; }
 
-/* Левая часть над нижним меню: квесты и свёрнутый чат */
-.left-stack { position: absolute; left: 8px; bottom: 72px; width: 200px; display: flex; flex-direction: column; gap: 6px; }
-.quests { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.quests li { padding: 5px 8px; border-radius: 6px; background: rgba(14,16,21,.85); color: #9a968a; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Квесты — отдельный блок слева, под верхней панелью */
+.quests { position: absolute; left: 8px; top: 76px; width: 200px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.quests li { padding: 6px 8px; border-radius: 6px; background: rgba(14,16,21,.85); color: #9a968a; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .quests li.is-active { color: #e7e4dc; border-left: 2px solid #d9b66a; }
-.chat-strip { height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(14,16,21,.92); text-align: left; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: #cfcbbf; }
+
+/* Чат — отдельная свёрнутая строка слева, над нижним меню */
+.chat-strip { position: absolute; left: 8px; bottom: 72px; width: 200px; height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(14,16,21,.92); text-align: left; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: #cfcbbf; }
 .chat-strip b { color: #e7e4dc; }
 
 /* Выдвижной чат слева, ~55% интерфейса */
@@ -61,8 +60,8 @@
 
 /* Нижнее меню: Отчёты, Клан | Карта/Двор по центру | Лавка */
 .bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 56px; display: flex; align-items: center; gap: 6px; }
-.bottom__group { flex: 1; display: flex; gap: 6px; align-items: center; }
+.bottom__group { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; }
 .bottom__group--left { justify-content: flex-end; }
 .bottom__group--right { justify-content: flex-start; }
-.nav-btn { width: 64px; height: 48px; flex: none; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); font-size: 11px; cursor: pointer; }
+.nav-btn { flex: 1 1 0; min-width: 0; max-width: 64px; height: 48px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); font-size: 11px; cursor: pointer; }
 .map-btn { width: 116px; height: 56px; flex: none; border-radius: 10px; border: 1px solid rgba(230,195,92,.45); background: #2a2416; color: #f0d98a; font-size: 14px; font-weight: 600; cursor: pointer; }
