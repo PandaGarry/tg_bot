@@ -38,10 +38,11 @@ const EVENTS: { key: string; icon: string; title: string }[] = [
 ];
 
 // Квесты: первый — сюжетный (заглушка).
-const QUESTS = [
-  { text: "Постройте жилой дом", story: true },
-  { text: "Соберите 100 мяса", story: false },
-  { text: "Отправьте разведку", story: false },
+// Прогресс — заглушка: cur пока 0, цель задаётся квестом.
+const QUESTS: { text: string; story: boolean; cur: number; max: number }[] = [
+  { text: "Постройте жилой дом", story: true, cur: 0, max: 1 },
+  { text: "Соберите дерево", story: false, cur: 0, max: 100 },
+  { text: "Убейте 20 монстров", story: false, cur: 0, max: 20 },
 ];
 
 // Каналы чата. Непрочитанное — заглушка.
@@ -124,7 +125,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           <span className="ch-profile__portrait">
             <ConceptIcon name="lord" />
             {/* Уровень персонажа — заглушка: в протоколе пока нет данных. */}
-            <b className="ch-profile__level" aria-label="Уровень персонажа">—</b>
+            <b className="ch-profile__level ch-stub-value" aria-label="Уровень персонажа (заглушка)">12</b>
           </span>
           <span className="ch-profile__info">
             <b>{name}</b>
@@ -173,6 +174,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
                 <>
                   <i className="ch-tag">{lang === "ru" ? "Сюжет" : "Story"}</i>
                   <span className="ch-quests__now">{QUESTS[0]?.text}</span>
+                  <span className="ch-quests__prog">{QUESTS[0]?.cur}/{QUESTS[0]?.max}</span>
                 </>
               )}
               <span className="ch-quests__chev" aria-hidden="true">{questsOpen ? "‹" : "›"}</span>
@@ -182,8 +184,11 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
                 {QUESTS.map((q, i) => (
                   <li key={q.text} className={i === 0 ? "is-active" : ""}>
                     <button type="button" onClick={() => setStub(q.text)}>
-                      {q.story ? <i className="ch-tag">{lang === "ru" ? "Сюжет" : "Story"}</i> : null}
-                      {q.text}
+                      <span className="ch-quests__line">
+                        {q.story ? <i className="ch-tag">{lang === "ru" ? "Сюжет" : "Story"}</i> : null}
+                        <span className="ch-quests__text">{q.text}</span>
+                      </span>
+                      <span className="ch-quests__prog">{q.cur}/{q.max}</span>
                     </button>
                   </li>
                 ))}
@@ -213,6 +218,8 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
       </nav>
 
       {chatOpen && onCourt && !pageMode ? (
+        <>
+        <div className="ch-chat-backdrop" onClick={() => setChatOpen(false)} aria-hidden="true" />
         <section className="ch-chat" aria-label={lang === "ru" ? "Чат" : "Chat"}>
           <header>
             <div className="ch-chat__tabs">
@@ -232,6 +239,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             {CHAT_LINES.some((m) => m.channel === channel) ? null : <li className="ch-chat__empty">—</li>}
           </ul>
         </section>
+        </>
       ) : null}
 
       {stub ? (

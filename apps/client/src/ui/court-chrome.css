@@ -33,25 +33,29 @@
 .ch-res__item--gold b { color: #e6c35c; }
 
 /* Справа: переключатель — тонкие рейки; действия — тонкая рамка */
-.ch-side { position: absolute; right: 8px; top: 68px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.ch-side { position: absolute; right: 8px; top: 84px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 /* Переключатель — без контейнера и рамок: две тонкие текстовые рейки, активная — золотая черта снизу */
-.ch-switch { display: flex; flex-direction: row; gap: 8px; padding: 0 2px; }
-.ch-switch button { flex: 0 0 auto; height: 14px; padding: 0 1px 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #8d897e; font-size: 9px; line-height: 12px; text-shadow: 0 1px 2px #000; pointer-events: auto; }
+.ch-switch { display: flex; flex-direction: row; gap: 10px; padding: 0 2px; }
+.ch-switch button { flex: 0 0 auto; height: 18px; padding: 0 2px 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #8d897e; font-size: 10px; line-height: 14px; text-shadow: 0 1px 2px #000; pointer-events: auto; }
 .ch-switch button.is-on { border-bottom-color: #e6c35c; color: #f0d98a; }
-.ch-action { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border-radius: 7px; border: 1px solid rgba(255,255,255,.14); background: transparent; }
-.ch-action img { width: 24px; height: 24px; object-fit: contain; }
+.ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: transparent; }
+.ch-action img { width: 30px; height: 30px; object-fit: contain; }
 
 /* Слева: квесты — свёрнуты в строку (значок + текущий), развёрнуты — список */
-.ch-quests { position: absolute; left: 8px; top: 68px; width: 150px; display: flex; flex-direction: column; gap: 3px; }
-.ch-quests__head { display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 6px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; background: rgba(14,16,21,.45); text-align: left; min-width: 0; }
+.ch-quests { position: absolute; left: 8px; top: 84px; width: 168px; display: flex; flex-direction: column; gap: 6px; }
+.ch-quests__head { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 6px; border: 1px solid rgba(255,255,255,.1); border-radius: 7px; background: rgba(10,12,16,.55); text-align: left; min-width: 0; }
 .ch-quests__head > img { width: 16px; height: 16px; flex: none; object-fit: contain; }
 .ch-quests__head b { font-size: 10px; }
-.ch-quests__now { min-width: 0; flex: 1; font-size: 10px; color: #cfcbbf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-quests__now { min-width: 0; flex: 1; font-size: 10px; color: #e7e4dc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
+.ch-quests__prog { flex: none; font-size: 9px; font-weight: 700; color: #f0d98a; text-shadow: 0 1px 2px #000; font-variant-numeric: tabular-nums; }
 .ch-quests__chev { flex: none; color: #9a968a; font-size: 12px; }
 .ch-quests ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
-.ch-quests li { border-radius: 5px; background: rgba(14,16,21,.4); }
-.ch-quests li button { width: 100%; display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 0; border-radius: 5px; background: transparent; color: #9a968a; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-quests li.is-active button { color: #e7e4dc; }
+.ch-quests li { border-radius: 7px; background: rgba(10,12,16,.55); border: 1px solid rgba(255,255,255,.06); }
+.ch-quests li button { width: 100%; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 5px 7px; border: 0; border-radius: 7px; background: transparent; color: #aaa497; font-size: 10px; text-align: left; text-shadow: 0 1px 2px #000; }
+.ch-quests__line { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.ch-quests__text { min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-quests li button .ch-quests__prog { align-self: flex-end; }
+.ch-quests li.is-active button { color: #f2eee4; }
 
 /* Чат: свёрнутая строка — канал, сообщение, точка непрочитанного */
 .ch-chat-strip { position: absolute; left: 8px; bottom: 52px; width: 170px; height: 22px; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.45); color: #cfcbbf; font-size: 10px; text-align: left; pointer-events: auto; }
@@ -59,7 +63,7 @@
 .ch-chat-strip__text b { color: #e7e4dc; }
 
 /* Выдвижной чат: ~55% ширины, между верхней панелью и нижним меню */
-.ch-chat { position: absolute; left: 8px; top: 68px; bottom: 52px; width: 55%; padding: 7px; display: flex; flex-direction: column; gap: 6px; border-radius: 9px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.88); pointer-events: auto; }
+.ch-chat { position: absolute; left: 8px; top: 84px; bottom: 52px; width: 55%; padding: 7px; display: flex; flex-direction: column; gap: 6px; border-radius: 9px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.88); pointer-events: auto; }
 .ch-chat header { display: flex; align-items: flex-start; gap: 4px; }
 .ch-chat__tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; }
 .ch-chat__tabs button { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 0; border-radius: 5px; background: #1d2129; color: #9a968a; font-size: 10px; }
@@ -70,12 +74,15 @@
 .ch-chat li b { color: #e7e4dc; }
 
 /* Нижнее меню: тонкое и узкое */
-.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 32px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 38px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
 .ch-bottom__group { flex: 1; min-width: 0; display: flex; gap: 4px; align-items: center; }
 .ch-bottom__group--left { justify-content: flex-end; }
 .ch-bottom__group--right { justify-content: flex-start; }
-.ch-nav { flex: 1 1 0; min-width: 0; max-width: 54px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.55); font-size: 9px; pointer-events: auto; }
-.ch-map { flex: none; width: 84px; height: 32px; border-radius: 7px; border: 1px solid rgba(230,195,92,.55); background: rgba(42,36,22,.8); color: #f0d98a; font-size: 11px; font-weight: 600; pointer-events: auto; }
+.ch-nav { flex: 1 1 0; min-width: 0; max-width: 64px; height: 34px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.6); font-size: 10px; pointer-events: auto; }
+.ch-map { flex: none; width: 98px; height: 38px; border-radius: 8px; border: 1px solid rgba(230,195,92,.55); background: rgba(42,36,22,.8); color: #f0d98a; font-size: 12px; font-weight: 600; pointer-events: auto; }
 
 /* Заглушка: короткое сообщение над нижним меню */
 .ch-stub { position: absolute; left: 50%; bottom: 50px; transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }
+
+/* Тап вне открытого чата закрывает его */
+.ch-chat-backdrop { position: absolute; inset: 0; pointer-events: auto; background: transparent; }
