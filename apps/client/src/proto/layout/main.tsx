@@ -18,26 +18,32 @@ const SIZES: Record<Orient, { w: number; h: number }> = {
 
 // Ресурсы: иконка сверху крупно, количество под ней. Золото — отдельный чип.
 const RESOURCES: { key: string; name: string; icon: string }[] = [
-  { key: "meat", name: "Мясо", icon: "/proto-icons/res-meat.png" },
-  { key: "wood", name: "Дерево", icon: "/proto-icons/res-wood.png" },
-  { key: "stone", name: "Камень", icon: "/proto-icons/res-stone.png" },
-  { key: "metal", name: "Металл", icon: "/proto-icons/res-metal.png" },
-  { key: "mushroom", name: "Грибы", icon: "/proto-icons/res-mushroom.png" },
+  { key: "meat", name: "Мясо", icon: "/icons/meat.png" },
+  { key: "wood", name: "Дерево", icon: "/icons/wood.png" },
+  { key: "stone", name: "Камень", icon: "/icons/stone.png" },
+  { key: "metal", name: "Металл", icon: "/icons/metal.png" },
+  { key: "mushroom", name: "Грибы", icon: "/icons/mushroom.png" },
 ];
-const GOLD = { key: "gold", name: "Золото", icon: "/proto-icons/res-gold.png" };
+const GOLD = { key: "gold", name: "Золото", icon: "/icons/gold.png" };
 
-// Действия и события: короткие подписи. При переключении меняются иконка и название.
+// Действия и события: только иконки (квадратные, временно — иконки проекта).
+// Названия нужны только для подсказки и доступности, на экране не выводятся.
 const ACTIONS = [
-  { icon: "/proto-icons/act-march.png", title: "Марш" },
-  { icon: "/proto-icons/act-build.png", title: "Стройка" },
-  { icon: "/proto-icons/act-research.png", title: "Исследование" },
-  { icon: "/proto-icons/act-heal.png", title: "Лечение" },
+  { icon: "/icons/i-swords.png", title: "Марш" },
+  { icon: "/icons/i-hammer.png", title: "Строительство" },
+  { icon: "/icons/i-flask.png", title: "Исследование" },
+  { icon: "/icons/i-shield.png", title: "Лечение" },
 ];
 const EVENTS = [
-  { icon: "/proto-icons/act-march.png", title: "Нападение" },
-  { icon: "/proto-icons/act-build.png", title: "Стройка" },
-  { icon: "/proto-icons/act-research.png", title: "Наука" },
-  { icon: "/proto-icons/act-heal.png", title: "Раненые" },
+  { icon: "/icons/i-helmet.png", title: "Нападение" },
+  { icon: "/icons/i-hammer.png", title: "Строительство" },
+  { icon: "/icons/i-flask.png", title: "Исследование" },
+  { icon: "/icons/i-banner.png", title: "Клан" },
+];
+// Переключатель: иконки, подписи — в title.
+const MODES: { id: Mode; icon: string; title: string }[] = [
+  { id: "actions", icon: "/icons/i-gear.png", title: "Действия" },
+  { id: "events", icon: "/icons/i-scroll.png", title: "События" },
 ];
 
 // Квесты: активный сверху, до трёх строк. Заглушки.
@@ -94,13 +100,24 @@ function ActionColumn() {
   return (
     <div className="actions">
       <div className="switch" role="tablist">
-        <button type="button" role="tab" aria-selected={mode === "actions"} className={mode === "actions" ? "is-on" : ""} onClick={() => setMode("actions")}>Действия</button>
-        <button type="button" role="tab" aria-selected={mode === "events"} className={mode === "events" ? "is-on" : ""} onClick={() => setMode("events")}>События</button>
+        {MODES.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            role="tab"
+            title={m.title}
+            aria-label={m.title}
+            aria-selected={mode === m.id}
+            className={mode === m.id ? "is-on" : ""}
+            onClick={() => setMode(m.id)}
+          >
+            <img src={m.icon} alt="" />
+          </button>
+        ))}
       </div>
       {list.map((item) => (
-        <button key={item.title} type="button" className="action">
+        <button key={item.icon} type="button" className="action" title={item.title} aria-label={item.title}>
           <img src={item.icon} alt="" />
-          <span>{item.title}</span>
         </button>
       ))}
     </div>

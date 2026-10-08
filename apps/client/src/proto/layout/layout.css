@@ -25,18 +25,18 @@
 .profile__copy small { color: #9a968a; font-size: 11px; }
 .res-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
 .res { flex: 1 1 0; min-width: 0; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 8px; background: rgba(255,255,255,.04); }
-.res img { width: 34px; height: 34px; object-fit: contain; mix-blend-mode: screen; }
+.res img { width: 30px; height: 30px; object-fit: contain; }
 .res b { font-size: 11px; font-weight: 600; }
 .res--gold { flex: 0 0 60px; border: 1px solid rgba(230,195,92,.45); color: #e6c35c; background: rgba(230,195,92,.08); }
 
-/* Правая колонка: переключатель и плитки действий (иконка + короткая подпись) */
-.actions { position: absolute; right: 8px; top: 76px; width: 150px; display: flex; flex-direction: column; gap: 6px; }
-.switch { display: grid; grid-template-columns: 1fr 1fr; background: rgba(20,23,31,.9); border-radius: 8px; padding: 2px; border: 1px solid rgba(255,255,255,.07); }
-.switch button { border: 0; background: transparent; height: 24px; border-radius: 6px; font-size: 11px; color: #9a968a; cursor: pointer; }
-.switch button.is-on { background: #2a2f3a; color: #e7e4dc; }
-.action { height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); text-align: left; cursor: pointer; font-size: 12px; white-space: nowrap; }
-.action img { width: 34px; height: 34px; object-fit: contain; flex: none; mix-blend-mode: screen; }
-.action span { overflow: hidden; text-overflow: ellipsis; }
+/* Правая колонка: только квадратные иконки, без подписей. Плитка 52×52. */
+.actions { position: absolute; right: 8px; top: 76px; width: 52px; display: flex; flex-direction: column; gap: 6px; }
+.switch { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: rgba(20,23,31,.9); border-radius: 8px; padding: 2px; border: 1px solid rgba(255,255,255,.07); }
+.switch button { border: 0; background: transparent; height: 22px; border-radius: 6px; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.switch button.is-on { background: #2a2f3a; }
+.switch img { width: 16px; height: 16px; object-fit: contain; }
+.action { width: 52px; height: 52px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); cursor: pointer; }
+.action img { width: 40px; height: 40px; object-fit: contain; }
 
 /* Квесты — отдельный блок слева, под верхней панелью */
 .quests { position: absolute; left: 8px; top: 76px; width: 200px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
