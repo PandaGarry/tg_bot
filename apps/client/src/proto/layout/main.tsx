@@ -1,28 +1,55 @@
 // ПРОТОТИП раскладки главного экрана «Двор» (пример для оценки заказчиком; после выбора удаляется).
 // Не подключён к игре: своя страница, без входа, сервера и store. Все значения — заглушки.
 //
-// Принцип: размеры элементов фиксированы в пикселях и одинаковы в портрете и ландшафте.
-// Положение задаётся якорями от краёв экрана. Ориентация меняет только размер экрана,
-// поэтому при повороте элементы не перепрыгивают, а расстояния между ними меняются.
+// Принцип: один макет для портрета и ландшафта. Размеры элементов фиксированы в пикселях,
+// положение задано якорями от краёв. Ориентация меняет только размер экрана.
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./layout.css";
 
 type Orient = "portrait" | "landscape";
 type Screen = "court" | "map";
+type Mode = "actions" | "events";
 
 const SIZES: Record<Orient, { w: number; h: number }> = {
   portrait: { w: 390, h: 844 },
   landscape: { w: 844, h: 390 },
 };
 
-const RESOURCES = ["Мясо", "Дерево", "Камень", "Металл", "Грибы"];
-// Левая колонка: основные линии. «Скоро» — заглушка для будущей линии.
-const LEFT = ["Марш", "Тренировка", "Исследование", "Лечение"];
-// Правая колонка: предложение, в ТЗ заказчика не перечислено (вопрос открыт).
-const RIGHT = ["Стройка", "Герои"];
-// Нижнее меню — сбоку (справа, над чатом). Карта/Двор — центральная кнопка внизу.
-const NAV_RIGHT = ["Отчёты", "Клан", "Лавка"];
+// Ресурсы: иконка сверху крупно, количество под ней. Золото — отдельный чип.
+const RESOURCES: { key: string; name: string; icon: string }[] = [
+  { key: "meat", name: "Мясо", icon: "/icons/meat.png" },
+  { key: "wood", name: "Дерево", icon: "/icons/wood.png" },
+  { key: "stone", name: "Камень", icon: "/icons/stone.png" },
+  { key: "metal", name: "Металл", icon: "/icons/metal.png" },
+  { key: "mushroom", name: "Грибы", icon: "/icons/mushroom.png" },
+];
+const GOLD = { key: "gold", name: "Золото", icon: "/icons/gold.png" };
+
+// Действия и события: при переключении меняются иконка, название и назначение.
+const ACTIONS = [
+  { icon: "/icons/i-swords.png", title: "Марш", purpose: "Отправить войско" },
+  { icon: "/icons/i-hammer.png", title: "Строительство", purpose: "Возвести здание" },
+  { icon: "/icons/i-flask.png", title: "Исследование", purpose: "Изучить ветку" },
+  { icon: "/icons/i-shield.png", title: "Лечение", purpose: "Вернуть раненых" },
+];
+const EVENTS = [
+  { icon: "/icons/i-swords.png", title: "Нападение", purpose: "Атака на ваш двор" },
+  { icon: "/icons/i-hammer.png", title: "Стройка", purpose: "Постройка завершена" },
+  { icon: "/icons/i-flask.png", title: "Наука", purpose: "Исследование готово" },
+  { icon: "/icons/i-banner.png", title: "Клан", purpose: "Событие клана" },
+];
+
+// Квесты: активный сверху, до трёх строк. Заглушки.
+const QUESTS = ["Постройте жилой дом", "Соберите 100 мяса", "Отправьте разведку"];
+
+const CHAT_TABS = ["Мир", "Королевство", "Клан", "Личные"];
+const CHAT_LATEST = { who: "Соседний лорд", text: "тестовая строка" };
+const CHAT_LINES = [
+  { who: "Соседний лорд", text: "тестовая строка" },
+  { who: "Клан", text: "тестовая строка" },
+  { who: "Система", text: "тестовая строка" },
+];
 
 function useFitScale(w: number, h: number): number {
   const [scale, setScale] = useState(1);
@@ -38,16 +65,22 @@ function useFitScale(w: number, h: number): number {
 function TopBar() {
   return (
     <header className="top">
-      <span className="top__avatar" aria-hidden="true" title="Имя лорда" />
+      <div className="profile">
+        <span className="profile__avatar" aria-hidden="true" />
+        <span className="profile__copy">
+          <b>Имя лорда</b>
+          <small>Ратуша · 1</small>
+        </span>
+      </div>
       <div className="res-row" aria-label="Ресурсы">
-        {RESOURCES.map((name) => (
-          <div key={name} className="res">
-            <small>{name}</small>
+        {RESOURCES.map((r) => (
+          <div key={r.key} className="res" title={r.name}>
+            <img src={r.icon} alt="" />
             <b>—</b>
           </div>
         ))}
         <div className="res res--gold" title="Премиум-валюта, отдельно от ресурсов стройки">
-          <small>Золото</small>
+          <img src={GOLD.icon} alt="" />
           <b>—</b>
         </div>
       </div>
@@ -55,63 +88,92 @@ function TopBar() {
   );
 }
 
-function Btn({ label, disabled = false }: { label: string; disabled?: boolean }) {
+function ActionColumn() {
+  const [mode, setMode] = useState<Mode>("actions");
+  const list = mode === "actions" ? ACTIONS : EVENTS;
   return (
-    <button type="button" className="btn" disabled={disabled}>
-      <span className="btn__mark" aria-hidden="true">{label.slice(0, 1)}</span>
-      <span className="btn__label">{label}</span>
-    </button>
+    <div className="actions">
+      <div className="switch" role="tablist">
+        <button type="button" role="tab" aria-selected={mode === "actions"} className={mode === "actions" ? "is-on" : ""} onClick={() => setMode("actions")}>Действия</button>
+        <button type="button" role="tab" aria-selected={mode === "events"} className={mode === "events" ? "is-on" : ""} onClick={() => setMode("events")}>События</button>
+      </div>
+      {list.map((item) => (
+        <button key={item.title} type="button" className="action">
+          <img src={item.icon} alt="" />
+          <span className="action__copy">
+            <b>{item.title}</b>
+            <small>{item.purpose}</small>
+          </span>
+        </button>
+      ))}
+    </div>
   );
 }
 
-function NavBtn({ label }: { label: string }) {
-  return <button type="button" className="btn btn--nav">{label}</button>;
-}
-
-function MapButton({ screen }: { screen: Screen }) {
-  const label = screen === "court" ? "Карта" : "Двор";
+// Слева внизу: квесты и свёрнутая строка чата. Нажатие на чат — выдвижная панель слева.
+function LeftStack({ onChat }: { onChat: () => void }) {
   return (
-    <button type="button" className="map-btn" aria-label={label}>
-      {label}
-    </button>
+    <div className="left-stack">
+      <ul className="quests" aria-label="Задания">
+        {QUESTS.map((q, i) => (
+          <li key={q} className={i === 0 ? "is-active" : ""}>{q}</li>
+        ))}
+      </ul>
+      <button type="button" className="chat-strip" onClick={onChat} aria-label="Открыть чат">
+        <b>{CHAT_LATEST.who}:</b> {CHAT_LATEST.text}
+      </button>
+    </div>
   );
 }
 
-// Чат — живая лента, видна всегда (не кнопка). Строки — заглушки.
-function ChatFeed() {
+// Выдвижная панель чата слева, примерно 55% интерфейса. Вкладки по типу каналов.
+function ChatDrawer({ onClose }: { onClose: () => void }) {
+  const [tab, setTab] = useState(0);
   return (
-    <section className="chat" aria-label="Чат">
-      <p><b>Соседний лорд:</b> тестовая строка</p>
-      <p><b>Клан:</b> тестовая строка</p>
+    <section className="chat-drawer" aria-label="Чат">
+      <header>
+        <div className="chat-tabs">
+          {CHAT_TABS.map((t, i) => (
+            <button key={t} type="button" className={i === tab ? "is-on" : ""} onClick={() => setTab(i)}>{t}</button>
+          ))}
+        </div>
+        <button type="button" className="chat-drawer__close" onClick={onClose} aria-label="Свернуть чат">×</button>
+      </header>
+      <ul>
+        {CHAT_LINES.map((m, i) => (
+          <li key={i}><b>{m.who}:</b> {m.text}</li>
+        ))}
+      </ul>
     </section>
   );
 }
 
 function Device({ orient, screen }: { orient: Orient; screen: Screen }) {
   const { w, h } = SIZES[orient];
+  const [chatOpen, setChatOpen] = useState(false);
+  const mapLabel = screen === "court" ? "Карта" : "Двор";
+
   return (
     <div className="dev" style={{ width: w, height: h }}>
       <div className="scene" data-screen={screen}>
         <span className="scene__label">{screen === "court" ? "сцена двора (заглушка)" : "карта мира (заглушка)"}</span>
       </div>
       <TopBar />
+      <ActionColumn />
+      <LeftStack onChat={() => setChatOpen(true)} />
 
-      <div className="side side--left">
-        {LEFT.map((label) => <Btn key={label} label={label} />)}
-        <Btn label="Скоро" disabled />
-      </div>
-
-      <div className="side side--right">
-        {RIGHT.map((label) => <Btn key={label} label={label} />)}
-      </div>
-      <nav className="side-nav" aria-label="Нижнее меню">
-        {NAV_RIGHT.map((label) => <NavBtn key={label} label={label} />)}
+      <nav className="bottom" aria-label="Нижнее меню">
+        <div className="bottom__group bottom__group--left">
+          <button type="button" className="nav-btn">Отчёты</button>
+          <button type="button" className="nav-btn">Клан</button>
+        </div>
+        <button type="button" className="map-btn" aria-label={mapLabel}>{mapLabel}</button>
+        <div className="bottom__group bottom__group--right">
+          <button type="button" className="nav-btn">Лавка</button>
+        </div>
       </nav>
 
-      <div className="bottom">
-        <ChatFeed />
-        <MapButton screen={screen} />
-      </div>
+      {chatOpen ? <ChatDrawer onClose={() => setChatOpen(false)} /> : null}
     </div>
   );
 }
