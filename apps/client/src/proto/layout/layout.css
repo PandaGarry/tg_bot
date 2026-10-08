@@ -1,73 +1,71 @@
-/* ПРОТОТИП раскладки. Не часть игры: своя страница, токены не используются. */
-html, body, #proto-root { margin: 0; height: 100%; background: #0c0a09; color: #e7dccb; font-family: system-ui, sans-serif; }
+/* ПРОТОТИП раскладки. Не часть игры. Правило: размеры — px, положение — от краёв; без правил под ориентацию. */
+html, body, #proto-root { margin: 0; height: 100%; background: #0c0a09; color: #e7dccb; font-family: system-ui, -apple-system, sans-serif; }
 button { font: inherit; color: inherit; cursor: pointer; }
+* { box-sizing: border-box; }
 
-.proto-controls { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 50;
-  display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: center;
-  padding: 6px 10px; background: rgba(0,0,0,.75); border: 1px dashed #b45309; border-radius: 8px; font-size: 12px; max-width: 96vw; }
-.proto-controls button { margin-left: 4px; padding: 4px 8px; background: #1c1917; border: 1px solid #44403c; border-radius: 6px; }
-.proto-controls button.is-on { background: #b45309; border-color: #fbbf24; color: #fff; }
-.proto-tag { color: #fbbf24; font-weight: 700; }
+/* панель управления прототипом (вне устройства) */
+.proto { min-height: 100%; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; padding: 8px 10px; background: #14110f; border-bottom: 1px dashed #b45309; font-size: 12px; }
+.tag { color: #fbbf24; font-weight: 700; }
+.seg { display: inline-flex; gap: 4px; }
+.seg button { min-height: 32px; padding: 0 10px; background: #1c1917; border: 1px solid #44403c; border-radius: 8px; }
+.seg button.is-on { background: #b45309; border-color: #fbbf24; color: #fff; }
+.stage { display: flex; justify-content: center; align-items: flex-start; padding: 12px; }
 
-.proto-frame { position: fixed; inset: 0; overflow: hidden; }
-.proto-port { position: fixed; top: 40px; bottom: 0; left: 50%; transform: translateX(-50%); width: min(390px, 100vw); border-left: 1px solid #44403c; border-right: 1px solid #44403c; }
+/* устройство: фиксированный размер, масштаб только целиком */
+.dev { position: relative; overflow: hidden; border-radius: 34px; border: 2px solid #292524; background: #0c0a09; }
+.scene { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, #3b2a1a 0%, #1c1410 60%, #0c0a09 100%); display: grid; place-items: center; }
+.scene::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
+.scene[data-screen="map"] { background: radial-gradient(ellipse at 50% 50%, #1e2a1c, #0c0a09); }
+.scene__label { position: relative; opacity: .4; font-size: 13px; }
 
-.proto-scene { position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 45%, #3b2a1a 0%, #1c1410 60%, #0c0a09 100%); display: grid; place-items: center; }
-.proto-scene::before { content: ""; position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-  background-size: 48px 48px; }
-.proto-scene[data-screen="map"] { background: radial-gradient(ellipse at 50% 50%, #1e2a1c, #0c0a09); }
-.proto-scene-label { position: relative; opacity: .45; font-size: 13px; }
+/* ===== шапка (одинакова в обоих вариантах) ===== */
+.hd-profile { position: absolute; left: 8px; top: 8px; width: 200px; height: 52px; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 14px; background: rgba(20,17,15,.92); border: 1px solid #57534e; }
+.hd-portrait { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: #44403c; border: 2px solid #b45309; }
+.hd-copy { display: flex; flex-direction: column; min-width: 0; }
+.hd-copy b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hd-copy small { font-size: 10px; opacity: .7; }
 
-/* общие заглушки */
-.proto-strong { font-weight: 700; }
-.proto-muted { font-size: 11px; opacity: .7; }
-.proto-badge { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: #dc2626; color: #fff; font-size: 11px; }
-.proto-hint { margin-left: 8px; font-size: 11px; opacity: .6; }
-.proto-card, .proto-icon-btn, .proto-lord, .proto-res, .proto-cell { background: rgba(28,25,23,.9); border: 1px solid #57534e; border-radius: 8px; }
+.hd-res { position: absolute; right: 8px; top: 68px; display: flex; gap: 4px; }
+.res { width: 56px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 10px; background: rgba(20,17,15,.92); border: 1px solid #57534e; }
+.res small { font-size: 9px; opacity: .75; }
+.res b { font-size: 12px; }
+.res--gold { border: 2px solid #fbbf24; background: linear-gradient(#3f2d08, #1c1405); color: #fde68a; box-shadow: 0 0 10px rgba(251,191,36,.35); }
 
-/* верх-лево */
-.proto-lord { position: absolute; top: 8px; left: 8px; display: flex; gap: 8px; align-items: center; padding: 6px 10px; }
-.proto-portrait { width: 44px; height: 44px; border-radius: 50%; background: #44403c; border: 2px solid #b45309; }
+/* ===== общие кнопки: 52×52, подпись под значком ===== */
+.btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 52px; height: 52px; padding: 0; border-radius: 12px; background: rgba(28,25,23,.94); border: 1px solid #57534e; }
+.btn__mark { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #78350f; color: #fde68a; font-size: 10px; font-weight: 700; }
+.btn__label { font-size: 9px; line-height: 1; white-space: nowrap; }
+.btn--nav { width: 60px; height: 52px; }
 
-/* верх-право: ресурсы в одну строку, растёт влево */
-/* Порядок слева направо: мясо … грибы, золото — самая правая (крайняя) ячейка. */
-.proto-resources { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; flex-direction: row; }
-.proto-res { display: flex; flex-direction: column; padding: 4px 8px; min-width: 70px; font-size: 12px; }
-.proto-res b { font-size: 13px; }
-.proto-premium { border: 2px solid #fbbf24; background: linear-gradient(#3f2d08, #1c1405); box-shadow: 0 0 10px rgba(251,191,36,.35); color: #fde68a; }
+/* ===== кнопка «Карта/Двор»: 84×76, центр, одна на оба варианта ===== */
+.map-btn { position: absolute; bottom: 8px; left: 50%; width: 84px; height: 76px; margin-left: -42px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 20px; border: 2px solid #fbbf24; background: linear-gradient(#78350f, #3f1d07); box-shadow: 0 0 14px rgba(251,191,36,.3); z-index: 5; }
+.map-btn__label { font-size: 13px; font-weight: 700; }
+.map-btn small { font-size: 9px; opacity: .8; }
 
-/* лево и право — колонки */
-.proto-left, .proto-right { position: absolute; top: 96px; display: flex; flex-direction: column; gap: 6px; }
-.proto-left { left: 8px; width: 116px; }
-.proto-right { right: 8px; width: 116px; }
-.proto-icon-btn { padding: 8px; text-align: left; font-size: 13px; min-height: 44px; }
-.proto-soon { padding: 8px; font-size: 13px; display: flex; justify-content: space-between; opacity: .6; }
-.proto-soon span { font-size: 11px; }
+/* ===== чат-ячейка и панель чата ===== */
+.chat-cell { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 8px; text-align: left; border-radius: 12px; background: rgba(20,17,15,.94); border: 1px solid #57534e; min-width: 0; }
+.chat-cell__head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+.chat-cell__last { font-size: 10px; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { display: inline-block; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #dc2626; color: #fff; font-style: normal; font-size: 10px; text-align: center; }
+.chat-panel { position: absolute; left: 8px; bottom: 80px; width: 300px; max-height: 220px; z-index: 20; padding: 8px 10px; border-radius: 14px; background: rgba(20,17,15,.97); border: 1px solid #57534e; font-size: 12px; }
+.chat-panel header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.chat-panel header button { min-width: 32px; min-height: 32px; background: #1c1917; border: 1px solid #44403c; border-radius: 8px; }
+.chat-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 
-/* чат: вариант а — полоса слева над доком; вариант б — правая колонка внизу */
-.proto-chat { position: absolute; background: rgba(20,17,15,.95); border: 1px solid #57534e; border-radius: 8px; font-size: 12px; }
-.proto-chat-head { width: 100%; text-align: left; padding: 8px 10px; background: none; border: 0; display: flex; align-items: center; min-height: 44px; }
-.proto-chat-body { list-style: none; margin: 0; padding: 0 10px 8px; max-height: 160px; overflow: auto; }
-.proto-chat-a { left: 8px; bottom: 74px; width: 260px; }
-.proto-chat-a.is-open { width: 300px; }
-.proto-chat-b { right: 8px; bottom: 74px; width: 116px; }
-.proto-chat-b.is-open { width: 230px; }
-.proto-chat-b.is-folded .proto-hint { display: none; }
+/* ===== ВАРИАНТ 1 «Полоса»: колонки по бокам, чат-ячейка слева, меню справа ===== */
+.a-left { position: absolute; left: 8px; bottom: 80px; display: flex; flex-direction: column; gap: 6px; }
+.a-right { position: absolute; right: 8px; bottom: 80px; display: flex; flex-direction: column; gap: 6px; }
+.a-chat { position: absolute; left: 8px; bottom: 8px; width: 132px; height: 64px; }
+.a-menu { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; }
+.a-menu .btn--nav { height: 64px; }
 
-/* док: 4–5 ячеек + центр, приподнятый */
-.proto-dock { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; display: flex; gap: 8px; align-items: flex-end; }
-.proto-cell { min-width: 84px; min-height: 52px; padding: 6px 8px; }
-.proto-center { min-width: 110px; min-height: 64px; margin-bottom: 10px; background: linear-gradient(#78350f, #3f1d07); border-color: #fbbf24; font-weight: 700; display: flex; flex-direction: column; justify-content: center; }
-.proto-center-sub { font-size: 10px; font-weight: 400; opacity: .8; }
-
-/* портрет: узкий экран — колонки уходят под сцену, чтобы не перекрывать друг друга */
-.proto-port .proto-left, .proto-port .proto-right { width: 84px; }
-.proto-port .proto-resources { flex-wrap: wrap; right: 4px; left: 150px; justify-content: flex-end; }
-.proto-port .proto-res { min-width: 0; padding: 3px 5px; }
-.proto-port .proto-dock { gap: 4px; left: 0; right: 0; transform: none; justify-content: center; }
-.proto-port .proto-cell { min-width: 0; flex: 1; font-size: 12px; }
-.proto-port .proto-center { min-width: 0; flex: 1.3; }
-.proto-port .proto-chat-a { width: 230px; }
-.proto-port .proto-chat-b { width: 84px; }
+/* ===== ВАРИАНТ 2 «Плита»: одна нижняя плита, ряды действий над ней ===== */
+.b-row { position: absolute; bottom: 94px; display: flex; gap: 6px; }
+.b-row--left { left: 8px; }
+.b-row--right { right: 8px; }
+.b-plate { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 22px; background: linear-gradient(#211c18, #120f0d); border: 1px solid #78350f; }
+.b-chat { width: 148px; height: 52px; }
+.b-menu { display: flex; gap: 4px; }
+.b-menu .btn--nav { height: 52px; }
+.b-plate ~ .map-btn { bottom: 10px; }

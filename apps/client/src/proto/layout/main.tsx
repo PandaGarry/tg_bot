@@ -1,143 +1,216 @@
-// ПРОТОТИП раскладки главного экрана «Двор» (этап 0 ТЗ docs/game/30-hud-court-spec.md).
+// ПРОТОТИП раскладки главного экрана «Двор» (пример для оценки заказчиком; после выбора удаляется).
 // Не подключён к игре: своя страница, без входа, сервера и store. Все значения — заглушки.
-import { StrictMode, useState } from "react";
+//
+// Принцип: размеры элементов фиксированы в пикселях и одинаковы в портрете и ландшафте.
+// Положение задаётся от краёв экрана (якоря). Ориентация меняет только размер экрана,
+// без отдельных правил раскладки — поэтому при повороте ничего не «перепрыгивает».
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./layout.css";
 
-type ChatVariant = "a" | "b" | "c";
+type Variant = "A" | "B";
+type Orient = "portrait" | "landscape";
 type Screen = "court" | "map";
-type Orientation = "land" | "port";
+
+const SIZES: Record<Orient, { w: number; h: number }> = {
+  portrait: { w: 390, h: 844 },
+  landscape: { w: 844, h: 390 },
+};
 
 const RESOURCES = ["Мясо", "Дерево", "Камень", "Металл", "Грибы"];
-const QUEUES = ["Строить", "Тренировка", "Исследование"];
-const RIGHT = ["Командиры", "Клан", "Предметы", "Лавка", "Почта"];
+const QUEUES = ["Стройка", "Войско", "Наука"];
+const ACTIONS = ["Герои", "Клан", "Вещи"];
 
-function Chat({ variant }: { variant: "a" | "b" }) {
-  const [open, setOpen] = useState(variant === "b");
+function useFitScale(w: number, h: number): number {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () => setScale(Math.min(1, (window.innerWidth - 24) / w, (window.innerHeight - 110) / h));
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [w, h]);
+  return scale;
+}
+
+function Header() {
   return (
-    <section className={`proto-chat proto-chat-${variant} ${open ? "is-open" : "is-folded"}`}>
-      <button type="button" className="proto-chat-head" onClick={() => setOpen(!open)}>
-        Чат <span className="proto-badge">3</span>
-        <span className="proto-hint">{open ? "свернуть" : "раскрыть"}</span>
-      </button>
-      {open ? (
-        <ul className="proto-chat-body">
-          <li><b>Соседний лорд:</b> тестовая строка</li>
-          <li><b>Система:</b> тестовая строка</li>
-          <li><b>Клан:</b> тестовая строка</li>
-        </ul>
-      ) : null}
+    <>
+      <div className="hd-profile">
+        <span className="hd-portrait" />
+        <span className="hd-copy">
+          <b>Имя лорда</b>
+          <small>Ур. — · Сила —</small>
+        </span>
+      </div>
+      <div className="hd-res" aria-label="Ресурсы">
+        {RESOURCES.map((name) => (
+          <div key={name} className="res">
+            <small>{name}</small>
+            <b>—</b>
+          </div>
+        ))}
+        <div className="res res--gold" title="Премиум-валюта, не ресурс стройки">
+          <small>Золото</small>
+          <b>—</b>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Btn({ label, className = "" }: { label: string; className?: string }) {
+  return (
+    <button type="button" className={`btn ${className}`}>
+      <span className="btn__mark" aria-hidden="true">{label.slice(0, 1)}</span>
+      <span className="btn__label">{label}</span>
+    </button>
+  );
+}
+
+function MapButton({ screen }: { screen: Screen }) {
+  const label = screen === "court" ? "Карта" : "Двор";
+  return (
+    <button type="button" className="map-btn" aria-label={label}>
+      <span className="map-btn__label">{label}</span>
+      <small>{screen === "court" ? "на карту" : "в свой двор"}</small>
+    </button>
+  );
+}
+
+function ChatCell({ open, onToggle, className }: { open: boolean; onToggle: () => void; className: string }) {
+  return (
+    <button type="button" className={`chat-cell ${className}`} onClick={onToggle} aria-expanded={open}>
+      <span className="chat-cell__head">Чат <i className="badge">3</i></span>
+      <span className="chat-cell__last">последняя строка…</span>
+    </button>
+  );
+}
+
+function ChatPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <section className="chat-panel" aria-label="Чат">
+      <header>
+        <b>Чат</b>
+        <button type="button" onClick={onClose}>×</button>
+      </header>
+      <ul>
+        <li><b>Соседний лорд:</b> тестовая строка</li>
+        <li><b>Система:</b> тестовая строка</li>
+        <li><b>Клан:</b> тестовая строка</li>
+      </ul>
     </section>
   );
 }
 
-function Dock({ screen, onToggle, chat }: { screen: Screen; onToggle: () => void; chat: ChatVariant }) {
-  const centerLabel = screen === "court" ? "Карта" : "Двор";
+function Device({ variant, orient, screen }: { variant: Variant; orient: Orient; screen: Screen }) {
+  const { w, h } = SIZES[orient];
+  const [chat, setChat] = useState(false);
+  const toggleChat = () => setChat((value) => !value);
+
   return (
-    <nav className={`proto-dock ${chat === "c" ? "has-chat-cell" : ""}`} aria-label="Нижняя навигация">
-      <button type="button" className="proto-cell">Отчёты</button>
-      <button type="button" className="proto-cell">Хроника</button>
-      <button type="button" className="proto-cell proto-center" onClick={onToggle}>
-        {centerLabel}
-        <span className="proto-center-sub">{screen === "court" ? "на карту" : "в свой двор"}</span>
-      </button>
-      {chat === "c" ? <button type="button" className="proto-cell">Чат</button> : null}
-      <button type="button" className="proto-cell">Меню</button>
-    </nav>
-  );
-}
-
-function Frame({ screen, orientation, chat, onToggleScreen }: {
-  screen: Screen; orientation: Orientation; chat: ChatVariant; onToggleScreen: () => void;
-}) {
-  return (
-    <div className={`proto-frame proto-${orientation}`}>
-      <div className="proto-scene" data-screen={screen}>
-        <span className="proto-scene-label">
-          {screen === "court" ? "сцена двора (Pixi, заглушка)" : "карта мира (заглушка)"}
-        </span>
+    <div className={`dev dev--${variant}`} style={{ width: w, height: h }}>
+      <div className="scene" data-screen={screen}>
+        <span className="scene__label">{screen === "court" ? "сцена двора (заглушка)" : "карта мира (заглушка)"}</span>
       </div>
+      <Header />
 
-      {/* Верх-лево: лорд (заглушка) */}
-      <div className="proto-lord">
-        <div className="proto-portrait" />
-        <div>
-          <div className="proto-strong">Имя лорда</div>
-          <div className="proto-muted">Ур. — · Сила —</div>
-        </div>
-      </div>
+      {variant === "A" ? (
+        <>
+          <div className="a-left">
+            {QUEUES.map((q) => <Btn key={q} label={q} />)}
+          </div>
+          <div className="a-right">
+            {ACTIONS.map((a) => <Btn key={a} label={a} />)}
+          </div>
+          <ChatCell open={chat} onToggle={toggleChat} className="a-chat" />
+          <MapButton screen={screen} />
+          <nav className="a-menu" aria-label="Меню">
+            <Btn label="Отчёты" className="btn--nav" />
+            <Btn label="Меню" className="btn--nav" />
+          </nav>
+        </>
+      ) : (
+        <>
+          <div className="b-row b-row--left">
+            {QUEUES.map((q) => <Btn key={q} label={q} />)}
+          </div>
+          <div className="b-row b-row--right">
+            {ACTIONS.map((a) => <Btn key={a} label={a} />)}
+          </div>
+          <div className="b-plate">
+            <ChatCell open={chat} onToggle={toggleChat} className="b-chat" />
+            <nav className="b-menu" aria-label="Меню">
+              <Btn label="Отчёты" className="btn--nav" />
+              <Btn label="Меню" className="btn--nav" />
+            </nav>
+          </div>
+          <MapButton screen={screen} />
+        </>
+      )}
 
-      {/* Верх-право: ресурсы стройки + отдельная премиум-ячейка */}
-      <div className="proto-resources">
-        {RESOURCES.map((name) => (
-          <div key={name} className="proto-res"><span>{name}</span><b>—</b></div>
-        ))}
-        <div className="proto-res proto-premium" title="Премиум-валюта, не ресурс стройки">
-          <span>Золото · премиум</span><b>—</b>
-        </div>
-      </div>
-
-      {/* Лево: главная линия (заглушка) и очереди */}
-      <aside className="proto-left">
-        <div className="proto-card proto-soon">Главная линия<span>скоро</span></div>
-        {QUEUES.map((q) => (
-          <button key={q} type="button" className="proto-icon-btn">{q}</button>
-        ))}
-      </aside>
-
-      {/* Право: панели (заглушки) */}
-      <aside className="proto-right">
-        {RIGHT.map((r) => (
-          <button key={r} type="button" className="proto-icon-btn">{r}</button>
-        ))}
-      </aside>
-
-      {chat === "a" ? <Chat variant="a" /> : null}
-      {chat === "b" ? <Chat variant="b" /> : null}
-      <Dock screen={screen} onToggle={onToggleScreen} chat={chat} />
+      {chat ? <ChatPanel onClose={toggleChat} /> : null}
     </div>
   );
 }
 
-function Controls(props: {
-  chat: ChatVariant; setChat: (v: ChatVariant) => void;
-  screen: Screen; setScreen: (v: Screen) => void;
-  orientation: Orientation; setOrientation: (v: Orientation) => void;
+function Segment<T extends string>({ value, options, onChange }: {
+  value: T; options: { id: T; label: string }[]; onChange: (id: T) => void;
 }) {
-  const btn = (active: boolean, label: string, onClick: () => void) => (
-    <button type="button" className={active ? "is-on" : ""} onClick={onClick}>{label}</button>
-  );
   return (
-    <div className="proto-controls">
-      <span className="proto-tag">ПРОТОТИП · без данных</span>
-      <div>Чат:
-        {btn(props.chat === "a", "а) полоса слева", () => props.setChat("a"))}
-        {btn(props.chat === "b", "б) правая колонка", () => props.setChat("b"))}
-        {btn(props.chat === "c", "в) ячейка дока", () => props.setChat("c"))}
-      </div>
-      <div>Экран:
-        {btn(props.screen === "court", "Двор", () => props.setScreen("court"))}
-        {btn(props.screen === "map", "Карта", () => props.setScreen("map"))}
-      </div>
-      <div>Ориентация:
-        {btn(props.orientation === "land", "ландшафт", () => props.setOrientation("land"))}
-        {btn(props.orientation === "port", "портрет", () => props.setOrientation("port"))}
-      </div>
+    <div className="seg">
+      {options.map((o) => (
+        <button key={o.id} type="button" aria-pressed={value === o.id} className={value === o.id ? "is-on" : ""} onClick={() => onChange(o.id)}>
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 function App() {
-  const [chat, setChat] = useState<ChatVariant>("a");
+  const [variant, setVariant] = useState<Variant>("A");
+  const [orient, setOrient] = useState<Orient>("portrait");
   const [screen, setScreen] = useState<Screen>("court");
-  const [orientation, setOrientation] = useState<Orientation>("land");
+  const { w, h } = SIZES[orient];
+  const scale = useFitScale(w, h);
+
   return (
-    <>
-      <Controls chat={chat} setChat={setChat} screen={screen} setScreen={setScreen}
-        orientation={orientation} setOrientation={setOrientation} />
-      <Frame screen={screen} orientation={orientation} chat={chat}
-        onToggleScreen={() => setScreen(screen === "court" ? "map" : "court")} />
-    </>
+    <div className="proto">
+      <div className="controls">
+        <span className="tag">ПРОТОТИП · без данных</span>
+        <Segment<Variant>
+          value={variant}
+          onChange={setVariant}
+          options={[
+            { id: "A", label: "1 · Полоса" },
+            { id: "B", label: "2 · Плита" },
+          ]}
+        />
+        <Segment<Orient>
+          value={orient}
+          onChange={setOrient}
+          options={[
+            { id: "portrait", label: "Портрет" },
+            { id: "landscape", label: "Ландшафт" },
+          ]}
+        />
+        <Segment<Screen>
+          value={screen}
+          onChange={setScreen}
+          options={[
+            { id: "court", label: "Двор" },
+            { id: "map", label: "Карта" },
+          ]}
+        />
+      </div>
+      <div className="stage">
+        <div style={{ width: w * scale, height: h * scale }}>
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: w, height: h }}>
+            <Device variant={variant} orient={orient} screen={screen} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
