@@ -1,9 +1,9 @@
-export const UI_MOCKUP_IDS = ["bonewood", "chronicle", "ash", "snow", "ledger"] as const;
+export const UI_MOCKUP_IDS = ["citadel", "atlas", "forge", "frost", "ledger"] as const;
 
 export type UiMockupId = (typeof UI_MOCKUP_IDS)[number];
 
 const STORAGE_KEY = "tdl.ui.mockup";
-const DEFAULT_MOCKUP: UiMockupId = "bonewood";
+const DEFAULT_MOCKUP: UiMockupId = "citadel";
 
 export function isUiMockupId(value: string | null): value is UiMockupId {
   return value !== null && (UI_MOCKUP_IDS as readonly string[]).includes(value);

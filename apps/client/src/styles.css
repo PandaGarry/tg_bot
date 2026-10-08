@@ -86,82 +86,18 @@ button {
   }
 }
 
-.court-mode .game-nav,
-.court-mode .hud-top,
-.court-mode .hud-queues,
-.court-mode .hud-rb-row,
-.court-mode .hud-tabs,
-.court-mode .hud-panel {
-  position: absolute;
-}
-
-/* Пустые зоны HUD пропускают жесты в Pixi-canvas; интерактивны только сами элементы. */
+/* Пустые зоны HUD пропускают жесты в Pixi-canvas; концепт-контролы включают события точечно. */
 #hud-root > .court-mode {
   pointer-events: none;
 }
 
-.court-mode .hud-top,
-.court-mode .hud-rb-row,
-.court-mode .hud-tabs,
-.court-mode .game-nav {
-  pointer-events: none;
+.court-mode,
+.court-mode * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.court-mode .hud-top .hud-lord,
-.court-mode .hud-rb-row button,
-.court-mode .hud-tabs button,
-.court-mode .game-nav button,
-.court-mode .hud-build,
-.court-mode .hud-panel,
-.court-mode .place-bar,
-.court-mode .court-tape,
-.court-mode > .fixed.z-20 {
-  pointer-events: auto;
-}
-
-/* Подсказки поверх Pixi-сцены. */
-.court-note {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(56px + env(safe-area-inset-bottom));
-  background: rgba(30, 22, 16, 0.78);
-  color: #f0e8d8;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 13px;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 5;
-}
-
-/* Лента хрониста поверх 3D-сцены: первая фраза, закрывается один раз.
-   Висит выше круглых кнопок «Строить/Карта», чтобы не закрывать их. */
-.court-tape {
-  position: absolute;
-  left: 12px;
-  right: 76px;
-  bottom: calc(190px + env(safe-area-inset-bottom));
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(30, 22, 16, 0.85);
-  border: 1px solid rgba(214, 178, 120, 0.4);
-  border-radius: 12px;
-  padding: 8px 10px;
-  color: #f0e8d8;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.court-tape button {
-  min-height: 44px;
-  padding: 0 12px;
-  color: #f0d9a8;
-}
-
-
 
 /* ---------- Окна входа, регистрации и слайдов: современная тёмная карточка
    в палитре Bone-Wood (круг 18, по референсам заказчика) ---------- */
