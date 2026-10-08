@@ -1,7 +1,8 @@
 /* Оболочка двора (CourtChrome). Якоря от краёв. Элементы компактные и полупрозрачные,
    чтобы игрок видел двор. Слой не перехватывает клики по сцене: интерактивные элементы — pointer-events: auto. */
 .ch-root { position: absolute; inset: 0; z-index: 30; pointer-events: none; font: 11px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e7e4dc; }
-.ch-root button { font: inherit; color: inherit; pointer-events: auto; cursor: pointer; }
+/* Глобальный styles.css задаёт всем кнопкам min-height: 44px — сбрасываем здесь, иначе размеры не работают. */
+.ch-root button { font: inherit; color: inherit; min-height: 0; margin: 0; pointer-events: auto; cursor: pointer; }
 .ch-root img { display: block; }
 
 .ch-tag { font-style: normal; flex: none; padding: 0 4px; border-radius: 3px; background: rgba(230,195,92,.16); color: #f0d98a; font-size: 8px; font-weight: 700; line-height: 13px; }
@@ -16,6 +17,7 @@
 .ch-profile__info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding-top: 2px; }
 .ch-profile__info > b { max-width: 96px; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
 .ch-profile__power { color: #e6c35c; font-size: 10px; font-weight: 700; text-shadow: 0 1px 2px #000; }
+.ch-stub-value { opacity: .75; }
 .ch-profile__vip { font-style: normal; padding: 0 4px; border-radius: 3px; background: rgba(0,0,0,.45); border: 1px solid rgba(230,195,92,.35); color: #e6c35c; font-size: 8px; font-weight: 700; line-height: 12px; }
 
 /* Ресурсы: мелко, картинка в тонкой рамке, цифра под ней */
@@ -24,17 +26,20 @@
 .ch-res__icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; border: 1px solid rgba(255,255,255,.14); background: rgba(10,12,16,.3); }
 .ch-res__icon img { width: 22px; height: 22px; object-fit: contain; }
 .ch-res__item b { font-size: 9px; font-weight: 600; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+/* Доход в час — зелёным под количеством */
+.ch-res__income { font-style: normal; font-size: 8px; font-weight: 700; line-height: 10px; color: #6fdc6a; text-shadow: 0 1px 2px #000; white-space: nowrap; }
 .ch-res__item--gold { flex: 0 0 40px; }
 .ch-res__item--gold .ch-res__icon { border-color: rgba(230,195,92,.5); }
 .ch-res__item--gold b { color: #e6c35c; }
 
 /* Справа: переключатель — тонкие рейки; действия — тонкая рамка */
 .ch-side { position: absolute; right: 8px; top: 68px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.ch-switch { display: flex; flex-direction: row; gap: 2px; }
-.ch-switch button { flex: 0 0 auto; height: 13px; padding: 0 6px; border: 1px solid rgba(255,255,255,.1); border-radius: 4px; background: rgba(20,23,31,.45); color: #9a968a; font-size: 8px; line-height: 11px; pointer-events: auto; }
-.ch-switch button.is-on { border-color: rgba(230,195,92,.6); background: rgba(230,195,92,.14); color: #f0d98a; }
-.ch-action { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.3); }
-.ch-action img { width: 28px; height: 28px; object-fit: contain; }
+/* Переключатель — без контейнера и рамок: две тонкие текстовые рейки, активная — золотая черта снизу */
+.ch-switch { display: flex; flex-direction: row; gap: 8px; padding: 0 2px; }
+.ch-switch button { flex: 0 0 auto; height: 14px; padding: 0 1px 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #8d897e; font-size: 9px; line-height: 12px; text-shadow: 0 1px 2px #000; pointer-events: auto; }
+.ch-switch button.is-on { border-bottom-color: #e6c35c; color: #f0d98a; }
+.ch-action { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border-radius: 7px; border: 1px solid rgba(255,255,255,.14); background: transparent; }
+.ch-action img { width: 24px; height: 24px; object-fit: contain; }
 
 /* Слева: квесты — свёрнуты в строку (значок + текущий), развёрнуты — список */
 .ch-quests { position: absolute; left: 8px; top: 68px; width: 150px; display: flex; flex-direction: column; gap: 3px; }

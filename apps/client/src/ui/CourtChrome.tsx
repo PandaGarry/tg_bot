@@ -11,14 +11,17 @@ import { ConceptIcon } from "./ConceptIcon.js";
 type Mode = "actions" | "events";
 type Channel = "world" | "kingdom" | "clan" | "private";
 
-const RESOURCES: { id: string; icon: string; name: string }[] = [
-  { id: "meat", icon: "/icons/meat.png", name: "Мясо" },
-  { id: "wood", icon: "/icons/wood.png", name: "Дерево" },
-  { id: "stone", icon: "/icons/stone.png", name: "Камень" },
-  { id: "metal", icon: "/icons/metal.png", name: "Металл" },
-  { id: "mushrooms", icon: "/icons/mushroom.png", name: "Грибы" },
+// ЗАГЛУШКИ: доходы в час, сила и VIP — временные значения, чтобы видеть вёрстку. Не реальные данные.
+const RESOURCES: { id: string; icon: string; name: string; income: number }[] = [
+  { id: "meat", icon: "/icons/meat.png", name: "Мясо", income: 15 },
+  { id: "wood", icon: "/icons/wood.png", name: "Дерево", income: 12 },
+  { id: "stone", icon: "/icons/stone.png", name: "Камень", income: 8 },
+  { id: "metal", icon: "/icons/metal.png", name: "Металл", income: 5 },
+  { id: "mushrooms", icon: "/icons/mushroom.png", name: "Грибы", income: 10 },
 ];
-const GOLD = { id: "gold", icon: "/icons/gold.png", name: "Золото" };
+const GOLD = { id: "gold", icon: "/icons/gold.png", name: "Золото", income: 3 };
+const STUB_POWER = 2514942;
+const STUB_VIP = 3;
 
 // Действия: build — существующая панель строительства, остальные — заглушки.
 const ACTIONS: { key: string; icon: string; title: string }[] = [
@@ -64,6 +67,10 @@ export type CourtChromeProps = {
   // Страница раздела: показываем только шапку и нижнее меню.
   pageMode?: boolean;
 };
+
+function formatFull(value: number): string {
+  return new Intl.NumberFormat("ru-RU").format(value).replace(/\u00a0/g, " ");
+}
 
 function formatAmount(value: number): string {
   if (!Number.isFinite(value)) return "—";
@@ -122,8 +129,8 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           <span className="ch-profile__info">
             <b>{name}</b>
             {/* Сила и VIP — заглушки: в протоколе пока нет данных. */}
-            <small className="ch-profile__power" title="Общая сила">Сила —</small>
-            <i className="ch-profile__vip" title="VIP">VIP —</i>
+            <small className="ch-profile__power ch-stub-value" title="Общая сила (заглушка)">Сила {formatFull(STUB_POWER)}</small>
+            <i className="ch-profile__vip ch-stub-value" title="VIP (заглушка)">VIP {STUB_VIP}</i>
           </span>
         </button>
         <div className="ch-res" aria-label={lang === "ru" ? "Ресурсы" : "Resources"}>
@@ -131,11 +138,13 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             <div key={r.id} className="ch-res__item" title={r.name}>
               <span className="ch-res__icon"><img src={r.icon} alt="" /></span>
               <b>{formatAmount(Number(stock[r.id] ?? 0))}</b>
+              <em className="ch-res__income" title="Доход в час (заглушка)">+{r.income}</em>
             </div>
           ))}
           <div className="ch-res__item ch-res__item--gold" title={GOLD.name}>
             <span className="ch-res__icon"><img src={GOLD.icon} alt="" /></span>
             <b>{formatAmount(Number(stock[GOLD.id] ?? 0))}</b>
+            <em className="ch-res__income" title="Доход в час (заглушка)">+{GOLD.income}</em>
           </div>
         </div>
       </header>
