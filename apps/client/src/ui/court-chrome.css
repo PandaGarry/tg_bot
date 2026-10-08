@@ -4,63 +4,73 @@
 .ch-root button { font: inherit; color: inherit; pointer-events: auto; cursor: pointer; }
 .ch-root img { display: block; }
 
-/* Верх: профиль (узкий) и ресурсы в одну строку */
-.ch-top { position: absolute; left: 8px; right: 8px; top: 8px; height: 52px; display: flex; align-items: center; gap: 6px; }
-.ch-profile { flex: none; display: flex; align-items: center; gap: 6px; height: 52px; padding: 4px 8px 4px 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(20,23,31,.7); text-align: left; }
-.ch-profile__avatar { position: relative; width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid #d9b66a; background: #2a3140; display: grid; place-items: center; overflow: visible; }
-.ch-profile__avatar svg { width: 38px; height: 38px; border-radius: 50%; }
-.ch-profile__level { position: absolute; right: -6px; bottom: -4px; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 8px; background: #1b1e26; border: 1px solid #d9b66a; color: #f0d98a; font-size: 9px; font-weight: 700; line-height: 14px; text-align: center; }
-.ch-profile__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ch-profile__copy > b { font-size: 12px; white-space: nowrap; max-width: 92px; overflow: hidden; text-overflow: ellipsis; }
-.ch-profile__meta { display: flex; align-items: center; gap: 4px; }
-.ch-profile__vip { font-style: normal; padding: 0 4px; border-radius: 4px; background: rgba(230,195,92,.14); color: #e6c35c; font-size: 9px; font-weight: 700; line-height: 14px; }
-.ch-profile__meta small { color: #9a968a; font-size: 9px; white-space: nowrap; }
+.ch-tag { font-style: normal; flex: none; padding: 0 4px; border-radius: 3px; background: rgba(230,195,92,.16); color: #f0d98a; font-size: 8px; font-weight: 700; line-height: 13px; }
+.ch-dot { position: relative; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #e0493a; box-shadow: 0 0 0 1px rgba(0,0,0,.5); }
 
-.ch-res { flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 3px; }
-.ch-res__item { flex: 1 1 0; min-width: 0; max-width: 46px; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: auto; }
-.ch-res__icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.35); }
-.ch-res__icon img { width: 30px; height: 30px; object-fit: contain; }
-.ch-res__item b { font-size: 10px; font-weight: 600; white-space: nowrap; color: #e7e4dc; }
-.ch-res__item--gold { flex: 0 0 46px; }
+/* Верх: профиль (портрет с уровнем, сила, VIP) и ресурсы */
+.ch-top { position: absolute; left: 8px; right: 8px; top: 8px; height: 50px; display: flex; align-items: flex-start; gap: 8px; }
+.ch-profile { flex: none; display: flex; align-items: center; gap: 7px; height: 50px; padding: 0 6px 0 0; border: 0; background: transparent; text-align: left; }
+.ch-profile__portrait { position: relative; width: 46px; height: 46px; flex: none; border-radius: 50%; border: 2px solid #c9a35a; background: #1b1f27; box-shadow: 0 0 0 1px rgba(0,0,0,.6); display: grid; place-items: center; }
+.ch-profile__portrait svg { width: 42px; height: 42px; border-radius: 50%; }
+.ch-profile__level { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 22px; height: 14px; padding: 0 5px; border-radius: 7px; background: #15181f; border: 1px solid #c9a35a; color: #f0d98a; font-size: 9px; font-weight: 700; line-height: 12px; text-align: center; }
+.ch-profile__info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding-top: 2px; }
+.ch-profile__info > b { max-width: 96px; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
+.ch-profile__power { color: #e6c35c; font-size: 10px; font-weight: 700; text-shadow: 0 1px 2px #000; }
+.ch-profile__vip { font-style: normal; padding: 0 4px; border-radius: 3px; background: rgba(0,0,0,.45); border: 1px solid rgba(230,195,92,.35); color: #e6c35c; font-size: 8px; font-weight: 700; line-height: 12px; }
+
+/* Ресурсы: мелко, картинка в тонкой рамке, цифра под ней */
+.ch-res { flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 2px; padding-top: 2px; }
+.ch-res__item { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: auto; }
+.ch-res__icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; border: 1px solid rgba(255,255,255,.14); background: rgba(10,12,16,.3); }
+.ch-res__icon img { width: 22px; height: 22px; object-fit: contain; }
+.ch-res__item b { font-size: 9px; font-weight: 600; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.ch-res__item--gold { flex: 0 0 40px; }
 .ch-res__item--gold .ch-res__icon { border-color: rgba(230,195,92,.5); }
 .ch-res__item--gold b { color: #e6c35c; }
 
-/* Справа: переключатель — маленькие таблетки; действия — тонкая рамка без ячейки */
+/* Справа: переключатель — тонкие рейки; действия — тонкая рамка */
 .ch-side { position: absolute; right: 8px; top: 68px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-/* Переключатель — подменю: компактная строка из двух вкладок */
-.ch-switch { display: flex; flex-direction: row; gap: 2px; padding: 1px; border-radius: 6px; background: rgba(20,23,31,.55); border: 1px solid rgba(255,255,255,.08); }
-.ch-switch button { flex: 0 0 auto; height: 16px; padding: 0 6px; border: 0; border-radius: 5px; background: transparent; color: #9a968a; font-size: 9px; line-height: 16px; pointer-events: auto; }
-.ch-switch button.is-on { background: rgba(230,195,92,.16); color: #f0d98a; }
-.ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.35); }
-.ch-action img { width: 30px; height: 30px; object-fit: contain; }
+.ch-switch { display: flex; flex-direction: row; gap: 2px; }
+.ch-switch button { flex: 0 0 auto; height: 13px; padding: 0 6px; border: 1px solid rgba(255,255,255,.1); border-radius: 4px; background: rgba(20,23,31,.45); color: #9a968a; font-size: 8px; line-height: 11px; pointer-events: auto; }
+.ch-switch button.is-on { border-color: rgba(230,195,92,.6); background: rgba(230,195,92,.14); color: #f0d98a; }
+.ch-action { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.3); }
+.ch-action img { width: 28px; height: 28px; object-fit: contain; }
 
-/* Слева: квесты — узкие и полупрозрачные */
-.ch-quests { position: absolute; left: 8px; top: 68px; width: 150px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
-.ch-quests li { border-radius: 6px; background: rgba(14,16,21,.45); pointer-events: auto; }
-.ch-quests li button { width: 100%; padding: 4px 7px; border: 0; border-radius: 6px; background: transparent; color: #9a968a; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-quests li.is-active { box-shadow: inset 2px 0 0 #d9b66a; }
+/* Слева: квесты — свёрнуты в строку (значок + текущий), развёрнуты — список */
+.ch-quests { position: absolute; left: 8px; top: 68px; width: 150px; display: flex; flex-direction: column; gap: 3px; }
+.ch-quests__head { display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 6px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; background: rgba(14,16,21,.45); text-align: left; min-width: 0; }
+.ch-quests__head > img { width: 16px; height: 16px; flex: none; object-fit: contain; }
+.ch-quests__head b { font-size: 10px; }
+.ch-quests__now { min-width: 0; flex: 1; font-size: 10px; color: #cfcbbf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-quests__chev { flex: none; color: #9a968a; font-size: 12px; }
+.ch-quests ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.ch-quests li { border-radius: 5px; background: rgba(14,16,21,.4); }
+.ch-quests li button { width: 100%; display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 0; border-radius: 5px; background: transparent; color: #9a968a; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ch-quests li.is-active button { color: #e7e4dc; }
-.ch-chat-strip { position: absolute; left: 8px; bottom: 52px; width: 150px; height: 22px; padding: 0 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.5); color: #cfcbbf; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: auto; }
-.ch-chat-strip b { color: #e7e4dc; }
+
+/* Чат: свёрнутая строка — канал, сообщение, точка непрочитанного */
+.ch-chat-strip { position: absolute; left: 8px; bottom: 52px; width: 170px; height: 22px; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.45); color: #cfcbbf; font-size: 10px; text-align: left; pointer-events: auto; }
+.ch-chat-strip__text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-chat-strip__text b { color: #e7e4dc; }
 
 /* Выдвижной чат: ~55% ширины, между верхней панелью и нижним меню */
-.ch-chat { position: absolute; left: 8px; top: 68px; bottom: 52px; width: 55%; padding: 7px; display: flex; flex-direction: column; gap: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.9); pointer-events: auto; }
+.ch-chat { position: absolute; left: 8px; top: 68px; bottom: 52px; width: 55%; padding: 7px; display: flex; flex-direction: column; gap: 6px; border-radius: 9px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.88); pointer-events: auto; }
 .ch-chat header { display: flex; align-items: flex-start; gap: 4px; }
 .ch-chat__tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; }
-.ch-chat__tabs button { padding: 3px 6px; border: 0; border-radius: 5px; background: #1d2129; color: #9a968a; font-size: 10px; }
+.ch-chat__tabs button { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 0; border-radius: 5px; background: #1d2129; color: #9a968a; font-size: 10px; }
 .ch-chat__tabs button.is-on { background: #2a2f3a; color: #e7e4dc; }
 .ch-chat__close { border: 0; background: transparent; font-size: 16px; line-height: 1; }
 .ch-chat ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; overflow: auto; }
 .ch-chat li { font-size: 10px; color: #cfcbbf; }
 .ch-chat li b { color: #e7e4dc; }
 
-/* Нижнее меню: тонкое и узкое. Почта, Клан | Карта/Двор | Лавка, Меню */
-.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 36px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+/* Нижнее меню: тонкое и узкое */
+.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 32px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
 .ch-bottom__group { flex: 1; min-width: 0; display: flex; gap: 4px; align-items: center; }
 .ch-bottom__group--left { justify-content: flex-end; }
 .ch-bottom__group--right { justify-content: flex-start; }
-.ch-nav { flex: 1 1 0; min-width: 0; max-width: 58px; height: 32px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.6); font-size: 10px; pointer-events: auto; }
-.ch-map { flex: none; width: 92px; height: 36px; border-radius: 8px; border: 1px solid rgba(230,195,92,.5); background: rgba(42,36,22,.85); color: #f0d98a; font-size: 12px; font-weight: 600; pointer-events: auto; }
+.ch-nav { flex: 1 1 0; min-width: 0; max-width: 54px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.55); font-size: 9px; pointer-events: auto; }
+.ch-map { flex: none; width: 84px; height: 32px; border-radius: 7px; border: 1px solid rgba(230,195,92,.55); background: rgba(42,36,22,.8); color: #f0d98a; font-size: 11px; font-weight: 600; pointer-events: auto; }
 
 /* Заглушка: короткое сообщение над нижним меню */
-.ch-stub { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); padding: 5px 9px; border-radius: 7px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }
+.ch-stub { position: absolute; left: 50%; bottom: 50px; transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }
