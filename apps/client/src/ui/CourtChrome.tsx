@@ -1,17 +1,17 @@
 // Оболочка экрана «Двор» по утверждённой раскладке (прототип: /layout-prototype.html).
-// Верх: профиль (портрет, уровень, сила, VIP) и ресурсы. Справа: переключатель Актив/Ивент и действия.
-// Слева: квесты (сворачиваются) и чат (свёрнутая строка с пометкой канала и точкой непрочитанного).
-// Снизу: нижнее меню. Всё, что ещё не реализовано, — заглушка.
+// Верх: профиль и ресурсы, под ним — бегущая строка объявлений.
+// Справа: переключатель Актив/Ивент и действия. Слева: квесты (сворачиваются) и чат.
+// Снизу: нижнее меню. Всё, что ещё не реализовано, — заглушка (сообщения в чате локальные, без сервера).
 // Исключение: «Строительство» открывает существующую панель строительства.
-// Иконки ресурсов и действий — временные (иконки проекта).
 import { useEffect, useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { ConceptIcon } from "./ConceptIcon.js";
+import { Badge } from "./Badge.js";
 
 type Mode = "actions" | "events";
-type Channel = "world" | "kingdom" | "clan" | "private";
+type Channel = "kingdom" | "world" | "clan" | "private";
 
-// ЗАГЛУШКИ: доходы в час, сила и VIP — временные значения, чтобы видеть вёрстку. Не реальные данные.
+// ЗАГЛУШКИ: доходы в час, сила, VIP, уровень, объявления, сообщения — временные значения для показа вёрстки.
 const RESOURCES: { id: string; icon: string; name: string; income: number }[] = [
   { id: "meat", icon: "/icons/meat.png", name: "Мясо", income: 15 },
   { id: "wood", icon: "/icons/wood.png", name: "Дерево", income: 12 },
@@ -22,8 +22,9 @@ const RESOURCES: { id: string; icon: string; name: string; income: number }[] = 
 const GOLD = { id: "gold", icon: "/icons/gold.png", name: "Золото", income: 3 };
 const STUB_POWER = 2514942;
 const STUB_VIP = 3;
+const STUB_LEVEL = 12;
+const STUB_MAIL_UNREAD = 2;
 
-// Действия: build — существующая панель строительства, остальные — заглушки.
 const ACTIONS: { key: string; icon: string; title: string }[] = [
   { key: "march", icon: "/icons/i-swords.png", title: "Марш" },
   { key: "build", icon: "/icons/i-hammer.png", title: "Строительство" },
@@ -37,25 +38,50 @@ const EVENTS: { key: string; icon: string; title: string }[] = [
   { key: "clan-event", icon: "/icons/i-banner.png", title: "Клан" },
 ];
 
-// Квесты: первый — сюжетный (заглушка).
-// Прогресс — заглушка: cur пока 0, цель задаётся квестом.
+// Квесты: прогресс — заглушка (cur пока 0).
 const QUESTS: { text: string; story: boolean; cur: number; max: number }[] = [
   { text: "Постройте жилой дом", story: true, cur: 0, max: 1 },
   { text: "Соберите дерево", story: false, cur: 0, max: 100 },
   { text: "Убейте 20 монстров", story: false, cur: 0, max: 20 },
 ];
 
-// Каналы чата. Непрочитанное — заглушка.
+// Бегущая строка объявлений — заглушка.
+const ANNOUNCEMENTS = [
+  "Мировой босс «Пожиратель» появился у Северных врат",
+  "Ивент «Осенний урожай» стартует в 20:00 UTC",
+  "Клан «Волки» открыл набор бойцов",
+];
+
+// Каналы в порядке вкладок: Кор-во, Мир, Клан, ЛС. Шестерёнка-настройки — отдельно (заглушка).
 const CHANNELS: { id: Channel; short: string; full: string }[] = [
-  { id: "world", short: "Мир", full: "Мир" },
   { id: "kingdom", short: "Кор-во", full: "Королевство" },
+  { id: "world", short: "Мир", full: "Мир" },
   { id: "clan", short: "Клан", full: "Клан" },
   { id: "private", short: "ЛС", full: "Приват" },
 ];
-const CHAT_LINES: { channel: Channel; who: string; text: string }[] = [
-  { channel: "world", who: "Соседний лорд", text: "тестовая строка" },
-  { channel: "clan", who: "Клан", text: "тестовая строка" },
-  { channel: "private", who: "Система", text: "тестовая строка" },
+
+type Msg = { id: number; channel: Channel; who: string; text: string; own?: boolean };
+// Сообщения — заглушки, по несколько на канал, чтобы видеть вёрстку.
+const SEED_MESSAGES: Msg[] = [
+  { id: 1, channel: "kingdom", who: "Королевский писарь", text: "Новый приказ: укрепите стены" },
+  { id: 2, channel: "kingdom", who: "Лорд Варн", text: "Кто идёт в поход на север?" },
+  { id: 3, channel: "kingdom", who: "Лорд Варн", text: "Нужны лучники, 10 мест" },
+  { id: 4, channel: "world", who: "Соседний лорд", text: "тестовая строка" },
+  { id: 5, channel: "world", who: "Рыцарь Эйр", text: "Продаю грибы, пишите в ЛС" },
+  { id: 6, channel: "world", who: "Система", text: "Мировой босс появится через 30 минут" },
+  { id: 7, channel: "world", who: "Торговец", text: "Лавка обновлена" },
+  { id: 8, channel: "clan", who: "Вождь клана", text: "Сбор в 21:00" },
+  { id: 9, channel: "clan", who: "Волк", text: "Не забываем про лазарет" },
+  { id: 10, channel: "private", who: "Гамлет", text: "привет, поможешь с деревом?" },
+];
+const INITIAL_UNREAD: Record<Channel, number> = { kingdom: 2, world: 4, clan: 1, private: 1 };
+
+// Эмодзи: категории и сетка. Заглушечный набор для проверки вёрстки.
+const EMOJI: { label: string; items: string[] }[] = [
+  { label: "Смайлы", items: ["😀", "😂", "😍", "😎", "🥹", "😭", "😡", "🤔", "😴", "🙃", "😅", "🥳", "😇", "🤩", "😱", "🙏"] },
+  { label: "Бой", items: ["⚔️", "🛡️", "🏹", "💀", "🔥", "🩸", "🐺", "🐗", "🐉", "🗡️", "🎯", "🪓", "🏰", "🚩"] },
+  { label: "Двор", items: ["🍖", "🪵", "🪨", "⛏️", "🍄", "💰", "🌾", "🔨", "🧪", "📜", "🏠", "🛒"] },
+  { label: "Радость", items: ["🎉", "👑", "🏆", "⭐", "💎", "🎁", "🍻", "👍", "👏", "❤️", "💪", "🙌"] },
 ];
 
 export type CourtChromeProps = {
@@ -81,19 +107,52 @@ function formatAmount(value: number): string {
   return String(Math.round(value));
 }
 
+// Бегущая строка: одно объявление за раз, по окончании прокрутки скрывается, затем появляется следующее.
+function AnnouncementBar() {
+  const [index, setIndex] = useState(0);
+  const [running, setRunning] = useState(true);
+
+  useEffect(() => {
+    if (running) return;
+    const timer = window.setTimeout(() => {
+      setIndex((i) => (i + 1) % ANNOUNCEMENTS.length);
+      setRunning(true);
+    }, 4000);
+    return () => window.clearTimeout(timer);
+  }, [running]);
+
+  if (!running) return null;
+  return (
+    <div className="ch-ticker" aria-live="polite">
+      <span key={index} className="ch-ticker__text" onAnimationEnd={() => setRunning(false)}>
+        {ANNOUNCEMENTS[index]}
+      </span>
+    </div>
+  );
+}
+
 export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenProfile, pageMode = false }: CourtChromeProps) {
   const [mode, setMode] = useState<Mode>("actions");
   const [questsOpen, setQuestsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [channel, setChannel] = useState<Channel>("world");
-  const [unread, setUnread] = useState<Record<Channel, boolean>>({ world: true, kingdom: false, clan: true, private: false });
+  const [unread, setUnread] = useState<Record<Channel, number>>(INITIAL_UNREAD);
+  const [messages, setMessages] = useState<Msg[]>(SEED_MESSAGES);
+  const [draft, setDraft] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emojiGroup, setEmojiGroup] = useState(0);
   const [stub, setStub] = useState<string | null>(null);
   const stock = (view.stock ?? {}) as Record<string, number>;
   const name = view.me?.name ?? (lang === "ru" ? "Владыка" : "Lord");
   const onCourt = route === "court";
-  const hasUnread = Object.values(unread).some(Boolean);
-  const lastUnreadChannel = CHANNELS.find((c) => unread[c.id])?.id ?? "world";
-  const stripLine = CHAT_LINES.find((m) => m.channel === lastUnreadChannel) ?? CHAT_LINES[0];
+  const totalUnread = Object.values(unread).reduce((sum, n) => sum + n, 0);
+  const channelLabel = CHANNELS.find((c) => c.id === channel)?.full ?? "";
+
+  // Свёрнутая строка показывает последнее непрочитанное сообщение (или последнее вообще).
+  const unreadChannels = CHANNELS.filter((c) => unread[c.id] > 0).map((c) => c.id);
+  const stripMessage =
+    [...messages].reverse().find((m) => unreadChannels.includes(m.channel)) ?? messages[messages.length - 1];
+  const stripChannel = CHANNELS.find((c) => c.id === stripMessage?.channel)?.short ?? "";
 
   useEffect(() => {
     if (!stub) return;
@@ -111,12 +170,20 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
 
   const openChannel = (id: Channel): void => {
     setChannel(id);
-    setUnread((u) => ({ ...u, [id]: false }));
+    setUnread((u) => ({ ...u, [id]: 0 }));
+  };
+
+  const send = (): void => {
+    const text = draft.trim();
+    if (!text) return;
+    setMessages((list) => [...list, { id: Date.now(), channel, who: name, text, own: true }]);
+    setDraft("");
   };
 
   const list = mode === "actions" ? ACTIONS : EVENTS;
   const mapToggle = onCourt ? "map" : "court";
   const mapLabel = onCourt ? "Карта" : "Двор";
+  const channelMessages = messages.filter((m) => m.channel === channel).slice(-40);
 
   return (
     <div className="ch-root">
@@ -124,12 +191,10 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
         <button type="button" className="ch-profile" onClick={onOpenProfile} aria-label={name}>
           <span className="ch-profile__portrait">
             <ConceptIcon name="lord" />
-            {/* Уровень персонажа — заглушка: в протоколе пока нет данных. */}
-            <b className="ch-profile__level ch-stub-value" aria-label="Уровень персонажа (заглушка)">12</b>
+            <b className="ch-profile__level ch-stub-value" aria-label="Уровень персонажа (заглушка)">{STUB_LEVEL}</b>
           </span>
           <span className="ch-profile__info">
             <b>{name}</b>
-            {/* Сила и VIP — заглушки: в протоколе пока нет данных. */}
             <small className="ch-profile__power ch-stub-value" title="Общая сила (заглушка)">Сила {formatFull(STUB_POWER)}</small>
             <i className="ch-profile__vip ch-stub-value" title="VIP (заглушка)">VIP {STUB_VIP}</i>
           </span>
@@ -150,6 +215,8 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
         </div>
       </header>
 
+      {onCourt && !pageMode ? <AnnouncementBar /> : null}
+
       {onCourt && !pageMode ? (
         <>
           <div className="ch-side">
@@ -164,7 +231,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             ))}
           </div>
 
-          {/* Квесты: свёрнуто — значок и текущий квест; развёрнуто — список. */}
+          {/* Квесты: свёрнуто — значок и текущий квест с прогрессом; развёрнуто — список. */}
           <div className={`ch-quests${questsOpen ? " is-open" : ""}`}>
             <button type="button" className="ch-quests__head" onClick={() => setQuestsOpen((v) => !v)} aria-expanded={questsOpen} aria-label={lang === "ru" ? "Задания" : "Quests"}>
               <img src="/icons/i-scroll.png" alt="" />
@@ -196,18 +263,23 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             ) : null}
           </div>
 
-          {/* Чат: свёрнутая строка с каналом и точкой непрочитанного. */}
-          <button type="button" className="ch-chat-strip" onClick={() => setChatOpen(true)} aria-label={lang === "ru" ? "Открыть чат" : "Open chat"}>
-            <i className="ch-tag">{CHANNELS.find((c) => c.id === lastUnreadChannel)?.short}</i>
-            <span className="ch-chat-strip__text"><b>{stripLine?.who}:</b> {stripLine?.text}</span>
-            {hasUnread ? <span className="ch-dot" aria-label="Есть непрочитанные" /> : null}
-          </button>
+          {/* Свёрнутый чат: скрывается, когда чат раскрыт. */}
+          {!chatOpen ? (
+            <button type="button" className="ch-chat-strip" onClick={() => setChatOpen(true)} aria-label={lang === "ru" ? "Открыть чат" : "Open chat"}>
+              <i className="ch-tag">{stripChannel}</i>
+              <span className="ch-chat-strip__text"><b>{stripMessage?.who}:</b> {stripMessage?.text}</span>
+              <Badge count={totalUnread} />
+            </button>
+          ) : null}
         </>
       ) : null}
 
       <nav className="ch-bottom" aria-label={lang === "ru" ? "Нижнее меню" : "Bottom menu"}>
         <div className="ch-bottom__group ch-bottom__group--left">
-          <button type="button" className="ch-nav" onClick={() => setStub("Почта")}>Почта</button>
+          <button type="button" className="ch-nav" onClick={() => setStub("Почта")}>
+            Почта
+            <span className="ch-nav__badge"><Badge count={STUB_MAIL_UNREAD} /></span>
+          </button>
           <button type="button" className="ch-nav" onClick={() => setStub("Клан")}>Клан</button>
         </div>
         <button type="button" className="ch-map" onClick={() => onRouteChange(mapToggle)}>{mapLabel}</button>
@@ -219,26 +291,58 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
 
       {chatOpen && onCourt && !pageMode ? (
         <>
-        <div className="ch-chat-backdrop" onClick={() => setChatOpen(false)} aria-hidden="true" />
-        <section className="ch-chat" aria-label={lang === "ru" ? "Чат" : "Chat"}>
-          <header>
-            <div className="ch-chat__tabs">
-              {CHANNELS.map((c) => (
-                <button key={c.id} type="button" className={c.id === channel ? "is-on" : ""} onClick={() => openChannel(c.id)} title={c.full}>
-                  {c.short}
-                  {unread[c.id] ? <span className="ch-dot" aria-label="Непрочитанные" /> : null}
-                </button>
+          {/* Тап за пределами панели закрывает чат. */}
+          <div className="ch-chat-backdrop" onClick={() => setChatOpen(false)} aria-hidden="true" />
+          <section className="ch-chat" aria-label={lang === "ru" ? "Чат" : "Chat"}>
+            <header className="ch-chat__head">
+              <div className="ch-chat__tabs" role="tablist">
+                {CHANNELS.map((c) => (
+                  <button key={c.id} type="button" role="tab" aria-selected={c.id === channel} className={c.id === channel ? "is-on" : ""} onClick={() => openChannel(c.id)} title={c.full}>
+                    {c.short}
+                    <span className="ch-chat__badge"><Badge count={unread[c.id]} /></span>
+                  </button>
+                ))}
+                <button type="button" className="ch-chat__settings" onClick={() => setStub("Настройки чата")} aria-label="Настройки чата" title="Настройки чата">⋯</button>
+              </div>
+              <button type="button" className="ch-chat__close" onClick={() => setChatOpen(false)} aria-label={lang === "ru" ? "Свернуть чат" : "Collapse chat"}>×</button>
+            </header>
+
+            <ul className="ch-chat__list">
+              {channelMessages.map((m) => (
+                <li key={m.id} className={m.own ? "is-own" : ""}><b>{m.who}:</b> {m.text}</li>
               ))}
+            </ul>
+
+            <div className="ch-chat__input">
+              <button type="button" className={`ch-chat__emoji${emojiOpen ? " is-on" : ""}`} onClick={() => setEmojiOpen((v) => !v)} aria-label="Эмодзи" aria-expanded={emojiOpen}>☺</button>
+              <input
+                className="ch-chat__field"
+                value={draft}
+                maxLength={120}
+                placeholder={`Написать в «${channelLabel}»…`}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") send();
+                }}
+              />
+              <button type="button" className="ch-chat__send" onClick={send} disabled={!draft.trim()}>Отправить</button>
             </div>
-            <button type="button" className="ch-chat__close" onClick={() => setChatOpen(false)} aria-label={lang === "ru" ? "Свернуть чат" : "Collapse chat"}>×</button>
-          </header>
-          <ul>
-            {CHAT_LINES.filter((m) => m.channel === channel).map((m, i) => (
-              <li key={i}><b>{m.who}:</b> {m.text}</li>
-            ))}
-            {CHAT_LINES.some((m) => m.channel === channel) ? null : <li className="ch-chat__empty">—</li>}
-          </ul>
-        </section>
+
+            {emojiOpen ? (
+              <div className="ch-emoji" role="group" aria-label="Эмодзи">
+                <div className="ch-emoji__groups">
+                  {EMOJI.map((g, i) => (
+                    <button key={g.label} type="button" className={i === emojiGroup ? "is-on" : ""} onClick={() => setEmojiGroup(i)}>{g.label}</button>
+                  ))}
+                </div>
+                <div className="ch-emoji__grid">
+                  {EMOJI[emojiGroup]?.items.map((e) => (
+                    <button key={e} type="button" onClick={() => setDraft((d) => (d + e).slice(0, 120))} aria-label={e}>{e}</button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </section>
         </>
       ) : null}
 
