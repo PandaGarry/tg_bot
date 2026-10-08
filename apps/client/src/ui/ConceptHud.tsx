@@ -3,6 +3,8 @@ import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 import { BUILD_CATALOG, TOWNHALL_COSTS, TOWNHALL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
 import { ConceptIcon, type ConceptIconName } from "./ConceptIcon.js";
+import { CourtChrome } from "./CourtChrome.js";
+import "./court-chrome.css";
 import type { UiMockupId } from "./mockups.js";
 
 export type ConceptRoute = "court" | "reports" | "map" | "chronicle" | "sheet";
@@ -227,14 +229,15 @@ export function ConceptHud({
 
   return (
     <div className={`concept-ui concept-ui--${variant}${route === "court" ? "" : " is-page"}`}>
-      <>
-          <header className="concept-header concept-header--forge">
-            {profile}
-            {resources}
-          </header>
-          {quick}
-          {nav}
-      </>
+      <CourtChrome
+        view={view}
+        lang={lang}
+        route={route}
+        onRouteChange={onRouteChange}
+        onBuild={() => openAction("build")}
+        onOpenProfile={() => onRouteChange("sheet")}
+        pageMode={route !== "court"}
+      />
 
       {route !== "court" ? (
         <section className={`concept-page concept-page--${variant}`} aria-labelledby="concept-page-title">

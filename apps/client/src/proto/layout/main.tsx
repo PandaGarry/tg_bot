@@ -41,9 +41,9 @@ const EVENTS = [
   { icon: "/icons/i-banner.png", title: "Клан" },
 ];
 // Переключатель: иконки, подписи — в title.
-const MODES: { id: Mode; icon: string; title: string }[] = [
-  { id: "actions", icon: "/icons/i-gear.png", title: "Действия" },
-  { id: "events", icon: "/icons/i-scroll.png", title: "События" },
+const MODES: { id: Mode; label: string; title: string }[] = [
+  { id: "actions", label: "Актив", title: "Действия" },
+  { id: "events", label: "Ивент", title: "События" },
 ];
 
 // Квесты: активный сверху, до трёх строк. Заглушки.
@@ -111,7 +111,7 @@ function ActionColumn() {
             className={mode === m.id ? "is-on" : ""}
             onClick={() => setMode(m.id)}
           >
-            <img src={m.icon} alt="" />
+            {m.label}
           </button>
         ))}
       </div>

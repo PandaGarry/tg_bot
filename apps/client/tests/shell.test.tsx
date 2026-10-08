@@ -111,7 +111,8 @@ describe("двор", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
 
     expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Двор" })).toBeTruthy();
+    // На экране двора кнопка «Двор» не нужна: центральная кнопка нижнего меню ведёт на карту.
+    expect(screen.getByRole("button", { name: "Карта" })).toBeTruthy();
 
     // Записи хрониста сохраняются; отдельной кнопки «Летопись» в нижней навигации нет.
     expect(chronicleEntries().some((entry) => entry.key === "shell.tutor.palisade")).toBe(true);
@@ -137,9 +138,9 @@ describe("двор", () => {
     const fundedView = { ...view(), stock: { wood: 100, stone: 100 } };
     const { container } = render(<World view={fundedView} lang="ru" serverNow={1} />);
     expect(container.querySelector(".hud-top")).toBeNull();
-    expect(container.querySelector(".concept-profile")).toBeTruthy();
+    expect(container.querySelector(".ch-profile")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Строить" }));
+    fireEvent.click(screen.getByRole("button", { name: "Строительство" }));
     fireEvent.click(screen.getByRole("button", { name: /Жилой дом/ }));
     expect(container.querySelector(".concept-build-panel")).toBeNull();
     act(() => bridge.emit("tile:click", { x: 4, z: 7 }));
@@ -153,7 +154,7 @@ describe("аккаунт", () => {
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: /Владыка/ }));
+    fireEvent.click(document.querySelector(".ch-profile") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 
     // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном

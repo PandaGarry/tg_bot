@@ -346,7 +346,7 @@
 .concept-placement > div { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 2px; }
 .concept-placement b { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .concept-placement span { color: var(--ui-muted); font: 700 8px/1.2 ui-sans-serif,system-ui,sans-serif; }
-.concept-placement button { min-height: 38px; padding: 4px 8px; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-paper); color: var(--ui-ink); font: 800 8px/1.1 ui-sans-serif,system-ui,sans-serif; }
+.concept-placement button { min-height: 38px; padding: 4px 8px; border: 1px solid var(--ui-line); border-radius: 8px; background: #1d2120; color: #eee9dc; font: 800 8px/1.1 ui-sans-serif,system-ui,sans-serif; }
 .concept-placement button.is-primary { border-color: var(--ui-accent-2); background: var(--ui-accent-2); color: var(--ui-paper); }
 .concept-placement button.is-danger { border-color: var(--ui-danger); background: var(--ui-danger); color: var(--ui-paper); }
 
