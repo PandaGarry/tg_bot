@@ -21,9 +21,8 @@ const RESOURCES = ["Мясо", "Дерево", "Камень", "Металл", "
 const LEFT = ["Марш", "Тренировка", "Исследование", "Лечение"];
 // Правая колонка: предложение, в ТЗ заказчика не перечислено (вопрос открыт).
 const RIGHT = ["Стройка", "Герои"];
-// Нижнее меню: Отчёты и Клан/Лавка. Двор/Карта — центральная кнопка.
-const NAV_LEFT = ["Отчёты"];
-const NAV_RIGHT = ["Клан", "Лавка"];
+// Нижнее меню — сбоку (справа, над чатом). Карта/Двор — центральная кнопка внизу.
+const NAV_RIGHT = ["Отчёты", "Клан", "Лавка"];
 
 function useFitScale(w: number, h: number): number {
   const [scale, setScale] = useState(1);
@@ -36,32 +35,23 @@ function useFitScale(w: number, h: number): number {
   return scale;
 }
 
-function Header() {
+function TopBar() {
   return (
-    <>
-      <div className="hd-profile">
-        <span className="hd-portrait" aria-hidden="true" />
-        <span className="hd-copy">
-          <b>Имя лорда</b>
-          <small>Ур. — · Сила —</small>
-        </span>
-      </div>
-      <button type="button" className="hd-menu">Меню</button>
-      <div className="hd-res" aria-label="Ресурсы">
-        <div className="res-group">
-          {RESOURCES.map((name) => (
-            <div key={name} className="res">
-              <small>{name}</small>
-              <b>—</b>
-            </div>
-          ))}
-        </div>
+    <header className="top">
+      <span className="top__avatar" aria-hidden="true" title="Имя лорда" />
+      <div className="res-row" aria-label="Ресурсы">
+        {RESOURCES.map((name) => (
+          <div key={name} className="res">
+            <small>{name}</small>
+            <b>—</b>
+          </div>
+        ))}
         <div className="res res--gold" title="Премиум-валюта, отдельно от ресурсов стройки">
           <small>Золото</small>
           <b>—</b>
         </div>
       </div>
-    </>
+    </header>
   );
 }
 
@@ -75,7 +65,7 @@ function Btn({ label, disabled = false }: { label: string; disabled?: boolean })
 }
 
 function NavBtn({ label }: { label: string }) {
-  return <button type="button" className="nav-btn">{label}</button>;
+  return <button type="button" className="btn btn--nav">{label}</button>;
 }
 
 function MapButton({ screen }: { screen: Screen }) {
@@ -87,62 +77,41 @@ function MapButton({ screen }: { screen: Screen }) {
   );
 }
 
-function ChatCell({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+// Чат — живая лента, видна всегда (не кнопка). Строки — заглушки.
+function ChatFeed() {
   return (
-    <button type="button" className="nav-btn nav-btn--chat" onClick={onToggle} aria-expanded={open}>
-      Чат <i className="badge">3</i>
-    </button>
-  );
-}
-
-function ChatPanel({ onClose }: { onClose: () => void }) {
-  return (
-    <section className="chat-panel" aria-label="Чат">
-      <header>
-        <b>Чат</b>
-        <button type="button" onClick={onClose} aria-label="Закрыть чат">×</button>
-      </header>
-      <ul>
-        <li><b>Соседний лорд:</b> тестовая строка</li>
-        <li><b>Система:</b> тестовая строка</li>
-        <li><b>Клан:</b> тестовая строка</li>
-      </ul>
+    <section className="chat" aria-label="Чат">
+      <p><b>Соседний лорд:</b> тестовая строка</p>
+      <p><b>Клан:</b> тестовая строка</p>
     </section>
   );
 }
 
 function Device({ orient, screen }: { orient: Orient; screen: Screen }) {
   const { w, h } = SIZES[orient];
-  const [chat, setChat] = useState(false);
-  const toggleChat = () => setChat((value) => !value);
-
   return (
     <div className="dev" style={{ width: w, height: h }}>
       <div className="scene" data-screen={screen}>
         <span className="scene__label">{screen === "court" ? "сцена двора (заглушка)" : "карта мира (заглушка)"}</span>
       </div>
-      <Header />
+      <TopBar />
 
       <div className="side side--left">
         {LEFT.map((label) => <Btn key={label} label={label} />)}
         <Btn label="Скоро" disabled />
       </div>
+
       <div className="side side--right">
         {RIGHT.map((label) => <Btn key={label} label={label} />)}
       </div>
-
-      <nav className="bottom" aria-label="Нижнее меню">
-        <div className="bottom__group bottom__group--left">
-          <ChatCell open={chat} onToggle={toggleChat} />
-          {NAV_LEFT.map((label) => <NavBtn key={label} label={label} />)}
-        </div>
-        <MapButton screen={screen} />
-        <div className="bottom__group bottom__group--right">
-          {NAV_RIGHT.map((label) => <NavBtn key={label} label={label} />)}
-        </div>
+      <nav className="side-nav" aria-label="Нижнее меню">
+        {NAV_RIGHT.map((label) => <NavBtn key={label} label={label} />)}
       </nav>
 
-      {chat ? <ChatPanel onClose={toggleChat} /> : null}
+      <div className="bottom">
+        <ChatFeed />
+        <MapButton screen={screen} />
+      </div>
     </div>
   );
 }

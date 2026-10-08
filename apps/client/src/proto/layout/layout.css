@@ -1,5 +1,5 @@
 /* Прототип раскладки: только для оценки, без теней и лишних подписей.
-   Размеры фиксированы; положение — от краёв (якоря). */
+   Размеры фиксированы; положение — от краёв (якоря). Ориентация меняет только размер экрана. */
 .proto {
   min-height: 100vh;
   background: #0c0e13;
@@ -16,86 +16,67 @@
 }
 .tag { color: #9a968a; font-size: 11px; margin-right: 4px; }
 .seg { display: inline-flex; background: #181b22; border-radius: 6px; padding: 2px; }
-.seg button {
-  border: 0; background: transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #9a968a;
-}
+.seg button { border: 0; background: transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #9a968a; }
 .seg button.is-on { background: #2a2f3a; color: #e7e4dc; }
 
 .stage { min-height: 100vh; display: grid; place-items: center; padding-top: 52px; }
 .dev { position: relative; overflow: hidden; background: #14171e; border-radius: 10px; }
 
-/* Сцена */
 .scene { position: absolute; inset: 0; background: linear-gradient(180deg, #1d2430, #14171e); }
 .scene__label { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #4a5263; font-size: 11px; }
 
-/* Шапка: профиль слева, меню справа, ресурсы строкой ниже */
-.hd-profile { position: absolute; left: 8px; top: 8px; height: 40px; display: flex; align-items: center; gap: 6px; }
-.hd-portrait { width: 34px; height: 34px; border-radius: 50%; background: #2a3140; }
-.hd-copy { display: flex; flex-direction: column; }
-.hd-copy small { color: #9a968a; font-size: 10px; }
-.hd-menu {
-  position: absolute; right: 8px; top: 8px; height: 34px; padding: 0 12px;
-  border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(20,23,31,.9);
+/* Верхняя строка: аватар и ресурсы в одной линии, ресурсы не под профилем */
+.top {
+  position: absolute; left: 8px; right: 8px; top: 8px; height: 40px;
+  display: flex; align-items: center; gap: 8px;
 }
-.hd-res {
-  position: absolute; left: 8px; right: 8px; top: 52px; height: 36px;
-  display: flex; gap: 10px; align-items: stretch;
-}
-.res-group { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.top__avatar { flex: none; width: 32px; height: 32px; border-radius: 50%; background: #2a3140; }
+.res-row { flex: 1; min-width: 0; display: flex; align-items: stretch; gap: 4px; }
 .res {
-  display: flex; flex-direction: column; justify-content: center; padding: 3px 6px;
-  border-radius: 6px; background: rgba(255,255,255,.04); min-width: 0;
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: center;
+  padding: 3px 5px; border-radius: 6px; background: rgba(255,255,255,.05);
 }
-.res small { color: #9a968a; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res small { color: #9a968a; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .res b { font-size: 12px; font-weight: 600; }
-.res--gold { flex: 0 0 auto; min-width: 84px; border: 1px solid rgba(230,195,92,.35); color: #e6c35c; }
+.res--gold { flex: 0 0 58px; border: 1px solid rgba(230,195,92,.4); color: #e6c35c; }
 .res--gold small { color: #e6c35c; }
 
-/* Кнопки действий */
+/* Кнопки действий: фиксированный размер */
 .btn {
-  height: 44px; width: 100%; display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  height: 44px; width: 124px; display: flex; align-items: center; gap: 8px; padding: 0 10px;
   border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9);
   text-align: left; cursor: pointer;
 }
 .btn:disabled { opacity: .45; cursor: default; border-style: dashed; }
 .btn__mark {
-  width: 22px; height: 22px; border-radius: 6px; background: #2a3140; display: grid; place-items: center;
-  font-size: 11px; flex: none;
+  flex: none; width: 22px; height: 22px; border-radius: 6px; background: #2a3140;
+  display: grid; place-items: center; font-size: 11px;
 }
 .btn__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn--nav { height: 40px; }
 
-.side { position: absolute; width: 112px; display: flex; flex-direction: column; gap: 6px; }
-.side--left { left: 8px; top: 100px; }
-.side--right { right: 8px; top: 100px; }
+/* Левая колонка — главные линии под верхней строкой */
+.side { position: absolute; width: 124px; display: flex; flex-direction: column; gap: 6px; }
+.side--left { left: 8px; top: 60px; }
+.side--right { right: 8px; top: 60px; }
 
-/* Нижняя единица: чат + меню | центральная кнопка | меню */
-.bottom {
-  position: absolute; left: 8px; right: 8px; bottom: 8px; height: 52px;
-  display: flex; align-items: center; gap: 6px;
+/* Боковое нижнее меню справа, над нижней единицей; действия — выше него */
+.side-nav {
+  position: absolute; right: 8px; bottom: 68px; width: 124px;
+  display: flex; flex-direction: column; gap: 6px;
 }
-.bottom__group { flex: 1; display: flex; gap: 6px; align-items: center; }
-.bottom__group--left { justify-content: flex-end; }
-.bottom__group--right { justify-content: flex-start; }
-.nav-btn {
-  width: 60px; height: 52px; border-radius: 8px; flex: none; position: relative;
-  border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); font-size: 11px;
+
+/* Нижняя единица: чат слева, Карта/Двор по центру */
+.bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 52px; }
+.chat {
+  position: absolute; left: 0; right: calc(50% + 66px); top: 0; bottom: 0;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(14,16,21,.92);
+  padding: 6px 8px; overflow: hidden; font-size: 11px;
 }
-.nav-btn--chat { width: 64px; }
-.badge {
-  position: absolute; top: 4px; right: 4px; min-width: 14px; height: 14px; padding: 0 3px;
-  border-radius: 7px; background: #8a3b32; color: #fff; font-size: 9px; font-style: normal;
-  display: inline-grid; place-items: center;
-}
+.chat p { margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #cfcbbf; }
+.chat b { color: #e7e4dc; }
 .map-btn {
-  width: 112px; height: 52px; flex: none; border-radius: 10px; border: 1px solid rgba(230,195,92,.4);
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  width: 112px; height: 52px; border-radius: 10px; border: 1px solid rgba(230,195,92,.4);
   background: #2a2416; color: #f0d98a; font-size: 14px; font-weight: 600; cursor: pointer;
 }
-
-.chat-panel {
-  position: absolute; left: 8px; bottom: 68px; width: min(300px, 60%); height: 180px;
-  border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.96);
-  padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow: hidden;
-}
-.chat-panel header { display: flex; justify-content: space-between; align-items: center; }
-.chat-panel header button { border: 0; background: transparent; cursor: pointer; font-size: 16px; }
-.chat-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; overflow: auto; }
