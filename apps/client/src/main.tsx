@@ -10,9 +10,13 @@ import { Create } from "./ui/Create.js";
 import { Register } from "./ui/Register.js";
 import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
+import { initializeUiMockup } from "./ui/mockups.js";
 import { statusKey } from "./i18n/index.js";
 import { gameApp } from "./game/core/application.js";
 import { mountCourtScene } from "./game/court/courtScene.js";
+
+// Восстанавливает только локальный CSS-вариант, чтобы его было видно на экранах входа и создания лорда.
+initializeUiMockup();
 
 function App() {
   const state = useStore();

@@ -41,7 +41,7 @@ export function Create({
   };
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-xl flex-col gap-4 p-4 pb-[env(safe-area-inset-bottom)]">
+    <main className="ui-mockup-screen mx-auto flex min-h-[100dvh] w-full max-w-xl flex-col gap-4 p-4 pb-[env(safe-area-inset-bottom)]">
       <h1 className="text-xl text-bone">{t("shell.create.title")}</h1>
 
       <Slot

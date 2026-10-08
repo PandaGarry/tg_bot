@@ -14,7 +14,9 @@ import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
+import { MockupSwitcher } from "./MockupSwitcher.js";
 import "../hud.css";
+import "../mockups.css";
 import { Diagnostics } from "./Diagnostics.js";
 import { bridge } from "../game/bridge.js";
 import type { CourtGrid, CourtPendingPlacement, CourtSceneMode, CourtState } from "../shared/court.js";
@@ -220,6 +222,9 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         </>
       ) : null}
 
+      {/* Временный локальный предпросмотр концептов; игровые команды и данные не меняет. */}
+      <MockupSwitcher lang={lang} />
+
       <nav className="game-nav">
         <div className="flex">
           {NAV.map((item) => (
@@ -349,5 +354,5 @@ function Reports({ lang }: { lang: Locale }) {
 }
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <div className="rounded border border-stone-800 bg-stone-900/60 p-3 text-sm text-stone-400">{children}</div>;
+  return <div className="world-panel rounded border border-stone-800 bg-stone-900/60 p-3 text-sm text-stone-400">{children}</div>;
 }

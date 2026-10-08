@@ -1,0 +1,849 @@
+/* Временные живые CSS-макеты. Все варианты используют те же данные и команды. */
+:root[data-ui-mockup="chronicle"] {
+  color-scheme: light;
+  --mockup-page: #211b12;
+  --mockup-panel: #f1e7ce;
+  --mockup-raised: #fff9eb;
+  --mockup-inset: #e5d8b8;
+  --mockup-ink: #30271d;
+  --mockup-muted: #706047;
+  --mockup-border: #a28a5c;
+  --mockup-dark: #53412c;
+  --mockup-nav: #483722;
+  --mockup-nav-card: #f5ecd8;
+  --mockup-accent: #996d31;
+  --mockup-accent-ink: #fff9eb;
+  --mockup-radius: 5px;
+  --mockup-font: Georgia, "Times New Roman", serif;
+}
+
+:root[data-ui-mockup="ash"] {
+  color-scheme: dark;
+  --mockup-page: #111619;
+  --mockup-panel: #20272c;
+  --mockup-raised: #30383e;
+  --mockup-inset: #171d21;
+  --mockup-ink: #ece9df;
+  --mockup-muted: #a4aaac;
+  --mockup-border: #647078;
+  --mockup-dark: #090d10;
+  --mockup-nav: #11171b;
+  --mockup-nav-card: #252e34;
+  --mockup-accent: #c0b28f;
+  --mockup-accent-ink: #171c20;
+  --mockup-radius: 3px;
+  --mockup-font: "Arial Narrow", "Segoe UI", sans-serif;
+}
+
+:root[data-ui-mockup="snow"] {
+  color-scheme: light;
+  --mockup-page: #172733;
+  --mockup-panel: #e7eef2;
+  --mockup-raised: #f7fafb;
+  --mockup-inset: #d5e0e6;
+  --mockup-ink: #273640;
+  --mockup-muted: #627580;
+  --mockup-border: #91a6b2;
+  --mockup-dark: #526a78;
+  --mockup-nav: #e0e9ed;
+  --mockup-nav-card: #f6fafb;
+  --mockup-accent: #b9813d;
+  --mockup-accent-ink: #fffaf0;
+  --mockup-radius: 11px;
+  --mockup-font: ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-ui-mockup="ledger"] {
+  color-scheme: light;
+  --mockup-page: #1b2016;
+  --mockup-panel: #e0dfc5;
+  --mockup-raised: #f1f0dc;
+  --mockup-inset: #cbd0a9;
+  --mockup-ink: #34392a;
+  --mockup-muted: #697052;
+  --mockup-border: #8d936b;
+  --mockup-dark: #454c34;
+  --mockup-nav: #414a32;
+  --mockup-nav-card: #e8e7ce;
+  --mockup-accent: #7f7138;
+  --mockup-accent-ink: #fffbea;
+  --mockup-radius: 4px;
+  --mockup-font: ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-ui-mockup="chronicle"],
+:root[data-ui-mockup="ash"],
+:root[data-ui-mockup="snow"],
+:root[data-ui-mockup="ledger"] {
+  --hud-bone: var(--mockup-panel);
+  --hud-wood-0: var(--mockup-dark);
+  --hud-wood-1: var(--mockup-border);
+  --hud-wood-2: var(--mockup-dark);
+  --hud-wood-3: var(--mockup-nav);
+  --hud-ink: var(--mockup-ink);
+  --hud-muted: var(--mockup-muted);
+  --hud-gold: var(--mockup-accent);
+  --hud-white: var(--mockup-ink);
+  --hud-glass: var(--mockup-panel);
+  color: var(--mockup-ink);
+}
+
+/* Общие живые элементы: игрок видит выбранный макет на настоящей сцене и с игровыми данными. */
+:root[data-ui-mockup="chronicle"] .hud-lord,
+:root[data-ui-mockup="ash"] .hud-lord,
+:root[data-ui-mockup="snow"] .hud-lord,
+:root[data-ui-mockup="ledger"] .hud-lord {
+  background: linear-gradient(180deg, var(--mockup-raised), var(--mockup-panel));
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  color: var(--mockup-ink);
+  font-family: var(--mockup-font);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-lord .lvl-tag,
+:root[data-ui-mockup="ash"] .hud-lord .lvl-tag,
+:root[data-ui-mockup="snow"] .hud-lord .lvl-tag,
+:root[data-ui-mockup="ledger"] .hud-lord .lvl-tag,
+:root[data-ui-mockup="chronicle"] .hud-lord .vipb,
+:root[data-ui-mockup="ash"] .hud-lord .vipb,
+:root[data-ui-mockup="snow"] .hud-lord .vipb,
+:root[data-ui-mockup="ledger"] .hud-lord .vipb {
+  background: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+  box-shadow: none;
+}
+
+:root[data-ui-mockup="chronicle"] .hud-res .chip,
+:root[data-ui-mockup="ash"] .hud-res .chip,
+:root[data-ui-mockup="snow"] .hud-res .chip,
+:root[data-ui-mockup="ledger"] .hud-res .chip {
+  background: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24);
+  color: var(--mockup-ink);
+  font-family: var(--mockup-font);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-res .chip-gold,
+:root[data-ui-mockup="ash"] .hud-res .chip-gold,
+:root[data-ui-mockup="snow"] .hud-res .chip-gold,
+:root[data-ui-mockup="ledger"] .hud-res .chip-gold {
+  background: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-res .chip-gold b,
+:root[data-ui-mockup="ash"] .hud-res .chip-gold b,
+:root[data-ui-mockup="snow"] .hud-res .chip-gold b,
+:root[data-ui-mockup="ledger"] .hud-res .chip-gold b {
+  color: inherit;
+}
+
+:root[data-ui-mockup="chronicle"] .hud-rb,
+:root[data-ui-mockup="chronicle"] .hud-queue,
+:root[data-ui-mockup="chronicle"] .hud-tab,
+:root[data-ui-mockup="ash"] .hud-rb,
+:root[data-ui-mockup="ash"] .hud-queue,
+:root[data-ui-mockup="ash"] .hud-tab,
+:root[data-ui-mockup="snow"] .hud-rb,
+:root[data-ui-mockup="snow"] .hud-queue,
+:root[data-ui-mockup="snow"] .hud-tab,
+:root[data-ui-mockup="ledger"] .hud-rb,
+:root[data-ui-mockup="ledger"] .hud-queue,
+:root[data-ui-mockup="ledger"] .hud-tab {
+  background: linear-gradient(180deg, var(--mockup-raised), var(--mockup-inset));
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-panel,
+:root[data-ui-mockup="chronicle"] .hud-build,
+:root[data-ui-mockup="chronicle"] .place-bar,
+:root[data-ui-mockup="ash"] .hud-panel,
+:root[data-ui-mockup="ash"] .hud-build,
+:root[data-ui-mockup="ash"] .place-bar,
+:root[data-ui-mockup="snow"] .hud-panel,
+:root[data-ui-mockup="snow"] .hud-build,
+:root[data-ui-mockup="snow"] .place-bar,
+:root[data-ui-mockup="ledger"] .hud-panel,
+:root[data-ui-mockup="ledger"] .hud-build,
+:root[data-ui-mockup="ledger"] .place-bar {
+  background: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  border-radius: calc(var(--mockup-radius) + 4px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+  color: var(--mockup-ink);
+  font-family: var(--mockup-font);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-panel b,
+:root[data-ui-mockup="ash"] .hud-panel b,
+:root[data-ui-mockup="snow"] .hud-panel b,
+:root[data-ui-mockup="ledger"] .hud-panel b {
+  color: var(--mockup-accent);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-build .btabs button,
+:root[data-ui-mockup="chronicle"] .hud-build .bcard,
+:root[data-ui-mockup="ash"] .hud-build .btabs button,
+:root[data-ui-mockup="ash"] .hud-build .bcard,
+:root[data-ui-mockup="snow"] .hud-build .btabs button,
+:root[data-ui-mockup="snow"] .hud-build .bcard,
+:root[data-ui-mockup="ledger"] .hud-build .btabs button,
+:root[data-ui-mockup="ledger"] .hud-build .bcard {
+  background: var(--mockup-raised);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-build .btabs button.active,
+:root[data-ui-mockup="ash"] .hud-build .btabs button.active,
+:root[data-ui-mockup="snow"] .hud-build .btabs button.active,
+:root[data-ui-mockup="ledger"] .hud-build .btabs button.active {
+  background: var(--mockup-accent);
+  border-color: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-build .th-up,
+:root[data-ui-mockup="ash"] .hud-build .th-up,
+:root[data-ui-mockup="snow"] .hud-build .th-up,
+:root[data-ui-mockup="ledger"] .hud-build .th-up {
+  background: var(--mockup-inset);
+  border-color: var(--mockup-border);
+  border-radius: calc(var(--mockup-radius) + 3px);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .hud-build .th-up-text em,
+:root[data-ui-mockup="chronicle"] .hud-build .bcost em,
+:root[data-ui-mockup="snow"] .hud-build .th-up-text em,
+:root[data-ui-mockup="snow"] .hud-build .bcost em,
+:root[data-ui-mockup="ledger"] .hud-build .th-up-text em,
+:root[data-ui-mockup="ledger"] .hud-build .bcost em {
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .place-bar button,
+:root[data-ui-mockup="ash"] .place-bar button,
+:root[data-ui-mockup="snow"] .place-bar button,
+:root[data-ui-mockup="ledger"] .place-bar button {
+  background: var(--mockup-accent);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .place-hint,
+:root[data-ui-mockup="snow"] .place-hint,
+:root[data-ui-mockup="ledger"] .place-hint {
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .court-tape,
+:root[data-ui-mockup="ash"] .court-tape,
+:root[data-ui-mockup="snow"] .court-tape,
+:root[data-ui-mockup="ledger"] .court-tape {
+  background: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-ink);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-ui-mockup="chronicle"] .court-tape button,
+:root[data-ui-mockup="ash"] .court-tape button,
+:root[data-ui-mockup="snow"] .court-tape button,
+:root[data-ui-mockup="ledger"] .court-tape button {
+  color: var(--mockup-accent);
+}
+
+/* Разные композиции дока: лента, минимальный плавающий ряд, ледяная капсула, ведомость. */
+:root[data-ui-mockup="chronicle"] .game-nav,
+:root[data-ui-mockup="ledger"] .game-nav {
+  left: 10px;
+  right: 10px;
+  width: auto;
+  transform: none;
+  justify-content: center;
+  border-radius: var(--mockup-radius);
+  background: var(--mockup-nav);
+  border-color: var(--mockup-border);
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav > div,
+:root[data-ui-mockup="ledger"] .game-nav > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav button,
+:root[data-ui-mockup="ledger"] .game-nav button {
+  width: 100%;
+  min-height: 54px;
+  border: 0;
+  border-radius: var(--mockup-radius);
+  background: transparent;
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav button.active,
+:root[data-ui-mockup="ledger"] .game-nav button.active {
+  background: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.55);
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav button.nav-map,
+:root[data-ui-mockup="ledger"] .game-nav button.nav-map {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav button.nav-map.active,
+:root[data-ui-mockup="ledger"] .game-nav button.nav-map.active {
+  background: var(--mockup-accent);
+}
+
+:root[data-ui-mockup="chronicle"] .game-nav .nic,
+:root[data-ui-mockup="ledger"] .game-nav .nic {
+  width: 31px;
+  height: 31px;
+}
+
+:root[data-ui-mockup="ash"] .game-nav {
+  left: auto;
+  right: 10px;
+  transform: none;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 5px;
+  background: rgba(14, 18, 21, 0.94);
+  border-color: var(--mockup-border);
+}
+
+:root[data-ui-mockup="ash"] .game-nav button,
+:root[data-ui-mockup="ash"] .game-nav button.nav-map {
+  width: 48px;
+  min-height: 48px;
+  margin-top: 0;
+  border-radius: 3px;
+  background: transparent;
+  border-color: var(--mockup-border);
+  color: var(--mockup-ink);
+  box-shadow: none;
+}
+
+:root[data-ui-mockup="ash"] .game-nav button.active {
+  background: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="ash"] .game-nav .nic {
+  width: 27px;
+  height: 27px;
+}
+
+:root[data-ui-mockup="snow"] .game-nav {
+  border-radius: 999px;
+  background: rgba(231, 239, 243, 0.94);
+  border-color: var(--mockup-border);
+  backdrop-filter: blur(8px);
+}
+
+:root[data-ui-mockup="snow"] .game-nav button,
+:root[data-ui-mockup="snow"] .game-nav button.nav-map {
+  border-radius: 999px;
+  background: var(--mockup-nav-card);
+  border-color: var(--mockup-border);
+  color: var(--mockup-ink);
+  box-shadow: none;
+}
+
+:root[data-ui-mockup="snow"] .game-nav button.active,
+:root[data-ui-mockup="snow"] .game-nav button.nav-map.active {
+  background: var(--mockup-accent);
+  border-color: var(--mockup-accent);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="snow"] .game-nav button.nav-map {
+  margin-top: 0;
+}
+
+:root[data-ui-mockup="ledger"] .hud-res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-width: 360px;
+  padding: 2px;
+  border-radius: var(--mockup-radius);
+  background: rgba(65, 74, 50, 0.84);
+}
+
+:root[data-ui-mockup="ledger"] .hud-res .chip {
+  min-width: 54px;
+  justify-content: flex-start;
+  padding-inline: 5px;
+  box-shadow: none;
+}
+
+@media (max-width: 430px) {
+  :root[data-ui-mockup="ledger"] .hud-lord {
+    flex: 0 0 auto;
+  }
+
+  :root[data-ui-mockup="ledger"] .hud-res {
+    max-width: calc(100% - 184px);
+  }
+}
+
+:root[data-ui-mockup="ash"] .hud-build .th-up-text em,
+:root[data-ui-mockup="ash"] .hud-build .bcost em {
+  color: #e6e2d8;
+}
+
+/* Те же варианты видны на карте, хронике, отчётах, профиле и окнах аккаунта. */
+:root[data-ui-mockup="chronicle"] .app-mode,
+:root[data-ui-mockup="ash"] .app-mode,
+:root[data-ui-mockup="snow"] .app-mode,
+:root[data-ui-mockup="ledger"] .app-mode {
+  background: var(--mockup-page);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .app-mode > header,
+:root[data-ui-mockup="ash"] .app-mode > header,
+:root[data-ui-mockup="snow"] .app-mode > header,
+:root[data-ui-mockup="ledger"] .app-mode > header {
+  background: var(--mockup-panel) !important;
+  border-color: var(--mockup-border) !important;
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .world-panel,
+:root[data-ui-mockup="ash"] .world-panel,
+:root[data-ui-mockup="snow"] .world-panel,
+:root[data-ui-mockup="ledger"] .world-panel {
+  background: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .app-mode .text-stone-300,
+:root[data-ui-mockup="chronicle"] .app-mode .text-stone-400,
+:root[data-ui-mockup="chronicle"] .app-mode .text-stone-500,
+:root[data-ui-mockup="snow"] .app-mode .text-stone-300,
+:root[data-ui-mockup="snow"] .app-mode .text-stone-400,
+:root[data-ui-mockup="snow"] .app-mode .text-stone-500,
+:root[data-ui-mockup="ledger"] .app-mode .text-stone-300,
+:root[data-ui-mockup="ledger"] .app-mode .text-stone-400,
+:root[data-ui-mockup="ledger"] .app-mode .text-stone-500 {
+  color: var(--mockup-muted);
+}
+
+:root[data-ui-mockup="ash"] .app-mode .text-stone-300,
+:root[data-ui-mockup="ash"] .app-mode .text-stone-400,
+:root[data-ui-mockup="ash"] .app-mode .text-stone-500 {
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .gate,
+:root[data-ui-mockup="ash"] .gate,
+:root[data-ui-mockup="snow"] .gate,
+:root[data-ui-mockup="ledger"] .gate {
+  background: radial-gradient(120% 85% at 50% 0%, var(--mockup-dark), transparent 65%), var(--mockup-page);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-title,
+:root[data-ui-mockup="ash"] .gate-title,
+:root[data-ui-mockup="snow"] .gate-title,
+:root[data-ui-mockup="ledger"] .gate-title {
+  color: var(--mockup-panel);
+  font-family: var(--mockup-font);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-card,
+:root[data-ui-mockup="ash"] .gate-card,
+:root[data-ui-mockup="snow"] .gate-card,
+:root[data-ui-mockup="ledger"] .gate-card {
+  background: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  border-radius: calc(var(--mockup-radius) + 5px);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-label,
+:root[data-ui-mockup="ash"] .gate-label,
+:root[data-ui-mockup="snow"] .gate-label,
+:root[data-ui-mockup="ledger"] .gate-label {
+  color: var(--mockup-muted);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-input,
+:root[data-ui-mockup="ash"] .gate-input,
+:root[data-ui-mockup="snow"] .gate-input,
+:root[data-ui-mockup="ledger"] .gate-input {
+  background: var(--mockup-raised);
+  border-color: var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-primary,
+:root[data-ui-mockup="ash"] .gate-primary,
+:root[data-ui-mockup="snow"] .gate-primary,
+:root[data-ui-mockup="ledger"] .gate-primary {
+  background: var(--mockup-accent);
+  border: 1px solid var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-accent-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .gate-secondary,
+:root[data-ui-mockup="ash"] .gate-secondary,
+:root[data-ui-mockup="snow"] .gate-secondary,
+:root[data-ui-mockup="ledger"] .gate-secondary {
+  background: var(--mockup-inset);
+  border: 1px solid var(--mockup-border);
+  border-radius: var(--mockup-radius);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen,
+:root[data-ui-mockup="ash"] .ui-mockup-screen,
+:root[data-ui-mockup="snow"] .ui-mockup-screen,
+:root[data-ui-mockup="ledger"] .ui-mockup-screen {
+  background: var(--mockup-page);
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen h1,
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen h2,
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen label,
+:root[data-ui-mockup="snow"] .ui-mockup-screen h1,
+:root[data-ui-mockup="snow"] .ui-mockup-screen h2,
+:root[data-ui-mockup="snow"] .ui-mockup-screen label,
+:root[data-ui-mockup="ledger"] .ui-mockup-screen h1,
+:root[data-ui-mockup="ledger"] .ui-mockup-screen h2,
+:root[data-ui-mockup="ledger"] .ui-mockup-screen label {
+  color: var(--mockup-panel);
+}
+
+:root[data-ui-mockup="ash"] .ui-mockup-screen h1,
+:root[data-ui-mockup="ash"] .ui-mockup-screen h2,
+:root[data-ui-mockup="ash"] .ui-mockup-screen label {
+  color: var(--mockup-ink);
+}
+
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen input,
+:root[data-ui-mockup="chronicle"] .ui-mockup-screen button:not(.mockup-switcher__toggle),
+:root[data-ui-mockup="ash"] .ui-mockup-screen input,
+:root[data-ui-mockup="ash"] .ui-mockup-screen button:not(.mockup-switcher__toggle),
+:root[data-ui-mockup="snow"] .ui-mockup-screen input,
+:root[data-ui-mockup="snow"] .ui-mockup-screen button:not(.mockup-switcher__toggle),
+:root[data-ui-mockup="ledger"] .ui-mockup-screen input,
+:root[data-ui-mockup="ledger"] .ui-mockup-screen button:not(.mockup-switcher__toggle) {
+  background-color: var(--mockup-panel);
+  border-color: var(--mockup-border);
+  color: var(--mockup-ink);
+}
+
+/* Компактный, всегда доступный бургер и небольшая нижняя шторка для сравнения. */
+.mockup-switcher {
+  position: absolute;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+
+.mockup-switcher__toggle {
+  position: absolute;
+  right: 12px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid rgba(239, 227, 198, 0.72);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #563b25, #2f1e12);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #f3e9d0;
+  pointer-events: auto;
+}
+
+.mockup-switcher__toggle:focus-visible,
+.mockup-switcher__close:focus-visible,
+.mockup-choice:focus-visible {
+  outline: 3px solid #f0c866;
+  outline-offset: 2px;
+}
+
+.mockup-switcher__burger {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 17px;
+}
+
+.mockup-switcher__burger i {
+  display: block;
+  width: 17px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.mockup-switcher__tag {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.mockup-switcher__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(8, 8, 8, 0.42);
+  pointer-events: auto;
+}
+
+.mockup-switcher__panel {
+  position: absolute;
+  right: 10px;
+  bottom: calc(138px + env(safe-area-inset-bottom));
+  z-index: 2;
+  width: min(390px, calc(100% - 20px));
+  max-height: min(68vh, 560px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(239, 227, 198, 0.46);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f3e9d0, #e6d5b3);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  color: #302318;
+  pointer-events: auto;
+}
+
+.mockup-switcher__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -2px -2px 7px;
+}
+
+.mockup-switcher__eyebrow {
+  margin: 0 0 3px;
+  color: #80683f;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.mockup-switcher__header h2 {
+  margin: 0;
+  color: #302318;
+  font: 700 18px/1.15 Georgia, "Times New Roman", serif;
+}
+
+.mockup-switcher__close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid #a38c66;
+  border-radius: 8px;
+  background: rgba(255, 250, 235, 0.75);
+  color: #453523;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mockup-switcher__note {
+  margin: 0 0 11px;
+  color: #65543e;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.mockup-switcher__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mockup-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 58px;
+  padding: 6px 8px;
+  border: 1px solid #c1ad86;
+  border-radius: 9px;
+  background: rgba(255, 252, 241, 0.72);
+  color: #30271d;
+  text-align: left;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.mockup-choice:active {
+  transform: scale(0.99);
+}
+
+.mockup-choice.is-active {
+  border-color: #806039;
+  background: #fff9e9;
+  box-shadow: inset 0 0 0 1px rgba(128, 96, 57, 0.28);
+}
+
+.mockup-choice__swatch {
+  display: flex;
+  flex: 0 0 48px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 48px;
+  height: 42px;
+  padding: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(35, 30, 23, 0.32);
+  border-radius: 6px;
+  background: #4a3021;
+}
+
+.mockup-choice__swatch i {
+  display: block;
+  height: 6px;
+  border: 1px solid rgba(30, 26, 20, 0.3);
+  border-radius: 3px;
+  background: #efe3c6;
+}
+
+.mockup-choice__swatch i:nth-child(2) {
+  width: 72%;
+}
+
+.mockup-choice__swatch i:nth-child(3) {
+  width: 86%;
+}
+
+.mockup-choice__swatch--bonewood { background: linear-gradient(135deg, #6b4128, #22130b); }
+.mockup-choice__swatch--bonewood i { background: #efe3c6; }
+.mockup-choice__swatch--chronicle { background: linear-gradient(135deg, #a28a5c, #53412c); }
+.mockup-choice__swatch--chronicle i { background: #fff9eb; }
+.mockup-choice__swatch--ash { background: linear-gradient(135deg, #647078, #111619); }
+.mockup-choice__swatch--ash i { background: #30383e; border-color: #8c959a; }
+.mockup-choice__swatch--snow { background: linear-gradient(135deg, #91a6b2, #526a78); }
+.mockup-choice__swatch--snow i { background: #f7fafb; }
+.mockup-choice__swatch--ledger { background: linear-gradient(135deg, #8d936b, #414a32); }
+.mockup-choice__swatch--ledger i { background: #f1f0dc; }
+
+.mockup-choice__copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mockup-choice__title {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mockup-choice__title small {
+  color: #826d4d;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.mockup-choice__title b {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mockup-choice__detail {
+  overflow: hidden;
+  color: #73644e;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mockup-choice__mark {
+  display: grid;
+  flex: 0 0 20px;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #b8a37b;
+  border-radius: 50%;
+  color: #4a6839;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mockup-choice.is-active .mockup-choice__mark {
+  border-color: #6e8551;
+  background: #e2ebd2;
+}
+
+.mockup-switcher__footer {
+  margin-top: 9px;
+  color: #7a684c;
+  font-size: 10px;
+  text-align: right;
+}
+
+/* Компактная ширина телефона: панель не закрывает док и помещается в safe-area. */
+@media (max-width: 430px) {
+  .mockup-switcher__toggle {
+    right: 10px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .mockup-switcher__panel {
+    right: 8px;
+    bottom: calc(132px + env(safe-area-inset-bottom));
+    width: calc(100% - 16px);
+    max-height: min(66vh, 540px);
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mockup-choice { transition: none; }
+}

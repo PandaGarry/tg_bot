@@ -24,6 +24,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  delete document.documentElement.dataset.uiMockup;
   vi.restoreAllMocks();
 });
 
@@ -118,6 +119,17 @@ describe("двор", () => {
     cleanup();
     render(<World view={view()} lang="ru" serverNow={2} />);
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
+  });
+
+  it("временное меню выбирает макет только для интерфейса и запоминает его в браузере", () => {
+    render(<World view={view()} lang="ru" serverNow={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Открыть временное меню макетов" }));
+    expect(screen.getByRole("dialog", { name: "Макеты интерфейса" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Хроника двора/ }));
+    expect(document.documentElement.dataset.uiMockup).toBe("chronicle");
+    expect(localStorage.getItem("tdl.ui.mockup")).toBe("chronicle");
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
 

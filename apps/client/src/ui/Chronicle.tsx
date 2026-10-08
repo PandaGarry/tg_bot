@@ -32,5 +32,5 @@ export function Chronicle({ lang }: { lang: Locale }) {
 }
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <div className="rounded border border-stone-800 bg-stone-900/60 p-3">{children}</div>;
+  return <div className="world-panel rounded border border-stone-800 bg-stone-900/60 p-3">{children}</div>;
 }
