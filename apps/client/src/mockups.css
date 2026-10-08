@@ -220,7 +220,7 @@
 .concept-quick--forge { top: 43%; right: 10px; width: 49px; flex-direction: column; transform: translateY(-50%); }
 .concept-quick--forge .concept-quick__item { width: 49px; height: 49px; border-radius: 3px; border-left: 3px solid var(--ui-accent); background: rgba(20,22,21,.94); }
 .concept-quick--forge .concept-quick__icon { color: var(--ui-accent); }
-.concept-nav--forge { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; padding: 4px; border-top: 2px solid var(--ui-accent); background: rgba(20,22,21,.97); box-shadow: 0 -5px 20px rgba(0,0,0,.45); }
+.concept-nav--forge { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 3px; padding: 4px; border-top: 2px solid var(--ui-accent); background: rgba(20,22,21,.97); box-shadow: 0 -5px 20px rgba(0,0,0,.45); }
 .concept-nav--forge .concept-nav__item { flex-direction: column; border-radius: 2px; color: #b6b0a2; }
 .concept-nav--forge .concept-nav__item.is-active { background: #342c26; color: #ffb05a; }
 .concept-nav--forge .concept-nav__icon { width: 20px; height: 20px; }

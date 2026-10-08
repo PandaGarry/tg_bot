@@ -113,8 +113,9 @@ describe("двор", () => {
     expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Двор" })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Летопись" }));
-    expect(screen.getAllByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.").length).toBeGreaterThan(0);
+    // Записи хрониста сохраняются; отдельной кнопки «Летопись» в нижней навигации нет.
+    expect(chronicleEntries().some((entry) => entry.key === "shell.tutor.palisade")).toBe(true);
+    expect(screen.queryByRole("button", { name: "Летопись" })).toBeNull();
 
     // Хронист говорит один раз: повторный вход фразу не удваивает.
     cleanup();

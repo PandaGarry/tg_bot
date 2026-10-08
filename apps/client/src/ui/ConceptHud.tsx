@@ -14,7 +14,6 @@ const NAV_ITEMS: { route: ConceptRoute; icon: ConceptIconName }[] = [
   { route: "court", icon: "court" },
   { route: "reports", icon: "reports" },
   { route: "map", icon: "map" },
-  { route: "chronicle", icon: "chronicle" },
   { route: "sheet", icon: "settings" },
 ];
 
