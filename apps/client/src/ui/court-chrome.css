@@ -1,58 +1,65 @@
-/* Оболочка двора (CourtChrome). Якоря от краёв, размеры фиксированы — как в прототипе.
-   Слой не должен перехватывать клики по сцене, поэтому интерактивные элементы — pointer-events: auto. */
-.ch-root { position: absolute; inset: 0; z-index: 30; pointer-events: none; font: 12px/1.25 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e7e4dc; }
+/* Оболочка двора (CourtChrome). Якоря от краёв. Элементы компактные и полупрозрачные,
+   чтобы игрок видел двор. Слой не перехватывает клики по сцене: интерактивные элементы — pointer-events: auto. */
+.ch-root { position: absolute; inset: 0; z-index: 30; pointer-events: none; font: 11px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e7e4dc; }
 .ch-root button { font: inherit; color: inherit; pointer-events: auto; cursor: pointer; }
 .ch-root img { display: block; }
 
-/* Верх: профиль и ресурсы в одной строке */
-.ch-top { position: absolute; left: 8px; right: 8px; top: 8px; height: 60px; display: flex; align-items: center; gap: 8px; }
-.ch-profile { flex: none; display: flex; align-items: center; gap: 8px; height: 60px; padding: 6px 10px 6px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.92); text-align: left; }
-.ch-profile__avatar { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #d9b66a; background: #2a3140; display: grid; place-items: center; overflow: hidden; flex: none; }
-.ch-profile__avatar svg { width: 46px; height: 46px; }
-.ch-profile__copy { display: flex; flex-direction: column; min-width: 0; }
-.ch-profile__copy b { font-size: 13px; white-space: nowrap; }
-.ch-profile__copy small { color: #9a968a; font-size: 11px; }
-.ch-res { flex: 1; min-width: 0; display: flex; gap: 4px; align-items: stretch; }
-.ch-res__cell { flex: 1 1 0; min-width: 0; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 8px; background: rgba(255,255,255,.04); pointer-events: auto; }
-.ch-res__cell img { width: 26px; height: 26px; object-fit: contain; }
-.ch-res__cell b { font-size: 11px; font-weight: 600; white-space: nowrap; }
-.ch-res__cell--gold { flex: 0 0 60px; border: 1px solid rgba(230,195,92,.45); color: #e6c35c; background: rgba(230,195,92,.08); }
+/* Верх: профиль (узкий) и ресурсы в одну строку */
+.ch-top { position: absolute; left: 8px; right: 8px; top: 8px; height: 52px; display: flex; align-items: center; gap: 6px; }
+.ch-profile { flex: none; display: flex; align-items: center; gap: 6px; height: 52px; padding: 4px 8px 4px 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(20,23,31,.7); text-align: left; }
+.ch-profile__avatar { position: relative; width: 42px; height: 42px; flex: none; border-radius: 50%; border: 2px solid #d9b66a; background: #2a3140; display: grid; place-items: center; overflow: visible; }
+.ch-profile__avatar svg { width: 38px; height: 38px; border-radius: 50%; }
+.ch-profile__level { position: absolute; right: -6px; bottom: -4px; min-width: 18px; height: 16px; padding: 0 4px; border-radius: 8px; background: #1b1e26; border: 1px solid #d9b66a; color: #f0d98a; font-size: 9px; font-weight: 700; line-height: 14px; text-align: center; }
+.ch-profile__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ch-profile__copy > b { font-size: 12px; white-space: nowrap; max-width: 92px; overflow: hidden; text-overflow: ellipsis; }
+.ch-profile__meta { display: flex; align-items: center; gap: 4px; }
+.ch-profile__vip { font-style: normal; padding: 0 4px; border-radius: 4px; background: rgba(230,195,92,.14); color: #e6c35c; font-size: 9px; font-weight: 700; line-height: 14px; }
+.ch-profile__meta small { color: #9a968a; font-size: 9px; white-space: nowrap; }
 
-/* Справа: переключатель и плитки действий (52×52) */
-.ch-side { position: absolute; right: 8px; top: 76px; width: 96px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.ch-switch { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.92); }
-.ch-switch button { height: 24px; border: 0; border-radius: 6px; background: transparent; color: #9a968a; font-size: 11px; pointer-events: auto; }
-.ch-switch button.is-on { background: #2a2f3a; color: #e7e4dc; }
-.ch-action { width: 52px; height: 52px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.92); }
-.ch-action img { width: 40px; height: 40px; object-fit: contain; }
+.ch-res { flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 3px; }
+.ch-res__item { flex: 1 1 0; min-width: 0; max-width: 46px; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: auto; }
+.ch-res__icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.35); }
+.ch-res__icon img { width: 30px; height: 30px; object-fit: contain; }
+.ch-res__item b { font-size: 10px; font-weight: 600; white-space: nowrap; color: #e7e4dc; }
+.ch-res__item--gold { flex: 0 0 46px; }
+.ch-res__item--gold .ch-res__icon { border-color: rgba(230,195,92,.5); }
+.ch-res__item--gold b { color: #e6c35c; }
 
-/* Слева: квесты и свёрнутый чат */
-.ch-quests { position: absolute; left: 8px; top: 76px; width: 200px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
-.ch-quests li { border-radius: 6px; background: rgba(14,16,21,.88); pointer-events: auto; }
-.ch-quests li button { width: 100%; height: 100%; padding: 6px 8px; border: 0; border-radius: 6px; background: transparent; color: #9a968a; font-size: 11px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Справа: переключатель — маленькие таблетки; действия — тонкая рамка без ячейки */
+.ch-side { position: absolute; right: 8px; top: 68px; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ch-switch { width: 44px; display: flex; flex-direction: column; gap: 3px; }
+.ch-switch button { height: 18px; padding: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: rgba(20,23,31,.55); color: #9a968a; font-size: 9px; line-height: 16px; pointer-events: auto; }
+.ch-switch button.is-on { border-color: rgba(230,195,92,.5); color: #e7e4dc; background: rgba(42,47,58,.7); }
+.ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.35); }
+.ch-action img { width: 30px; height: 30px; object-fit: contain; }
+
+/* Слева: квесты — узкие и полупрозрачные */
+.ch-quests { position: absolute; left: 8px; top: 68px; width: 150px; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.ch-quests li { border-radius: 6px; background: rgba(14,16,21,.45); pointer-events: auto; }
+.ch-quests li button { width: 100%; padding: 4px 7px; border: 0; border-radius: 6px; background: transparent; color: #9a968a; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ch-quests li.is-active { box-shadow: inset 2px 0 0 #d9b66a; }
 .ch-quests li.is-active button { color: #e7e4dc; }
-.ch-chat-strip { position: absolute; left: 8px; bottom: 72px; width: 200px; height: 30px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(14,16,21,.94); color: #cfcbbf; font-size: 11px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: auto; }
+.ch-chat-strip { position: absolute; left: 8px; bottom: 52px; width: 150px; height: 22px; padding: 0 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.5); color: #cfcbbf; font-size: 10px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: auto; }
 .ch-chat-strip b { color: #e7e4dc; }
 
 /* Выдвижной чат: ~55% ширины, между верхней панелью и нижним меню */
-.ch-chat { position: absolute; left: 8px; top: 76px; bottom: 72px; width: 55%; padding: 8px; display: flex; flex-direction: column; gap: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.97); pointer-events: auto; }
-.ch-chat header { display: flex; align-items: flex-start; gap: 6px; }
-.ch-chat__tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px; }
-.ch-chat__tabs button { padding: 4px 8px; border: 0; border-radius: 6px; background: #1d2129; color: #9a968a; font-size: 11px; }
+.ch-chat { position: absolute; left: 8px; top: 68px; bottom: 52px; width: 55%; padding: 7px; display: flex; flex-direction: column; gap: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.9); pointer-events: auto; }
+.ch-chat header { display: flex; align-items: flex-start; gap: 4px; }
+.ch-chat__tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; }
+.ch-chat__tabs button { padding: 3px 6px; border: 0; border-radius: 5px; background: #1d2129; color: #9a968a; font-size: 10px; }
 .ch-chat__tabs button.is-on { background: #2a2f3a; color: #e7e4dc; }
-.ch-chat__close { border: 0; background: transparent; font-size: 18px; line-height: 1; }
-.ch-chat ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
-.ch-chat li { font-size: 11px; color: #cfcbbf; }
+.ch-chat__close { border: 0; background: transparent; font-size: 16px; line-height: 1; }
+.ch-chat ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; overflow: auto; }
+.ch-chat li { font-size: 10px; color: #cfcbbf; }
 .ch-chat li b { color: #e7e4dc; }
 
-/* Нижнее меню: Почта, Клан | Карта/Двор | Лавка, Меню */
-.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 56px; display: flex; align-items: center; gap: 6px; pointer-events: none; }
-.ch-bottom__group { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; }
+/* Нижнее меню: тонкое и узкое. Почта, Клан | Карта/Двор | Лавка, Меню */
+.ch-bottom { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 36px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
+.ch-bottom__group { flex: 1; min-width: 0; display: flex; gap: 4px; align-items: center; }
 .ch-bottom__group--left { justify-content: flex-end; }
 .ch-bottom__group--right { justify-content: flex-start; }
-.ch-nav { flex: 1 1 0; min-width: 0; max-width: 64px; height: 48px; border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.92); font-size: 11px; pointer-events: auto; }
-.ch-map { flex: none; width: 116px; height: 56px; border-radius: 10px; border: 1px solid rgba(230,195,92,.45); background: #2a2416; color: #f0d98a; font-size: 14px; font-weight: 600; pointer-events: auto; }
+.ch-nav { flex: 1 1 0; min-width: 0; max-width: 58px; height: 32px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.6); font-size: 10px; pointer-events: auto; }
+.ch-map { flex: none; width: 92px; height: 36px; border-radius: 8px; border: 1px solid rgba(230,195,92,.5); background: rgba(42,36,22,.85); color: #f0d98a; font-size: 12px; font-weight: 600; pointer-events: auto; }
 
 /* Заглушка: короткое сообщение над нижним меню */
-.ch-stub { position: absolute; left: 50%; bottom: 72px; transform: translateX(-50%); padding: 6px 10px; border-radius: 8px; background: rgba(12,14,19,.96); border: 1px solid rgba(255,255,255,.1); font-size: 11px; white-space: nowrap; pointer-events: none; }
+.ch-stub { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); padding: 5px 9px; border-radius: 7px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }

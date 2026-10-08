@@ -124,14 +124,9 @@ describe("двор", () => {
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
   });
 
-  it("кнопка прототипа открывает раскладку во встроенном окне и закрывается", () => {
+  it("кнопка прототипа скрыта на экране двора (код сохранён для следующих тестов)", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: "Прототип раскладки" }));
-    const dialog = screen.getByRole("dialog", { name: "Прототип раскладки двора" });
-    expect(dialog.querySelector("iframe")?.getAttribute("src")).toBe("/layout-prototype.html");
-    expect(document.documentElement.dataset.uiMockup).toBe("forge");
-    fireEvent.click(screen.getByRole("button", { name: "Закрыть прототип" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Прототип раскладки" })).toBeNull();
   });
 
   it("новая панель строительства не возвращает старые ячейки и ведёт к подтверждению клетки", () => {

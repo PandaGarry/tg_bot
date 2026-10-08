@@ -52,9 +52,12 @@ export type CourtChromeProps = {
   pageMode?: boolean;
 };
 
-function formatAmount(value: number, lang: Locale): string {
+function formatAmount(value: number, _lang: Locale): string {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(lang === "ru" ? "ru-RU" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (abs >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  return String(Math.round(value));
 }
 
 export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenProfile, pageMode = false }: CourtChromeProps) {
@@ -88,22 +91,30 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
   return (
     <div className="ch-root">
       <header className="ch-top">
-        <button type="button" className="ch-profile" onClick={onOpenProfile} aria-label={`${name}, ${level}`}>
-          <span className="ch-profile__avatar"><ConceptIcon name="lord" /></span>
+        <button type="button" className="ch-profile" onClick={onOpenProfile} aria-label={name}>
+          <span className="ch-profile__avatar">
+            <ConceptIcon name="lord" />
+            {/* Уровень персонажа — заглушка: в протоколе пока нет данных. */}
+            <b className="ch-profile__level" aria-label="Уровень персонажа">—</b>
+          </span>
           <span className="ch-profile__copy">
             <b>{name}</b>
-            <small>{lang === "ru" ? "Ратуша" : "Hall"} · {level}</small>
+            <span className="ch-profile__meta">
+              {/* VIP и общая сила — заглушки: функций пока нет. */}
+              <i className="ch-profile__vip" title="VIP">VIP —</i>
+              <small title="Общая сила">Сила —</small>
+            </span>
           </span>
         </button>
         <div className="ch-res" aria-label={lang === "ru" ? "Ресурсы" : "Resources"}>
           {RESOURCES.map((r) => (
-            <div key={r.id} className="ch-res__cell" title={r.name}>
-              <img src={r.icon} alt="" />
+            <div key={r.id} className="ch-res__item" title={r.name}>
+              <span className="ch-res__icon"><img src={r.icon} alt="" /></span>
               <b>{formatAmount(Number(stock[r.id] ?? 0), lang)}</b>
             </div>
           ))}
-          <div className="ch-res__cell ch-res__cell--gold" title={GOLD.name}>
-            <img src={GOLD.icon} alt="" />
+          <div className="ch-res__item ch-res__item--gold" title={GOLD.name}>
+            <span className="ch-res__icon"><img src={GOLD.icon} alt="" /></span>
             <b>{formatAmount(Number(stock[GOLD.id] ?? 0), lang)}</b>
           </div>
         </div>

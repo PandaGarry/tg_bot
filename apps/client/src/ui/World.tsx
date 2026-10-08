@@ -21,6 +21,9 @@ import { Diagnostics } from "./Diagnostics.js";
 import { bridge } from "../game/bridge.js";
 import type { CourtGrid, CourtPendingPlacement, CourtSceneMode, CourtState } from "../shared/court.js";
 
+// Кнопка «Прототип раскладки» скрыта; компонент сохранён для следующих тестов.
+const SHOW_PROTOTYPE_BUTTON = false;
+
 export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Locale; serverNow: number }) {
   const t = translator(lang);
   const [route, setRoute] = useState<ConceptRoute>("court");
@@ -206,7 +209,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         ) : null}
       </ConceptHud>
       {route === "court" ? <CourtTape lang={lang} variant={mockup} /> : null}
-      {import.meta.env.DEV ? <PrototypeButton lang={lang} /> : null}
+      {SHOW_PROTOTYPE_BUTTON && import.meta.env.DEV ? <PrototypeButton lang={lang} /> : null}
     </main>
   );
 }
