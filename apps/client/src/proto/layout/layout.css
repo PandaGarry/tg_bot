@@ -1,0 +1,72 @@
+/* ПРОТОТИП раскладки. Не часть игры: своя страница, токены не используются. */
+html, body, #proto-root { margin: 0; height: 100%; background: #0c0a09; color: #e7dccb; font-family: system-ui, sans-serif; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.proto-controls { position: fixed; top: 6px; left: 50%; transform: translateX(-50%); z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: center;
+  padding: 6px 10px; background: rgba(0,0,0,.75); border: 1px dashed #b45309; border-radius: 8px; font-size: 12px; max-width: 96vw; }
+.proto-controls button { margin-left: 4px; padding: 4px 8px; background: #1c1917; border: 1px solid #44403c; border-radius: 6px; }
+.proto-controls button.is-on { background: #b45309; border-color: #fbbf24; color: #fff; }
+.proto-tag { color: #fbbf24; font-weight: 700; }
+
+.proto-frame { position: fixed; inset: 0; overflow: hidden; }
+.proto-port { position: fixed; top: 40px; bottom: 0; left: 50%; transform: translateX(-50%); width: min(390px, 100vw); border-left: 1px solid #44403c; border-right: 1px solid #44403c; }
+
+.proto-scene { position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, #3b2a1a 0%, #1c1410 60%, #0c0a09 100%); display: grid; place-items: center; }
+.proto-scene::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 48px 48px; }
+.proto-scene[data-screen="map"] { background: radial-gradient(ellipse at 50% 50%, #1e2a1c, #0c0a09); }
+.proto-scene-label { position: relative; opacity: .45; font-size: 13px; }
+
+/* общие заглушки */
+.proto-strong { font-weight: 700; }
+.proto-muted { font-size: 11px; opacity: .7; }
+.proto-badge { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: #dc2626; color: #fff; font-size: 11px; }
+.proto-hint { margin-left: 8px; font-size: 11px; opacity: .6; }
+.proto-card, .proto-icon-btn, .proto-lord, .proto-res, .proto-cell { background: rgba(28,25,23,.9); border: 1px solid #57534e; border-radius: 8px; }
+
+/* верх-лево */
+.proto-lord { position: absolute; top: 8px; left: 8px; display: flex; gap: 8px; align-items: center; padding: 6px 10px; }
+.proto-portrait { width: 44px; height: 44px; border-radius: 50%; background: #44403c; border: 2px solid #b45309; }
+
+/* верх-право: ресурсы в одну строку, растёт влево */
+.proto-resources { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; flex-direction: row-reverse; }
+.proto-res { display: flex; flex-direction: column; padding: 4px 8px; min-width: 70px; font-size: 12px; }
+.proto-res b { font-size: 13px; }
+.proto-premium { border: 2px solid #fbbf24; background: linear-gradient(#3f2d08, #1c1405); box-shadow: 0 0 10px rgba(251,191,36,.35); color: #fde68a; }
+
+/* лево и право — колонки */
+.proto-left, .proto-right { position: absolute; top: 96px; display: flex; flex-direction: column; gap: 6px; }
+.proto-left { left: 8px; width: 116px; }
+.proto-right { right: 8px; width: 116px; }
+.proto-icon-btn { padding: 8px; text-align: left; font-size: 13px; min-height: 44px; }
+.proto-soon { padding: 8px; font-size: 13px; display: flex; justify-content: space-between; opacity: .6; }
+.proto-soon span { font-size: 11px; }
+
+/* чат: вариант а — полоса слева над доком; вариант б — правая колонка внизу */
+.proto-chat { position: absolute; background: rgba(20,17,15,.95); border: 1px solid #57534e; border-radius: 8px; font-size: 12px; }
+.proto-chat-head { width: 100%; text-align: left; padding: 8px 10px; background: none; border: 0; display: flex; align-items: center; min-height: 44px; }
+.proto-chat-body { list-style: none; margin: 0; padding: 0 10px 8px; max-height: 160px; overflow: auto; }
+.proto-chat-a { left: 8px; bottom: 74px; width: 260px; }
+.proto-chat-a.is-open { width: 300px; }
+.proto-chat-b { right: 8px; bottom: 74px; width: 116px; }
+.proto-chat-b.is-open { width: 230px; }
+.proto-chat-b.is-folded .proto-hint { display: none; }
+
+/* док: 4–5 ячеек + центр, приподнятый */
+.proto-dock { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; display: flex; gap: 8px; align-items: flex-end; }
+.proto-cell { min-width: 84px; min-height: 52px; padding: 6px 8px; }
+.proto-center { min-width: 110px; min-height: 64px; margin-bottom: 10px; background: linear-gradient(#78350f, #3f1d07); border-color: #fbbf24; font-weight: 700; display: flex; flex-direction: column; justify-content: center; }
+.proto-center-sub { font-size: 10px; font-weight: 400; opacity: .8; }
+
+/* портрет: узкий экран — колонки уходят под сцену, чтобы не перекрывать друг друга */
+.proto-port .proto-left, .proto-port .proto-right { width: 84px; }
+.proto-port .proto-resources { flex-wrap: wrap; right: 4px; left: 150px; justify-content: flex-end; }
+.proto-port .proto-res { min-width: 0; padding: 3px 5px; }
+.proto-port .proto-dock { gap: 4px; left: 0; right: 0; transform: none; justify-content: center; }
+.proto-port .proto-cell { min-width: 0; flex: 1; font-size: 12px; }
+.proto-port .proto-center { min-width: 0; flex: 1.3; }
+.proto-port .proto-chat-a { width: 230px; }
+.proto-port .proto-chat-b { width: 84px; }
