@@ -14,8 +14,8 @@ import { addChronicle, hasChronicle } from "../shell/chronicle.js";
 import { Chronicle } from "./Chronicle.js";
 import { ConceptHud, type ConceptRoute } from "./ConceptHud.js";
 import { ConceptIcon } from "./ConceptIcon.js";
-import { MockupSwitcher } from "./MockupSwitcher.js";
-import { applyUiMockup, readUiMockup, type UiMockupId } from "./mockups.js";
+import { PrototypeButton } from "./PrototypeButton.js";
+import { applyUiMockup, UI_HUD, type UiMockupId } from "./mockups.js";
 import "../mockups.css";
 import { Diagnostics } from "./Diagnostics.js";
 import { bridge } from "../game/bridge.js";
@@ -24,7 +24,7 @@ import type { CourtGrid, CourtPendingPlacement, CourtSceneMode, CourtState } fro
 export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Locale; serverNow: number }) {
   const t = translator(lang);
   const [route, setRoute] = useState<ConceptRoute>("court");
-  const [mockup, setMockup] = useState<UiMockupId>(() => readUiMockup());
+  const mockup: UiMockupId = UI_HUD;
   const [, forceTick] = useState(0);
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
@@ -206,7 +206,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
         ) : null}
       </ConceptHud>
       {route === "court" ? <CourtTape lang={lang} variant={mockup} /> : null}
-      <MockupSwitcher lang={lang} selected={mockup} onSelect={setMockup} />
+      {import.meta.env.DEV ? <PrototypeButton lang={lang} /> : null}
     </main>
   );
 }

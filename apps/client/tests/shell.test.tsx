@@ -122,15 +122,13 @@ describe("двор", () => {
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
   });
 
-  it("выбор нового макета меняет композицию и сохраняется только в браузере", () => {
+  it("кнопка прототипа открывает раскладку во встроенном окне и закрывается", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: "Сравнить макеты интерфейса" }));
-    expect(screen.getByRole("dialog", { name: "Выберите направление" })).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: /Полевой атлас/ }));
-    expect(document.documentElement.dataset.uiMockup).toBe("atlas");
-    expect(localStorage.getItem("tdl.ui.mockup")).toBe("atlas");
-    expect(screen.getByRole("navigation", { name: "Разделы игры" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Прототип раскладки" }));
+    const dialog = screen.getByRole("dialog", { name: "Прототип раскладки двора" });
+    expect(dialog.querySelector("iframe")?.getAttribute("src")).toBe("/layout-prototype.html");
+    expect(document.documentElement.dataset.uiMockup).toBe("forge");
+    fireEvent.click(screen.getByRole("button", { name: "Закрыть прототип" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 

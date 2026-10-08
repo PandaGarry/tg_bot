@@ -1,49 +1,5 @@
-/* Пять структурно разных концепций. Только HUD-слой; Pixi-сцена и её состояние общие. */
-:root[data-ui-mockup="citadel"] {
-  color-scheme: dark;
-  --ui-page: #172326;
-  --ui-panel: #eee0bd;
-  --ui-paper: #f6edda;
-  --ui-ink: #272321;
-  --ui-muted: #746858;
-  --ui-dark: #211b22;
-  --ui-panel-dark: #30252d;
-  --ui-line: #a77b4c;
-  --ui-accent: #c86f48;
-  --ui-accent-2: #457d72;
-  --ui-accent-3: #d6b354;
-  --ui-danger: #9d403a;
-  --ui-radius: 14px;
-  --ui-font: Georgia, "Times New Roman", serif;
-  --ui-avatar-bg: #435e58;
-  --ui-avatar-ring: #e1b65b;
-  --ui-avatar-cloak: #7e393a;
-  --ui-avatar-face: #d0ad83;
-  --ui-avatar-helm: #24353a;
-}
+/* HUD «Кузня приказов» (вариант 03, выбор заказчика). Только HUD-слой; Pixi-сцена и её состояние общие. */
 
-:root[data-ui-mockup="atlas"] {
-  color-scheme: light;
-  --ui-page: #17332e;
-  --ui-panel: #e8e3c8;
-  --ui-paper: #f4edcf;
-  --ui-ink: #213a32;
-  --ui-muted: #727b5e;
-  --ui-dark: #112720;
-  --ui-panel-dark: #29423a;
-  --ui-line: #b2a16d;
-  --ui-accent: #d17a47;
-  --ui-accent-2: #72834d;
-  --ui-accent-3: #d7b74e;
-  --ui-danger: #aa4d45;
-  --ui-radius: 3px;
-  --ui-font: "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  --ui-avatar-bg: #63724d;
-  --ui-avatar-ring: #d4b95f;
-  --ui-avatar-cloak: #a94e3d;
-  --ui-avatar-face: #d8b387;
-  --ui-avatar-helm: #263d35;
-}
 
 :root[data-ui-mockup="forge"] {
   color-scheme: dark;
@@ -68,51 +24,7 @@
   --ui-avatar-helm: #252a29;
 }
 
-:root[data-ui-mockup="frost"] {
-  color-scheme: dark;
-  --ui-page: #10243a;
-  --ui-panel: #dcebf0;
-  --ui-paper: #f4fbfc;
-  --ui-ink: #173247;
-  --ui-muted: #6a8799;
-  --ui-dark: #0d1d32;
-  --ui-panel-dark: #183650;
-  --ui-line: #85b4c3;
-  --ui-accent: #53bdc9;
-  --ui-accent-2: #8573ca;
-  --ui-accent-3: #e7b765;
-  --ui-danger: #bf6572;
-  --ui-radius: 22px;
-  --ui-font: ui-sans-serif, system-ui, sans-serif;
-  --ui-avatar-bg: #3a687b;
-  --ui-avatar-ring: #a6e4e8;
-  --ui-avatar-cloak: #59629e;
-  --ui-avatar-face: #d6b999;
-  --ui-avatar-helm: #18384b;
-}
 
-:root[data-ui-mockup="ledger"] {
-  color-scheme: light;
-  --ui-page: #2a252e;
-  --ui-panel: #f0e7d7;
-  --ui-paper: #fcf7ed;
-  --ui-ink: #312a31;
-  --ui-muted: #756873;
-  --ui-dark: #231d28;
-  --ui-panel-dark: #37303a;
-  --ui-line: #b89b6a;
-  --ui-accent: #b84a53;
-  --ui-accent-2: #4d7965;
-  --ui-accent-3: #d4a347;
-  --ui-danger: #9f353f;
-  --ui-radius: 8px;
-  --ui-font: "Palatino Linotype", Georgia, serif;
-  --ui-avatar-bg: #5a6a5c;
-  --ui-avatar-ring: #d8af61;
-  --ui-avatar-cloak: #8e3f4d;
-  --ui-avatar-face: #d0ac85;
-  --ui-avatar-helm: #35323c;
-}
 
 /* Примерки видны также на входе/создании лорда, пока игровой экран не открыт. */
 :root[data-ui-mockup] .gate {
@@ -133,7 +45,7 @@
 :root[data-ui-mockup] .ui-mockup-screen h2,
 :root[data-ui-mockup] .ui-mockup-screen label { color: var(--ui-paper); }
 :root[data-ui-mockup] .ui-mockup-screen input,
-:root[data-ui-mockup] .ui-mockup-screen button:not(.mockup-switcher__toggle) {
+:root[data-ui-mockup] .ui-mockup-screen button {
   background-color: var(--ui-panel);
   border-color: var(--ui-line);
   color: var(--ui-ink);
@@ -170,9 +82,6 @@
 .concept-header,
 .concept-nav,
 .concept-quick,
-.concept-atlas-register,
-.concept-ledger-register,
-.concept-frost-resources,
 .concept-page,
 .concept-build-panel,
 .concept-action-panel,
@@ -182,9 +91,6 @@
 .concept-header,
 .concept-nav,
 .concept-quick,
-.concept-atlas-register,
-.concept-ledger-register,
-.concept-frost-resources { z-index: 20; }
 
 .concept-header { pointer-events: none; }
 .concept-profile,
@@ -192,8 +98,6 @@
 .concept-resources,
 .concept-nav__item,
 .concept-quick__item,
-.concept-atlas-register,
-.concept-ledger-register { pointer-events: auto; }
 
 .concept-profile {
   display: flex;
@@ -295,55 +199,6 @@
 .concept-quick__icon { flex: 0 0 23px; width: 23px; height: 23px; color: var(--ui-accent-3); }
 .concept-quick__item.is-active { background: var(--ui-accent-2); border-color: var(--ui-accent-3); color: var(--ui-paper); }
 
-/* 01 — Чертог совета: гербовая карточка, ресурсная мозаика, отдельная лента приказов. */
-.concept-header--citadel {
-  top: calc(10px + env(safe-area-inset-top)); left: 10px; right: 70px;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, .95fr); grid-template-areas: "world world" "profile resources";
-  gap: 7px; align-items: center; padding: 9px;
-  border: 1px solid #a77b4c; border-radius: 17px 5px 17px 5px;
-  background: linear-gradient(135deg, rgba(37,29,34,.96), rgba(44,69,63,.94));
-  box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.1);
-}
-.concept-header--citadel .concept-world { grid-area: world; padding-bottom: 5px; border-bottom: 1px solid rgba(214,179,84,.33); }
-.concept-profile--citadel { grid-area: profile; padding: 4px 0 2px; border: 0; background: transparent; box-shadow: none; color: #f4ead6; }
-.concept-profile--citadel .concept-profile__portrait { width: 42px; height: 42px; flex-basis: 42px; }
-.concept-profile--citadel .concept-profile__copy b { font-size: 11px; }
-.concept-profile--citadel .concept-profile__copy > span { color: #d8b354; }
-.concept-profile--citadel .concept-profile__crest { display: none; }
-.concept-resources--citadel { grid-area: resources; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-.concept-resources--citadel .concept-resource { flex-direction: column; gap: 2px; padding: 2px; }
-.concept-resources--citadel .concept-resource__icon { width: 21px; height: 21px; flex-basis: 21px; }
-.concept-resources--citadel .concept-resource__icon svg { width: 16px; height: 16px; }
-.concept-resources--citadel .concept-resource__label { display: none; }
-.concept-resources--citadel .concept-resource__value { color: #f8edcf; font-size: 9px; }
-.concept-quick--citadel { top: 42%; left: 10px; flex-direction: column; transform: translateY(-50%); }
-.concept-quick--citadel .concept-quick__item { width: 48px; height: 48px; border-radius: 13px 4px 13px 4px; }
-.concept-nav--citadel { left: 10px; right: 10px; bottom: calc(9px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 5px; border: 1px solid #99764b; border-radius: 18px 5px 18px 5px; background: linear-gradient(180deg, #3a3032, #1f2020); box-shadow: 0 8px 25px rgba(0,0,0,.44); }
-.concept-nav--citadel .concept-nav__item { flex-direction: column; border-radius: 12px 4px 12px 4px; color: #e5d6b5; }
-.concept-nav--citadel .concept-nav__item.is-active { background: linear-gradient(145deg, #8b493e, #4d4940); border-color: #d3ad5e; color: #fff3d4; }
-
-/* 02 — Полевой атлас: книжный разворот, вертикальная ведомость и боковой индекс. */
-.concept-header--atlas { top: calc(12px + env(safe-area-inset-top)); left: 12px; right: 76px; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
-.concept-world--atlas { min-height: 39px; padding: 5px 8px; border: 1px solid #b2a16d; border-radius: 2px; background: #203a32; box-shadow: 3px 4px 0 rgba(10,22,18,.36); }
-.concept-profile--atlas { padding: 5px 7px; border-radius: 2px; background: #e8e3c8; box-shadow: 2px 3px 0 rgba(10,22,18,.38); }
-.concept-profile--atlas .concept-profile__portrait { width: 39px; height: 39px; flex-basis: 39px; border-radius: 3px; }
-.concept-profile--atlas .concept-profile__copy small { color: #7b7e5f; }
-.concept-profile--atlas .concept-profile__copy > span { color: #a55b3e; }
-.concept-profile--atlas .concept-profile__crest { color: #71804c; }
-.concept-atlas-register { top: 156px; left: 11px; bottom: calc(170px + env(safe-area-inset-bottom)); display: flex; width: 69px; flex-direction: column; gap: 5px; padding: 7px 5px; border: 1px solid #b2a16d; border-radius: 2px; background: #e8e3c8; box-shadow: 3px 4px 0 rgba(10,22,18,.36); color: #213a32; }
-.concept-atlas-register__title,.concept-ledger-register__title { padding-bottom: 5px; border-bottom: 1px solid var(--ui-line); color: var(--ui-accent); font: 800 7px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .11em; text-align: center; text-transform: uppercase; }
-.concept-resources--atlas { display: flex; flex: 1; flex-direction: column; justify-content: space-around; gap: 3px; }
-.concept-resources--atlas .concept-resource { flex-direction: column; gap: 1px; }
-.concept-resources--atlas .concept-resource__icon { width: 25px; height: 25px; flex-basis: 25px; border-color: rgba(35,55,47,.3); }
-.concept-resources--atlas .concept-resource__value { color: #203a32; font-size: 9px; }
-.concept-resources--atlas .concept-resource__label { color: #687052; font-size: 6px; }
-.concept-quick--atlas { left: 92px; right: 80px; bottom: calc(164px + env(safe-area-inset-bottom)); justify-content: center; }
-.concept-quick--atlas .concept-quick__item { min-width: 58px; border-radius: 2px; background: #243a32; }
-.concept-nav--atlas { top: 156px; right: 10px; bottom: calc(170px + env(safe-area-inset-bottom)); width: 59px; flex-direction: column; justify-content: space-between; padding: 5px 3px; border: 1px solid #829168; border-radius: 2px; background: rgba(21,47,40,.95); }
-.concept-nav--atlas .concept-nav__item { flex: 1; flex-direction: column; color: #c7c9a9; }
-.concept-nav--atlas .concept-nav__icon { width: 20px; height: 20px; }
-.concept-nav--atlas .concept-nav__item.is-active { border-color: #dcad59; border-radius: 2px; background: #6f7a4c; color: #fff0c7; }
-
 /* 03 — Кузня приказов: угольная консоль, сигнальные цвета, командная полоса. */
 .concept-header--forge { top: calc(10px + env(safe-area-inset-top)); left: 10px; right: 69px; display: flex; flex-direction: column; gap: 5px; padding: 7px; border-left: 4px solid var(--ui-accent); background: linear-gradient(100deg, rgba(20,23,22,.97), rgba(37,38,34,.93)); box-shadow: 0 8px 25px rgba(0,0,0,.5); }
 .concept-profile--forge { padding: 4px 6px; border: 0; border-bottom: 1px solid #615b4e; border-radius: 0; background: transparent; box-shadow: none; color: #eee9dc; }
@@ -370,71 +225,8 @@
 .concept-nav--forge .concept-nav__item.is-active { background: #342c26; color: #ffb05a; }
 .concept-nav--forge .concept-nav__icon { width: 20px; height: 20px; }
 
-/* 04 — Северный дозор: центральная эмблема, морозная панель запасов, компас-док. */
-.concept-header--frost { top: calc(11px + env(safe-area-inset-top)); left: 50%; width: min(250px, calc(100% - 96px)); display: flex; flex-direction: column; align-items: center; gap: 5px; transform: translateX(-50%); }
-.concept-world--frost { justify-content: center; padding: 4px 10px; border: 1px solid rgba(166,220,229,.45); border-radius: 999px; background: rgba(13,29,50,.72); backdrop-filter: blur(8px); }
-.concept-world--frost .concept-world__stamp { display: none; }
-.concept-profile--frost { width: 100%; flex-direction: column; gap: 3px; padding: 8px 12px 7px; border: 1px solid rgba(191,236,240,.65); border-radius: 28px 28px 18px 18px; background: linear-gradient(160deg,rgba(220,239,243,.96),rgba(146,191,205,.9)); box-shadow: 0 9px 28px rgba(3,18,34,.38), inset 0 1px 0 rgba(255,255,255,.8); text-align: center; }
-.concept-profile--frost .concept-profile__portrait { width: 52px; height: 52px; flex-basis: 52px; margin-top: -2px; border: 2px solid #c4f1f0; box-shadow: 0 0 0 3px rgba(83,189,201,.28), 0 0 20px rgba(83,189,201,.28); }
-.concept-profile--frost .concept-profile__copy { align-items: center; }
-.concept-profile--frost .concept-profile__copy small { color: #55788e; }
-.concept-profile--frost .concept-profile__copy b { color: #173247; font-size: 13px; }
-.concept-profile--frost .concept-profile__copy > span { color: #5575a1; }
-.concept-profile--frost .concept-profile__crest { display: none; }
-.concept-frost-resources { top: 205px; left: 11px; right: 11px; padding: 6px; border: 1px solid rgba(180,231,239,.46); border-radius: 18px; background: rgba(12,31,51,.68); backdrop-filter: blur(10px); box-shadow: 0 5px 18px rgba(0,0,0,.25); }
-.concept-resources--frost { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 1px; }
-.concept-resources--frost .concept-resource { flex-direction: column; gap: 2px; }
-.concept-resources--frost .concept-resource__icon { width: 25px; height: 25px; flex-basis: 25px; border: 1px solid rgba(225,246,249,.6); box-shadow: 0 0 12px color-mix(in srgb,var(--resource-color) 46%,transparent); }
-.concept-resources--frost .concept-resource__label { display: none; }
-.concept-resources--frost .concept-resource__value { color: #edf9fa; }
-.concept-quick--frost { left: 12px; top: 52%; flex-direction: column; transform: translateY(-50%); }
-.concept-quick--frost .concept-quick__item { width: 48px; height: 48px; border: 1px solid rgba(181,231,239,.55); border-radius: 18px 7px 18px 7px; background: rgba(15,39,62,.78); backdrop-filter: blur(8px); }
-.concept-quick--frost .concept-quick__icon { color: #70d7dc; }
-.concept-nav--frost { right: 9px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-areas: "court map reports" ". chronicle sheet"; gap: 3px; width: 195px; padding: 8px; border: 1px solid rgba(177,228,237,.55); border-radius: 28px 12px 28px 12px; background: rgba(14,34,55,.89); box-shadow: 0 7px 25px rgba(0,0,0,.4); backdrop-filter: blur(10px); }
-.concept-nav--frost .concept-nav__item { flex-direction: column; border-radius: 16px; color: #b8d4dc; }
-.concept-nav--frost .concept-nav__item:nth-child(1) { grid-area: court; }
-.concept-nav--frost .concept-nav__item:nth-child(2) { grid-area: reports; }
-.concept-nav--frost .concept-nav__item:nth-child(3) { grid-area: map; }
-.concept-nav--frost .concept-nav__item:nth-child(4) { grid-area: chronicle; }
-.concept-nav--frost .concept-nav__item:nth-child(5) { grid-area: sheet; }
-.concept-nav--frost .concept-nav__item.is-active { background: rgba(83,189,201,.21); box-shadow: inset 0 0 0 1px #53bdc9; color: #ecfbfc; }
-.concept-nav--frost .concept-nav__item:nth-child(3) .concept-nav__icon { width: 27px; height: 27px; color: #e7b765; }
-
-/* 05 — Книга гарнизона: верхние вкладки, печатная ведомость справа, индекс слева. */
-.concept-header--ledger { top: calc(11px + env(safe-area-inset-top)); left: 11px; right: 75px; display: flex; flex-direction: column; gap: 5px; }
-.concept-world--ledger { min-height: 35px; padding: 5px 7px; border: 1px solid #b89b6a; border-radius: 7px; background: #332d36; box-shadow: 0 4px 12px rgba(0,0,0,.32); }
-.concept-profile--ledger { padding: 5px 7px; border-left: 3px solid #b84a53; border-radius: 5px; background: #f0e7d7; box-shadow: 0 4px 12px rgba(0,0,0,.27); }
-.concept-profile--ledger .concept-profile__portrait { width: 37px; height: 37px; flex-basis: 37px; border-radius: 7px; }
-.concept-profile--ledger .concept-profile__copy small { color: #756873; }
-.concept-profile--ledger .concept-profile__copy > span { color: #4d7965; }
-.concept-ledger-register { top: 129px; right: 10px; bottom: calc(250px + env(safe-area-inset-bottom)); display: flex; width: 126px; flex-direction: column; gap: 5px; padding: 8px 7px; border: 1px solid #c4a774; border-top: 3px solid #b84a53; border-radius: 8px 3px 8px 3px; background: #f0e7d7; box-shadow: 0 9px 24px rgba(0,0,0,.37); color: #312a31; }
-.concept-resources--ledger { display: flex; flex: 1; flex-direction: column; justify-content: space-around; gap: 2px; }
-.concept-resources--ledger .concept-resource { gap: 6px; padding: 3px 2px; border-bottom: 1px dotted rgba(117,104,115,.45); color: #312a31; }
-.concept-resources--ledger .concept-resource__icon { width: 22px; height: 22px; flex-basis: 22px; border: 0; box-shadow: none; }
-.concept-resources--ledger .concept-resource__icon svg { width: 17px; height: 17px; }
-.concept-resources--ledger .concept-resource__value { margin-left: auto; color: #312a31; font: 800 10px/1 ui-monospace,monospace; }
-.concept-resources--ledger .concept-resource__label { display: none; }
-.concept-quick--ledger { left: 11px; bottom: calc(87px + env(safe-area-inset-bottom)); width: 60px; flex-direction: column; gap: 4px; }
-.concept-quick--ledger .concept-quick__item { width: 58px; flex-direction: row; justify-content: flex-start; border-radius: 4px 12px 4px 12px; background: #342d36; color: #f0e7d7; }
-.concept-quick--ledger .concept-quick__icon { flex: 0 0 21px; width: 21px; height: 21px; color: #d4a347; }
-.concept-quick--ledger .concept-quick__item > span { font-size: 6px; }
-.concept-nav--ledger { top: calc(153px + env(safe-area-inset-top)); left: 11px; right: auto; width: 68px; display: flex; flex-direction: column; gap: 4px; }
-.concept-nav--ledger .concept-nav__item { min-height: 48px; justify-content: flex-start; gap: 4px; padding: 4px 4px; border-left: 2px solid #9b8c77; border-radius: 0 6px 6px 0; background: rgba(42,37,46,.91); color: #e6dac5; text-align: left; }
-.concept-nav--ledger .concept-nav__item.is-active { border-left-color: #d4a347; background: #4c3d44; color: #f6e5c2; }
-.concept-nav--ledger .concept-nav__item span { font: 700 7px/1 ui-sans-serif,system-ui,sans-serif; }
-
 /* На служебных экранах вспомогательные ленты сворачиваются, чтобы не теснить содержимое. */
 .concept-ui.is-page .concept-quick { display: none; }
-.concept-ui--ledger.is-page .concept-ledger-register { display: none; }
-.concept-ui--atlas.is-page .concept-atlas-register { display: none; }
-.concept-ui--atlas.is-page .concept-page--atlas { left: 12px; }
-.concept-ui--ledger.is-page .concept-page--ledger { left: 12px; right: 12px; top: 142px; }
-.concept-ui--ledger.is-page .concept-nav--ledger {
-  top: auto; left: 11px; right: 11px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto;
-  display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); flex-direction: row; gap: 2px;
-  padding: 4px; border: 1px solid var(--ui-line); border-radius: 9px; background: var(--ui-dark);
-}
-.concept-ui--ledger.is-page .concept-nav--ledger .concept-nav__item { min-height: 54px; flex-direction: column; justify-content: center; gap: 2px; padding: 3px; border: 0; border-radius: 6px; text-align: center; }
 
 /* Переходы по разделам — не старые страницы, а чистые полотна для выбранной композиции. */
 .concept-page {
@@ -453,10 +245,7 @@
   pointer-events: auto;
   -webkit-overflow-scrolling: touch;
 }
-.concept-page--atlas { top: 125px; left: 91px; right: 80px; bottom: calc(96px + env(safe-area-inset-bottom)); border-radius: 2px; }
 .concept-page--forge { top: 160px; left: 12px; right: 70px; bottom: calc(84px + env(safe-area-inset-bottom)); }
-.concept-page--frost { top: 300px; left: 12px; right: 12px; bottom: calc(133px + env(safe-area-inset-bottom)); border-radius: 25px; }
-.concept-page--ledger { top: 142px; left: 79px; right: 148px; bottom: calc(85px + env(safe-area-inset-bottom)); border-radius: 4px; padding: 10px; }
 .concept-page__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 9px; margin-bottom: 13px; padding-bottom: 10px; border-bottom: 1px solid color-mix(in srgb,var(--ui-line) 70%,transparent); }
 .concept-page__header p { margin: 0 0 3px; color: var(--ui-accent-2); font: 800 8px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .15em; }
 .concept-page__header h1 { margin: 0; color: var(--ui-ink); font: 700 20px/1.1 var(--ui-font); }
@@ -494,10 +283,7 @@
   box-shadow: 0 18px 50px rgba(0,0,0,.49);
   pointer-events: auto;
 }
-.concept-build-panel--atlas { left: 68px; right: 12px; bottom: calc(93px + env(safe-area-inset-bottom)); border-radius: 2px; }
 .concept-build-panel--forge { left: 12px; right: 67px; bottom: calc(78px + env(safe-area-inset-bottom)); border-radius: 2px; }
-.concept-build-panel--frost { left: 12px; right: 12px; bottom: calc(131px + env(safe-area-inset-bottom)); border-radius: 25px; }
-.concept-build-panel--ledger { left: 10px; right: 10px; bottom: calc(78px + env(safe-area-inset-bottom)); border-radius: 4px; padding: 9px; }
 .concept-build-panel__head,
 .concept-action-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
 .concept-build-panel__head p,
@@ -517,8 +303,6 @@
 .concept-build-tabs button { min-height: 38px; border: 1px solid var(--ui-line); border-radius: 999px; background: var(--ui-paper); color: var(--ui-muted); font: 800 8px/1.1 ui-sans-serif,system-ui,sans-serif; }
 .concept-build-tabs button.is-active { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-paper); }
 .concept-building-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; }
-.concept-building-grid--atlas,
-.concept-building-grid--ledger { grid-template-columns: 1fr; }
 .concept-building-card { display: flex; min-width: 0; min-height: 63px; align-items: center; gap: 7px; padding: 5px; border: 1px solid color-mix(in srgb,var(--ui-line) 74%,transparent); border-radius: 11px; background: var(--ui-paper); color: var(--ui-ink); text-align: left; }
 .concept-building-card:disabled { opacity: .55; }
 .concept-building-art { display: grid; flex: 0 0 39px; place-items: center; width: 39px; height: 39px; border: 1px solid color-mix(in srgb,var(--ui-line) 55%,transparent); border-radius: 11px 4px 11px 4px; background: color-mix(in srgb,var(--ui-accent-2) 17%,var(--ui-paper)); color: var(--ui-accent-2); }
@@ -557,10 +341,7 @@
   box-shadow: 0 8px 24px rgba(0,0,0,.38);
   pointer-events: auto;
 }
-.concept-placement--atlas { left: 78px; right: 75px; }
 .concept-placement--forge { left: 10px; right: 68px; border-radius: 2px; }
-.concept-placement--frost { left: 10px; right: 10px; bottom: calc(132px + env(safe-area-inset-bottom)); border-radius: 20px; }
-.concept-placement--ledger { left: 78px; right: 144px; padding: 6px; border-radius: 4px; }
 .concept-placement > svg { flex: 0 0 27px; width: 27px; height: 27px; color: var(--ui-accent); }
 .concept-placement > div { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 2px; }
 .concept-placement b { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
@@ -592,159 +373,27 @@
 .concept-narrative__copy small { color: var(--ui-accent); font: 800 7px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .11em; }
 .concept-narrative__copy p { margin: 0; font: 600 10px/1.35 var(--ui-font); }
 .concept-narrative button { min-height: 36px; padding: 4px 9px; border: 1px solid var(--ui-line); border-radius: 9px; background: var(--ui-accent); color: var(--ui-paper); font: 800 8px/1 ui-sans-serif,system-ui,sans-serif; }
-.concept-narrative--atlas { border-radius: 2px; border-left: 0; border-top: 3px solid var(--ui-accent); background: #e8e3c8; }
 .concept-narrative--forge { border-radius: 2px; border-left: 4px solid var(--ui-accent); background: #202321; color: #eee9dc; }
-.concept-narrative--frost { bottom: calc(140px + env(safe-area-inset-bottom)); border-radius: 19px; background: rgba(220,235,240,.92); backdrop-filter: blur(9px); }
-.concept-narrative--ledger { left: 78px; right: 12px; bottom: calc(154px + env(safe-area-inset-bottom)); border-radius: 4px; }
-
-/* Интерфейс выбора макетов — это отдельный инструментальный слой, не игровая панель. */
-.mockup-switcher { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
-.mockup-switcher__toggle {
-  position: absolute;
-  top: calc(10px + env(safe-area-inset-top));
-  right: 10px;
-  z-index: 2;
-  display: flex;
-  min-width: 54px;
-  min-height: 44px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 4px 6px;
-  border: 1px solid var(--ui-line);
-  border-radius: 11px 4px 11px 4px;
-  background: var(--ui-dark);
-  color: var(--ui-accent-3);
-  box-shadow: 0 4px 12px rgba(0,0,0,.4);
-  pointer-events: auto;
-}
-.mockup-switcher__glyph { display: flex; width: 17px; flex-direction: column; gap: 3px; }
-.mockup-switcher__glyph i { display: block; height: 2px; border-radius: 2px; background: currentColor; }
-.mockup-switcher__glyph i:nth-child(2) { width: 12px; }
-.mockup-switcher__tag { color: var(--ui-paper); font: 800 6px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .07em; }
-.mockup-switcher__scrim { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: rgba(6,9,12,.58); pointer-events: auto; }
-.mockup-switcher__panel {
-  position: absolute;
-  top: calc(62px + env(safe-area-inset-top));
-  right: 10px;
-  z-index: 2;
-  width: min(390px, calc(100% - 20px));
-  max-height: min(76vh, 650px);
-  overflow: auto;
-  padding: 14px;
-  border: 1px solid var(--ui-line);
-  border-radius: 15px;
-  background: var(--ui-panel);
-  color: var(--ui-ink);
-  box-shadow: 0 19px 54px rgba(0,0,0,.62);
-  pointer-events: auto;
-}
-.mockup-switcher__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.mockup-switcher__eyebrow { margin: 0 0 4px; color: var(--ui-accent-2); font: 800 8px/1.1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .15em; }
-.mockup-switcher__header h2 { margin: 0; color: var(--ui-ink); font: 700 18px/1.1 var(--ui-font); }
-.mockup-switcher__close { display: grid; width: 34px; height: 34px; min-height: 34px; place-items: center; border: 1px solid var(--ui-line); border-radius: 50%; background: var(--ui-paper); color: var(--ui-ink); font-size: 23px; }
-.mockup-switcher__note { margin: 0 0 10px; color: var(--ui-muted); font: 600 10px/1.4 ui-sans-serif,system-ui,sans-serif; }
-.mockup-switcher__list { display: flex; flex-direction: column; gap: 6px; }
-.mockup-choice { display: flex; min-height: 68px; align-items: center; gap: 9px; padding: 6px; border: 1px solid color-mix(in srgb,var(--ui-line) 75%,transparent); border-radius: 10px; background: var(--ui-paper); color: var(--ui-ink); text-align: left; transition: transform 120ms ease,border-color 120ms ease; }
-.mockup-choice:active { transform: scale(.99); }
-.mockup-choice.is-active { border-color: var(--ui-accent); box-shadow: inset 0 0 0 1px var(--ui-accent); }
-.mockup-choice__copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
-.mockup-choice__title { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
-.mockup-choice__title small { color: var(--ui-accent); font: 800 8px/1 ui-sans-serif,system-ui,sans-serif; }
-.mockup-choice__title b { overflow: hidden; font: 700 12px/1.15 var(--ui-font); text-overflow: ellipsis; white-space: nowrap; }
-.mockup-choice__detail { overflow: hidden; color: var(--ui-muted); font: 600 8px/1.2 ui-sans-serif,system-ui,sans-serif; text-overflow: ellipsis; white-space: nowrap; }
-.mockup-choice__mark { display: grid; flex: 0 0 20px; width: 20px; height: 20px; place-items: center; border: 1px solid var(--ui-line); border-radius: 50%; color: var(--ui-accent-2); font-weight: 900; }
-.mockup-switcher__footer { margin-top: 9px; color: var(--ui-muted); font: 700 8px/1 ui-sans-serif,system-ui,sans-serif; text-align: right; }
-
-/* Wireframe thumbnail: mini-композиции показывают разницу ещё до выбора. */
-.mockup-thumb { position: relative; display: block; flex: 0 0 66px; width: 66px; height: 52px; overflow: hidden; border: 1px solid var(--ui-line); border-radius: 7px; background: var(--ui-page); }
-.mockup-thumb i { position: absolute; display: block; border: 1px solid rgba(255,255,255,.36); border-radius: 3px; }
-.mockup-thumb__scene { inset: 0; background: linear-gradient(145deg,color-mix(in srgb,var(--ui-accent-2) 24%,var(--ui-page)),var(--ui-page)); }
-.mockup-thumb__profile { top: 4px; left: 4px; width: 25px; height: 10px; background: var(--ui-panel); }
-.mockup-thumb__resources { top: 4px; right: 4px; width: 27px; height: 14px; background: repeating-linear-gradient(90deg,var(--ui-accent-3) 0 4px,var(--ui-panel) 4px 8px); }
-.mockup-thumb__rail { top: 20px; left: 4px; width: 8px; height: 20px; background: repeating-linear-gradient(180deg,var(--ui-accent) 0 5px,var(--ui-accent-2) 5px 10px); }
-.mockup-thumb__nav { right: 4px; bottom: 4px; left: 4px; height: 8px; background: var(--ui-panel-dark); }
-.mockup-thumb__highlight { top: 20px; right: 7px; width: 14px; height: 12px; background: color-mix(in srgb,var(--ui-accent) 45%,var(--ui-panel)); }
-.mockup-thumb--citadel { --ui-page: #182629; --ui-panel: #eee0bd; --ui-panel-dark: #30252d; --ui-line: #d6b354; --ui-accent: #c86f48; --ui-accent-2: #457d72; --ui-accent-3: #d6b354; }
-.mockup-thumb--citadel .mockup-thumb__profile { border-radius: 50%; width: 11px; height: 11px; }
-.mockup-thumb--citadel .mockup-thumb__resources { top: 18px; left: 19px; right: 4px; width: auto; height: 19px; }
-.mockup-thumb--citadel .mockup-thumb__rail { top: 17px; left: 3px; width: 11px; height: 27px; border-radius: 8px; }
-.mockup-thumb--citadel .mockup-thumb__nav { height: 7px; border-radius: 10px; }
-.mockup-thumb--atlas { --ui-page: #17332e; --ui-panel: #e8e3c8; --ui-panel-dark: #29423a; --ui-line: #b2a16d; --ui-accent: #d17a47; --ui-accent-2: #72834d; --ui-accent-3: #d7b74e; }
-.mockup-thumb--atlas .mockup-thumb__profile { top: 4px; left: 16px; width: 36px; height: 10px; border-radius: 1px; }
-.mockup-thumb--atlas .mockup-thumb__resources { top: 18px; left: 4px; right: auto; width: 11px; height: 28px; background: repeating-linear-gradient(180deg,var(--ui-accent-3) 0 4px,var(--ui-panel) 4px 7px); }
-.mockup-thumb--atlas .mockup-thumb__rail { top: 17px; right: 4px; left: auto; width: 10px; height: 29px; background: repeating-linear-gradient(180deg,var(--ui-accent-2) 0 5px,var(--ui-panel-dark) 5px 10px); }
-.mockup-thumb--atlas .mockup-thumb__nav { bottom: 4px; left: 18px; right: 16px; height: 8px; }
-.mockup-thumb--forge { --ui-page: #181917; --ui-panel: #c7c0b3; --ui-panel-dark: #202321; --ui-line: #615b4e; --ui-accent: #ed743d; --ui-accent-2: #a83e35; --ui-accent-3: #d0ae59; }
-.mockup-thumb--forge .mockup-thumb__profile { top: 4px; left: 4px; right: 19px; width: auto; height: 10px; border-radius: 1px; }
-.mockup-thumb--forge .mockup-thumb__resources { top: 17px; right: 4px; left: 4px; width: auto; height: 8px; }
-.mockup-thumb--forge .mockup-thumb__rail { top: 27px; right: 4px; left: auto; width: 8px; height: 18px; }
-.mockup-thumb--forge .mockup-thumb__nav { left: 4px; right: 15px; bottom: 4px; height: 10px; border-radius: 1px; }
-.mockup-thumb--forge .mockup-thumb__highlight { top: 29px; left: 9px; right: auto; width: 17px; height: 9px; }
-.mockup-thumb--frost { --ui-page: #10243a; --ui-panel: #dcebf0; --ui-panel-dark: #183650; --ui-line: #85b4c3; --ui-accent: #53bdc9; --ui-accent-2: #8573ca; --ui-accent-3: #e7b765; }
-.mockup-thumb--frost .mockup-thumb__profile { top: 4px; left: 27px; width: 13px; height: 13px; border-radius: 50%; }
-.mockup-thumb--frost .mockup-thumb__resources { top: 21px; left: 5px; right: 5px; width: auto; height: 8px; border-radius: 20px; }
-.mockup-thumb--frost .mockup-thumb__rail { top: 31px; left: 5px; width: 8px; height: 15px; border-radius: 8px; }
-.mockup-thumb--frost .mockup-thumb__nav { right: 5px; left: auto; bottom: 3px; width: 31px; height: 16px; border-radius: 9px; }
-.mockup-thumb--ledger { --ui-page: #2a252e; --ui-panel: #f0e7d7; --ui-panel-dark: #37303a; --ui-line: #b89b6a; --ui-accent: #b84a53; --ui-accent-2: #4d7965; --ui-accent-3: #d4a347; }
-.mockup-thumb--ledger .mockup-thumb__profile { width: 29px; height: 10px; border-radius: 3px; }
-.mockup-thumb--ledger .mockup-thumb__resources { top: 17px; right: 4px; width: 17px; height: 28px; background: repeating-linear-gradient(180deg,var(--ui-accent-3) 0 4px,var(--ui-panel) 4px 7px); }
-.mockup-thumb--ledger .mockup-thumb__rail { top: 17px; left: 4px; width: 12px; height: 28px; }
-.mockup-thumb--ledger .mockup-thumb__nav { top: 18px; left: 20px; right: 23px; bottom: 4px; height: auto; background: repeating-linear-gradient(180deg,var(--ui-panel-dark) 0 4px,var(--ui-accent-2) 4px 7px); }
 
 @media (max-width: 430px) {
-  .mockup-switcher__panel { right: 8px; width: calc(100% - 16px); padding: 12px; max-height: min(76vh, 640px); }
-  .concept-header--citadel { right: 68px; grid-template-columns: minmax(0, .94fr) minmax(120px, 1fr); padding: 7px; }
-  .concept-header--atlas { right: 73px; }
   .concept-header--forge { right: 68px; }
-  .concept-header--ledger { right: 72px; }
-  .concept-page--frost { top: 300px; }
 }
 
 @media (max-width: 370px) {
-  .concept-header--citadel { grid-template-columns: minmax(0, .9fr) minmax(108px, 1fr); }
-  .concept-profile--citadel .concept-profile__crest { display: none; }
   .concept-nav__item { font-size: 7px; }
   .concept-nav__icon { width: 20px; height: 20px; flex-basis: 20px; }
-  .concept-atlas-register { width: 62px; }
-  .concept-nav--atlas { width: 54px; }
-  .concept-page--atlas { left: 79px; right: 70px; }
-  .concept-page--ledger { left: 70px; right: 135px; }
-  .concept-ledger-register { width: 116px; }
-  .concept-nav--ledger { width: 56px; }
-  .concept-quick--ledger { left: 7px; width: 57px; }
 }
 
 @media (min-width: 700px) {
-  .concept-header--citadel { left: 22px; right: 84px; max-width: 690px; }
-  .concept-nav--citadel { left: 50%; right: auto; width: min(620px, calc(100% - 44px)); transform: translateX(-50%); }
-  .concept-header--atlas,.concept-header--forge,.concept-header--ledger { left: 22px; }
-  .concept-atlas-register { left: 22px; }
-  .concept-nav--atlas { right: 22px; }
-  .concept-quick--atlas { left: 105px; right: 100px; }
   .concept-quick--forge { right: 22px; }
   .concept-nav--forge { left: 22px; right: 22px; }
-  .concept-ledger-register { right: 22px; width: 160px; }
-  .concept-nav--ledger { left: 22px; right: auto; width: 66px; }
-  .concept-quick--ledger { left: 22px; }
   .concept-page { left: 22px; right: 22px; }
-  .concept-page--atlas { left: 105px; right: 100px; }
-  .concept-page--ledger { left: 94px; right: 183px; }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
-  .concept-header--citadel { top: 5px; grid-template-areas: "world profile resources"; grid-template-columns: auto minmax(150px,1fr) minmax(160px,1fr); }
-  .concept-header--citadel .concept-world { border: 0; padding: 0; }
-  .concept-quick--citadel,.concept-quick--forge { top: 50%; }
-  .concept-atlas-register,.concept-nav--atlas,.concept-ledger-register,.concept-nav--ledger { top: 100px; bottom: 66px; }
-  .concept-header--forge,.concept-header--atlas,.concept-header--ledger { top: 5px; }
   .concept-header--forge { flex-direction: row; align-items: center; }
   .concept-header--forge .concept-profile { flex: 0 0 220px; }
   .concept-resources--forge { flex: 1; padding: 0; border: 0; }
-  .concept-header--ledger { max-width: 360px; }
-  .concept-nav--citadel,.concept-nav--forge,.concept-nav--frost { bottom: 5px; }
-  .concept-page,.concept-page--atlas,.concept-page--forge,.concept-page--frost,.concept-page--ledger { top: 100px; bottom: 66px; }
   .concept-build-panel,.concept-action-panel,.concept-placement { bottom: 66px; max-height: 70vh; }
   .concept-narrative { bottom: 70px; }
 }
@@ -752,3 +401,9 @@
 @media (prefers-reduced-motion: reduce) {
   .concept-nav__item,.concept-quick__item,.mockup-choice { transition: none; }
 }
+
+/* Служебная кнопка прототипа раскладки: видна только в dev-сборке, не игровой элемент. */
+.proto-entry { position: fixed; top: 8px; right: 8px; z-index: 300; min-height: 40px; padding: 0 10px; border: 1px dashed #b45309; border-radius: 8px; background: rgba(12,10,9,.92); color: #fbbf24; font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; }
+.proto-overlay { position: fixed; inset: 0; z-index: 400; background: #0c0a09; }
+.proto-overlay iframe { display: block; width: 100%; height: 100%; border: 0; }
+.proto-overlay__close { position: absolute; top: 8px; right: 8px; z-index: 1; min-height: 40px; padding: 0 10px; border: 1px solid #b45309; border-radius: 8px; background: rgba(12,10,9,.92); color: #fbbf24; font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; }

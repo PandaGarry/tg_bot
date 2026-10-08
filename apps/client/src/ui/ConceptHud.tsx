@@ -18,29 +18,11 @@ const NAV_ITEMS: { route: ConceptRoute; icon: ConceptIconName }[] = [
   { route: "sheet", icon: "settings" },
 ];
 
-const QUICK_ACTIONS: Record<UiMockupId, QuickActionId[]> = {
-  citadel: ["build", "train", "clan"],
-  atlas: ["build", "research", "reports"],
-  forge: ["build", "train", "research", "commanders"],
-  frost: ["build", "chronicle", "mail"],
-  ledger: ["build", "items", "shop"],
-};
+const QUICK_ACTIONS: QuickActionId[] = ["build", "train", "research", "commanders"];
 
-const QUICK_LABELS: Record<Locale, Record<UiMockupId, Partial<Record<QuickActionId, string>>>> = {
-  ru: {
-    citadel: { build: "Стройка", train: "Войско", clan: "Клан" },
-    atlas: { build: "Стройка", research: "Знания", reports: "Сводки" },
-    forge: { build: "Стройка", train: "Войско", research: "Наука", commanders: "Герои" },
-    frost: { build: "Стройка", chronicle: "Хроника", mail: "Почта" },
-    ledger: { build: "Строй", items: "Сумка", shop: "Лавка" },
-  },
-  en: {
-    citadel: { build: "Build", train: "Troops", clan: "Clan" },
-    atlas: { build: "Build", research: "Lore", reports: "Reports" },
-    forge: { build: "Build", train: "Troops", research: "Study", commanders: "Heroes" },
-    frost: { build: "Build", chronicle: "Chronicle", mail: "Mail" },
-    ledger: { build: "Build", items: "Packs", shop: "Trade" },
-  },
+const QUICK_LABELS: Record<Locale, Partial<Record<QuickActionId, string>>> = {
+  ru: { build: "Стройка", train: "Войско", research: "Наука", commanders: "Герои" },
+  en: { build: "Build", train: "Troops", research: "Study", commanders: "Heroes" },
 };
 
 const QUICK_META: Record<QuickActionId, { icon: ConceptIconName; key: string }> = {
@@ -200,21 +182,21 @@ export function ConceptHud({
           type="button"
           className={`concept-nav__item${route === itemRoute ? " is-active" : ""}`}
           aria-current={route === itemRoute ? "page" : undefined}
-          aria-label={routeLabel(variant, itemRoute, lang)}
+          aria-label={routeLabel(itemRoute, lang)}
           onClick={() => {
             onRouteChange(itemRoute);
             setPanel(null);
           }}
         >
           <ConceptIcon name={icon} className="concept-nav__icon" />
-          <span>{routeLabel(variant, itemRoute, lang)}</span>
+          <span>{routeLabel(itemRoute, lang)}</span>
         </button>
       ))}
     </nav>
   );
   const quick = (
     <div className={`concept-quick concept-quick--${variant}`} aria-label={lang === "ru" ? "Быстрые действия" : "Quick actions"}>
-      {QUICK_ACTIONS[variant].map((action) => {
+      {QUICK_ACTIONS.map((action) => {
         const meta = QUICK_META[action];
         const active = panel === action || route === action;
         return (
@@ -228,7 +210,7 @@ export function ConceptHud({
             onClick={() => openAction(action)}
           >
             <ConceptIcon name={meta.icon} className="concept-quick__icon" />
-            <span>{QUICK_LABELS[lang][variant][action] ?? t(meta.key)}</span>
+            <span>{QUICK_LABELS[lang][action] ?? t(meta.key)}</span>
           </button>
         );
       })}
@@ -238,35 +220,7 @@ export function ConceptHud({
 
   return (
     <div className={`concept-ui concept-ui--${variant}${route === "court" ? "" : " is-page"}`}>
-      {variant === "citadel" ? (
-        <>
-          <header className="concept-header concept-header--citadel">
-            {profile}
-            {worldPlaque}
-            {resources}
-          </header>
-          {quick}
-          {nav}
-        </>
-      ) : null}
-
-      {variant === "atlas" ? (
-        <>
-          <header className="concept-header concept-header--atlas">
-            {worldPlaque}
-            {profile}
-          </header>
-          <aside className="concept-atlas-register">
-            <div className="concept-atlas-register__title">{copy.supplies}</div>
-            {resources}
-          </aside>
-          {quick}
-          {nav}
-        </>
-      ) : null}
-
-      {variant === "forge" ? (
-        <>
+      <>
           <header className="concept-header concept-header--forge">
             {profile}
             <div className="concept-forge-status">{worldPlaque}</div>
@@ -274,42 +228,14 @@ export function ConceptHud({
           </header>
           {quick}
           {nav}
-        </>
-      ) : null}
-
-      {variant === "frost" ? (
-        <>
-          <header className="concept-header concept-header--frost">
-            {worldPlaque}
-            {profile}
-          </header>
-          <div className="concept-frost-resources">{resources}</div>
-          {quick}
-          {nav}
-        </>
-      ) : null}
-
-      {variant === "ledger" ? (
-        <>
-          <header className="concept-header concept-header--ledger">
-            {worldPlaque}
-            {profile}
-          </header>
-          <aside className="concept-ledger-register">
-            <div className="concept-ledger-register__title">{copy.supplies}</div>
-            {resources}
-          </aside>
-          {quick}
-          {nav}
-        </>
-      ) : null}
+      </>
 
       {route !== "court" ? (
         <section className={`concept-page concept-page--${variant}`} aria-labelledby="concept-page-title">
           <header className="concept-page__header">
             <div>
               <p>{copy.page}</p>
-              <h1 id="concept-page-title">{routeLabel(variant, route, lang)}</h1>
+              <h1 id="concept-page-title">{routeLabel(route, lang)}</h1>
             </div>
             <button type="button" className="concept-page__back" onClick={() => onRouteChange("court")}>
               <ConceptIcon name="court" />
@@ -391,7 +317,7 @@ function WorldPlaque({ variant, view, lang }: { variant: UiMockupId; view: World
         <small>{copy.world}</small>
         <b>{view.world.name}</b>
       </span>
-      <span className="concept-world__stamp" aria-hidden="true">{variant === "atlas" ? "N 14" : variant === "frost" ? "✦" : "01"}</span>
+      <span className="concept-world__stamp" aria-hidden="true">01</span>
     </div>
   );
 }
@@ -550,8 +476,7 @@ function ConceptActionPanel({ variant, panel, lang, onClose }: { variant: UiMock
   );
 }
 
-function routeLabel(variant: UiMockupId, route: ConceptRoute, lang: Locale): string {
-  if (variant === "ledger" && route === "chronicle") return lang === "ru" ? "Архив" : "Codex";
+function routeLabel(route: ConceptRoute, lang: Locale): string {
   return UI_COPY[lang].nav[route];
 }
 
