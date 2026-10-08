@@ -17,12 +17,21 @@ describe("bridge — связь Pixi и HUD", () => {
     const hudActions: { action: string }[] = [];
     const off = bridge.on("hud:action", (payload) => hudActions.push(payload));
     bridge.emit("camera:moved", { x: 1, y: 2, zoom: 1 });
-    bridge.emit("state:update", { court: { size: 14 } });
+    bridge.emit("state:update", { court: { grid: { size: 14, buildings: [], roads: [] } } });
     expect(hudActions).toEqual([]);
     off();
   });
 
   it("emit без подписчиков не падает (этапы идут последовательно)", () => {
-    expect(() => bridge.emit("building:click", { id: "b1", type: "townhall" })).not.toThrow();
+    expect(() => bridge.emit("building:click", { id: "b1", type: "townhall", x: 7, z: 7 })).not.toThrow();
+  });
+
+  it("поздняя Pixi-сцена получает последний снимок двора при подписке", () => {
+    const payload = { court: { grid: { size: 14, buildings: [{ type: "townhall", x: 7, z: 7 }], roads: [] } } };
+    bridge.emit("state:update", payload);
+    const seen: typeof payload[] = [];
+    const off = bridge.on("state:update", (state) => seen.push(state));
+    expect(seen).toEqual([payload]);
+    off();
   });
 });

@@ -12,11 +12,12 @@ import { ICON_SRC } from "./iconSrc.js";
 import { store } from "../store.js";
 import { useRef } from "react";
 import { addChronicle, hasChronicle } from "../shell/chronicle.js";
-import { CourtPlaceholder } from "./CourtPlaceholder.js";
 import { Chronicle } from "./Chronicle.js";
 import { Hud } from "./Hud.js";
 import "../hud.css";
 import { Diagnostics } from "./Diagnostics.js";
+import { bridge } from "../game/bridge.js";
+import type { CourtGrid, CourtPendingPlacement, CourtSceneMode, CourtState } from "../shared/court.js";
 
 // Карта — в центре дока (решение заказчика, круг 18); по краям — чтение и служебное.
 const NAV: { route: string; key: string; icon: string; center?: boolean }[] = [
@@ -35,17 +36,10 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
   // Режим стройки: выбранная карточка, режим дороги и подтверждаемая постановка.
   const [placing, setPlacing] = useState<string | null>(null);
   const [roadTool, setRoadTool] = useState(false);
-  const [pending, setPending] = useState<{
-    type: string;
-    x: number;
-    z: number;
-    from?: { x: number; z: number };
-  } | null>(null);
-  // Данные модуля двора из вида: сетку и уровень Ратуши рисует сцена.
-  const court = (view.modules.court ?? {}) as {
-    grid?: { size: number; buildings: { type: string; x: number; z: number }[]; roads: { x: number; z: number }[] };
-    townhallLevel?: number;
-  };
+  const [pending, setPending] = useState<CourtPendingPlacement | null>(null);
+  // Серверный вид двора; сцена принимает его через bridge и ничего не считает сама.
+  const court = (view.modules.court ?? {}) as CourtState;
+  const grid = court.grid as CourtGrid | undefined;
 
   useEffect(() => {
     const timer = window.setInterval(() => forceTick((value) => value + 1), 1000);
@@ -65,16 +59,57 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
     sendCommand("court.enter");
   }, [route, view.me]);
 
+  // Авторитетный серверный снимок двора → Pixi. Bridge запоминает последний снимок,
+  // поэтому поздняя инициализация WebGL не теряет первую сетку.
+  useEffect(() => {
+    bridge.emit("state:update", { court });
+  }, [court.grid, court.townhallLevel]);
+
+  // Режимы интерфейса влияют только на призрак/ввод сцены, но не на данные игры.
+  useEffect(() => {
+    const mode: CourtSceneMode = { active: route === "court", placing, roadTool, pending };
+    bridge.emit("scene:mode", mode);
+  }, [route, placing, roadTool, pending]);
+
+  useEffect(() => {
+    const onTileClick = ({ x, z }: { x: number; z: number }): void => {
+      if (route !== "court") return;
+      if (placing) {
+        setPending({ type: placing, x, z });
+        setPlacing(null);
+        return;
+      }
+      if (roadTool) {
+        const exists = grid?.roads.some((road) => road.x === x && road.z === z) ?? false;
+        sendCommand("court.road", exists ? { x, z, remove: true } : { x, z });
+        return;
+      }
+      if (pending?.from) setPending({ ...pending, x, z });
+    };
+
+    const onBuildingClick = ({ type, x, z }: { type: string; x: number; z: number }): void => {
+      if (route !== "court") return;
+      if (placing || roadTool || pending?.from) {
+        onTileClick({ x, z });
+        return;
+      }
+      setPending({ type, x, z, from: { x, z } });
+    };
+
+    const offTile = bridge.on("tile:click", onTileClick);
+    const offBuilding = bridge.on("building:click", onBuildingClick);
+    return () => {
+      offTile();
+      offBuilding();
+    };
+  }, [route, placing, roadTool, pending, grid]);
+
   return (
     // на дворе фиксированный контейнер вместо dvh: навигация не прыгает после поворота (круг 13)
     <main className={`flex flex-col ${route === "court" ? "court-mode" : "app-mode"}`}>
       {route === "court" ? (
         <>
-          {/* Оконце сцены: в этап 0 — 2D-заглушка, в этап 1+ сцена живёт в
-              #pixi-root позади HUD, поэтому слой не перехватывает клики. */}
-          <div className="pointer-events-none fixed inset-0 z-0">
-            <CourtPlaceholder size={Number(court.grid?.size ?? 14)} label={t("shell.court.scene2d")} />
-          </div>
+          {/* Pixi-двор живёт в #pixi-root; HUD остаётся в React-слое поверх сцены. */}
           <Hud
             view={view}
             lang={lang}
@@ -84,6 +119,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
                 ? {
                     name: t(`shell.hud.b.${pending.type}`),
                     move: Boolean(pending.from),
+                    ready: !pending.from || pending.x !== pending.from.x || pending.z !== pending.from.z,
                     // сносить можно только декор и плиты дороги
                     removable: pending.type === "road" || ["lantern", "bench", "well", "flag"].includes(pending.type),
                   }
@@ -94,7 +130,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               if (!pending) return;
               if (pending.type === "road" && pending.from) {
                 // перенос плиты дороги — одна атомарная команда
-                sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: pending.from });
+                sendCommand("court.road", { x: pending.x, z: pending.z, moveFrom: { x: pending.from.x, z: pending.from.z } });
               } else if (pending.from) {
                 sendCommand("court.move", {
                   type: pending.type,
@@ -123,10 +159,12 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               setPlacing(null);
             }}
             onPlaceStart={(type) => {
+              setPending(null);
               setRoadTool(false);
               setPlacing(type);
             }}
             onRoadTool={() => {
+              setPending(null);
               setPlacing(null);
               setRoadTool((value) => !value);
             }}

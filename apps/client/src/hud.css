@@ -920,6 +920,14 @@
   border-radius: 999px;
 }
 
+.place-hint {
+  max-width: min(52vw, 240px);
+  white-space: normal;
+  line-height: 1.25;
+  font-size: 12px;
+  color: #e4d2a9;
+}
+
 .place-bar button.ok {
   background: rgba(88, 120, 48, 0.9);
   border-color: rgba(200, 230, 150, 0.4);

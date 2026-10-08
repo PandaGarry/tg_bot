@@ -12,6 +12,7 @@ import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
 import { statusKey } from "./i18n/index.js";
 import { gameApp } from "./game/core/application.js";
+import { mountCourtScene } from "./game/court/courtScene.js";
 
 function App() {
   const state = useStore();
@@ -51,7 +52,12 @@ function App() {
 
 // Сначала сцена: canvas занимает #pixi-root. HUD (React) монтируется в
 // #hud-root поверх. Инициализация Pixi не блокирует рендер HUD.
-void gameApp.init(document.getElementById("pixi-root") as HTMLElement);
+void gameApp
+  .init(document.getElementById("pixi-root") as HTMLElement)
+  .then(() => {
+    if (gameApp.instance) mountCourtScene(gameApp.instance);
+  })
+  .catch((error: unknown) => console.error("[Pixi] Initialization failed", error));
 
 createRoot(document.getElementById("hud-root") as HTMLElement).render(
   <StrictMode>
