@@ -1,5 +1,5 @@
 import { Graphics } from "pixi.js";
-import { buildingFootprint } from "./building.js";
+import { buildingCenter, buildingFootprintBounds } from "./building.js";
 import { cellDiamond, TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
 import type { CourtCell, CourtGrid, CourtSceneMode } from "./types.js";
 
@@ -35,18 +35,12 @@ export function drawGhost(
     return;
   }
 
-  const footprint = buildingFootprint(preview.type);
-  const halfX = Math.floor(footprint.width / 2);
-  const halfZ = Math.floor(footprint.depth / 2);
-  const firstX = preview.x - halfX;
-  const firstZ = preview.z - halfZ;
-  const lastX = firstX + footprint.width - 1;
-  const lastZ = firstZ + footprint.depth - 1;
+  const bounds = buildingFootprintBounds(preview.type, preview.x, preview.z);
   const points = [
-    worldToScreen(firstX, firstZ),
-    worldToScreen(lastX + 1, firstZ),
-    worldToScreen(lastX + 1, lastZ + 1),
-    worldToScreen(firstX, lastZ + 1),
+    worldToScreen(bounds.minX, bounds.minZ),
+    worldToScreen(bounds.maxX, bounds.minZ),
+    worldToScreen(bounds.maxX, bounds.maxZ),
+    worldToScreen(bounds.minX, bounds.maxZ),
   ].map((point) => ({ x: point.x, y: point.y - (size * TILE_HEIGHT) / 2 }));
 
   const valid = isPlacementOpen(grid, preview, mode.pending?.from, size);
@@ -57,7 +51,8 @@ export function drawGhost(
     .stroke({ color, width: 2.5, alpha: 0.95 });
 
   // Небольшой маяк показывает, что именно сейчас выбрано в панели стройки.
-  const center = worldToScreen(preview.x - (footprint.width % 2 === 0 ? 0.5 : 0), preview.z - (footprint.depth % 2 === 0 ? 0.5 : 0));
+  const placementCenter = buildingCenter(preview);
+  const center = worldToScreen(placementCenter.x, placementCenter.z);
   graphics
     .circle(center.x, center.y - (size * TILE_HEIGHT) / 2 - TILE_HEIGHT * 0.45, Math.max(3, TILE_WIDTH * 0.11))
     .fill({ color, alpha: 0.72 })
@@ -70,23 +65,19 @@ function isPlacementOpen(
   movingFrom: CourtCell | undefined,
   size: number,
 ): boolean {
-  const footprint = buildingFootprint(placement.type);
-  const halfX = Math.floor(footprint.width / 2);
-  const halfZ = Math.floor(footprint.depth / 2);
+  const target = buildingFootprintBounds(placement.type, placement.x, placement.z);
   const cells = new Set<string>();
   for (const building of grid.buildings) {
     if (movingFrom && building.x === movingFrom.x && building.z === movingFrom.z && building.type === placement.type) continue;
-    const occupied = buildingFootprint(building.type);
-    const fromX = building.x - Math.floor(occupied.width / 2);
-    const fromZ = building.z - Math.floor(occupied.depth / 2);
-    for (let x = fromX; x < fromX + occupied.width; x += 1) {
-      for (let z = fromZ; z < fromZ + occupied.depth; z += 1) cells.add(`${x}:${z}`);
+    const occupied = buildingFootprintBounds(building.type, building.x, building.z);
+    for (let x = occupied.minX; x < occupied.maxX; x += 1) {
+      for (let z = occupied.minZ; z < occupied.maxZ; z += 1) cells.add(`${x}:${z}`);
     }
   }
   for (const road of grid.roads) cells.add(`${road.x}:${road.z}`);
 
-  for (let x = placement.x - halfX; x < placement.x - halfX + footprint.width; x += 1) {
-    for (let z = placement.z - halfZ; z < placement.z - halfZ + footprint.depth; z += 1) {
+  for (let x = target.minX; x < target.maxX; x += 1) {
+    for (let z = target.minZ; z < target.maxZ; z += 1) {
       if (x < 0 || z < 0 || x >= size || z >= size || cells.has(`${x}:${z}`)) return false;
     }
   }

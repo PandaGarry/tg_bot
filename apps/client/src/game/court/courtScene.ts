@@ -2,7 +2,7 @@ import { Application, Container, Graphics } from "pixi.js";
 import { bridge } from "../bridge.js";
 import type { StateUpdate } from "../bridge.js";
 import { CourtCamera } from "./camera.js";
-import { createBuilding, hitBuilding } from "./building.js";
+import { buildingDepth, createBuilding, hitBuilding } from "./building.js";
 import { drawGhost } from "./ghost.js";
 import { CourtInput } from "./input.js";
 import { screenToCell } from "./isometric.js";
@@ -120,15 +120,15 @@ export class CourtScene {
   private handleTap(point: { x: number; y: number }): void {
     const local = this.camera.toLocal(point);
     const cell = screenToCell(local.x, local.y, this.grid.size);
-    if (!cell) return;
 
     if (this.mode.placing || this.mode.roadTool || this.mode.pending?.from) {
-      bridge.emit("tile:click", cell);
+      if (cell) bridge.emit("tile:click", cell);
       return;
     }
 
+    // Здание проверяем раньше клетки: крыша может выступать за плоскость сетки.
     const building = [...this.grid.buildings]
-      .sort((a, b) => depth(b) - depth(a))
+      .sort((a, b) => buildingDepth(b) - buildingDepth(a))
       .find((candidate) => hitBuilding(candidate, local, this.grid.size));
     if (building) {
       bridge.emit("building:click", {
@@ -139,7 +139,7 @@ export class CourtScene {
       });
       return;
     }
-    bridge.emit("tile:click", cell);
+    if (cell) bridge.emit("tile:click", cell);
   }
 
   private drawPreview(): void {
@@ -195,8 +195,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function inside(cell: { x: number; z: number }, size: number): boolean {
   return cell.x >= 0 && cell.z >= 0 && cell.x < size && cell.z < size;
-}
-
-function depth(building: CourtBuilding): number {
-  return building.x + building.z;
 }

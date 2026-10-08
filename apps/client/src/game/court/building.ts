@@ -1,5 +1,5 @@
 import { Container, Graphics } from "pixi.js";
-import { getDepth, TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
+import { TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
 import type { CourtBuilding } from "./types.js";
 
 export interface Footprint {
@@ -39,13 +39,43 @@ function footprintOf(type: string): Footprint {
   return FOOTPRINTS[type] ?? { width: 1, depth: 1 };
 }
 
-/** Для чётного пятна серверный якорь стоит на правой/нижней из двух клеток. */
-export function buildingCenter(building: CourtBuilding): { x: number; z: number } {
-  const footprint = footprintOf(building.type);
+export interface BuildingFootprintBounds {
+  minX: number;
+  minZ: number;
+  maxX: number;
+  maxZ: number;
+  width: number;
+  depth: number;
+  center: { x: number; z: number };
+}
+
+/** Границы пятна по той же схеме, что сервер: координаты здания — индекс якорной клетки. */
+export function buildingFootprintBounds(type: string, x: number, z: number): BuildingFootprintBounds {
+  const footprint = footprintOf(type);
+  const minX = x - Math.floor(footprint.width / 2);
+  const minZ = z - Math.floor(footprint.depth / 2);
+  const maxX = minX + footprint.width;
+  const maxZ = minZ + footprint.depth;
   return {
-    x: building.x - (footprint.width % 2 === 0 ? 0.5 : 0),
-    z: building.z - (footprint.depth % 2 === 0 ? 0.5 : 0),
+    minX,
+    minZ,
+    maxX,
+    maxZ,
+    width: footprint.width,
+    depth: footprint.depth,
+    center: { x: (minX + maxX) / 2, z: (minZ + maxZ) / 2 },
   };
+}
+
+/** Центр геометрии: клетки заданы целыми индексами, их центры — индекс + 0.5. */
+export function buildingCenter(building: CourtBuilding): { x: number; z: number } {
+  return buildingFootprintBounds(building.type, building.x, building.z).center;
+}
+
+/** Глубина сортировки по переднему нижнему углу footprint. */
+export function buildingDepth(building: CourtBuilding): number {
+  const bounds = buildingFootprintBounds(building.type, building.x, building.z);
+  return bounds.maxX + bounds.maxZ;
 }
 
 function point(x: number, z: number, elevation = 0): { x: number; y: number } {
@@ -219,7 +249,7 @@ export function createBuilding(building: CourtBuilding, size: number, townhallLe
   const projected = worldToScreen(center.x, center.z);
   const container = new Container();
   container.position.set(projected.x, projected.y - (size * TILE_HEIGHT) / 2);
-  container.zIndex = getDepth(center.x, center.z) + (footprint.width + footprint.depth) / 4;
+  container.zIndex = buildingDepth(building);
   container.label = `building:${building.type}:${building.x}:${building.z}`;
 
   const graphics = new Graphics();
