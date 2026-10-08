@@ -26,10 +26,11 @@
 .ch-res__item--gold b { color: #e6c35c; }
 
 /* Справа: переключатель — маленькие таблетки; действия — тонкая рамка без ячейки */
-.ch-side { position: absolute; right: 8px; top: 68px; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.ch-switch { width: 44px; display: flex; flex-direction: column; gap: 3px; }
-.ch-switch button { height: 18px; padding: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: rgba(20,23,31,.55); color: #9a968a; font-size: 9px; line-height: 16px; pointer-events: auto; }
-.ch-switch button.is-on { border-color: rgba(230,195,92,.5); color: #e7e4dc; background: rgba(42,47,58,.7); }
+.ch-side { position: absolute; right: 8px; top: 68px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+/* Переключатель — подменю: компактная строка из двух вкладок */
+.ch-switch { display: flex; flex-direction: row; gap: 2px; padding: 1px; border-radius: 6px; background: rgba(20,23,31,.55); border: 1px solid rgba(255,255,255,.08); }
+.ch-switch button { flex: 0 0 auto; height: 16px; padding: 0 6px; border: 0; border-radius: 5px; background: transparent; color: #9a968a; font-size: 9px; line-height: 16px; pointer-events: auto; }
+.ch-switch button.is-on { background: rgba(230,195,92,.16); color: #f0d98a; }
 .ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(10,12,16,.35); }
 .ch-action img { width: 30px; height: 30px; object-fit: contain; }
 
