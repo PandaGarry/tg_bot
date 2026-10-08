@@ -1,6 +1,7 @@
 import type { CourtCamera, CameraPoint } from "./camera.js";
 
 interface PointerTrack extends CameraPoint {
+  pointerType: string;
   startX: number;
   startY: number;
   lastX: number;
@@ -15,8 +16,8 @@ interface PinchStart {
   center: CameraPoint;
 }
 
-const TAP_MAX_MS = 200;
-const DRAG_THRESHOLD = 6;
+const TAP_MAX_MS: Record<string, number> = { mouse: 200, pen: 300, touch: 450 };
+const DRAG_THRESHOLD: Record<string, number> = { mouse: 6, pen: 8, touch: 12 };
 
 /** Pointer-контроллер: tap, drag, wheel-зум и двухпальцевый pinch. */
 export class CourtInput {
@@ -66,6 +67,7 @@ export class CourtInput {
     const point = this.toScreenPoint(event);
     const track: PointerTrack = {
       ...point,
+      pointerType: event.pointerType || "mouse",
       startX: point.x,
       startY: point.y,
       lastX: point.x,
@@ -108,8 +110,12 @@ export class CourtInput {
 
     const dxFromStart = point.x - track.startX;
     const dyFromStart = point.y - track.startY;
-    if (!track.moved && Math.hypot(dxFromStart, dyFromStart) >= DRAG_THRESHOLD) track.moved = true;
-    if (track.moved) {
+    const dragThreshold = DRAG_THRESHOLD[track.pointerType] ?? DRAG_THRESHOLD.mouse!;
+    if (!track.moved && Math.hypot(dxFromStart, dyFromStart) >= dragThreshold) {
+      track.moved = true;
+      // Применяем и перемещение до порога, чтобы сцена не отставала от первого свайпа.
+      this.camera.panBy(point.x - track.startX, point.y - track.startY);
+    } else if (track.moved) {
       this.camera.panBy(point.x - track.lastX, point.y - track.lastY);
     }
     track.lastX = point.x;
@@ -120,8 +126,13 @@ export class CourtInput {
     const point = this.toScreenPoint(event);
     const track = this.pointers.get(event.pointerId);
     const wasMultiTouch = this.pointers.size > 1 || this.pinchStart !== null;
-    if (track && !wasMultiTouch && !track.moved && performance.now() - track.startedAt <= TAP_MAX_MS) {
-      if (Math.hypot(point.x - track.startX, point.y - track.startY) < DRAG_THRESHOLD) this.onTap(point);
+    if (track && !wasMultiTouch && !track.moved) {
+      const tapDuration = TAP_MAX_MS[track.pointerType] ?? TAP_MAX_MS.mouse!;
+      const tapThreshold = DRAG_THRESHOLD[track.pointerType] ?? DRAG_THRESHOLD.mouse!;
+      if (
+        performance.now() - track.startedAt <= tapDuration
+        && Math.hypot(point.x - track.startX, point.y - track.startY) < tapThreshold
+      ) this.onTap(point);
     }
 
     this.pointers.delete(event.pointerId);
