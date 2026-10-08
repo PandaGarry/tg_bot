@@ -2,13 +2,12 @@
 // Не подключён к игре: своя страница, без входа, сервера и store. Все значения — заглушки.
 //
 // Принцип: размеры элементов фиксированы в пикселях и одинаковы в портрете и ландшафте.
-// Положение задаётся от краёв экрана (якоря). Ориентация меняет только размер экрана,
-// без отдельных правил раскладки — поэтому при повороте ничего не «перепрыгивает».
+// Положение задаётся якорями от краёв экрана. Ориентация меняет только размер экрана,
+// поэтому при повороте элементы не перепрыгивают, а расстояния между ними меняются.
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./layout.css";
 
-type Variant = "A" | "B";
 type Orient = "portrait" | "landscape";
 type Screen = "court" | "map";
 
@@ -18,8 +17,13 @@ const SIZES: Record<Orient, { w: number; h: number }> = {
 };
 
 const RESOURCES = ["Мясо", "Дерево", "Камень", "Металл", "Грибы"];
-const QUEUES = ["Стройка", "Войско", "Наука"];
-const ACTIONS = ["Герои", "Клан", "Вещи"];
+// Левая колонка: основные линии. «Скоро» — заглушка для будущей линии.
+const LEFT = ["Марш", "Тренировка", "Исследование", "Лечение"];
+// Правая колонка: предложение, в ТЗ заказчика не перечислено (вопрос открыт).
+const RIGHT = ["Стройка", "Герои"];
+// Нижнее меню: Отчёты и Клан/Лавка. Двор/Карта — центральная кнопка.
+const NAV_LEFT = ["Отчёты"];
+const NAV_RIGHT = ["Клан", "Лавка"];
 
 function useFitScale(w: number, h: number): number {
   const [scale, setScale] = useState(1);
@@ -36,20 +40,23 @@ function Header() {
   return (
     <>
       <div className="hd-profile">
-        <span className="hd-portrait" />
+        <span className="hd-portrait" aria-hidden="true" />
         <span className="hd-copy">
           <b>Имя лорда</b>
           <small>Ур. — · Сила —</small>
         </span>
       </div>
+      <button type="button" className="hd-menu">Меню</button>
       <div className="hd-res" aria-label="Ресурсы">
-        {RESOURCES.map((name) => (
-          <div key={name} className="res">
-            <small>{name}</small>
-            <b>—</b>
-          </div>
-        ))}
-        <div className="res res--gold" title="Премиум-валюта, не ресурс стройки">
+        <div className="res-group">
+          {RESOURCES.map((name) => (
+            <div key={name} className="res">
+              <small>{name}</small>
+              <b>—</b>
+            </div>
+          ))}
+        </div>
+        <div className="res res--gold" title="Премиум-валюта, отдельно от ресурсов стройки">
           <small>Золото</small>
           <b>—</b>
         </div>
@@ -58,30 +65,32 @@ function Header() {
   );
 }
 
-function Btn({ label, className = "" }: { label: string; className?: string }) {
+function Btn({ label, disabled = false }: { label: string; disabled?: boolean }) {
   return (
-    <button type="button" className={`btn ${className}`}>
+    <button type="button" className="btn" disabled={disabled}>
       <span className="btn__mark" aria-hidden="true">{label.slice(0, 1)}</span>
       <span className="btn__label">{label}</span>
     </button>
   );
 }
 
+function NavBtn({ label }: { label: string }) {
+  return <button type="button" className="nav-btn">{label}</button>;
+}
+
 function MapButton({ screen }: { screen: Screen }) {
   const label = screen === "court" ? "Карта" : "Двор";
   return (
     <button type="button" className="map-btn" aria-label={label}>
-      <span className="map-btn__label">{label}</span>
-      <small>{screen === "court" ? "на карту" : "в свой двор"}</small>
+      {label}
     </button>
   );
 }
 
-function ChatCell({ open, onToggle, className }: { open: boolean; onToggle: () => void; className: string }) {
+function ChatCell({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
-    <button type="button" className={`chat-cell ${className}`} onClick={onToggle} aria-expanded={open}>
-      <span className="chat-cell__head">Чат <i className="badge">3</i></span>
-      <span className="chat-cell__last">последняя строка…</span>
+    <button type="button" className="nav-btn nav-btn--chat" onClick={onToggle} aria-expanded={open}>
+      Чат <i className="badge">3</i>
     </button>
   );
 }
@@ -91,7 +100,7 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
     <section className="chat-panel" aria-label="Чат">
       <header>
         <b>Чат</b>
-        <button type="button" onClick={onClose}>×</button>
+        <button type="button" onClick={onClose} aria-label="Закрыть чат">×</button>
       </header>
       <ul>
         <li><b>Соседний лорд:</b> тестовая строка</li>
@@ -102,51 +111,36 @@ function ChatPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Device({ variant, orient, screen }: { variant: Variant; orient: Orient; screen: Screen }) {
+function Device({ orient, screen }: { orient: Orient; screen: Screen }) {
   const { w, h } = SIZES[orient];
   const [chat, setChat] = useState(false);
   const toggleChat = () => setChat((value) => !value);
 
   return (
-    <div className={`dev dev--${variant}`} style={{ width: w, height: h }}>
+    <div className="dev" style={{ width: w, height: h }}>
       <div className="scene" data-screen={screen}>
         <span className="scene__label">{screen === "court" ? "сцена двора (заглушка)" : "карта мира (заглушка)"}</span>
       </div>
       <Header />
 
-      {variant === "A" ? (
-        <>
-          <div className="a-left">
-            {QUEUES.map((q) => <Btn key={q} label={q} />)}
-          </div>
-          <div className="a-right">
-            {ACTIONS.map((a) => <Btn key={a} label={a} />)}
-          </div>
-          <ChatCell open={chat} onToggle={toggleChat} className="a-chat" />
-          <MapButton screen={screen} />
-          <nav className="a-menu" aria-label="Меню">
-            <Btn label="Отчёты" className="btn--nav" />
-            <Btn label="Меню" className="btn--nav" />
-          </nav>
-        </>
-      ) : (
-        <>
-          <div className="b-row b-row--left">
-            {QUEUES.map((q) => <Btn key={q} label={q} />)}
-          </div>
-          <div className="b-row b-row--right">
-            {ACTIONS.map((a) => <Btn key={a} label={a} />)}
-          </div>
-          <div className="b-plate">
-            <ChatCell open={chat} onToggle={toggleChat} className="b-chat" />
-            <nav className="b-menu" aria-label="Меню">
-              <Btn label="Отчёты" className="btn--nav" />
-              <Btn label="Меню" className="btn--nav" />
-            </nav>
-          </div>
-          <MapButton screen={screen} />
-        </>
-      )}
+      <div className="side side--left">
+        {LEFT.map((label) => <Btn key={label} label={label} />)}
+        <Btn label="Скоро" disabled />
+      </div>
+      <div className="side side--right">
+        {RIGHT.map((label) => <Btn key={label} label={label} />)}
+      </div>
+
+      <nav className="bottom" aria-label="Нижнее меню">
+        <div className="bottom__group bottom__group--left">
+          <ChatCell open={chat} onToggle={toggleChat} />
+          {NAV_LEFT.map((label) => <NavBtn key={label} label={label} />)}
+        </div>
+        <MapButton screen={screen} />
+        <div className="bottom__group bottom__group--right">
+          {NAV_RIGHT.map((label) => <NavBtn key={label} label={label} />)}
+        </div>
+      </nav>
 
       {chat ? <ChatPanel onClose={toggleChat} /> : null}
     </div>
@@ -168,7 +162,6 @@ function Segment<T extends string>({ value, options, onChange }: {
 }
 
 function App() {
-  const [variant, setVariant] = useState<Variant>("A");
   const [orient, setOrient] = useState<Orient>("portrait");
   const [screen, setScreen] = useState<Screen>("court");
   const { w, h } = SIZES[orient];
@@ -178,14 +171,6 @@ function App() {
     <div className="proto">
       <div className="controls">
         <span className="tag">ПРОТОТИП · без данных</span>
-        <Segment<Variant>
-          value={variant}
-          onChange={setVariant}
-          options={[
-            { id: "A", label: "1 · Полоса" },
-            { id: "B", label: "2 · Плита" },
-          ]}
-        />
         <Segment<Orient>
           value={orient}
           onChange={setOrient}
@@ -206,7 +191,7 @@ function App() {
       <div className="stage">
         <div style={{ width: w * scale, height: h * scale }}>
           <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: w, height: h }}>
-            <Device variant={variant} orient={orient} screen={screen} />
+            <Device orient={orient} screen={screen} />
           </div>
         </div>
       </div>

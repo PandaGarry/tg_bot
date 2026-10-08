@@ -1,71 +1,101 @@
-/* ПРОТОТИП раскладки. Не часть игры. Правило: размеры — px, положение — от краёв; без правил под ориентацию. */
-html, body, #proto-root { margin: 0; height: 100%; background: #0c0a09; color: #e7dccb; font-family: system-ui, -apple-system, sans-serif; }
-button { font: inherit; color: inherit; cursor: pointer; }
-* { box-sizing: border-box; }
+/* Прототип раскладки: только для оценки, без теней и лишних подписей.
+   Размеры фиксированы; положение — от краёв (якоря). */
+.proto {
+  min-height: 100vh;
+  background: #0c0e13;
+  color: #e7e4dc;
+  font: 12px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+.proto *, .proto *::before, .proto *::after { box-sizing: border-box; }
+.proto button { font: inherit; color: inherit; }
 
-/* панель управления прототипом (вне устройства) */
-.proto { min-height: 100%; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; padding: 8px 10px; background: #14110f; border-bottom: 1px dashed #b45309; font-size: 12px; }
-.tag { color: #fbbf24; font-weight: 700; }
-.seg { display: inline-flex; gap: 4px; }
-.seg button { min-height: 32px; padding: 0 10px; background: #1c1917; border: 1px solid #44403c; border-radius: 8px; }
-.seg button.is-on { background: #b45309; border-color: #fbbf24; color: #fff; }
-.stage { display: flex; justify-content: center; align-items: flex-start; padding: 12px; }
+.controls {
+  position: fixed; top: 8px; left: 8px; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.tag { color: #9a968a; font-size: 11px; margin-right: 4px; }
+.seg { display: inline-flex; background: #181b22; border-radius: 6px; padding: 2px; }
+.seg button {
+  border: 0; background: transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #9a968a;
+}
+.seg button.is-on { background: #2a2f3a; color: #e7e4dc; }
 
-/* устройство: фиксированный размер, масштаб только целиком */
-.dev { position: relative; overflow: hidden; border-radius: 34px; border: 2px solid #292524; background: #0c0a09; }
-.scene { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, #3b2a1a 0%, #1c1410 60%, #0c0a09 100%); display: grid; place-items: center; }
-.scene::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 48px 48px; }
-.scene[data-screen="map"] { background: radial-gradient(ellipse at 50% 50%, #1e2a1c, #0c0a09); }
-.scene__label { position: relative; opacity: .4; font-size: 13px; }
+.stage { min-height: 100vh; display: grid; place-items: center; padding-top: 52px; }
+.dev { position: relative; overflow: hidden; background: #14171e; border-radius: 10px; }
 
-/* ===== шапка (одинакова в обоих вариантах) ===== */
-.hd-profile { position: absolute; left: 8px; top: 8px; width: 200px; height: 52px; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 14px; background: rgba(20,17,15,.92); border: 1px solid #57534e; }
-.hd-portrait { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: #44403c; border: 2px solid #b45309; }
-.hd-copy { display: flex; flex-direction: column; min-width: 0; }
-.hd-copy b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hd-copy small { font-size: 10px; opacity: .7; }
+/* Сцена */
+.scene { position: absolute; inset: 0; background: linear-gradient(180deg, #1d2430, #14171e); }
+.scene__label { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #4a5263; font-size: 11px; }
 
-.hd-res { position: absolute; right: 8px; top: 68px; display: flex; gap: 4px; }
-.res { width: 56px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 10px; background: rgba(20,17,15,.92); border: 1px solid #57534e; }
-.res small { font-size: 9px; opacity: .75; }
-.res b { font-size: 12px; }
-.res--gold { border: 2px solid #fbbf24; background: linear-gradient(#3f2d08, #1c1405); color: #fde68a; box-shadow: 0 0 10px rgba(251,191,36,.35); }
+/* Шапка: профиль слева, меню справа, ресурсы строкой ниже */
+.hd-profile { position: absolute; left: 8px; top: 8px; height: 40px; display: flex; align-items: center; gap: 6px; }
+.hd-portrait { width: 34px; height: 34px; border-radius: 50%; background: #2a3140; }
+.hd-copy { display: flex; flex-direction: column; }
+.hd-copy small { color: #9a968a; font-size: 10px; }
+.hd-menu {
+  position: absolute; right: 8px; top: 8px; height: 34px; padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 8px; background: rgba(20,23,31,.9);
+}
+.hd-res {
+  position: absolute; left: 8px; right: 8px; top: 52px; height: 36px;
+  display: flex; gap: 10px; align-items: stretch;
+}
+.res-group { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.res {
+  display: flex; flex-direction: column; justify-content: center; padding: 3px 6px;
+  border-radius: 6px; background: rgba(255,255,255,.04); min-width: 0;
+}
+.res small { color: #9a968a; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res b { font-size: 12px; font-weight: 600; }
+.res--gold { flex: 0 0 auto; min-width: 84px; border: 1px solid rgba(230,195,92,.35); color: #e6c35c; }
+.res--gold small { color: #e6c35c; }
 
-/* ===== общие кнопки: 52×52, подпись под значком ===== */
-.btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 52px; height: 52px; padding: 0; border-radius: 12px; background: rgba(28,25,23,.94); border: 1px solid #57534e; }
-.btn__mark { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #78350f; color: #fde68a; font-size: 10px; font-weight: 700; }
-.btn__label { font-size: 9px; line-height: 1; white-space: nowrap; }
-.btn--nav { width: 60px; height: 52px; }
+/* Кнопки действий */
+.btn {
+  height: 44px; width: 100%; display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9);
+  text-align: left; cursor: pointer;
+}
+.btn:disabled { opacity: .45; cursor: default; border-style: dashed; }
+.btn__mark {
+  width: 22px; height: 22px; border-radius: 6px; background: #2a3140; display: grid; place-items: center;
+  font-size: 11px; flex: none;
+}
+.btn__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ===== кнопка «Карта/Двор»: 84×76, центр, одна на оба варианта ===== */
-.map-btn { position: absolute; bottom: 8px; left: 50%; width: 84px; height: 76px; margin-left: -42px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 20px; border: 2px solid #fbbf24; background: linear-gradient(#78350f, #3f1d07); box-shadow: 0 0 14px rgba(251,191,36,.3); z-index: 5; }
-.map-btn__label { font-size: 13px; font-weight: 700; }
-.map-btn small { font-size: 9px; opacity: .8; }
+.side { position: absolute; width: 112px; display: flex; flex-direction: column; gap: 6px; }
+.side--left { left: 8px; top: 100px; }
+.side--right { right: 8px; top: 100px; }
 
-/* ===== чат-ячейка и панель чата ===== */
-.chat-cell { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 8px; text-align: left; border-radius: 12px; background: rgba(20,17,15,.94); border: 1px solid #57534e; min-width: 0; }
-.chat-cell__head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
-.chat-cell__last { font-size: 10px; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.badge { display: inline-block; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #dc2626; color: #fff; font-style: normal; font-size: 10px; text-align: center; }
-.chat-panel { position: absolute; left: 8px; bottom: 80px; width: 300px; max-height: 220px; z-index: 20; padding: 8px 10px; border-radius: 14px; background: rgba(20,17,15,.97); border: 1px solid #57534e; font-size: 12px; }
-.chat-panel header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.chat-panel header button { min-width: 32px; min-height: 32px; background: #1c1917; border: 1px solid #44403c; border-radius: 8px; }
-.chat-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+/* Нижняя единица: чат + меню | центральная кнопка | меню */
+.bottom {
+  position: absolute; left: 8px; right: 8px; bottom: 8px; height: 52px;
+  display: flex; align-items: center; gap: 6px;
+}
+.bottom__group { flex: 1; display: flex; gap: 6px; align-items: center; }
+.bottom__group--left { justify-content: flex-end; }
+.bottom__group--right { justify-content: flex-start; }
+.nav-btn {
+  width: 60px; height: 52px; border-radius: 8px; flex: none; position: relative;
+  border: 1px solid rgba(255,255,255,.07); background: rgba(20,23,31,.9); font-size: 11px;
+}
+.nav-btn--chat { width: 64px; }
+.badge {
+  position: absolute; top: 4px; right: 4px; min-width: 14px; height: 14px; padding: 0 3px;
+  border-radius: 7px; background: #8a3b32; color: #fff; font-size: 9px; font-style: normal;
+  display: inline-grid; place-items: center;
+}
+.map-btn {
+  width: 112px; height: 52px; flex: none; border-radius: 10px; border: 1px solid rgba(230,195,92,.4);
+  background: #2a2416; color: #f0d98a; font-size: 14px; font-weight: 600; cursor: pointer;
+}
 
-/* ===== ВАРИАНТ 1 «Полоса»: колонки по бокам, чат-ячейка слева, меню справа ===== */
-.a-left { position: absolute; left: 8px; bottom: 80px; display: flex; flex-direction: column; gap: 6px; }
-.a-right { position: absolute; right: 8px; bottom: 80px; display: flex; flex-direction: column; gap: 6px; }
-.a-chat { position: absolute; left: 8px; bottom: 8px; width: 132px; height: 64px; }
-.a-menu { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; }
-.a-menu .btn--nav { height: 64px; }
-
-/* ===== ВАРИАНТ 2 «Плита»: одна нижняя плита, ряды действий над ней ===== */
-.b-row { position: absolute; bottom: 94px; display: flex; gap: 6px; }
-.b-row--left { left: 8px; }
-.b-row--right { right: 8px; }
-.b-plate { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 22px; background: linear-gradient(#211c18, #120f0d); border: 1px solid #78350f; }
-.b-chat { width: 148px; height: 52px; }
-.b-menu { display: flex; gap: 4px; }
-.b-menu .btn--nav { height: 52px; }
-.b-plate ~ .map-btn { bottom: 10px; }
+.chat-panel {
+  position: absolute; left: 8px; bottom: 68px; width: min(300px, 60%); height: 180px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: rgba(14,16,21,.96);
+  padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow: hidden;
+}
+.chat-panel header { display: flex; justify-content: space-between; align-items: center; }
+.chat-panel header button { border: 0; background: transparent; cursor: pointer; font-size: 16px; }
+.chat-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; overflow: auto; }

@@ -10,11 +10,12 @@ export type ConceptRoute = "court" | "reports" | "map" | "chronicle" | "sheet";
 type ConceptPanelId = "build" | "train" | "research" | "commanders" | "clan" | "items" | "shop" | "mail";
 type QuickActionId = ConceptPanelId | "reports" | "chronicle";
 
-const NAV_ITEMS: { route: ConceptRoute; icon: ConceptIconName }[] = [
+const NAV_ITEMS: { icon: ConceptIconName; route?: ConceptRoute; panel?: ConceptPanelId }[] = [
   { route: "court", icon: "court" },
   { route: "reports", icon: "reports" },
   { route: "map", icon: "map" },
-  { route: "sheet", icon: "settings" },
+  { panel: "clan", icon: "clan" },
+  { panel: "shop", icon: "shop" },
 ];
 
 const QUICK_ACTIONS: QuickActionId[] = ["build", "train", "research", "commanders"];
@@ -171,26 +172,34 @@ export function ConceptHud({
     setPanel((current) => (current === action ? null : action));
   };
 
-  const profile = <ProfileCard variant={variant} view={view} lang={lang} />;
+  const profile = <ProfileCard variant={variant} view={view} lang={lang} onOpen={() => onRouteChange("sheet")} />;
   const resources = <ResourceBoard variant={variant} view={view} lang={lang} />;
   const nav = (
     <nav className={`concept-nav concept-nav--${variant}`} aria-label={lang === "ru" ? "Разделы игры" : "Game sections"}>
-      {NAV_ITEMS.map(({ route: itemRoute, icon }) => (
-        <button
-          key={itemRoute}
-          type="button"
-          className={`concept-nav__item${route === itemRoute ? " is-active" : ""}`}
-          aria-current={route === itemRoute ? "page" : undefined}
-          aria-label={routeLabel(itemRoute, lang)}
-          onClick={() => {
-            onRouteChange(itemRoute);
-            setPanel(null);
-          }}
-        >
-          <ConceptIcon name={icon} className="concept-nav__icon" />
-          <span>{routeLabel(itemRoute, lang)}</span>
-        </button>
-      ))}
+      {NAV_ITEMS.map(({ route: itemRoute, panel: itemPanel, icon }) => {
+        const active = itemRoute ? route === itemRoute : panel === itemPanel;
+        const label = itemRoute ? routeLabel(itemRoute, lang) : t(QUICK_META[itemPanel as QuickActionId].key);
+        return (
+          <button
+            key={itemRoute ?? itemPanel}
+            type="button"
+            className={`concept-nav__item${active ? " is-active" : ""}`}
+            aria-current={active && itemRoute ? "page" : undefined}
+            aria-label={label}
+            onClick={() => {
+              if (itemRoute) {
+                onRouteChange(itemRoute);
+                setPanel(null);
+              } else {
+                setPanel((current) => (current === itemPanel ? null : (itemPanel ?? null)));
+              }
+            }}
+          >
+            <ConceptIcon name={icon} className="concept-nav__icon" />
+            <span>{label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
   const quick = (
@@ -215,14 +224,12 @@ export function ConceptHud({
       })}
     </div>
   );
-  const worldPlaque = <WorldPlaque variant={variant} view={view} lang={lang} />;
 
   return (
     <div className={`concept-ui concept-ui--${variant}${route === "court" ? "" : " is-page"}`}>
       <>
           <header className="concept-header concept-header--forge">
             {profile}
-            <div className="concept-forge-status">{worldPlaque}</div>
             {resources}
           </header>
           {quick}
@@ -307,26 +314,20 @@ export function ConceptHud({
   );
 }
 
-function WorldPlaque({ variant, view, lang }: { variant: UiMockupId; view: WorldViewBase; lang: Locale }) {
-  const copy = UI_COPY[lang];
-  return (
-    <div className={`concept-world concept-world--${variant}`}>
-      <span className="concept-world__sigil"><ConceptIcon name="court" /></span>
-      <span>
-        <small>{copy.world}</small>
-        <b>{view.world.name}</b>
-      </span>
-      <span className="concept-world__stamp" aria-hidden="true">01</span>
-    </div>
-  );
-}
-
-function ProfileCard({ variant, view, lang }: { variant: UiMockupId; view: WorldViewBase; lang: Locale }) {
+function ProfileCard({ variant, view, lang, onOpen }: { variant: UiMockupId; view: WorldViewBase; lang: Locale; onOpen: () => void }) {
   const copy = UI_COPY[lang];
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
   return (
-    <div className={`concept-profile concept-profile--${variant}`}>
+    <div
+      className={`concept-profile concept-profile--${variant}`}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") onOpen();
+      }}
+    >
       <span className="concept-profile__portrait"><ConceptIcon name="lord" /></span>
       <span className="concept-profile__copy">
         <small>{copy.profile}</small>

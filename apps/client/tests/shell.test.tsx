@@ -153,7 +153,7 @@ describe("аккаунт", () => {
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: "Совет" }));
+    fireEvent.click(screen.getByRole("button", { name: /Владыка/ }));
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 
     // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном
