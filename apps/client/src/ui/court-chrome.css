@@ -117,3 +117,12 @@
 .ch-stub { position: absolute; left: 50%; bottom: calc(var(--bottom) + 42px); transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }
 
 .ch-chat-strip > .ui-badge { position: absolute; top: -6px; right: -6px; min-width: 14px; height: 14px; padding: 0 3px; font-size: 8px; }
+
+/* Ландшафт: свёрнутая лента и нижнее меню в одном ряду внизу.
+   Лента слева, меню справа от неё. Пока чат раскрыт, квесты скрыты,
+   чтобы раскрытая панель их не перекрывала. */
+@media (orientation: landscape) {
+  .ch-bottom { left: calc(var(--left) + 214px); }
+  .ch-chat-strip { bottom: var(--bottom); }
+  .ch-root:has(.ch-chat) .ch-quests { visibility: hidden; }
+}
