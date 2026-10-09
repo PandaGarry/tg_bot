@@ -24,6 +24,8 @@ const STUB_POWER = 2514942;
 const STUB_VIP = 3;
 const STUB_LEVEL = 12;
 const STUB_MAIL_UNREAD = 2;
+// Номер мира для тега сообщений — заглушка (в протоколе пока нет номера мира).
+const STUB_WORLD_NO = 3;
 
 const ACTIONS: { key: string; icon: string; title: string }[] = [
   { key: "march", icon: "/icons/i-swords.png", title: "Марш" },
@@ -60,12 +62,21 @@ const CHANNELS: { id: Channel; short: string; full: string }[] = [
   { id: "private", short: "ЛС", full: "Приват" },
 ];
 
-type Msg = { id: number; channel: Channel; who: string; text: string; own?: boolean };
+type Msg = { id: number; channel: Channel; from?: Channel; who: string; text: string; own?: boolean };
+
+// Тег источника: «Мир №3», «Кор-во», «Клан», «ЛС». Так видно, откуда пришло сообщение.
+function sourceTag(m: Msg): string {
+  const src = m.from ?? m.channel;
+  if (src === "world") return `Мир №${STUB_WORLD_NO}`;
+  return CHANNELS.find((c) => c.id === src)?.short ?? "";
+}
 // Сообщения — заглушки, по несколько на канал, чтобы видеть вёрстку.
 const SEED_MESSAGES: Msg[] = [
   { id: 1, channel: "kingdom", who: "Королевский писарь", text: "Новый приказ: укрепите стены" },
   { id: 2, channel: "kingdom", who: "Лорд Варн", text: "Кто идёт в поход на север?" },
   { id: 3, channel: "kingdom", who: "Лорд Варн", text: "Нужны лучники, 10 мест" },
+  { id: 11, channel: "kingdom", from: "world", who: "Соседний лорд", text: "Мировой босс у Северных врат!" },
+  { id: 12, channel: "kingdom", from: "world", who: "Рыцарь Эйр", text: "Кто на босса?" },
   { id: 4, channel: "world", who: "Соседний лорд", text: "тестовая строка" },
   { id: 5, channel: "world", who: "Рыцарь Эйр", text: "Продаю грибы, пишите в ЛС" },
   { id: 6, channel: "world", who: "Система", text: "Мировой босс появится через 30 минут" },
@@ -152,7 +163,6 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
   const unreadChannels = CHANNELS.filter((c) => unread[c.id] > 0).map((c) => c.id);
   const stripMessage =
     [...messages].reverse().find((m) => unreadChannels.includes(m.channel)) ?? messages[messages.length - 1];
-  const stripChannel = CHANNELS.find((c) => c.id === stripMessage?.channel)?.short ?? "";
 
   useEffect(() => {
     if (!stub) return;
@@ -178,6 +188,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
     if (!text) return;
     setMessages((list) => [...list, { id: Date.now(), channel, who: name, text, own: true }]);
     setDraft("");
+    setEmojiOpen(false);
   };
 
   const list = mode === "actions" ? ACTIONS : EVENTS;
@@ -266,7 +277,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           {/* Свёрнутый чат: скрывается, когда чат раскрыт. */}
           {!chatOpen ? (
             <button type="button" className="ch-chat-strip" onClick={() => setChatOpen(true)} aria-label={lang === "ru" ? "Открыть чат" : "Open chat"}>
-              <i className="ch-tag">{stripChannel}</i>
+              <i className="ch-tag">{stripMessage ? sourceTag(stripMessage) : ""}</i>
               <span className="ch-chat-strip__text"><b>{stripMessage?.who}:</b> {stripMessage?.text}</span>
               <Badge count={totalUnread} />
             </button>
@@ -309,7 +320,10 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
 
             <ul className="ch-chat__list">
               {channelMessages.map((m) => (
-                <li key={m.id} className={m.own ? "is-own" : ""}><b>{m.who}:</b> {m.text}</li>
+                <li key={m.id} className={m.own ? "is-own" : ""}>
+                  <i className="ch-msg-tag">{sourceTag(m)}</i>
+                  <b>{m.who}:</b> {m.text}
+                </li>
               ))}
             </ul>
 
