@@ -343,7 +343,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             <ul className="ch-chat__list">
               {channelMessages.map((m) => (
                 <li key={m.id} className={m.own ? "is-own" : ""}>
-                  {sourceTag(m) && <i className="ch-msg-tag">{sourceTag(m)}</i>}
+                  {channel === "kingdom" && <i className="ch-msg-tag">{sourceTag(m)}</i>}
                   <b>{m.who}:</b> {m.text}
                 </li>
               ))}
