@@ -62,21 +62,23 @@ const CHANNELS: { id: Channel; short: string; full: string }[] = [
   { id: "private", short: "ЛС", full: "Приват" },
 ];
 
-type Msg = { id: number; channel: Channel; from?: Channel; who: string; text: string; own?: boolean };
+// world — номер мира отправителя (только для «Кор-во», межмировой чат).
+type Msg = { id: number; channel: Channel; world?: number; who: string; text: string; own?: boolean };
 
-// Тег источника: «Мир №3», «Кор-во», «Клан», «ЛС». Так видно, откуда пришло сообщение.
+// Тег источника. «Кор-во» — межмировой чат: тег только номер мира (№3), без слова «Мир».
+// «Мир» — чат внутри королевства: тега нет. Клан и ЛС — подпись канала.
 function sourceTag(m: Msg): string {
-  const src = m.from ?? m.channel;
-  if (src === "world") return `Мир №${STUB_WORLD_NO}`;
-  return CHANNELS.find((c) => c.id === src)?.short ?? "";
+  if (m.channel === "kingdom") return `№${m.world ?? STUB_WORLD_NO}`;
+  if (m.channel === "world") return "";
+  return CHANNELS.find((c) => c.id === m.channel)?.short ?? "";
 }
 // Сообщения — заглушки, по несколько на канал, чтобы видеть вёрстку.
 const SEED_MESSAGES: Msg[] = [
-  { id: 1, channel: "kingdom", who: "Королевский писарь", text: "Новый приказ: укрепите стены" },
-  { id: 2, channel: "kingdom", who: "Лорд Варн", text: "Кто идёт в поход на север?" },
-  { id: 3, channel: "kingdom", who: "Лорд Варн", text: "Нужны лучники, 10 мест" },
-  { id: 11, channel: "kingdom", from: "world", who: "Соседний лорд", text: "Мировой босс у Северных врат!" },
-  { id: 12, channel: "kingdom", from: "world", who: "Рыцарь Эйр", text: "Кто на босса?" },
+  { id: 1, channel: "kingdom", world: 3, who: "Королевский писарь", text: "Новый приказ: укрепите стены" },
+  { id: 2, channel: "kingdom", world: 7, who: "Лорд Варн", text: "Кто идёт в поход на север?" },
+  { id: 3, channel: "kingdom", world: 12, who: "Лорд Варн", text: "Нужны лучники, 10 мест" },
+  { id: 11, channel: "kingdom", world: 7, who: "Соседний лорд", text: "Мировой босс у Северных врат!" },
+  { id: 12, channel: "kingdom", world: 5, who: "Рыцарь Эйр", text: "Кто на босса?" },
   { id: 4, channel: "world", who: "Соседний лорд", text: "тестовая строка" },
   { id: 5, channel: "world", who: "Рыцарь Эйр", text: "Продаю грибы, пишите в ЛС" },
   { id: 6, channel: "world", who: "Система", text: "Мировой босс появится через 30 минут" },
@@ -186,7 +188,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
   const send = (): void => {
     const text = draft.trim();
     if (!text) return;
-    setMessages((list) => [...list, { id: Date.now(), channel, who: name, text, own: true }]);
+    setMessages((list) => [...list, { id: Date.now(), channel, world: STUB_WORLD_NO, who: name, text, own: true }]);
     setDraft("");
     setEmojiOpen(false);
   };
@@ -277,7 +279,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           {/* Свёрнутый чат: скрывается, когда чат раскрыт. */}
           {!chatOpen ? (
             <button type="button" className="ch-chat-strip" onClick={() => setChatOpen(true)} aria-label={lang === "ru" ? "Открыть чат" : "Open chat"}>
-              <i className="ch-tag">{stripMessage ? sourceTag(stripMessage) : ""}</i>
+              {stripMessage && sourceTag(stripMessage) && <i className="ch-tag">{sourceTag(stripMessage)}</i>}
               <span className="ch-chat-strip__text"><b>{stripMessage?.who}:</b> {stripMessage?.text}</span>
               <Badge count={totalUnread} />
             </button>
@@ -321,7 +323,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
             <ul className="ch-chat__list">
               {channelMessages.map((m) => (
                 <li key={m.id} className={m.own ? "is-own" : ""}>
-                  <i className="ch-msg-tag">{sourceTag(m)}</i>
+                  {sourceTag(m) && <i className="ch-msg-tag">{sourceTag(m)}</i>}
                   <b>{m.who}:</b> {m.text}
                 </li>
               ))}

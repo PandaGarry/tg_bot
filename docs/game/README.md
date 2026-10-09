@@ -36,7 +36,7 @@
 | [17-ui-real-screens.md](17-ui-real-screens.md) | Подтверждённые игровые UI-кадры; непроверенные official assets вынесены отдельно |
 | [18-ui-deep-dive.md](18-ui-deep-dive.md) | Полевые заметки: экраны, компоненты, переходы и неизвестные |
 | [19-ui-research-tz.md](19-ui-research-tz.md) | Единое ТЗ: оценка конкурентов, доказательства, план исследования и функциональная UI-спецификация TDL |
-| [20-ui-style-variants.md](20-ui-style-variants.md) | Первые 10 направлений UI-skin: общий каркас, три экранных примера и критерии выбора |
+| [20-ui-style-variants.md](20-ui-style-variants.md) | Архив вариантов оформления; выбран skin 03 «Кузня приказов» (`forge`), концепты удалены |
 | [ui/index.html](ui/index.html) | Десять интерактивных CSS-макетов общего сценария и preview карты/марша/отчёта. Ни один skin не выбран. |
 | [ui/concepts/bone-wood-round-08/index.html](ui/concepts/bone-wood-round-08/index.html) | Единая Bone-Wood-концепция после проверки лора; пять полноэкранных генераций с общей системой ячеек, иконок и свободной постройки. [Контактный лист](ui/concepts/bone-wood-round-08/contact-sheet.jpg); [дизайн-предложение](ui/concepts/bone-wood-round-08/design-brief.md). |
 | [21-rok-reference.md](21-rok-reference.md) | **Rise of Kingdoms как образец (26.09.2026):** разбор 12 кадров заказчика по элементам — главный экран, карта и бой, режим стройки, обучение; сверка с источниками; таблицы «берём / меняем / не берём», прогрессия раскрытия HUD, спецификации HUD карты и режима стройки, открытые вопросы |
