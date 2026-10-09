@@ -65,11 +65,24 @@ const CHANNELS: { id: Channel; short: string; full: string }[] = [
 // world — номер мира отправителя (только для «Кор-во», межмировой чат).
 type Msg = { id: number; channel: Channel; world?: number; who: string; text: string; own?: boolean };
 
-// Тег источника. «Кор-во» — межмировой чат: тег только номер мира (№3), без слова «Мир».
-// «Мир» — чат внутри королевства: тега нет. Клан и ЛС — подпись канала.
+// Позиция в чате: последняя открытая вкладка сохраняется между сессиями.
+const CHANNEL_KEY = "tdl.chat.channel";
+const STRIP_LINES = 4;
+function loadChannel(): Channel {
+  try {
+    const saved = window.localStorage.getItem(CHANNEL_KEY);
+    if (CHANNELS.some((c) => c.id === saved)) return saved as Channel;
+  } catch {
+    // нет доступа к хранилищу — используем вкладку по умолчанию
+  }
+  return "world";
+}
+
+// Тег источника. «Кор-во» — межмировой чат: тег только номер мира (№3).
+// «Мир» — чат внутри королевства: тег «Мир» без номера. Клан и ЛС — подпись канала.
 function sourceTag(m: Msg): string {
   if (m.channel === "kingdom") return `№${m.world ?? STUB_WORLD_NO}`;
-  if (m.channel === "world") return "";
+  if (m.channel === "world") return "Мир";
   return CHANNELS.find((c) => c.id === m.channel)?.short ?? "";
 }
 // Сообщения — заглушки, по несколько на канал, чтобы видеть вёрстку.
@@ -148,7 +161,7 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
   const [mode, setMode] = useState<Mode>("actions");
   const [questsOpen, setQuestsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [channel, setChannel] = useState<Channel>("world");
+  const [channel, setChannel] = useState<Channel>(loadChannel);
   const [unread, setUnread] = useState<Record<Channel, number>>(INITIAL_UNREAD);
   const [messages, setMessages] = useState<Msg[]>(SEED_MESSAGES);
   const [draft, setDraft] = useState("");
@@ -161,10 +174,8 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
   const totalUnread = Object.values(unread).reduce((sum, n) => sum + n, 0);
   const channelLabel = CHANNELS.find((c) => c.id === channel)?.full ?? "";
 
-  // Свёрнутая строка показывает последнее непрочитанное сообщение (или последнее вообще).
-  const unreadChannels = CHANNELS.filter((c) => unread[c.id] > 0).map((c) => c.id);
-  const stripMessage =
-    [...messages].reverse().find((m) => unreadChannels.includes(m.channel)) ?? messages[messages.length - 1];
+  // Свёрнутый чат показывает последние сообщения вкладки, на которой остановился игрок.
+  const stripMessages = messages.filter((m) => m.channel === channel).slice(-STRIP_LINES);
 
   useEffect(() => {
     if (!stub) return;
@@ -182,6 +193,11 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
 
   const openChannel = (id: Channel): void => {
     setChannel(id);
+    try {
+      window.localStorage.setItem(CHANNEL_KEY, id);
+    } catch {
+      // приватный режим или запрет хранилища — позиция просто не сохранится
+    }
     setUnread((u) => ({ ...u, [id]: 0 }));
   };
 
@@ -279,8 +295,12 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           {/* Свёрнутый чат: скрывается, когда чат раскрыт. */}
           {!chatOpen ? (
             <button type="button" className="ch-chat-strip" onClick={() => setChatOpen(true)} aria-label={lang === "ru" ? "Открыть чат" : "Open chat"}>
-              {stripMessage && sourceTag(stripMessage) && <i className="ch-tag">{sourceTag(stripMessage)}</i>}
-              <span className="ch-chat-strip__text"><b>{stripMessage?.who}:</b> {stripMessage?.text}</span>
+              {stripMessages.map((m) => (
+                <span key={m.id} className="ch-chat-strip__line">
+                  {sourceTag(m) && <i className="ch-tag">{sourceTag(m)}</i>}
+                  <span className="ch-chat-strip__text"><b>{m.who}:</b> {m.text}</span>
+                </span>
+              ))}
               <Badge count={totalUnread} />
             </button>
           ) : null}
