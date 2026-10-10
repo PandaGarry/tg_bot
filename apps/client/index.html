@@ -8,9 +8,16 @@
     />
     <meta name="theme-color" content="#0c0a09" />
     <title>Мёртвые лорды</title>
+    <style>
+      /* Резерв на случай если JS/CSS не загрузился — фон должен быть тёмный.
+         #pixi-root — canvas сцены (Pixi), #hud-root — React HUD поверх. */
+      html, body, #pixi-root { background: #0c0704; }
+      #hud-root { background: transparent; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="pixi-root"></div>
+    <div id="hud-root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

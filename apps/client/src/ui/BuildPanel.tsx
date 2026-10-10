@@ -9,9 +9,9 @@ import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 
-type BuildTab = "economy" | "military" | "decor";
+export type BuildTab = "economy" | "military" | "decor";
 
-interface CatalogItem {
+export interface CatalogItem {
   id: string;
   tab: BuildTab;
   th: number;
@@ -19,7 +19,7 @@ interface CatalogItem {
 }
 
 // Должно совпадать с CATALOG модуля court (сервер — власть, это показ).
-const CATALOG: CatalogItem[] = [
+export const BUILD_CATALOG: CatalogItem[] = [
   { id: "cottage", tab: "economy", th: 1, cost: [["wood", 50], ["stone", 20]] },
   { id: "farm", tab: "economy", th: 1, cost: [["wood", 60], ["stone", 30]] },
   { id: "sawmill", tab: "economy", th: 2, cost: [["wood", 80], ["stone", 40]] },
@@ -49,13 +49,13 @@ const RES_ICONS: Record<string, string> = {
 };
 
 /** Цена улучшения Ратуши — копия TH_COSTS модуля (индекс — целевой уровень). */
-const TH_COSTS: Record<number, [string, number][]> = {
+export const TOWNHALL_COSTS: Record<number, [string, number][]> = {
   2: [["wood", 300], ["stone", 250], ["gold", 50]],
   3: [["wood", 600], ["stone", 500], ["metal", 100], ["gold", 150]],
   4: [["wood", 1200], ["stone", 900], ["metal", 250], ["gold", 400]],
   5: [["wood", 2400], ["stone", 1800], ["metal", 500], ["gold", 1000]],
 };
-const TH_MAX = 5;
+export const TOWNHALL_MAX_LEVEL = 5;
 
 /** Значок постройки: тонкая SVG-пиктограмма в тёплой палитре игры. */
 function Sign({ id }: { id: string }) {
@@ -198,7 +198,7 @@ export function BuildPanel({
   const stock = view.stock ?? {};
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
-  const upCost = TH_COSTS[level + 1];
+  const upCost = TOWNHALL_COSTS[level + 1];
 
   return (
     <div className="hud-build" onClick={(e) => e.stopPropagation()}>
@@ -213,16 +213,16 @@ export function BuildPanel({
       {tab === "economy" ? (
         <button
           type="button"
-          className={`th-up${level >= TH_MAX ? " max" : ""}`}
+          className={`th-up${level >= TOWNHALL_MAX_LEVEL ? " max" : ""}`}
           onClick={onUpgrade}
-          disabled={level >= TH_MAX || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
+          disabled={level >= TOWNHALL_MAX_LEVEL || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
         >
           <Sign id="cottage" />
           <span className="th-up-text">
             <b>
               {t("shell.hud.b.townhall")} · Ур. {level}
             </b>
-            {level >= TH_MAX ? (
+            {level >= TOWNHALL_MAX_LEVEL ? (
               <i>{t("shell.hud.build.max")}</i>
             ) : (
               <i>
@@ -248,7 +248,7 @@ export function BuildPanel({
       ) : null}
 
       <div className="bcards">
-        {CATALOG.filter((item) => item.tab === tab).map((item) => {
+        {BUILD_CATALOG.filter((item) => item.tab === tab).map((item) => {
           const locked = level < item.th;
           const poor = !locked && !item.cost.every(([res, n]) => (stock[res] ?? 0) >= n);
           return (

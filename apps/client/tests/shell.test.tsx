@@ -4,7 +4,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { INTRO_KEYS, chronicleEntries, clearChronicle } from "../src/shell/chronicle.js";
 import { introSeen } from "../src/shell/firstRun.js";
 import * as net from "../src/net.js";
@@ -16,6 +16,7 @@ import { Create } from "../src/ui/Create.js";
 import { World } from "../src/ui/World.js";
 import { shellStrings } from "../src/i18n/shell.js";
 import { store } from "../src/store.js";
+import { bridge } from "../src/game/bridge.js";
 
 beforeEach(() => {
   localStorage.clear();
@@ -24,6 +25,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  delete document.documentElement.dataset.uiMockup;
   vi.restoreAllMocks();
 });
 
@@ -109,15 +111,35 @@ describe("двор", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
 
     expect(screen.getByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Двор" })).toBeTruthy();
+    // На экране двора кнопка «Двор» не нужна: центральная кнопка нижнего меню ведёт на карту.
+    expect(screen.getByRole("button", { name: "Карта" })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Хроника" }));
-    expect(screen.getAllByText("Живые уже у частокола. Их много. Пирогов нет. Частокол пока держит. Дальше это ваша работа.").length).toBeGreaterThan(0);
+    // Записи хрониста сохраняются; отдельной кнопки «Летопись» в нижней навигации нет.
+    expect(chronicleEntries().some((entry) => entry.key === "shell.tutor.palisade")).toBe(true);
+    expect(screen.queryByRole("button", { name: "Летопись" })).toBeNull();
 
     // Хронист говорит один раз: повторный вход фразу не удваивает.
     cleanup();
     render(<World view={view()} lang="ru" serverNow={2} />);
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
+  });
+
+  it("кнопка прототипа скрыта на экране двора (код сохранён для следующих тестов)", () => {
+    render(<World view={view()} lang="ru" serverNow={1} />);
+    expect(screen.queryByRole("button", { name: "Прототип раскладки" })).toBeNull();
+  });
+
+  it("новая панель строительства не возвращает старые ячейки и ведёт к подтверждению клетки", () => {
+    const fundedView = { ...view(), stock: { wood: 100, stone: 100 } };
+    const { container } = render(<World view={fundedView} lang="ru" serverNow={1} />);
+    expect(container.querySelector(".hud-top")).toBeNull();
+    expect(container.querySelector(".ch-profile")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Строительство" }));
+    fireEvent.click(screen.getByRole("button", { name: /Жилой дом/ }));
+    expect(container.querySelector(".concept-build-panel")).toBeNull();
+    act(() => bridge.emit("tile:click", { x: 4, z: 7 }));
+    expect(screen.getByRole("button", { name: "Поставить" })).toBeTruthy();
   });
 });
 
@@ -127,7 +149,7 @@ describe("аккаунт", () => {
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
     render(<World view={view()} lang="ru" serverNow={1} />);
-    fireEvent.click(screen.getByRole("button", { name: "Модули" }));
+    fireEvent.click(document.querySelector(".ch-profile") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 
     // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном

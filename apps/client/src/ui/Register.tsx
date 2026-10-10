@@ -58,7 +58,7 @@ export function Register({
             : null;
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center gap-4 p-5 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+    <main className="ui-mockup-screen mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center gap-4 p-5 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
       <h1 className="text-xl text-bone">{t("shell.register.title")}</h1>
       <p className="text-xs text-stone-500">{t("shell.register.note")}</p>
 

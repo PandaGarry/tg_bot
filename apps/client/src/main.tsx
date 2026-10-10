@@ -10,7 +10,13 @@ import { Create } from "./ui/Create.js";
 import { Register } from "./ui/Register.js";
 import { Slides } from "./ui/Slides.js";
 import { World } from "./ui/World.js";
+import { initializeUiMockup } from "./ui/mockups.js";
 import { statusKey } from "./i18n/index.js";
+import { gameApp } from "./game/core/application.js";
+import { mountCourtScene } from "./game/court/courtScene.js";
+
+// Восстанавливает только локальный CSS-вариант, чтобы его было видно на экранах входа и создания лорда.
+initializeUiMockup();
 
 function App() {
   const state = useStore();
@@ -48,7 +54,16 @@ function App() {
   return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
 }
 
-createRoot(document.getElementById("root") as HTMLElement).render(
+// Сначала сцена: canvas занимает #pixi-root. HUD (React) монтируется в
+// #hud-root поверх. Инициализация Pixi не блокирует рендер HUD.
+void gameApp
+  .init(document.getElementById("pixi-root") as HTMLElement)
+  .then(() => {
+    if (gameApp.instance) mountCourtScene(gameApp.instance);
+  })
+  .catch((error: unknown) => console.error("[Pixi] Initialization failed", error));
+
+createRoot(document.getElementById("hud-root") as HTMLElement).render(
   <StrictMode>
     <App />
   </StrictMode>,

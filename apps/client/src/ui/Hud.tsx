@@ -68,7 +68,7 @@ export function Hud({
   view: WorldViewBase;
   lang: Locale;
   placingName: string | null;
-  pending: { name: string; move: boolean; removable: boolean } | null;
+  pending: { name: string; move: boolean; ready: boolean; removable: boolean } | null;
   roadTool: boolean;
   onConfirm: () => void;
   onRemove: () => void;
@@ -222,10 +222,14 @@ export function Hud({
       {/* подтверждение: призрак на клетке — «Подтвердить»; переносимое можно и убрать */}
       {pending ? (
         <div className="place-bar">
-          <button type="button" className="ok" onClick={onConfirm}>
-            {t("shell.hud.build.confirm")}
-          </button>
-          {pending.move && pending.removable ? (
+          {pending.move && !pending.ready ? (
+            <span className="place-hint">{t("shell.hud.build.moveHint", { name: pending.name })}</span>
+          ) : (
+            <button type="button" className="ok" onClick={onConfirm}>
+              {t("shell.hud.build.confirm")}
+            </button>
+          )}
+          {pending.move && pending.removable && pending.ready ? (
             <button type="button" className="warn" onClick={onRemove}>
               {t("shell.hud.build.remove")}
             </button>

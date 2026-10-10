@@ -21,7 +21,6 @@
     "load": "tsx tools/load/index.ts",
     "schedule": "tsx tools/schedule.ts",
     "shots": "tsx tools/shots/index.ts",
-    "shots:court3d": "tsx tools/shots/court3d.ts",
     "walk": "tsx tools/shots/walkthrough.ts",
     "icons": "tsx tools/shots/icons.ts"
   },
