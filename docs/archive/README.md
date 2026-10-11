@@ -13,7 +13,7 @@
 | `01-lore.md` | canon/lore.md | перенесено, удалено 11.10 |
 | `02-tone.md` | canon/tone.md | перенесено, удалено 11.10 |
 | `03-first-session.md` | перенесено, удалено 11.10 (`design/first-session.md`) |
-| `04-systems.md` | перенесено, удалено 11.10 (`design/systems.md`) |
+| `04-systems.md` | перенесено, удалено 11.10 (`design/systems.md`; 11.10: пункт марша снят, слоты — Академия) |
 | `05-architecture.md` | AGENTS.md и docs/README.md (архитектура уже описана) | ожидает сверки |
 | `06-plan.md` | plan/roadmap.md (заменён 11.10) | перенесено, удалено 11.10 |
 | `07-modules.md` | plan/roadmap.md, принципы модулей | ожидает разбора |
