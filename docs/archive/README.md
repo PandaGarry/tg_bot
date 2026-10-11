@@ -10,8 +10,8 @@
 
 | Файл | Куда переносим | Статус |
 |---|---|---|
-| `01-lore.md` | canon/lore.md | ожидает разбора |
-| `02-tone.md` | canon/tone.md | ожидает разбора |
+| `01-lore.md` | canon/lore.md | перенесено, удалено 11.10 |
+| `02-tone.md` | canon/tone.md | перенесено, удалено 11.10 |
 | `03-first-session.md` | design/first-session.md | ожидает разбора |
 | `04-systems.md` | design/systems.md (отправная точка по зданиям, решено 09.10) | ожидает разбора |
 | `05-architecture.md` | AGENTS.md и docs/README.md (архитектура уже описана) | ожидает сверки |
