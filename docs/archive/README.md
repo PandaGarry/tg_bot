@@ -12,7 +12,7 @@
 |---|---|---|
 | `01-lore.md` | canon/lore.md | перенесено, удалено 11.10 |
 | `02-tone.md` | canon/tone.md | перенесено, удалено 11.10 |
-| `03-first-session.md` | design/first-session.md | ожидает разбора |
+| `03-first-session.md` | design/first-session.md | перенесено, удалено 11.10 |
 | `04-systems.md` | design/systems.md (отправная точка по зданиям, решено 09.10) | ожидает разбора |
 | `05-architecture.md` | AGENTS.md и docs/README.md (архитектура уже описана) | ожидает сверки |
 | `06-plan.md` | plan/roadmap.md (заменён 11.10) | перенесено, удалено 11.10 |
