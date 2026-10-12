@@ -11,7 +11,7 @@ import * as net from "../src/net.js";
 import { Boot } from "../src/ui/Boot.js";
 import { Register } from "../src/ui/Register.js";
 import { Preview, PAUSE_AFTER_VOICE_MS, SILENT_HOLD_MS, previewAudioSrc } from "../src/ui/Preview.js";
-import { Loading, LOADING_MS } from "../src/ui/Loading.js";
+import { Loading, LEAVE_MS, LOADING_MS } from "../src/ui/Loading.js";
 import { Chronicle } from "../src/ui/Chronicle.js";
 import { Create } from "../src/ui/Create.js";
 import { World } from "../src/ui/World.js";
@@ -176,6 +176,18 @@ describe("загрузка", () => {
     expect(screen.getByTestId("loading-hint").textContent).not.toBe(first);
     expect(done).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(LOADING_MS));
+    expect(done).toHaveBeenCalledTimes(1);
+  });
+
+  it("сначала затухает (класс load-leave), и только потом отдаёт экран", () => {
+    const done = vi.fn();
+    const { container } = render(<Loading lang="ru" onDone={done} />);
+    act(() => vi.advanceTimersByTime(LOADING_MS - 1));
+    expect(container.querySelector(".load-leave")).toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(container.querySelector(".load-leave")).not.toBeNull();
+    expect(done).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(LEAVE_MS));
     expect(done).toHaveBeenCalledTimes(1);
   });
 });

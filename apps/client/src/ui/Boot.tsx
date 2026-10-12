@@ -98,10 +98,6 @@ export function Boot({
         </AuthButton>
       </form>
 
-      <AuthButton variant="secondary" onClick={onRegister} data-testid="boot-to-register">
-        {t("shell.boot.register")}
-      </AuthButton>
-
       <Divider text={t("shell.auth.or")} />
 
       <div className="auth-providers">
@@ -118,6 +114,13 @@ export function Boot({
           onClick={() => notice.say(t("shell.auth.provider.pending", { provider: "Яндекс ID" }))}
         />
       </div>
+
+      <p className="auth-foot">
+        {t("shell.boot.noacc")}{" "}
+        <button type="button" onClick={onRegister} data-testid="boot-to-register" className="auth-link">
+          {t("shell.boot.register")}
+        </button>
+      </p>
     </AuthScreen>
   );
 }

@@ -39,29 +39,39 @@ function App() {
     return <Preview lang={state.lang} onDone={() => setPhase("loading")} />;
   }
 
+  // Экран входа или двора рисуется сразу; загрузка лежит поверх, пока он готовится.
+  const gate = renderGate();
   if (phase === "loading") {
-    return <Loading lang={state.lang} onDone={() => setPhase("gate")} />;
-  }
-
-  if (!state.auth) {
-    if (authScreen === "register") {
-      return <Register lang={state.lang} onLogin={() => setAuthScreen("login")} />;
-    }
     return (
-      <Boot
-        lang={state.lang}
-        statusKey={statusKey(state.status)}
-        onRegister={() => setAuthScreen("register")}
-      />
+      <>
+        {gate}
+        <Loading lang={state.lang} onDone={() => setPhase("gate")} />
+      </>
     );
   }
+  return gate;
 
-  const view = state.view;
-  if (state.auth.needsLord || !view?.me) {
-    return <Create lang={state.lang} view={view} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
+  function renderGate() {
+    if (!state.auth) {
+      if (authScreen === "register") {
+        return <Register lang={state.lang} onLogin={() => setAuthScreen("login")} />;
+      }
+      return (
+        <Boot
+          lang={state.lang}
+          statusKey={statusKey(state.status)}
+          onRegister={() => setAuthScreen("register")}
+        />
+      );
+    }
+
+    const view = state.view;
+    if (state.auth.needsLord || !view?.me) {
+      return <Create lang={state.lang} view={view} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
+    }
+
+    return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
   }
-
-  return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
 }
 
 // Сначала сцена: canvas занимает #pixi-root. HUD (React) монтируется в
