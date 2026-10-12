@@ -5,11 +5,20 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import type { Locale } from "@tdl/protocol";
 import { LIMITS } from "@tdl/protocol";
 import { register } from "../net.js";
 import { translator } from "../i18n/index.js";
+import {
+  AuthButton,
+  AuthField,
+  AuthScreen,
+  LangSwitch,
+  LockIcon,
+  MailIcon,
+  PasswordToggle,
+  UserIcon,
+} from "./kit/Auth.js";
 import { useStore } from "../useStore.js";
 import { goodEmail, goodLogin, goodPassword, samePassword } from "../shell/form.js";
 
@@ -58,12 +67,18 @@ export function Register({
             : null;
 
   return (
-    <main className="ui-mockup-screen mx-auto flex min-h-[100dvh] w-full max-w-md flex-col justify-center gap-4 p-5 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-      <h1 className="text-xl text-bone">{t("shell.register.title")}</h1>
-      <p className="text-xs text-stone-500">{t("shell.register.note")}</p>
+    <AuthScreen lang={lang}>
+      <div className="auth-top">
+        <LangSwitch lang={lang} />
+      </div>
+
+      <header className="auth-head">
+        <h1 className="auth-title auth-title-sm">{t("shell.register.title")}</h1>
+        <p className="auth-sub">{t("shell.register.note")}</p>
+      </header>
 
       <form
-        className="flex flex-col gap-3"
+        className="auth-card"
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
@@ -71,153 +86,97 @@ export function Register({
           register(login.trim(), password, email.trim(), { rules: true, mail });
         }}
       >
-        <Field label={t("shell.register.login")} hint={t("shell.register.login.hint")}>
-          <span className="gate-box">
-            <UserIcon />
-            <input
-              value={login}
-              onChange={(event) => setLogin(event.target.value)}
-              autoComplete="username"
-              autoCorrect="off"
-              spellCheck={false}
-              maxLength={LIMITS.loginMax}
-              data-testid="register-login"
-              className={INPUT}
-            />
-          </span>
-        </Field>
+        <AuthField
+          label={t("shell.register.login")}
+          hint={t("shell.register.login.hint")}
+          icon={<UserIcon />}
+          testId="register-login"
+          inputProps={{
+            value: login,
+            onChange: (event) => setLogin(event.target.value),
+            autoComplete: "username",
+            autoCorrect: "off",
+            autoCapitalize: "none",
+            spellCheck: false,
+            maxLength: LIMITS.loginMax,
+          }}
+        />
 
-        <Field label={t("shell.register.email")}>
-          <span className="gate-box">
-            <MailIcon />
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-              inputMode="email"
-              type="email"
-              maxLength={LIMITS.emailMax}
-              data-testid="register-email"
-              className={INPUT}
-            />
-          </span>
-        </Field>
+        <AuthField
+          label={t("shell.register.email")}
+          icon={<MailIcon />}
+          testId="register-email"
+          inputProps={{
+            value: email,
+            onChange: (event) => setEmail(event.target.value),
+            autoComplete: "email",
+            inputMode: "email",
+            type: "email",
+            autoCapitalize: "none",
+            maxLength: LIMITS.emailMax,
+          }}
+        />
 
-        <Field label={t("shell.register.password")}>
-          <span className="gate-box">
-            <LockIcon />
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              type={show ? "text" : "password"}
-              autoComplete="new-password"
-              data-testid="register-password"
-              className={INPUT}
-            />
-            <button type="button" className="gate-eye" onClick={() => setShow((v) => !v)} aria-label="показать пароль">
-              <EyeIcon off={show} />
-            </button>
-          </span>
-        </Field>
+        <AuthField
+          label={t("shell.register.password")}
+          icon={<LockIcon />}
+          testId="register-password"
+          trailing={<PasswordToggle lang={lang} shown={show} onToggle={() => setShow((v) => !v)} />}
+          inputProps={{
+            value: password,
+            onChange: (event) => setPassword(event.target.value),
+            type: show ? "text" : "password",
+            autoComplete: "new-password",
+          }}
+        />
 
-        <Field label={t("shell.register.repeat")}>
-          <span className="gate-box">
-            <LockIcon />
-            <input
-              value={repeat}
-              onChange={(event) => setRepeat(event.target.value)}
-              type={show ? "text" : "password"}
-              autoComplete="new-password"
-              data-testid="register-repeat"
-              className={INPUT}
-            />
-            <button type="button" className="gate-eye" onClick={() => setShow((v) => !v)} aria-label="показать пароль">
-              <EyeIcon off={show} />
-            </button>
-          </span>
-        </Field>
+        <AuthField
+          label={t("shell.register.repeat")}
+          icon={<LockIcon />}
+          testId="register-repeat"
+          inputProps={{
+            value: repeat,
+            onChange: (event) => setRepeat(event.target.value),
+            type: show ? "text" : "password",
+            autoComplete: "new-password",
+          }}
+        />
 
-        <label className="flex items-start gap-2 text-xs text-stone-400">
+        <label className="auth-check">
           <input
             type="checkbox"
             checked={rules}
             onChange={(event) => setRules(event.target.checked)}
             data-testid="register-rules"
-            className="mt-0.5 h-5 w-5 shrink-0"
           />
           <span>{t("shell.register.rules")}</span>
         </label>
 
-        <label className="flex items-start gap-2 text-xs text-stone-400">
+        <label className="auth-check">
           <input
             type="checkbox"
             checked={mail}
             onChange={(event) => setMail(event.target.checked)}
             data-testid="register-mail"
-            className="mt-0.5 h-5 w-5 shrink-0"
           />
           <span>{t("shell.register.mail")}</span>
         </label>
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="min-h-[44px] rounded border border-stone-600 bg-stone-800 text-bone disabled:opacity-40"
-        >
+        <AuthButton type="submit" disabled={!canSubmit} className="auth-submit">
           {sending ? t("shell.register.sending") : t("shell.register.submit")}
-        </button>
+        </AuthButton>
       </form>
 
       {/* Короткое имя, почта и пароль говорят, чего не хватает, до нажатия. */}
-      <p data-testid="register-problem" className="min-h-[1rem] text-xs text-stone-500">
+      <p data-testid="register-problem" role="status" className="auth-note">
         {failureKey ? t(failureKey) : problemKey ? t(problemKey) : ""}
       </p>
 
-      <button type="button" onClick={onLogin} className="min-h-[44px] text-sm text-stone-400">
-        {t("shell.register.have")}
-      </button>
-    </main>
-  );
-}
-
-const UserIcon = () => (
-  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 20c1.8-3.2 4.6-5 8-5s6.2 1.8 8 5" />
-  </svg>
-);
-
-const MailIcon = () => (
-  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="3" y="5" width="18" height="14" rx="3" />
-    <path d="m4 7 8 6 8-6" />
-  </svg>
-);
-
-const LockIcon = () => (
-  <svg className="gate-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <rect x="5" y="10" width="14" height="10" rx="3" />
-    <path d="M8 10V7a4 4 0 1 1 8 0v3" />
-  </svg>
-);
-
-const EyeIcon = ({ off }: { off?: boolean }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
-    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-    <circle cx="12" cy="12" r="2.6" />
-    {off ? <path d="m4 4 16 16" /> : null}
-  </svg>
-);
-
-const INPUT =
-  "min-h-[44px] rounded border border-stone-700 bg-stone-900 px-3 text-bone outline-none focus:border-stone-500";
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1 text-sm text-stone-400">
-      {label}
-      {children}
-      {hint ? <span className="text-[11px] text-stone-600">{hint}</span> : null}
-    </label>
+      <p className="auth-foot">
+        <button type="button" onClick={onLogin} className="auth-link">
+          {t("shell.register.have")}
+        </button>
+      </p>
+    </AuthScreen>
   );
 }

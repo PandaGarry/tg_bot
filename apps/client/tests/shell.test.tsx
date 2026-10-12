@@ -204,6 +204,47 @@ describe("хроника", () => {
   });
 });
 
+describe("вход и регистрация", () => {
+  it("вход: поля с подписями, кнопка выключена до валидных данных, пароль можно показать", () => {
+    render(<Boot lang="ru" statusKey="shell.boot.subtitle" onRegister={() => undefined} />);
+    const login = screen.getByLabelText("Логин или почта") as HTMLInputElement;
+    const password = screen.getByLabelText("Пароль") as HTMLInputElement;
+    expect(password.type).toBe("password");
+    expect((screen.getByRole("button", { name: "Войти" }) as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(login, { target: { value: "lord" } });
+    fireEvent.change(password, { target: { value: "longenough" } });
+    expect((screen.getByRole("button", { name: "Войти" }) as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Показать пароль" }));
+    expect(password.type).toBe("text");
+  });
+
+  it("Google и Яндекс ID показывают понятное сообщение, а не падают", () => {
+    render(<Boot lang="ru" statusKey="shell.boot.subtitle" onRegister={() => undefined} />);
+    fireEvent.click(screen.getByTestId("boot-google"));
+    expect(screen.getByTestId("boot-provider-note").textContent).toBe(
+      "Вход через Google ID пока не подключён. Войдите логином и паролем.",
+    );
+    fireEvent.click(screen.getByTestId("boot-yandex"));
+    expect(screen.getByTestId("boot-provider-note").textContent).toContain("Яндекс ID");
+  });
+
+  it("переход к регистрации и подсказка о неполной форме", () => {
+    const toRegister = vi.fn();
+    const { unmount } = render(<Boot lang="en" statusKey="shell.boot.subtitle" onRegister={toRegister} />);
+    fireEvent.click(screen.getByTestId("boot-to-register"));
+    expect(toRegister).toHaveBeenCalledTimes(1);
+    unmount();
+
+    render(<Register lang="en" onLogin={() => undefined} />);
+    expect(screen.getByTestId("register-problem").textContent).toBe(
+      "Login: 3–24 characters, Latin letters, digits, dot, hyphen, underscore",
+    );
+    expect(screen.getByLabelText("Login")).toBeTruthy();
+  });
+});
+
 describe("двор", () => {
   it("после создания виден двор и фраза про частокол, и она остаётся в хронике", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
