@@ -8,7 +8,8 @@ import { introSeen } from "./shell/firstRun.js";
 import { Boot } from "./ui/Boot.js";
 import { Create } from "./ui/Create.js";
 import { Register } from "./ui/Register.js";
-import { Slides } from "./ui/Slides.js";
+import { Preview } from "./ui/Preview.js";
+import { Loading } from "./ui/Loading.js";
 import { World } from "./ui/World.js";
 import { initializeUiMockup } from "./ui/mockups.js";
 import { statusKey } from "./i18n/index.js";
@@ -18,10 +19,15 @@ import { mountCourtScene } from "./game/court/courtScene.js";
 // Восстанавливает только локальный CSS-вариант, чтобы его было видно на экранах входа и создания лорда.
 initializeUiMockup();
 
+/**
+ * Порядок экранов: первый запуск — превью → загрузка → вход/регистрация → создание лорда → двор.
+ * Повторный вход — загрузка → вход (если сессии нет) или двор. Превью — только один раз на устройстве.
+ */
+type Phase = "preview" | "loading" | "gate";
+
 function App() {
   const state = useStore();
-  // Слайды вступления: только первый запуск на устройстве, и только до входа.
-  const [introDone, setIntroDone] = useState(() => introSeen());
+  const [phase, setPhase] = useState<Phase>(() => (introSeen() ? "loading" : "preview"));
   // До входа два окна: вход и регистрация аккаунта. Персонаж заводится после.
   const [authScreen, setAuthScreen] = useState<"login" | "register">("login");
 
@@ -29,8 +35,12 @@ function App() {
     connect();
   }, []);
 
-  if (!state.auth && !introDone) {
-    return <Slides lang={state.lang} onDone={() => setIntroDone(true)} />;
+  if (phase === "preview") {
+    return <Preview lang={state.lang} onDone={() => setPhase("loading")} />;
+  }
+
+  if (phase === "loading") {
+    return <Loading lang={state.lang} onDone={() => setPhase("gate")} />;
   }
 
   if (!state.auth) {

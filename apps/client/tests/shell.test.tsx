@@ -10,7 +10,8 @@ import { introSeen } from "../src/shell/firstRun.js";
 import * as net from "../src/net.js";
 import { Boot } from "../src/ui/Boot.js";
 import { Register } from "../src/ui/Register.js";
-import { Slides } from "../src/ui/Slides.js";
+import { Preview, PAUSE_AFTER_VOICE_MS, SILENT_HOLD_MS, previewAudioSrc } from "../src/ui/Preview.js";
+import { Loading, LOADING_MS } from "../src/ui/Loading.js";
 import { Chronicle } from "../src/ui/Chronicle.js";
 import { Create } from "../src/ui/Create.js";
 import { World } from "../src/ui/World.js";
@@ -39,65 +40,162 @@ function view() {
   };
 }
 
-describe("вступление", () => {
-  it("восемь кадров, пропуск со второго, последний кадр ведёт к двору", () => {
+/** Заглушка Audio: тест сам решает, когда звук закончился или не запустился. */
+class FakeAudio {
+  static instances: FakeAudio[] = [];
+  src: string;
+  listeners: Record<string, Array<() => void>> = {};
+  playResult: Promise<void>;
+  constructor(src: string) {
+    this.src = src;
+    this.playResult = Promise.resolve();
+    FakeAudio.instances.push(this);
+  }
+  addEventListener(type: string, fn: () => void) {
+    (this.listeners[type] ??= []).push(fn);
+  }
+  play() {
+    return this.playResult;
+  }
+  pause() {}
+  fire(type: string) {
+    for (const fn of this.listeners[type] ?? []) fn();
+  }
+}
+
+function currentAudio(): FakeAudio {
+  const last = FakeAudio.instances[FakeAudio.instances.length - 1];
+  if (!last) throw new Error("звук не создан");
+  return last;
+}
+
+describe("превью первого запуска", () => {
+  beforeEach(() => {
+    FakeAudio.instances = [];
+    vi.stubGlobal("Audio", FakeAudio);
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("десять кадров: первый без пропуска, со второго — пропуск, последний — «Начать»", () => {
     const done = vi.fn();
-    render(<Slides lang="ru" onDone={done} />);
+    render(<Preview lang="ru" onDone={done} />);
 
-    expect(screen.getByTestId("slide-text").textContent).toBe("Жили себе люди.");
+    expect(INTRO_KEYS).toHaveLength(10);
+    expect(screen.getByTestId("preview-text").textContent).toBe(shellStrings.ru[INTRO_KEYS[0] as keyof typeof shellStrings.ru]);
     expect(screen.queryByRole("button", { name: "Пропустить" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Дальше" })).toBeTruthy();
 
-    for (let step = 1; step < INTRO_KEYS.length; step += 1) {
+    fireEvent.click(screen.getByRole("button", { name: "Дальше" }));
+    expect(screen.getByRole("button", { name: "Пропустить" })).toBeTruthy();
+
+    for (let step = 2; step < INTRO_KEYS.length; step += 1) {
       fireEvent.click(screen.getByRole("button", { name: "Дальше" }));
     }
+    expect(screen.getByRole("button", { name: "Начать" })).toBeTruthy();
+    expect(done).not.toHaveBeenCalled();
 
-    // Последний кадр предлагает занять двор, а не листать дальше.
-    expect(screen.getByRole("button", { name: "Занять двор" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Дальше" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Занять двор" }));
+    fireEvent.click(screen.getByRole("button", { name: "Начать" }));
     expect(done).toHaveBeenCalledTimes(1);
     expect(introSeen()).toBe(true);
   });
 
-  it("пропуск виден со второго кадра и записывает вступление в хронику", () => {
+  it("пропуск со второго кадра ведёт к загрузке и записывает вступление в хронику", () => {
     const done = vi.fn();
-    render(<Slides lang="ru" onDone={done} />);
+    render(<Preview lang="ru" onDone={done} />);
     fireEvent.click(screen.getByRole("button", { name: "Дальше" }));
-    expect(screen.getByRole("button", { name: "Пропустить" })).toBeTruthy();
-
     fireEvent.click(screen.getByRole("button", { name: "Пропустить" }));
+
     expect(done).toHaveBeenCalledTimes(1);
-    // Текст слайдов остаётся в хронике целиком, даже если игрок пропустил кадры.
+    expect(introSeen()).toBe(true);
     expect(chronicleEntries().map((entry) => entry.key)).toEqual([...INTRO_KEYS]);
   });
 
-  it("английский текст есть у каждого кадра", () => {
+  it("после окончания озвучки кадр уходит через паузу 2 с, а не сразу", () => {
+    render(<Preview lang="en" onDone={() => undefined} />);
+    expect(currentAudio().src).toBe(previewAudioSrc("en", 0));
+    expect(currentAudio().src).toBe("/audio/preview/en/frame-01.mp3");
+
+    act(() => currentAudio().fire("ended"));
+    act(() => vi.advanceTimersByTime(PAUSE_AFTER_VOICE_MS - 1));
+    expect(currentAudio().src).toBe(previewAudioSrc("en", 0));
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(currentAudio().src).toBe(previewAudioSrc("en", 1));
+    expect(screen.getByTestId("preview-text").textContent).toBe(shellStrings.en[INTRO_KEYS[1] as keyof typeof shellStrings.en]);
+  });
+
+  it("если звук не запускается, кадр держится фиксированное время", () => {
+    render(<Preview lang="ru" onDone={() => undefined} />);
+    act(() => currentAudio().fire("error"));
+    act(() => vi.advanceTimersByTime(SILENT_HOLD_MS));
+    expect(currentAudio().src).toBe(previewAudioSrc("ru", 1));
+  });
+
+  it("отказ play() тоже даёт фиксированное время", async () => {
+    const original = FakeAudio.prototype.play;
+    FakeAudio.prototype.play = () => Promise.reject(new Error("autoplay"));
+    try {
+      render(<Preview lang="ru" onDone={() => undefined} />);
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => vi.advanceTimersByTime(SILENT_HOLD_MS));
+      expect(currentAudio().src).toBe(previewAudioSrc("ru", 1));
+    } finally {
+      FakeAudio.prototype.play = original;
+    }
+  });
+
+  it("каждый кадр и подсказка загрузки есть на русском и английском", () => {
     const ru = shellStrings.ru as Record<string, string>;
     const en = shellStrings.en as Record<string, string>;
-    for (const key of INTRO_KEYS) {
-      expect(ru[key]?.length ?? 0).toBeGreaterThan(0);
-      expect(en[key]?.length ?? 0).toBeGreaterThan(0);
+    const keys = [...INTRO_KEYS, "shell.loading.title", "shell.loading.hint.1", "shell.loading.hint.2", "shell.loading.hint.3", "shell.preview.begin"];
+    for (const key of keys) {
+      expect(ru[key]?.length ?? 0, key).toBeGreaterThan(0);
+      expect(en[key]?.length ?? 0, key).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("загрузка", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("через LOADING_MS сообщает о готовности, подсказка меняется", () => {
+    const done = vi.fn();
+    render(<Loading lang="ru" onDone={done} />);
+    const first = screen.getByTestId("loading-hint").textContent;
+    act(() => vi.advanceTimersByTime(1300));
+    expect(screen.getByTestId("loading-hint").textContent).not.toBe(first);
+    expect(done).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(LOADING_MS));
+    expect(done).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("хроника", () => {
   it("показывает записи словами языка, а не сырыми ключами", () => {
-    render(<Slides lang="ru" onDone={() => undefined} />);
+    vi.stubGlobal("Audio", FakeAudio);
+    FakeAudio.instances = [];
+    render(<Preview lang="ru" onDone={() => undefined} />);
     fireEvent.click(screen.getByRole("button", { name: "Дальше" }));
     fireEvent.click(screen.getByRole("button", { name: "Пропустить" }));
     cleanup();
+    vi.unstubAllGlobals();
 
     render(<Chronicle lang="ru" />);
-    expect(screen.getByText("Жили себе люди.")).toBeTruthy();
+    expect(screen.getAllByText(/./).some((node) => node.textContent?.startsWith("shell.preview"))).toBe(false);
 
     cleanup();
     render(<Chronicle lang="en" />);
-    expect(screen.getByText("People were doing fine.")).toBeTruthy();
-    cleanup();
-    render(<Chronicle lang="en" />);
-    expect(screen.queryByText("shell.slide.1")).toBeNull();
+    expect(screen.queryByText("shell.preview.1")).toBeNull();
   });
 
   it("пустая хроника говорит об этом словами словаря", () => {

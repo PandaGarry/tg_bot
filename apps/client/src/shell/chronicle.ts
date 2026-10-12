@@ -72,16 +72,18 @@ export function useChronicle(): ChronicleEntry[] {
   return useSyncExternalStore(subscribeChronicle, chronicleEntries, chronicleEntries);
 }
 
-/** Тексты вступления: порядок задан 03-first-session.md. */
+/** Тексты превью первого запуска: порядок и тексты — docs/design/first-session.md, 10 кадров. */
 export const INTRO_KEYS = [
-  "shell.slide.1",
-  "shell.slide.2",
-  "shell.slide.3",
-  "shell.slide.4",
-  "shell.slide.5",
-  "shell.slide.6",
-  "shell.slide.7",
-  "shell.slide.8",
+  "shell.preview.1",
+  "shell.preview.2",
+  "shell.preview.3",
+  "shell.preview.4",
+  "shell.preview.5",
+  "shell.preview.6",
+  "shell.preview.7",
+  "shell.preview.8",
+  "shell.preview.9",
+  "shell.preview.10",
 ] as const;
 
 /** Хроника вступления: пишется один раз, когда слайды отпускают игрока. */
