@@ -50,7 +50,7 @@ export function Boot({
       <Notice message={notice.message} tone={notice.tone} id={notice.id} />
 
       <header className="auth-top">
-        <img className="auth-logo" src="emblem.jpg" alt="" />
+        <img className="auth-logo" src="logo.png" alt="" />
         <LangSwitch lang={lang} />
       </header>
 

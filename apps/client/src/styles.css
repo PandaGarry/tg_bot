@@ -711,8 +711,8 @@ button {
   min-height: 44px;
 }
 .auth-logo {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #44403c;
@@ -850,8 +850,8 @@ button {
   animation-fill-mode: forwards;
 }
 .load-logo {
-  width: 104px;
-  height: 104px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #44403c;

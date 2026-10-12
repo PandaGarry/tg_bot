@@ -47,7 +47,7 @@ export function Loading({ lang, onDone }: { lang: Locale; onDone: () => void }) 
             style={{ animationDuration: `${LOADING_MS}ms` }}
           />
         </svg>
-        <img className="load-logo" src="emblem.jpg" alt="" />
+        <img className="load-logo" src="logo.png" alt="" />
       </div>
 
       <h1 className="load-title">{t("shell.loading.title")}</h1>
