@@ -11,7 +11,7 @@ import { store } from "../store.js";
 import { Slot, hasSlot } from "../slots.js";
 import type { WorldViewBase } from "@tdl/protocol";
 
-const PORTRAITS = ["portrait-1", "portrait-2", "portrait-3", "portrait-4", "portrait-5", "portrait-6", "portrait-7", "portrait-8"];
+const PORTRAITS = Array.from({ length: 10 }, (_, index) => `portrait-${index + 1}`);
 const SIGNS = ["skull", "bell", "tooth", "hand", "tower", "mushroom"];
 const COLORS = ["bone", "moss", "ash", "blood", "iron", "wheat", "night", "rust"];
 const TYPES = ["flesh", "bone", "spore"] as const;
@@ -63,11 +63,17 @@ export function Create({
       </label>
 
       <Group title={t("shell.create.portrait")}>
+        <div className="flex items-center gap-3">
+          <img src={`/portraits/${portrait}.jpg`} alt="" className="h-28 w-28 rounded border border-stone-700 object-cover" />
+          <span className="text-xs text-stone-500">{portrait}</span>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
         {PORTRAITS.map((item, index) => (
           <Choice key={item} active={portrait === item} onClick={() => setPortrait(item)}>
-            <span className="text-xs">{index + 1}</span>
+            <img src={`/portraits/${item}.jpg`} alt={`${index + 1}`} className="h-12 w-12 rounded object-cover" loading="lazy" />
           </Choice>
         ))}
+        </div>
       </Group>
 
       <Group title={t("shell.create.banner")}>
