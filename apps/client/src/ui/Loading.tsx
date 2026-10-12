@@ -1,6 +1,6 @@
 /**
- * Экран загрузки: показывается после превью и при повторном входе на устройство.
- * Анимации — CSS-keyframes из styles.css. Подсказки сменяются сами; переход дальше — по таймеру.
+ * Экран загрузки: знак в кольце прогресса, заголовок и одна подсказка, которая сменяется плавно.
+ * Переход дальше — по таймеру LOADING_MS. Анимации — CSS (styles.css), тени нет.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +12,9 @@ export const LOADING_MS = 2500;
 /** Смена подсказки. */
 export const HINT_MS = 1250;
 const HINTS = ["shell.loading.hint.1", "shell.loading.hint.2", "shell.loading.hint.3"] as const;
+
+/** Длина окружности кольца в единицах viewBox (r = 46). */
+const RING = 2 * Math.PI * 46;
 
 export function Loading({ lang, onDone }: { lang: Locale; onDone: () => void }) {
   const t = translator(lang);
@@ -31,22 +34,28 @@ export function Loading({ lang, onDone }: { lang: Locale; onDone: () => void }) 
   }, []);
 
   return (
-    <main className="gate relative flex min-h-[100dvh] flex-col items-center justify-center gap-8 bg-[#0c0a09] p-6">
-      <div className="loader-ring relative h-24 w-24" aria-hidden="true">
-        <span className="loader-ring-arc absolute inset-0 rounded-full border-2 border-transparent border-t-bone" />
-        <span className="loader-ring-arc loader-ring-arc-slow absolute inset-3 rounded-full border-2 border-transparent border-b-stone-500" />
-        <span className="loader-pulse absolute inset-[38%] rounded-full bg-bone" />
+    <main className="load-screen" data-lang={lang}>
+      <div className="load-mark">
+        <svg className="load-ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle className="load-ring-track" cx="50" cy="50" r="46" />
+          <circle
+            className="load-ring-fill"
+            cx="50"
+            cy="50"
+            r="46"
+            strokeDasharray={RING}
+            style={{ animationDuration: `${LOADING_MS}ms` }}
+          />
+        </svg>
+        <img className="load-logo" src="emblem.jpg" alt="" />
       </div>
 
-      <h1 className="preview-serif text-2xl text-bone">{t("shell.loading.title")}</h1>
+      <h1 className="load-title">{t("shell.loading.title")}</h1>
 
-      <div className="h-1 w-full max-w-xs overflow-hidden rounded bg-stone-800" role="progressbar" aria-label={t("shell.loading.title")}>
-        <div className="loader-bar h-full bg-bone" style={{ animationDuration: `${LOADING_MS}ms` }} />
-      </div>
-
-      <p key={hint} data-testid="loading-hint" className="loader-hint preview-serif min-h-[3.5rem] max-w-md text-center text-lg text-stone-400">
+      <p key={hint} data-testid="loading-hint" className="load-hint">
         {t(HINTS[hint] as string)}
       </p>
+
     </main>
   );
 }

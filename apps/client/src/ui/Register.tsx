@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { Notice, useNotice } from "./kit/Notice.js";
 import type { Locale } from "@tdl/protocol";
 import { LIMITS } from "@tdl/protocol";
 import { register } from "../net.js";
@@ -43,8 +44,13 @@ export function Register({
 
   // Отказ ядра (логин занят, почта не та) снимает ожидание и говорит причину.
   const failureKey = state.errors[0]?.key;
+  const notice = useNotice();
   useEffect(() => {
-    if (failureKey) setSending(false);
+    if (failureKey) {
+      setSending(false);
+      notice.say(t(failureKey), "error");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [failureKey]);
 
   const loginOk = goodLogin(login);
@@ -68,14 +74,19 @@ export function Register({
 
   return (
     <AuthScreen lang={lang}>
-      <div className="auth-top">
-        <LangSwitch lang={lang} />
-      </div>
+      <Notice message={notice.message} tone={notice.tone} id={notice.id} />
 
-      <header className="auth-head">
+      <header className="auth-top">
+        <button type="button" onClick={onLogin} className="auth-back" data-testid="register-back">
+          ← {t("shell.register.back")}
+        </button>
+        <LangSwitch lang={lang} />
+      </header>
+
+      <div className="auth-intro">
         <h1 className="auth-title auth-title-sm">{t("shell.register.title")}</h1>
         <p className="auth-sub">{t("shell.register.note")}</p>
-      </header>
+      </div>
 
       <form
         className="auth-card"
@@ -167,15 +178,9 @@ export function Register({
         </AuthButton>
       </form>
 
-      {/* Короткое имя, почта и пароль говорят, чего не хватает, до нажатия. */}
-      <p data-testid="register-problem" role="status" className="auth-note">
-        {failureKey ? t(failureKey) : problemKey ? t(problemKey) : ""}
-      </p>
-
-      <p className="auth-foot">
-        <button type="button" onClick={onLogin} className="auth-link">
-          {t("shell.register.have")}
-        </button>
+      {/* Что именно мешает отправке — до нажатия. Строка есть всегда, чтобы кнопка не прыгала. */}
+      <p data-testid="register-problem" className="auth-note auth-note-fixed">
+        {problemKey ? t(problemKey) : ""}
       </p>
     </AuthScreen>
   );

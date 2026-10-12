@@ -694,3 +694,222 @@ button {
     transition: none;
   }
 }
+
+/* ===== Окна входа и регистрации: вторая версия (13.10, по замечаниям заказчика) ===== */
+.auth-screen {
+  position: relative;
+}
+.auth-column {
+  max-width: 400px;
+  gap: 1.1rem;
+}
+.auth-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+.auth-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #44403c;
+}
+.auth-back {
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: #d6d3d1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.auth-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0 0.25rem;
+}
+.auth-intro .auth-title {
+  text-align: left;
+}
+.auth-intro .auth-sub {
+  text-align: left;
+}
+.auth-card {
+  gap: 1rem;
+}
+.auth-submit {
+  margin-top: 0.35rem;
+}
+.auth-providers .auth-btn-provider {
+  justify-content: flex-start;
+  padding-left: 1rem;
+}
+.auth-provider-mark {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-note-fixed {
+  min-height: 1.25rem;
+}
+
+/* Полоса объявлений: поверх экрана, по центру, не двигает форму. */
+.auth-notice-slot {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 0.75rem);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.auth-notice {
+  width: min(92vw, 360px);
+  padding: 0.7rem 1rem;
+  border: 1px solid #57534e;
+  border-radius: 12px;
+  background: rgba(28, 25, 23, 0.94);
+  color: var(--color-bone);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  text-align: center;
+  animation: auth-notice-in 0.22s ease-out both;
+}
+.auth-notice-error {
+  border-color: #8a4a3e;
+  color: #f0c2b5;
+}
+@keyframes auth-notice-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 640px) {
+  .auth-screen {
+    align-items: center;
+  }
+  .auth-column {
+    padding-top: 0;
+    max-width: 440px;
+  }
+  .auth-card {
+    padding: 1.6rem;
+  }
+}
+
+/* ===== Загрузка: знак в кольце прогресса (13.10) ===== */
+.load-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem calc(env(safe-area-inset-bottom) + 2rem);
+  background:
+    radial-gradient(120% 60% at 50% 35%, rgba(120, 113, 108, 0.18), transparent 60%),
+    #0c0a09;
+  color: var(--color-bone);
+  font-family: "Manrope", system-ui, sans-serif;
+  text-align: center;
+}
+.load-mark {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.load-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.load-ring-track,
+.load-ring-fill {
+  fill: none;
+  stroke-width: 2;
+}
+.load-ring-track {
+  stroke: #292524;
+}
+.load-ring-fill {
+  stroke: #d6d3d1;
+  stroke-linecap: round;
+  stroke-dasharray: 289.03;
+  animation-name: load-ring-draw;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: forwards;
+}
+.load-logo {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #44403c;
+}
+.load-title {
+  font-family: "Unbounded", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+}
+.load-hint {
+  min-height: 3.2rem;
+  max-width: 24rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  color: #a8a29e;
+  animation: load-hint-in 0.5s ease-out both;
+}
+@keyframes load-ring-draw {
+  from { stroke-dashoffset: 289.03; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes load-hint-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-ring-fill,
+  .load-hint,
+  .auth-notice {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Акцент входа: золото кузни (палитра игры), без теней. Отключённая кнопка остаётся читаемой. */
+.auth-btn-primary {
+  background: linear-gradient(180deg, #e0b04a 0%, #b9862f 100%);
+  color: #171210;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.auth-btn-primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #ecc060 0%, #c6923c 100%);
+}
+.auth-btn-primary:disabled {
+  opacity: 0.45;
+}
+.auth-notice-slot {
+  top: calc(env(safe-area-inset-top) + 0.5rem);
+}
+/* Шапка отступает под полосу, пока она видна: логотип и язык не перекрываются. */
+.auth-screen .auth-column {
+  padding-top: calc(env(safe-area-inset-top) + 3.25rem);
+}
+@media (min-width: 640px) {
+  .auth-screen .auth-column {
+    padding-top: 0;
+  }
+}

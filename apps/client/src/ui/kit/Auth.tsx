@@ -75,16 +75,10 @@ export function AuthField({
         />
         {trailing}
       </div>
-      {hint && !error ? (
-        <span id={hintId} className="auth-hint">
-          {hint}
-        </span>
-      ) : null}
-      {error ? (
-        <span id={errorId} className="auth-error" role="alert">
-          {error}
-        </span>
-      ) : null}
+      {/* Строка подсказки или ошибки занимает место всегда: поля не прыгают при появлении текста. */}
+      <span id={error ? errorId : hintId} className={error ? "auth-error" : "auth-hint"} role={error ? "alert" : undefined}>
+        {error ?? hint ?? ""}
+      </span>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 /**
- * Вход: логин или почта и пароль; Google ID и Яндекс ID — кнопки (подключаются после ключей заказчика).
- * Регистрация — отдельное окно: аккаунт и персонаж заводятся врозь.
+ * Вход: логин или почта и пароль. Регистрация — отдельная явная кнопка: аккаунт и персонаж заводятся врозь.
+ * Google ID и Яндекс ID — кнопки; до ключей заказчика показывают объявление, а не переход.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Locale } from "@tdl/protocol";
 import { login } from "../net.js";
 import { translator } from "../i18n/index.js";
@@ -15,12 +15,12 @@ import {
   GoogleMark,
   LangSwitch,
   LockIcon,
-  MailIcon,
   PasswordToggle,
   ProviderButton,
+  UserIcon,
   YandexMark,
-  useProviderNote,
 } from "./kit/Auth.js";
+import { Notice, useNotice } from "./kit/Notice.js";
 
 export function Boot({
   lang,
@@ -36,20 +36,28 @@ export function Boot({
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const providers = useProviderNote(lang);
+  const notice = useNotice();
   const canSubmit = loginName.trim().length >= 3 && password.length >= 8;
+
+  // Статус ядра (например, связи нет) — объявлением, а не строкой под формой.
+  useEffect(() => {
+    if (status && status !== "shell.boot.subtitle") notice.say(t(status), "error");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   return (
     <AuthScreen lang={lang}>
-      <div className="auth-top">
-        <LangSwitch lang={lang} />
-      </div>
+      <Notice message={notice.message} tone={notice.tone} id={notice.id} />
 
-      <header className="auth-head">
-        <img className="auth-emblem" src="emblem.jpg" alt="" />
+      <header className="auth-top">
+        <img className="auth-logo" src="emblem.jpg" alt="" />
+        <LangSwitch lang={lang} />
+      </header>
+
+      <div className="auth-intro">
         <h1 className="auth-title">{t("shell.app.title")}</h1>
         <p className="auth-sub">{t("shell.boot.subtitle")}</p>
-      </header>
+      </div>
 
       <form
         className="auth-card"
@@ -61,7 +69,7 @@ export function Boot({
       >
         <AuthField
           label={t("shell.boot.login")}
-          icon={<MailIcon />}
+          icon={<UserIcon />}
           testId="boot-login"
           inputProps={{
             value: loginName,
@@ -85,10 +93,14 @@ export function Boot({
           }}
         />
 
-        <AuthButton type="submit" disabled={!canSubmit} className="auth-submit">
+        <AuthButton type="submit" variant="primary" disabled={!canSubmit} className="auth-submit" data-testid="boot-enter">
           {t("shell.boot.enter")}
         </AuthButton>
       </form>
+
+      <AuthButton variant="secondary" onClick={onRegister} data-testid="boot-to-register">
+        {t("shell.boot.register")}
+      </AuthButton>
 
       <Divider text={t("shell.auth.or")} />
 
@@ -97,32 +109,15 @@ export function Boot({
           label={t("shell.auth.provider.google")}
           mark={<GoogleMark />}
           testId="boot-google"
-          onClick={() => providers.ask("Google ID")}
+          onClick={() => notice.say(t("shell.auth.provider.pending", { provider: "Google ID" }))}
         />
         <ProviderButton
           label={t("shell.auth.provider.yandex")}
           mark={<YandexMark />}
           testId="boot-yandex"
-          onClick={() => providers.ask("Яндекс ID")}
+          onClick={() => notice.say(t("shell.auth.provider.pending", { provider: "Яндекс ID" }))}
         />
       </div>
-
-      {providers.note ? (
-        <p className="auth-note" role="status" data-testid="boot-provider-note">
-          {providers.note}
-        </p>
-      ) : null}
-
-      <p className="auth-foot">
-        {t("shell.boot.noacc")}{" "}
-        <button type="button" onClick={onRegister} data-testid="boot-to-register" className="auth-link">
-          {t("shell.boot.register")}
-        </button>
-      </p>
-
-      <p className="auth-note" role="status">
-        {t(status)}
-      </p>
     </AuthScreen>
   );
 }

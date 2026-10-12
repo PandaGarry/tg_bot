@@ -223,11 +223,11 @@ describe("вход и регистрация", () => {
   it("Google и Яндекс ID показывают понятное сообщение, а не падают", () => {
     render(<Boot lang="ru" statusKey="shell.boot.subtitle" onRegister={() => undefined} />);
     fireEvent.click(screen.getByTestId("boot-google"));
-    expect(screen.getByTestId("boot-provider-note").textContent).toBe(
+    expect(screen.getByRole("status").textContent).toBe(
       "Вход через Google ID пока не подключён. Войдите логином и паролем.",
     );
     fireEvent.click(screen.getByTestId("boot-yandex"));
-    expect(screen.getByTestId("boot-provider-note").textContent).toContain("Яндекс ID");
+    expect(screen.getByRole("status").textContent).toContain("Яндекс ID");
   });
 
   it("переход к регистрации и подсказка о неполной форме", () => {
@@ -392,7 +392,7 @@ describe("вход и регистрация", () => {
   it("кнопка возврата ведёт ко входу", () => {
     const toLogin = vi.fn();
     render(<Register lang="ru" onLogin={toLogin} />);
-    fireEvent.click(screen.getByRole("button", { name: "Уже заведён вход — войти" }));
+    fireEvent.click(screen.getByTestId("register-back"));
     expect(toLogin).toHaveBeenCalledTimes(1);
   });
 });
