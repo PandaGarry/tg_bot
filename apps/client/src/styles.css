@@ -1386,3 +1386,32 @@ button {
   margin-top: 0.5rem;
   padding: 0.25rem 0 calc(env(safe-area-inset-bottom) + 0.75rem);
 }
+
+/* Регистрация: высота под видимую область iPhone с панелями Safari (замер 14.10: 390×664 без прокрутки). */
+.auth-screen:has(.reg-footer) .auth-column {
+  gap: 0.6rem;
+  padding-top: 0;
+}
+.auth-screen:has(.reg-footer) .auth-intro {
+  gap: 0.25rem;
+}
+.reg-card {
+  gap: 0.55rem;
+  padding: 0.875rem;
+}
+.reg-footer {
+  gap: 0.25rem;
+  margin-top: 0;
+  padding: 0.25rem 0 calc(env(safe-area-inset-bottom) + 0.5rem);
+}
+.reg-card {
+  gap: 0.45rem;
+  padding: 0.75rem;
+}
+.reg-checks {
+  gap: 0;
+}
+.reg-check {
+  min-height: 0;
+  padding: 0.2rem 0;
+}
