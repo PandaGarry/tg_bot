@@ -250,10 +250,14 @@ describe("вход и регистрация", () => {
     unmount();
 
     render(<Register lang="en" onLogin={() => undefined} />);
-    expect(screen.getByTestId("register-problem").textContent).toBe(
+    // На пустой форме ошибок нет: они появляются после ухода с поля.
+    expect(screen.queryByRole("alert")).toBeNull();
+    const login = screen.getByTestId("register-login");
+    fireEvent.change(login, { target: { value: "ab" } });
+    fireEvent.blur(login);
+    expect(screen.getByRole("alert").textContent).toBe(
       "Login: 3–24 characters, Latin letters, digits, dot, hyphen, underscore",
     );
-    expect(screen.getByLabelText("Login")).toBeTruthy();
   });
 });
 
@@ -315,9 +319,10 @@ describe("создание лорда", () => {
     render(<Create lang="ru" view={null} serverNow={1} />);
     expect(screen.getByText("Портрет")).toBeTruthy();
     expect(screen.getByText("Знамя")).toBeTruthy();
-    expect(screen.getByText("Плоть")).toBeTruthy();
-    expect(screen.getByText("Кость")).toBeTruthy();
-    expect(screen.getByText("Спора")).toBeTruthy();
+    // «Плоть» есть и в списке типов, и в карточке лорда: выбор виден сразу.
+    expect(screen.getAllByText("Плоть").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Кость").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Спора").length).toBeGreaterThan(0);
     expect(screen.getByText("Замок чуть лучше держит удар")).toBeTruthy();
     // Кнопка закрыта, пока имя короткое: игра пишет, чего не хватает, и не шутит.
     expect(screen.getByRole("button", { name: "Занять двор" }).hasAttribute("disabled")).toBe(true);
@@ -369,19 +374,22 @@ describe("вход и регистрация", () => {
   it("пароль и повтор не совпали — отправки нет", () => {
     render(<Register lang="ru" onLogin={() => {}} />);
     fillRegister({ repeat: "другой-пароль-12345" });
+    fireEvent.blur(screen.getByTestId("register-repeat"));
 
     expect((screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByTestId("register-problem").textContent).toBe("Пароли не совпадают");
+    expect(screen.getByRole("alert").textContent).toBe("Пароли не совпадают");
   });
 
   it("кривая почта и русский логин не проходят до сервера", () => {
     render(<Register lang="ru" onLogin={() => {}} />);
     fillRegister({ email: "почта-без-собаки", login: "Лорд_Тьмы" });
+    fireEvent.blur(screen.getByTestId("register-email"));
+    fireEvent.blur(screen.getByTestId("register-login"));
 
     expect((screen.getByRole("button", { name: "Зарегистрироваться" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByTestId("register-problem").textContent).toBe(
-      "Логин: 3–24 знака, латиница, цифры, точка, дефис, подчёркивание",
-    );
+    const messages = screen.getAllByRole("alert").map((node) => node.textContent);
+    expect(messages).toContain("Почта написана неверно");
+    expect(messages).toContain("Логин: 3–24 знака, латиница, цифры, точка, дефис, подчёркивание");
   });
 
   it("верные поля включают кнопку и шлют регистрацию вместе с согласиями", async () => {
@@ -422,3 +430,13 @@ function fillRegister(over: { login?: string; email?: string; repeat?: string; r
   if (over.rules !== false) fireEvent.click(screen.getByTestId("register-rules"));
   if (over.mail) fireEvent.click(screen.getByTestId("register-mail"));
 }
+
+describe("ошибки для игрока", () => {
+  it("игровые фразы ядра не выходят на экран: «Не пустили» → «Логин или пароль не подходят.»", async () => {
+    const { friendlyError } = await import("../src/shell/errors.js");
+    expect(friendlyError("ru", "kernel.login.failed")).toBe("Логин или пароль не подходят.");
+    expect(friendlyError("ru", "kernel.login.failed")).not.toContain("Не пустили");
+    expect(friendlyError("ru", "kernel.неизвестно")).toBe("Что-то пошло не так. Попробуйте ещё раз.");
+    expect(friendlyError("en", "kernel.login.failed")).toBe("Login or password is incorrect.");
+  });
+});

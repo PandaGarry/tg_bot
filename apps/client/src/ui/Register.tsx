@@ -1,15 +1,18 @@
 /**
- * Регистрация аккаунта: логин, почта, пароль, подтверждение пароля и согласия.
- * Отдельный экран от создания персонажа: логин и никнейм — разные понятия.
- * Пароль наверх уходит один раз: проверка совпадения — на этом экране.
+ * Регистрация аккаунта: логин, почта, пароль, повтор и два согласия.
+ * Ошибка показывается под полем после ухода с поля, а не на пустой форме.
+ * Кнопка «Зарегистрироваться» закреплена внизу экрана на телефоне.
+ * Отдельно от создания персонажа: логин и имя лорда — разные вещи.
  */
 
 import { useEffect, useState } from "react";
-import { Notice, useNotice } from "./kit/Notice.js";
 import type { Locale } from "@tdl/protocol";
 import { LIMITS } from "@tdl/protocol";
 import { register } from "../net.js";
 import { translator } from "../i18n/index.js";
+import { useStore } from "../useStore.js";
+import { goodEmail, goodLogin, goodPassword, samePassword } from "../shell/form.js";
+import { friendlyError } from "../shell/errors.js";
 import {
   AuthButton,
   AuthField,
@@ -20,15 +23,16 @@ import {
   PasswordToggle,
   UserIcon,
 } from "./kit/Auth.js";
-import { useStore } from "../useStore.js";
-import { goodEmail, goodLogin, goodPassword, samePassword } from "../shell/form.js";
+import { Notice, useNotice } from "./kit/Notice.js";
+
+type Field = "login" | "email" | "password" | "repeat";
 
 export function Register({
   lang,
   onLogin,
 }: {
   lang: Locale;
-  /** Вернуться ко входу: регистрация уже была. */
+  /** Вернуться ко входу. */
   onLogin: () => void;
 }) {
   const t = translator(lang);
@@ -41,14 +45,16 @@ export function Register({
   const [mail, setMail] = useState(false);
   const [show, setShow] = useState(false);
   const [sending, setSending] = useState(false);
-
-  // Отказ ядра (логин занят, почта не та) снимает ожидание и говорит причину.
-  const failureKey = state.errors[0]?.key;
+  // Поле «тронуто», когда игрок в нём был и ушёл. Ошибки показываем только для тронутых полей.
+  const [touched, setTouched] = useState<Record<Field, boolean>>({ login: false, email: false, password: false, repeat: false });
   const notice = useNotice();
+
+  // Отказ ядра снимает ожидание и говорит причину спокойной фразой.
+  const failureKey = state.errors[0]?.key;
   useEffect(() => {
     if (failureKey) {
       setSending(false);
-      notice.say(t(failureKey), "error");
+      notice.say(friendlyError(lang, failureKey), "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [failureKey]);
@@ -59,18 +65,25 @@ export function Register({
   const repeatOk = samePassword(password, repeat);
   const canSubmit = loginOk && emailOk && passwordOk && repeatOk && rules && !sending;
 
-  /** Что именно не так: игрок видит одну короткую строку, без шутки. */
-  const problemKey = !loginOk
-    ? "shell.register.need.login"
-    : !emailOk
-      ? "shell.register.need.email"
-      : !passwordOk
-        ? "shell.register.need.password"
-        : !repeatOk
-          ? "shell.register.need.repeat"
-          : !rules
-            ? "shell.register.need.rules"
-            : null;
+  const errorFor = (field: Field): string | undefined => {
+    if (!touched[field]) return undefined;
+    if (field === "login" && !loginOk) return t("shell.register.need.login");
+    if (field === "email" && !emailOk) return t("shell.register.need.email");
+    if (field === "password" && !passwordOk) return t("shell.register.need.password");
+    if (field === "repeat" && !repeatOk) return t("shell.register.need.repeat");
+    return undefined;
+  };
+  const blur = (field: Field) => setTouched((prev) => ({ ...prev, [field]: true }));
+
+  /** Подсказка над кнопкой: чего не хватает, только когда игрок уже что-то ввёл. */
+  const started = login || email || password || repeat;
+  const missingKey = !started
+    ? null
+    : !rules
+      ? "shell.register.need.rules"
+      : !loginOk || !emailOk || !passwordOk || !repeatOk
+        ? "shell.register.need.fields"
+        : null;
 
   return (
     <AuthScreen lang={lang}>
@@ -89,7 +102,8 @@ export function Register({
       </div>
 
       <form
-        className="auth-card"
+        id="register-form"
+        className="auth-card reg-card"
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
@@ -100,11 +114,13 @@ export function Register({
         <AuthField
           label={t("shell.register.login")}
           hint={t("shell.register.login.hint")}
+          error={errorFor("login")}
           icon={<UserIcon />}
           testId="register-login"
           inputProps={{
             value: login,
             onChange: (event) => setLogin(event.target.value),
+            onBlur: () => blur("login"),
             autoComplete: "username",
             autoCorrect: "off",
             autoCapitalize: "none",
@@ -115,11 +131,13 @@ export function Register({
 
         <AuthField
           label={t("shell.register.email")}
+          error={errorFor("email")}
           icon={<MailIcon />}
           testId="register-email"
           inputProps={{
             value: email,
             onChange: (event) => setEmail(event.target.value),
+            onBlur: () => blur("email"),
             autoComplete: "email",
             inputMode: "email",
             type: "email",
@@ -130,12 +148,15 @@ export function Register({
 
         <AuthField
           label={t("shell.register.password")}
+          hint={t("shell.register.password.hint")}
+          error={errorFor("password")}
           icon={<LockIcon />}
           testId="register-password"
           trailing={<PasswordToggle lang={lang} shown={show} onToggle={() => setShow((v) => !v)} />}
           inputProps={{
             value: password,
             onChange: (event) => setPassword(event.target.value),
+            onBlur: () => blur("password"),
             type: show ? "text" : "password",
             autoComplete: "new-password",
           }}
@@ -143,45 +164,70 @@ export function Register({
 
         <AuthField
           label={t("shell.register.repeat")}
+          error={errorFor("repeat")}
           icon={<LockIcon />}
           testId="register-repeat"
           inputProps={{
             value: repeat,
             onChange: (event) => setRepeat(event.target.value),
+            onBlur: () => blur("repeat"),
             type: show ? "text" : "password",
             autoComplete: "new-password",
           }}
         />
 
-        <label className="auth-check">
-          <input
-            type="checkbox"
-            checked={rules}
-            onChange={(event) => setRules(event.target.checked)}
-            data-testid="register-rules"
-          />
-          <span>{t("shell.register.rules")}</span>
-        </label>
-
-        <label className="auth-check">
-          <input
-            type="checkbox"
-            checked={mail}
-            onChange={(event) => setMail(event.target.checked)}
-            data-testid="register-mail"
-          />
-          <span>{t("shell.register.mail")}</span>
-        </label>
-
-        <AuthButton type="submit" disabled={!canSubmit} className="auth-submit">
-          {sending ? t("shell.register.sending") : t("shell.register.submit")}
-        </AuthButton>
+        <div className="reg-checks">
+          <Check checked={rules} onChange={setRules} testId="register-rules">
+            {t("shell.register.rules")}
+          </Check>
+          <Check checked={mail} onChange={setMail} testId="register-mail">
+            {t("shell.register.mail")}
+          </Check>
+        </div>
       </form>
 
-      {/* Что именно мешает отправке — до нажатия. Строка есть всегда, чтобы кнопка не прыгала. */}
-      <p data-testid="register-problem" className="auth-note auth-note-fixed">
-        {problemKey ? t(problemKey) : ""}
-      </p>
+      {/* Закреплённая внизу панель: подсказка и кнопка всегда на виду, в том числе над клавиатурой. */}
+      <div className="reg-footer">
+        <p data-testid="register-problem" className="reg-hint" role="status">
+          {missingKey ? t(missingKey) : ""}
+        </p>
+        <AuthButton type="submit" form="register-form" disabled={!canSubmit} className="auth-submit" data-testid="register-submit">
+          {sending ? t("shell.register.sending") : t("shell.register.submit")}
+        </AuthButton>
+      </div>
     </AuthScreen>
+  );
+}
+
+/** Чекбокс с крупной областью касания. Нативный ввод остаётся для клавиатуры и экранных читалок. */
+function Check({
+  checked,
+  onChange,
+  children,
+  testId,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  children: string;
+  testId: string;
+}) {
+  return (
+    <label className="reg-check">
+      <input
+        type="checkbox"
+        className="reg-check-input"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        data-testid={testId}
+      />
+      <span className="reg-check-box" aria-hidden="true">
+        {checked ? (
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="m3 8.5 3 3 7-7" />
+          </svg>
+        ) : null}
+      </span>
+      <span className="reg-check-text">{children}</span>
+    </label>
   );
 }

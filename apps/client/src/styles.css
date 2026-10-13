@@ -909,3 +909,444 @@ button {
     transform: scaleX(1);
   }
 }
+
+/* ===== Регистрация: закреплённая панель, ошибки по полям, свой чекбокс (13.10, третья правка) ===== */
+.reg-card {
+  gap: 1rem;
+}
+.reg-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.reg-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  position: relative;
+}
+.reg-check-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+.reg-check-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  border: 1px solid #57534e;
+  border-radius: 6px;
+  background: #1c1917;
+  color: #0c0a09;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.reg-check-input:checked + .reg-check-box {
+  background: #e7e5e4;
+  border-color: #e7e5e4;
+}
+.reg-check-input:focus-visible + .reg-check-box {
+  outline: 2px solid #a8a29e;
+  outline-offset: 2px;
+}
+.reg-check-text {
+  color: #d6d3d1;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+.reg-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 0.75rem 0 calc(env(safe-area-inset-bottom) + 0.75rem);
+  background: #0c0a09;
+}
+.reg-hint {
+  min-height: 1.1rem;
+  color: #a8a29e;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.auth-screen:has(.reg-footer) {
+  padding-bottom: 0;
+}
+
+/* ===== Создание лорда (13.10) ===== */
+.cr-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 0.75rem) 1rem 0;
+  background: #0c0a09;
+  color: var(--color-bone);
+  font-family: "Manrope", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.cr-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.cr-title {
+  font-family: "Unbounded", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.cr-sub {
+  margin-top: 0.3rem;
+  color: #a8a29e;
+  font-size: 0.9rem;
+}
+.cr-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.cr-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.cr-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid #292524;
+  border-radius: 16px;
+  background: rgba(28, 25, 23, 0.7);
+}
+.cr-step-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.cr-step-num {
+  font-family: "Unbounded", system-ui, sans-serif;
+  font-size: 0.75rem;
+  color: #78716c;
+}
+.cr-step-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.cr-step-hint {
+  color: #78716c;
+  font-size: 0.78rem;
+}
+.cr-field-label {
+  color: #a8a29e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+.cr-input-wrap {
+  position: relative;
+}
+.cr-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 3.5rem 0 0.9rem;
+  border: 1px solid #44403c;
+  border-radius: 12px;
+  background: #1c1917;
+  color: var(--color-bone);
+  font-size: 16px;
+  outline: none;
+}
+.cr-input:focus {
+  border-color: #a8a29e;
+}
+.cr-input-bad .cr-input {
+  border-color: #b45344;
+}
+.cr-input::placeholder {
+  color: #57534e;
+}
+.cr-count {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #78716c;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Портреты: на телефоне пять в ряд, на планшете и компьютере — ровная сетка. */
+.cr-portraits {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.cr-portrait {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: #1c1917;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.cr-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cr-portrait:hover {
+  border-color: #57534e;
+}
+.cr-portrait-on {
+  border-color: #e0b04a;
+}
+.cr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.cr-chip {
+  min-height: 40px;
+  padding: 0 0.85rem;
+  border: 1px solid #44403c;
+  border-radius: 999px;
+  color: #d6d3d1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  background: #1c1917;
+}
+.cr-chip-on {
+  border-color: #e0b04a;
+  color: #f5f5f4;
+  background: #2a2319;
+}
+.cr-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.cr-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  outline: 1px solid #292524;
+  outline-offset: 2px;
+}
+.cr-swatch-on {
+  outline: 2px solid #e0b04a;
+  outline-offset: 2px;
+}
+.cr-types {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+.cr-type {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
+  min-height: 56px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #44403c;
+  border-radius: 12px;
+  background: #1c1917;
+  text-align: left;
+  color: #a8a29e;
+}
+.cr-type-on {
+  border-color: #e0b04a;
+  color: var(--color-bone);
+  background: #2a2319;
+}
+.cr-type-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: inherit;
+}
+.cr-type-card {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #a8a29e;
+}
+.cr-type-bonus {
+  font-size: 0.8rem;
+  color: #78716c;
+}
+/* Карточка лорда */
+.cr-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem;
+  border: 1px solid #292524;
+  border-radius: 16px;
+  background: rgba(28, 25, 23, 0.7);
+}
+.cr-summary-portrait {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.cr-summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.cr-summary-kicker {
+  color: #78716c;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cr-summary-name {
+  font-family: "Unbounded", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cr-summary-type {
+  color: #a8a29e;
+  font-size: 0.8rem;
+}
+.cr-banner {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 26px;
+  padding: 0 0.6rem;
+  border-radius: 6px;
+  color: #0c0a09;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.cr-banner-label {
+  white-space: nowrap;
+}
+.cr-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 0.75rem 0 calc(env(safe-area-inset-bottom) + 0.75rem);
+  background: #0c0a09;
+}
+.cr-hint {
+  min-height: 1.1rem;
+  color: #a8a29e;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.cr-submit {
+  min-height: 52px;
+}
+
+/* Планшет: портреты крупнее, типы в три колонки. */
+@media (min-width: 640px) {
+  .cr-screen {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .cr-portraits {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+  .cr-types {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .cr-type {
+    grid-template-columns: 1fr;
+    min-height: 88px;
+  }
+}
+
+/* Компьютер: две колонки, карточка лорда справа и закреплена. */
+@media (min-width: 1024px) {
+  .cr-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .cr-summary {
+    position: sticky;
+    top: 1.5rem;
+  }
+  .cr-summary-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  .cr-summary-portrait {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .cr-portraits {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .cr-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+  .cr-hint {
+    text-align: right;
+    flex: 1;
+  }
+  .cr-submit {
+    width: auto;
+    min-width: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-portrait,
+  .reg-check-box {
+    transition: none;
+  }
+}
+
+/* На телефоне карточка лорда — первой, над шагами. */
+.cr-summary {
+  order: -1;
+}
+@media (min-width: 1024px) {
+  .cr-summary {
+    order: 0;
+  }
+}
+.reg-card {
+  margin-bottom: 0.5rem;
+}
