@@ -1359,3 +1359,23 @@ button {
 .reg-card {
   margin-bottom: 0.5rem;
 }
+
+/* Регистрация на телефоне (14.10, после замера на iPhone 13): панель идёт в потоке, а не закреплена поверх карточки;
+   отступы плотнее, чтобы форма и кнопка почти помещались без прокрутки. */
+.auth-screen:has(.reg-footer) .auth-column {
+  gap: 0.75rem;
+}
+.reg-card {
+  gap: 0.7rem;
+  padding: 1rem;
+  margin-bottom: 0;
+}
+.reg-checks {
+  margin-top: 0;
+  gap: 0.15rem;
+}
+.reg-footer {
+  position: static;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0 calc(env(safe-area-inset-bottom) + 0.5rem);
+}
