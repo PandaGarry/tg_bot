@@ -116,7 +116,7 @@ export function Create({
                   onClick={() => setPortrait(item)}
                   className={`cr-portrait ${portrait === item ? "cr-portrait-on" : ""}`}
                 >
-                  <img src={`/portraits/${item}.jpg`} alt="" loading="lazy" decoding="async" />
+                  <img src={`/portraits/${item}.jpg`} alt="" decoding="async" />
                 </button>
               ))}
             </div>
