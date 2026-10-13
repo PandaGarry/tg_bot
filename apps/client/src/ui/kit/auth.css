@@ -575,3 +575,28 @@
 .cr-sign.cr-on {
   background: #292524;
 }
+
+/* Очень низкие экраны (например, 320×568): ещё меньше отступов и заголовок. Решение заказчика (14.10). */
+@media (max-height: 600px) {
+  .ui-title {
+    font-size: 20px;
+  }
+  .ui-head {
+    gap: 2px;
+  }
+  .ui-top {
+    height: 28px;
+  }
+  .ui-col {
+    gap: 6px;
+  }
+  .ui-form {
+    gap: 8px;
+  }
+  .ui-box {
+    height: 40px;
+  }
+  .ui-checks {
+    gap: 6px;
+  }
+}
