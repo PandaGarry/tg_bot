@@ -39,17 +39,11 @@ function App() {
     return <Preview lang={state.lang} onDone={() => setPhase("loading")} />;
   }
 
-  // Экран входа или двора рисуется сразу; загрузка лежит поверх, пока он готовится.
-  const gate = renderGate();
+  // Во время загрузки поля входа ещё не смонтированы: браузер не показывает окно автозаполнения раньше времени (14.10).
   if (phase === "loading") {
-    return (
-      <>
-        {gate}
-        <Loading lang={state.lang} onDone={() => setPhase("gate")} />
-      </>
-    );
+    return <Loading lang={state.lang} onDone={() => setPhase("gate")} />;
   }
-  return gate;
+  return renderGate();
 
   function renderGate() {
     if (!state.auth) {

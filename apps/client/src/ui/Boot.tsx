@@ -1,26 +1,15 @@
 /**
- * Вход: логин или почта и пароль. Регистрация — отдельная явная кнопка: аккаунт и персонаж заводятся врозь.
+ * Вход: логин или почта и пароль. Регистрация — отдельная ссылка внизу.
  * Google ID и Яндекс ID — кнопки; до ключей заказчика показывают объявление, а не переход.
+ * Поля монтируются только после загрузки (main.tsx): браузер не показывает автозаполнение раньше времени.
  */
 
 import { useEffect, useState } from "react";
 import type { Locale } from "@tdl/protocol";
 import { login } from "../net.js";
-import { friendlyError, useFreshError } from "../shell/errors.js";
 import { translator } from "../i18n/index.js";
-import {
-  AuthButton,
-  AuthField,
-  AuthScreen,
-  Divider,
-  GoogleMark,
-  LangSwitch,
-  LockIcon,
-  PasswordToggle,
-  ProviderButton,
-  UserIcon,
-  YandexMark,
-} from "./kit/Auth.js";
+import { friendlyError, useFreshError } from "../shell/errors.js";
+import { Button, Divider, Field, GoogleMark, LockIcon, PasswordToggle, ProviderButton, Screen, Top, UserIcon, YandexMark } from "./kit/Auth.js";
 import { Notice, useNotice } from "./kit/Notice.js";
 
 export function Boot({
@@ -54,28 +43,28 @@ export function Boot({
   }, [failure?.at]);
 
   return (
-    <AuthScreen lang={lang}>
+    <Screen lang={lang}>
       <Notice message={notice.message} tone={notice.tone} id={notice.id} />
 
-      <header className="auth-top">
-        <img className="auth-logo" src="logo.png" alt="" />
-        <LangSwitch lang={lang} />
-      </header>
+      <Top lang={lang} />
 
-      <div className="auth-intro">
-        <h1 className="auth-title">{t("shell.app.title")}</h1>
-        <p className="auth-sub">{t("shell.boot.subtitle")}</p>
+      <div className="ui-brand">
+        <img className="ui-brand-logo" src="logo.png" alt="" />
+        <div>
+          <h1 className="ui-title">{t("shell.app.title")}</h1>
+          <p className="ui-sub">{t("shell.boot.subtitle")}</p>
+        </div>
       </div>
 
       <form
-        className="auth-card"
+        className="ui-form"
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
           login(loginName.trim(), password);
         }}
       >
-        <AuthField
+        <Field
           label={t("shell.boot.login")}
           icon={<UserIcon />}
           testId="boot-login"
@@ -88,7 +77,7 @@ export function Boot({
             spellCheck: false,
           }}
         />
-        <AuthField
+        <Field
           label={t("shell.boot.password")}
           icon={<LockIcon />}
           testId="boot-password"
@@ -100,15 +89,15 @@ export function Boot({
             autoComplete: "current-password",
           }}
         />
-
-        <AuthButton type="submit" variant="primary" disabled={!canSubmit} className="auth-submit" data-testid="boot-enter">
+        <Button type="submit" variant="primary" disabled={!canSubmit} data-testid="boot-enter">
           {t("shell.boot.enter")}
-        </AuthButton>
+        </Button>
       </form>
 
+      <div className="ui-push" />
       <Divider text={t("shell.auth.or")} />
 
-      <div className="auth-providers">
+      <div className="ui-providers">
         <ProviderButton
           label={t("shell.auth.provider.google")}
           mark={<GoogleMark />}
@@ -123,12 +112,12 @@ export function Boot({
         />
       </div>
 
-      <p className="auth-foot">
+      <p className="ui-foot">
         {t("shell.boot.noacc")}{" "}
-        <button type="button" onClick={onRegister} data-testid="boot-to-register" className="auth-link">
+        <button type="button" onClick={onRegister} data-testid="boot-to-register" className="ui-link">
           {t("shell.boot.register")}
         </button>
       </p>
-    </AuthScreen>
+    </Screen>
   );
 }

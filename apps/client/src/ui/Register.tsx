@@ -1,7 +1,7 @@
 /**
  * Регистрация аккаунта: логин, почта, пароль, повтор и два согласия.
  * Ошибка показывается под полем после ухода с поля, а не на пустой форме.
- * Кнопка «Зарегистрироваться» закреплена внизу экрана на телефоне.
+ * Окно неподвижное: всё помещается в 360 × 640; подзаголовок скрывается только на коротких экранах.
  * Отдельно от создания персонажа: логин и имя лорда — разные вещи.
  */
 
@@ -13,19 +13,10 @@ import { translator } from "../i18n/index.js";
 import { useStore } from "../useStore.js";
 import { goodEmail, goodLogin, goodPassword, samePassword } from "../shell/form.js";
 import { friendlyError } from "../shell/errors.js";
-import {
-  AuthButton,
-  AuthField,
-  AuthScreen,
-  LangSwitch,
-  LockIcon,
-  MailIcon,
-  PasswordToggle,
-  UserIcon,
-} from "./kit/Auth.js";
+import { Button, Check, Field, LockIcon, MailIcon, PasswordToggle, Screen, Top, UserIcon } from "./kit/Auth.js";
 import { Notice, useNotice } from "./kit/Notice.js";
 
-type Field = "login" | "email" | "password" | "repeat";
+type FieldName = "login" | "email" | "password" | "repeat";
 
 export function Register({
   lang,
@@ -45,8 +36,8 @@ export function Register({
   const [mail, setMail] = useState(false);
   const [show, setShow] = useState(false);
   const [sending, setSending] = useState(false);
-  // Поле «тронуто», когда игрок в нём был и ушёл. Ошибки показываем только для тронутых полей.
-  const [touched, setTouched] = useState<Record<Field, boolean>>({ login: false, email: false, password: false, repeat: false });
+  // Ошибки показываем только для полей, в которых игрок побывал и ушёл.
+  const [touched, setTouched] = useState<Record<FieldName, boolean>>({ login: false, email: false, password: false, repeat: false });
   const notice = useNotice();
 
   // Отказ ядра снимает ожидание и говорит причину спокойной фразой.
@@ -65,7 +56,7 @@ export function Register({
   const repeatOk = samePassword(password, repeat);
   const canSubmit = loginOk && emailOk && passwordOk && repeatOk && rules && !sending;
 
-  const errorFor = (field: Field): string | undefined => {
+  const errorFor = (field: FieldName): string | undefined => {
     if (!touched[field]) return undefined;
     if (field === "login" && !loginOk) return t("shell.register.need.login");
     if (field === "email" && !emailOk) return t("shell.register.need.email");
@@ -73,7 +64,7 @@ export function Register({
     if (field === "repeat" && !repeatOk) return t("shell.register.need.repeat");
     return undefined;
   };
-  const blur = (field: Field) => setTouched((prev) => ({ ...prev, [field]: true }));
+  const blur = (field: FieldName) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   /** Подсказка над кнопкой: чего не хватает, только когда игрок уже что-то ввёл. */
   const started = login || email || password || repeat;
@@ -86,24 +77,19 @@ export function Register({
         : null;
 
   return (
-    <AuthScreen lang={lang}>
+    <Screen lang={lang}>
       <Notice message={notice.message} tone={notice.tone} id={notice.id} />
 
-      <header className="auth-top">
-        <button type="button" onClick={onLogin} className="auth-back" data-testid="register-back">
-          ← {t("shell.register.back")}
-        </button>
-        <LangSwitch lang={lang} />
-      </header>
+      <Top lang={lang} back={t("shell.register.back")} onBack={onLogin} />
 
-      <div className="auth-intro">
-        <h1 className="auth-title auth-title-sm">{t("shell.register.title")}</h1>
-        <p className="auth-sub">{t("shell.register.note")}</p>
+      <div className="ui-head">
+        <h1 className="ui-title">{t("shell.register.title")}</h1>
+        <p className="ui-sub ui-sub-optional">{t("shell.register.note")}</p>
       </div>
 
       <form
         id="register-form"
-        className="auth-card reg-card"
+        className="ui-form"
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
@@ -111,7 +97,7 @@ export function Register({
           register(login.trim(), password, email.trim(), { rules: true, mail });
         }}
       >
-        <AuthField
+        <Field
           label={t("shell.register.login")}
           hint={t("shell.register.login.hint")}
           error={errorFor("login")}
@@ -129,7 +115,7 @@ export function Register({
           }}
         />
 
-        <AuthField
+        <Field
           label={t("shell.register.email")}
           error={errorFor("email")}
           icon={<MailIcon />}
@@ -146,7 +132,7 @@ export function Register({
           }}
         />
 
-        <AuthField
+        <Field
           label={t("shell.register.password")}
           hint={t("shell.register.password.hint")}
           error={errorFor("password")}
@@ -162,7 +148,7 @@ export function Register({
           }}
         />
 
-        <AuthField
+        <Field
           label={t("shell.register.repeat")}
           error={errorFor("repeat")}
           icon={<LockIcon />}
@@ -176,7 +162,7 @@ export function Register({
           }}
         />
 
-        <div className="reg-checks">
+        <div className="ui-checks">
           <Check checked={rules} onChange={setRules} testId="register-rules">
             {t("shell.register.rules")}
           </Check>
@@ -186,48 +172,14 @@ export function Register({
         </div>
       </form>
 
-      {/* Закреплённая внизу панель: подсказка и кнопка всегда на виду, в том числе над клавиатурой. */}
-      <div className="reg-footer">
-        <p data-testid="register-problem" className="reg-hint" role="status">
-          {missingKey ? t(missingKey) : ""}
-        </p>
-        <AuthButton type="submit" form="register-form" disabled={!canSubmit} className="auth-submit" data-testid="register-submit">
-          {sending ? t("shell.register.sending") : t("shell.register.submit")}
-        </AuthButton>
-      </div>
-    </AuthScreen>
-  );
-}
+      <div className="ui-push" />
 
-/** Чекбокс с крупной областью касания. Нативный ввод остаётся для клавиатуры и экранных читалок. */
-function Check({
-  checked,
-  onChange,
-  children,
-  testId,
-}: {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  children: string;
-  testId: string;
-}) {
-  return (
-    <label className="reg-check">
-      <input
-        type="checkbox"
-        className="reg-check-input"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        data-testid={testId}
-      />
-      <span className="reg-check-box" aria-hidden="true">
-        {checked ? (
-          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="m3 8.5 3 3 7-7" />
-          </svg>
-        ) : null}
-      </span>
-      <span className="reg-check-text">{children}</span>
-    </label>
+      <p data-testid="register-problem" className="ui-helper ui-helper-center" role="status">
+        {missingKey ? t(missingKey) : ""}
+      </p>
+      <Button type="submit" form="register-form" disabled={!canSubmit} data-testid="register-submit">
+        {sending ? t("shell.register.sending") : t("shell.register.submit")}
+      </Button>
+    </Screen>
   );
 }
