@@ -97,7 +97,7 @@ export function Field({
         />
         {trailing}
       </div>
-      <span id={helperId} className={`ui-helper ${error ? "ui-helper-error" : ""}`} role={error ? "alert" : undefined}>
+      <span id={helperId} className={`ui-helper ${error ? "ui-helper-error" : hint ? "ui-helper-hint" : ""}`} role={error ? "alert" : undefined}>
         {error ?? hint ?? ""}
       </span>
     </div>
