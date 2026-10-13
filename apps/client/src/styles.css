@@ -1379,3 +1379,10 @@ button {
   margin-top: 0.25rem;
   padding: 0.25rem 0 calc(env(safe-area-inset-bottom) + 0.5rem);
 }
+
+/* Создание лорда на телефоне (14.10, по образцу регистрации): кнопка в потоке под шагами, а не поверх них. */
+.cr-footer {
+  position: static;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0 calc(env(safe-area-inset-bottom) + 0.75rem);
+}
