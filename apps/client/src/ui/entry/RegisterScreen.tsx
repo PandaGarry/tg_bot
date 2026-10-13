@@ -1,24 +1,23 @@
 /**
  * Регистрация аккаунта: логин, почта, пароль, повтор и два согласия.
- * Ошибка показывается под полем после ухода с поля, а не на пустой форме.
- * Окно неподвижное: всё помещается в 360 × 640; подзаголовок скрывается только на коротких экранах.
- * Отдельно от создания персонажа: логин и имя лорда — разные вещи.
+ * Ошибка поля показывается после ухода с поля, а не на пустой форме.
+ * Персонаж заводится отдельно, после входа: логин и имя лорда — разные вещи.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { Locale } from "@tdl/protocol";
 import { LIMITS } from "@tdl/protocol";
-import { register } from "../net.js";
-import { translator } from "../i18n/index.js";
-import { useStore } from "../useStore.js";
-import { goodEmail, goodLogin, goodPassword, samePassword } from "../shell/form.js";
-import { friendlyError } from "../shell/errors.js";
-import { Button, Check, Field, LockIcon, MailIcon, PasswordToggle, Screen, Top, UserIcon } from "./kit/Auth.js";
-import { Notice, useNotice } from "./kit/Notice.js";
+import { register } from "../../net.js";
+import { translator } from "../../i18n/index.js";
+import { goodEmail, goodLogin, goodPassword, samePassword } from "../../shell/form.js";
+import { friendlyError, useFreshError } from "../../shell/errors.js";
+import { EntryFrame, ScreenTitle } from "./Frame.js";
+import { Check, Field, LockIcon, MailIcon, PasswordToggle, PrimaryButton, TextButton, UserIcon } from "./controls.js";
+import { useNotice } from "./Notice.js";
 
 type FieldName = "login" | "email" | "password" | "repeat";
 
-export function Register({
+export function RegisterScreen({
   lang,
   onLogin,
 }: {
@@ -27,8 +26,7 @@ export function Register({
   onLogin: () => void;
 }) {
   const t = translator(lang);
-  const state = useStore();
-  const [login, setLogin] = useState("");
+  const [loginName, setLoginName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
@@ -40,21 +38,22 @@ export function Register({
   const [touched, setTouched] = useState<Record<FieldName, boolean>>({ login: false, email: false, password: false, repeat: false });
   const notice = useNotice();
 
-  // Отказ ядра снимает ожидание и говорит причину спокойной фразой.
-  const failureKey = state.errors[0]?.key;
+  // Отказ ядра снимает ожидание и говорит причину спокойной фразой; старый отказ не всплывает.
+  const failure = useFreshError();
   useEffect(() => {
-    if (failureKey) {
+    if (failure) {
       setSending(false);
-      notice.say(friendlyError(lang, failureKey), "error");
+      notice.say(friendlyError(lang, failure.key), "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [failureKey]);
+  }, [failure?.at]);
 
-  const loginOk = goodLogin(login);
+  const loginOk = goodLogin(loginName);
   const emailOk = goodEmail(email);
   const passwordOk = goodPassword(password);
   const repeatOk = samePassword(password, repeat);
-  const canSubmit = loginOk && emailOk && passwordOk && repeatOk && rules && !sending;
+  const formOk = loginOk && emailOk && passwordOk && repeatOk;
+  const canSubmit = formOk && rules && !sending;
 
   const errorFor = (field: FieldName): string | undefined => {
     if (!touched[field]) return undefined;
@@ -64,39 +63,38 @@ export function Register({
     if (field === "repeat" && !repeatOk) return t("shell.register.need.repeat");
     return undefined;
   };
-  const blur = (field: FieldName) => setTouched((prev) => ({ ...prev, [field]: true }));
+  const leave = (field: FieldName) => setTouched((prev) => ({ ...prev, [field]: true }));
 
   /** Подсказка над кнопкой: чего не хватает, только когда игрок уже что-то ввёл. */
-  const started = login || email || password || repeat;
-  const missingKey = !started
-    ? null
-    : !rules
-      ? "shell.register.need.rules"
-      : !loginOk || !emailOk || !passwordOk || !repeatOk
-        ? "shell.register.need.fields"
-        : null;
+  const started = Boolean(loginName || email || password || repeat);
+  const missingKey = !started ? null : !rules ? "shell.register.need.rules" : !formOk ? "shell.register.need.fields" : null;
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!canSubmit) return;
+    setSending(true);
+    register(loginName.trim(), password, email.trim(), { rules: true, mail });
+  };
 
   return (
-    <Screen lang={lang}>
-      <Notice message={notice.message} tone={notice.tone} id={notice.id} />
+    <EntryFrame
+      lang={lang}
+      notice={notice}
+      start={<TextButton onClick={onLogin} data-testid="register-back">← {t("shell.register.back")}</TextButton>}
+      footer={
+        <>
+          <p data-testid="register-problem" role="status" className="min-h-4 text-center text-[12px] leading-4 text-stone-400">
+            {missingKey ? t(missingKey) : ""}
+          </p>
+          <PrimaryButton type="submit" form="register-form" disabled={!canSubmit} data-testid="register-submit">
+            {sending ? t("shell.register.sending") : t("shell.register.submit")}
+          </PrimaryButton>
+        </>
+      }
+    >
+      <ScreenTitle title={t("shell.register.title")} sub={t("shell.register.note")} />
 
-      <Top lang={lang} back={t("shell.register.back")} onBack={onLogin} />
-
-      <div className="ui-head">
-        <h1 className="ui-title">{t("shell.register.title")}</h1>
-        <p className="ui-sub ui-sub-optional">{t("shell.register.note")}</p>
-      </div>
-
-      <form
-        id="register-form"
-        className="ui-form"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!canSubmit) return;
-          setSending(true);
-          register(login.trim(), password, email.trim(), { rules: true, mail });
-        }}
-      >
+      <form id="register-form" className="flex flex-col gap-2.5 [@media(max-height:699px)]:gap-2" onSubmit={submit}>
         <Field
           label={t("shell.register.login")}
           hint={t("shell.register.login.hint")}
@@ -104,9 +102,9 @@ export function Register({
           icon={<UserIcon />}
           testId="register-login"
           inputProps={{
-            value: login,
-            onChange: (event) => setLogin(event.target.value),
-            onBlur: () => blur("login"),
+            value: loginName,
+            onChange: (event) => setLoginName(event.target.value),
+            onBlur: () => leave("login"),
             autoComplete: "username",
             autoCorrect: "off",
             autoCapitalize: "none",
@@ -114,7 +112,6 @@ export function Register({
             maxLength: LIMITS.loginMax,
           }}
         />
-
         <Field
           label={t("shell.register.email")}
           error={errorFor("email")}
@@ -123,7 +120,7 @@ export function Register({
           inputProps={{
             value: email,
             onChange: (event) => setEmail(event.target.value),
-            onBlur: () => blur("email"),
+            onBlur: () => leave("email"),
             autoComplete: "email",
             inputMode: "email",
             type: "email",
@@ -131,23 +128,27 @@ export function Register({
             maxLength: LIMITS.emailMax,
           }}
         />
-
         <Field
           label={t("shell.register.password")}
           hint={t("shell.register.password.hint")}
           error={errorFor("password")}
           icon={<LockIcon />}
           testId="register-password"
-          trailing={<PasswordToggle lang={lang} shown={show} onToggle={() => setShow((v) => !v)} />}
+          trailing={
+            <PasswordToggle
+              shown={show}
+              onToggle={() => setShow((value) => !value)}
+              labels={{ show: t("shell.auth.password.show"), hide: t("shell.auth.password.hide") }}
+            />
+          }
           inputProps={{
             value: password,
             onChange: (event) => setPassword(event.target.value),
-            onBlur: () => blur("password"),
+            onBlur: () => leave("password"),
             type: show ? "text" : "password",
             autoComplete: "new-password",
           }}
         />
-
         <Field
           label={t("shell.register.repeat")}
           error={errorFor("repeat")}
@@ -156,13 +157,13 @@ export function Register({
           inputProps={{
             value: repeat,
             onChange: (event) => setRepeat(event.target.value),
-            onBlur: () => blur("repeat"),
+            onBlur: () => leave("repeat"),
             type: show ? "text" : "password",
             autoComplete: "new-password",
           }}
         />
 
-        <div className="ui-checks">
+        <div className="mt-1 flex flex-col gap-2 [@media(max-height:699px)]:mt-0">
           <Check checked={rules} onChange={setRules} testId="register-rules">
             {t("shell.register.rules")}
           </Check>
@@ -171,15 +172,6 @@ export function Register({
           </Check>
         </div>
       </form>
-
-      <div className="ui-push" />
-
-      <p data-testid="register-problem" className="ui-helper ui-helper-center" role="status">
-        {missingKey ? t(missingKey) : ""}
-      </p>
-      <Button type="submit" form="register-form" disabled={!canSubmit} data-testid="register-submit">
-        {sending ? t("shell.register.sending") : t("shell.register.submit")}
-      </Button>
-    </Screen>
+    </EntryFrame>
   );
 }

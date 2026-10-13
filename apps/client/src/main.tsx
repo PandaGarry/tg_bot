@@ -5,9 +5,9 @@ import { connect } from "./net.js";
 import { store } from "./store.js";
 import { useStore } from "./useStore.js";
 import { introSeen } from "./shell/firstRun.js";
-import { Boot } from "./ui/Boot.js";
-import { Create } from "./ui/Create.js";
-import { Register } from "./ui/Register.js";
+import { LoginScreen } from "./ui/entry/LoginScreen.js";
+import { CreateScreen } from "./ui/entry/CreateScreen.js";
+import { RegisterScreen } from "./ui/entry/RegisterScreen.js";
 import { Preview } from "./ui/Preview.js";
 import { Loading } from "./ui/Loading.js";
 import { World } from "./ui/World.js";
@@ -48,10 +48,10 @@ function App() {
   function renderGate() {
     if (!state.auth) {
       if (authScreen === "register") {
-        return <Register lang={state.lang} onLogin={() => setAuthScreen("login")} />;
+        return <RegisterScreen lang={state.lang} onLogin={() => setAuthScreen("login")} />;
       }
       return (
-        <Boot
+        <LoginScreen
           lang={state.lang}
           statusKey={statusKey(state.status)}
           onRegister={() => setAuthScreen("register")}
@@ -61,7 +61,7 @@ function App() {
 
     const view = state.view;
     if (state.auth.needsLord || !view?.me) {
-      return <Create lang={state.lang} view={view} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
+      return <CreateScreen lang={state.lang} view={view} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
     }
 
     return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;

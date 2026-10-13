@@ -38,7 +38,7 @@ body {
 
 /* Окна входа, регистрации и создания лорда неподвижны: прокрутки нет (14.10, заказчик).
    Всё помещается в видимую область; см. docs/design/onboarding.md §6. */
-#hud-root:has(.ui-screen) {
+#hud-root:has(.entry-frame) {
   overflow: hidden;
   overscroll-behavior: none;
 }

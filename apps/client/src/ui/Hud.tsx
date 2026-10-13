@@ -7,7 +7,7 @@
 import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
-import { swatch } from "./Create.js";
+import { swatch } from "./entry/lord.js";
 import { BuildPanel } from "./BuildPanel.js";
 import { ICON_SRC } from "./iconSrc.js";
 

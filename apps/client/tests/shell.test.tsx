@@ -8,12 +8,12 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { INTRO_KEYS, chronicleEntries, clearChronicle } from "../src/shell/chronicle.js";
 import { introSeen } from "../src/shell/firstRun.js";
 import * as net from "../src/net.js";
-import { Boot } from "../src/ui/Boot.js";
-import { Register } from "../src/ui/Register.js";
+import { LoginScreen as Boot } from "../src/ui/entry/LoginScreen.js";
+import { RegisterScreen as Register } from "../src/ui/entry/RegisterScreen.js";
 import { Preview, PAUSE_AFTER_VOICE_MS, SILENT_HOLD_MS, previewAudioSrc } from "../src/ui/Preview.js";
 import { Loading, LEAVE_MS, LOADING_MS } from "../src/ui/Loading.js";
 import { Chronicle } from "../src/ui/Chronicle.js";
-import { Create } from "../src/ui/Create.js";
+import { CreateScreen as Create } from "../src/ui/entry/CreateScreen.js";
 import { World } from "../src/ui/World.js";
 import { shellStrings } from "../src/i18n/shell.js";
 import { store } from "../src/store.js";
