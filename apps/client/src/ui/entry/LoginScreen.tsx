@@ -59,9 +59,9 @@ export function LoginScreen({
           <PrimaryButton type="submit" form="login-form" disabled={!canSubmit} data-testid="boot-enter">
             {t("shell.boot.enter")}
           </PrimaryButton>
-          <p className="text-center text-[13px] text-stone-400">
+          <p className="text-center text-[13px] text-mute">
             {t("shell.boot.noacc")}{" "}
-            <TextButton onClick={onRegister} data-testid="boot-to-register" className="text-stone-100 underline">
+            <TextButton onClick={onRegister} data-testid="boot-to-register" className="text-parch underline">
               {t("shell.boot.register")}
             </TextButton>
           </p>
@@ -109,7 +109,7 @@ export function LoginScreen({
 
       <Divider text={t("shell.auth.or")} />
 
-      <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
         <ProviderButton
           label={t("shell.auth.provider.google")}
           mark={<GoogleMark />}

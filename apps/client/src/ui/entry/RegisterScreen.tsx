@@ -83,7 +83,7 @@ export function RegisterScreen({
       start={<TextButton onClick={onLogin} data-testid="register-back">← {t("shell.register.back")}</TextButton>}
       footer={
         <>
-          <p data-testid="register-problem" role="status" className="min-h-4 text-center text-[12px] leading-4 text-stone-400">
+          <p data-testid="register-problem" role="status" className="min-h-4 text-center text-[12px] leading-4 text-mute">
             {missingKey ? t(missingKey) : ""}
           </p>
           <PrimaryButton type="submit" form="register-form" disabled={!canSubmit} data-testid="register-submit">

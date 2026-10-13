@@ -315,32 +315,19 @@ describe("аккаунт", () => {
 });
 
 describe("создание лорда", () => {
-  it("мастер из четырёх шагов: имя, портрет, знамя, тип; кнопка открыта только с правильным именем", () => {
+  it("один экран: имя, портрет, знамя, тип; кнопка открыта только с правильным именем", () => {
     render(<Create lang="ru" view={null} serverNow={1} />);
-    // Шаг 1: имя. Пока имя короткое, «Далее» закрыта.
-    expect(screen.getByText("Шаг 1 из 4")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Далее" }).hasAttribute("disabled")).toBe(true);
+    // Нет шагов: все части на одном экране.
+    expect(screen.queryByText(/Шаг \d из/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Занять двор" }).hasAttribute("disabled")).toBe(true);
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "Костяной Лорд" } });
-    fireEvent.click(screen.getByRole("button", { name: "Далее" }));
-
-    // Шаг 2: десять портретов, выбор по номеру.
-    expect(screen.getByText("Шаг 2 из 4")).toBeTruthy();
-    expect(screen.getAllByRole("radio").length).toBe(10);
+    expect(screen.getByRole("button", { name: "Занять двор" }).hasAttribute("disabled")).toBe(false);
+    // Десять портретов, шесть знаков, восемь цветов, три типа.
+    expect(screen.getByRole("radiogroup", { name: "Портрет" }).querySelectorAll("[role=radio]").length).toBe(10);
     fireEvent.click(screen.getByRole("radio", { name: "3" }));
     expect(screen.getByRole("radio", { name: "3" }).getAttribute("aria-checked")).toBe("true");
-    fireEvent.click(screen.getByRole("button", { name: "Далее" }));
-
-    // Шаг 3: шесть знаков и восемь цветов.
-    expect(screen.getByText("Шаг 3 из 4")).toBeTruthy();
-    expect(screen.getAllByRole("radio").length).toBe(6 + 8);
-    fireEvent.click(screen.getByRole("button", { name: "Далее" }));
-
-    // Шаг 4: три типа с подписями и бонусом; кнопка становится «Занять двор».
-    expect(screen.getByText("Шаг 4 из 4")).toBeTruthy();
-    expect(screen.getAllByRole("radio").length).toBe(3);
-    expect(screen.getByText("Замок чуть лучше держит удар")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Занять двор" })).toBeTruthy();
-    // Строка лорда сверху видна на каждом шаге.
+    expect(screen.getAllByRole("radio").length).toBe(10 + 6 + 8 + 3);
+    // Строка лорда сверху обновляется по имени.
     expect(screen.getByText("Костяной Лорд")).toBeTruthy();
   });
 });

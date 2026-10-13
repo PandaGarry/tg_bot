@@ -1,6 +1,6 @@
 /**
  * Полоса объявлений для окон входа: одно сообщение за раз, вверху по центру, уходит сама.
- * Ошибки ядра и состояние связи — тем же способом.
+ * Ошибки ядра и состояние связи показываются тем же способом.
  */
 
 import { useEffect, useState } from "react";
@@ -27,10 +27,8 @@ export function Notice({ message, tone = "info", id }: { message: string | null;
         <p
           key={id}
           role="status"
-          className={`pointer-events-auto max-w-[min(92%,360px)] rounded-xl border px-3 py-2 text-center text-[13px] leading-snug backdrop-blur-sm ${
-            tone === "error"
-              ? "border-rose-300/40 bg-stone-900/95 text-rose-100"
-              : "border-stone-600 bg-stone-900/95 text-stone-100"
+          className={`pointer-events-auto max-w-[min(92%,360px)] rounded-lg border bg-ink-2 px-3 py-2 text-center text-[13px] leading-snug text-parch ${
+            tone === "error" ? "border-rose-300/50" : "border-line"
           }`}
         >
           {message}
@@ -42,11 +40,7 @@ export function Notice({ message, tone = "info", id }: { message: string | null;
 
 /** Очередь из одного объявления: новое заменяет старое, одинаковое — перезапускает показ. */
 export function useNotice() {
-  const [state, setState] = useState<{ message: string | null; tone: "info" | "error"; id: number }>({
-    message: null,
-    tone: "info",
-    id: 0,
-  });
+  const [state, setState] = useState<{ message: string | null; tone: "info" | "error"; id: number }>({ message: null, tone: "info", id: 0 });
   return {
     ...state,
     say(message: string, tone: "info" | "error" = "info") {
