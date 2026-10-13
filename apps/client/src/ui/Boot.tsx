@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@tdl/protocol";
 import { login } from "../net.js";
+import { friendlyError, useFreshError } from "../shell/errors.js";
 import { translator } from "../i18n/index.js";
 import {
   AuthButton,
@@ -44,6 +45,13 @@ export function Boot({
     if (status && status !== "shell.boot.subtitle") notice.say(t(status), "error");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
+
+  // Отказ ядра при входе (неверный логин или пароль, связи нет) — переводится, игровые фразы не выводятся.
+  const failure = useFreshError();
+  useEffect(() => {
+    if (failure) notice.say(friendlyError(lang, failure.key), "error");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [failure?.at]);
 
   return (
     <AuthScreen lang={lang}>

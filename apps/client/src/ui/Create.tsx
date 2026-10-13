@@ -8,9 +8,8 @@ import { useEffect, useState } from "react";
 import type { JsonValue, Locale, SlotId, WorldViewBase } from "@tdl/protocol";
 import { createLord } from "../net.js";
 import { translator } from "../i18n/index.js";
-import { useStore } from "../useStore.js";
 import { Slot, hasSlot } from "../slots.js";
-import { friendlyError } from "../shell/errors.js";
+import { friendlyError, useFreshError } from "../shell/errors.js";
 import { LangSwitch } from "./kit/Auth.js";
 import { Notice, useNotice } from "./kit/Notice.js";
 
@@ -31,7 +30,6 @@ export function Create({
   serverNow: number;
 }) {
   const t = translator(lang);
-  const state = useStore();
   const [name, setName] = useState("");
   const [portrait, setPortrait] = useState<string>(PORTRAITS[0] as string);
   const [sign, setSign] = useState<string>(SIGNS[0]);
@@ -43,14 +41,14 @@ export function Create({
   const nameOk = trimmed.length >= NAME_MIN && trimmed.length <= NAME_MAX;
 
   // Отказ ядра (имя занято, имя не подходит) — спокойной фразой и снимает ожидание.
-  const failureKey = state.errors[0]?.key;
+  const failure = useFreshError();
   useEffect(() => {
-    if (failureKey) {
+    if (failure) {
       setSending(false);
-      notice.say(friendlyError(lang, failureKey), "error");
+      notice.say(friendlyError(lang, failure.key), "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [failureKey]);
+  }, [failure?.at]);
 
   const worldView: WorldViewBase = view ?? {
     world: { id: "world-1", name: "", size: 0, zones: 0, zonePit: 0, zoneCapital: 0, now: serverNow, downtimeMs: 0 },

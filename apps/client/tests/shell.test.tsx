@@ -440,3 +440,24 @@ describe("ошибки для игрока", () => {
     expect(friendlyError("en", "kernel.login.failed")).toBe("Login or password is incorrect.");
   });
 });
+
+describe("отказы ядра на экранах входа и создания", () => {
+  it("старая ошибка из прошлой попытки не всплывает при открытии входа", () => {
+    const now = vi.spyOn(Date, "now");
+    now.mockReturnValue(1000);
+    store.addError("kernel.login.failed");
+    now.mockReturnValue(2000);
+    render(<Boot lang="ru" statusKey="shell.boot.subtitle" onRegister={() => {}} />);
+    expect(screen.queryByText("Логин или пароль не подходят.")).toBeNull();
+    now.mockRestore();
+  });
+
+  it("свежий отказ входа показан спокойной фразой, а не игровой", () => {
+    render(<Boot lang="ru" statusKey="shell.boot.subtitle" onRegister={() => {}} />);
+    act(() => {
+      store.addError("kernel.login.failed");
+    });
+    expect(screen.getByText("Логин или пароль не подходят.")).toBeTruthy();
+    expect(screen.queryByText(/Не пустили/)).toBeNull();
+  });
+});

@@ -5,8 +5,10 @@
  * Протокол и ядро не меняются.
  */
 
+import { useState } from "react";
 import type { Locale } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
+import { useStore } from "../useStore.js";
 
 const MAP: Record<string, string> = {
   "kernel.login.failed": "shell.err.login-failed",
@@ -29,4 +31,15 @@ export function friendlyError(lang: Locale, key: string | undefined): string {
   if (!key) return t("shell.err.generic");
   const mapped = MAP[key];
   return mapped ? t(mapped) : t("shell.err.generic");
+}
+
+/**
+ * Последний отказ ядра, появившийся уже после открытия экрана.
+ * Старые ошибки из прошлых попыток не показываются при входе на экран.
+ */
+export function useFreshError(): { key: string; at: number } | null {
+  const state = useStore();
+  const [since] = useState(() => Date.now());
+  const last = state.errors[0];
+  return last && last.at >= since ? { key: last.key, at: last.at } : null;
 }

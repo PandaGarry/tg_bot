@@ -36,6 +36,15 @@ body {
   pointer-events: auto;
 }
 
+/* Экраны входа, регистрации и создания лорда прокручиваются сами:
+   #hud-root — фиксированный на весь экран, поэтому без этого низ формы недоступен на коротких окнах. */
+#hud-root:has(.auth-screen),
+#hud-root:has(.cr-screen) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 html {
   background: #0c0a09;
   color: #d8d2c4;
