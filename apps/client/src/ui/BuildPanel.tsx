@@ -7,7 +7,8 @@
 
 import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
-import { buildings } from "@tdl/content-buildings/catalog";
+import { buildings, buildingById } from "@tdl/content-buildings/catalog";
+import { openCount } from "@tdl/content-buildings/layout";
 import { translator } from "../i18n/index.js";
 
 export type BuildTab = "economy" | "military" | "decor";
@@ -68,7 +69,7 @@ export const CITADEL_COSTS: Record<number, [string, number][]> = Object.fromEntr
 export const CITADEL_MAX_LEVEL = citadelDef.maxLevel;
 
 /** Значок постройки: тонкая SVG-пиктограмма в тёплой палитре игры. */
-function Sign({ id }: { id: string }) {
+function Sign({ id, label }: { id: string; label?: string }) {
   const wood = "#c89a62";
   const dark = "#6b4a2c";
   const roof = "#f0e6d2";
@@ -182,7 +183,10 @@ function Sign({ id }: { id: string }) {
     default:
       return (
         <svg {...common}>
-          <rect x="10" y="16" width="20" height="16" fill={wood} stroke={dark} strokeWidth="1.4" />
+          <rect x="10" y="16" width="20" height="16" rx="3" fill={wood} stroke={dark} strokeWidth="1.4" />
+          <text x="20" y="28" textAnchor="middle" fontSize="13" fontWeight="700" fill={roof}>
+            {(label ?? id).charAt(0).toUpperCase()}
+          </text>
         </svg>
       );
   }
@@ -208,6 +212,8 @@ export function BuildPanel({
   const stock = view.stock ?? {};
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
+  const placedGrid = (view.modules.court ?? {}) as { grid?: { buildings?: { type: string }[] } };
+  const placed = (type: string) => (placedGrid.grid?.buildings ?? []).filter((b) => b.type === type).length;
   const upCost = CITADEL_COSTS[level + 1];
 
   return (
@@ -269,9 +275,14 @@ export function BuildPanel({
               onClick={() => (locked || poor ? undefined : onPlaceStart(item.id))}
             >
               <span className="bic">
-                <Sign id={item.id} />
+                <Sign id={item.id} label={t(`shell.hud.b.${item.id}`)} />
               </span>
               <b>{t(`shell.hud.b.${item.id}`)}</b>
+              {!locked && buildingById(item.id) ? (
+                <span className="blimit">
+                  {placed(item.id)}/{openCount(buildingById(item.id)!, level)}
+                </span>
+              ) : null}
               <span className="bcost">
                 {item.cost.map(([res, n]) => (
                   <em key={res} className={locked ? "" : (stock[res] ?? 0) >= n ? "" : "lack"}>
