@@ -34,7 +34,7 @@
 | `22-seasons-daytime-buildings.md` | design/hud-court.md, design/calendar.md | ожидает разбора |
 | `23-court-scene.md` | design/hud-court.md (сцена двора) | ожидает разбора |
 | `24-court-3d.md` | отменено (3D не используется, решение 09–10.10) — удалить | перенесено, удалено 11.10 |
-| `25-court-layout.md` | design/hud-court.md (раскладка) | ожидает разбора |
+| `25-court-layout.md` | схема и правила → `design/hud-court.md` §0б; таблица жанра → `balance/competitors.md` §10 | перенесено, удалено 14.10 |
 | `27-frontend-os-research.md` | design/hud-court.md (исследование оболочки) | ожидает разбора |
 | `28-pixi-migration.md` | AGENTS.md (правила Pixi) — проверить и удалить | перенесено, удалено 11.10 |
 | `29-ui-refs-viking-rok.md` | balance/competitors.md и hud-court.md | ожидает разбора |
