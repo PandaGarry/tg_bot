@@ -17,6 +17,8 @@ export interface BuildingLevel {
 export interface BuildingDef {
   id: string;
   ru: string;
+  /** Размер в клетках сетки двора (buildings.md, решено 14.10): ширина × глубина. */
+  footprint: { w: number; h: number };
   maxLevel: number;
   /** Уровень Цитадели, с которого здание открывается. */
   startCitadel: number;

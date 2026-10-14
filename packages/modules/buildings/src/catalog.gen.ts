@@ -7,6 +7,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "citadel",
     ru: "Цитадель",
+    footprint: { w: 4, h: 4 },
     maxLevel: 30,
     startCitadel: 1,
     powerTotal: 1835038,
@@ -48,6 +49,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "wall",
     ru: "Стена",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 1284526,
@@ -89,6 +91,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "warehouse",
     ru: "Склад",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 403708,
@@ -130,6 +133,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "infirmary",
     ru: "Лазарет",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 734015,
@@ -171,6 +175,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "academy",
     ru: "Академия",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 4,
     powerTotal: 642263,
@@ -212,6 +217,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "clan-hall",
     ru: "Зал клана",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 3,
     powerTotal: 605562,
@@ -253,6 +259,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "tavern",
     ru: "Таверна",
+    footprint: { w: 2, h: 2 },
     maxLevel: 1,
     startCitadel: 3,
     powerTotal: null,
@@ -263,6 +270,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "watchtower",
     ru: "Надзорная вышка",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 4,
     powerTotal: 422058,
@@ -304,6 +312,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "forge",
     ru: "Кузница",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 10,
     powerTotal: 458759,
@@ -345,6 +354,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "trade-post",
     ru: "Торговый пост",
+    footprint: { w: 2, h: 2 },
     maxLevel: 10,
     startCitadel: 5,
     powerTotal: 183503,
@@ -366,6 +376,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "barracks",
     ru: "Казарма",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 495460,
@@ -407,6 +418,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "range",
     ru: "Стрельбище",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 495460,
@@ -448,6 +460,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "stable",
     ru: "Конюшня",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 2,
     powerTotal: 495460,
@@ -489,6 +502,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "siege-yard",
     ru: "Осадный двор",
+    footprint: { w: 3, h: 3 },
     maxLevel: 30,
     startCitadel: 12,
     powerTotal: 495460,
@@ -530,6 +544,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "sawmill",
     ru: "Лесопилка",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 1,
     powerTotal: 146803,
@@ -571,6 +586,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "pen",
     ru: "Загон",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 1,
     powerTotal: 146803,
@@ -612,6 +628,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "quarry",
     ru: "Каменоломня",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 3,
     powerTotal: 146803,
@@ -653,6 +670,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "mine",
     ru: "Рудник",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 12,
     powerTotal: 146803,
@@ -694,6 +712,7 @@ export const BUILDINGS: readonly BuildingDef[] = [
   {
     id: "farm",
     ru: "Ферма",
+    footprint: { w: 2, h: 2 },
     maxLevel: 30,
     startCitadel: 3,
     powerTotal: 146803,

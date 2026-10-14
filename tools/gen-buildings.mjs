@@ -75,6 +75,25 @@ function levelRows(lines) {
 }
 
 /** Таблица зданий из buildings.md: старт, макс. уровень, сумма силы и доля. */
+/** Размеры в клетках из раздела «Размер в клетках (footprint)» buildings.md: имя → {w, h}. */
+function footprintTable(md) {
+  const lines = sectionsOf(md).get("Размер в клетках (footprint)");
+  if (!lines) throw new Error("buildings.md: нет раздела «Размер в клетках (footprint)»");
+  const map = new Map();
+  for (const line of lines) {
+    if (!line.startsWith("|") || /^\|\s*-/.test(line)) continue;
+    const c = cells(line);
+    if (c.length !== 3 || !/^\d+×\d+$/.test(c[1])) continue;
+    const [w, h] = c[1].split("×").map(Number);
+    for (const raw of c[0].split(",")) {
+      const name = raw.replace(/\s*\(×[^)]*\)/, "").trim();
+      if (map.has(name)) throw new Error(`footprint: «${name}» задан дважды`);
+      map.set(name, { w, h });
+    }
+  }
+  return map;
+}
+
 function catalogTable(md) {
   const map = new Map();
   for (const line of md.split("\n")) {
@@ -96,10 +115,15 @@ function catalogTable(md) {
 
 export function buildCatalog() {
   const ladders = sectionsOf(readFileSync(LADDERS, "utf8"));
-  const table = catalogTable(readFileSync(CATALOG_DOC, "utf8"));
+  const docMd = readFileSync(CATALOG_DOC, "utf8");
+  const table = catalogTable(docMd);
+  const footprints = footprintTable(docMd);
   const entries = BUILDINGS.map((b) => {
     const meta = table.get(b.ru);
     if (!meta) throw new Error(`${b.ru}: нет строки в buildings.md`);
+    const footprint = footprints.get(b.ru);
+    if (!footprint) throw new Error(`${b.ru}: нет размера в клетках в buildings.md`);
+    meta.footprint = footprint;
     if (!b.section) {
       // Таверна: только постройка, уровней нет.
       return { id: b.id, ru: b.ru, ...meta, maxLevel: 1, levels: [], costOpen: true };
@@ -142,6 +166,7 @@ export function render(entries) {
     lines.push("  {");
     lines.push(`    id: ${q(e.id)},`);
     lines.push(`    ru: ${q(e.ru)},`);
+    lines.push(`    footprint: { w: ${e.footprint.w}, h: ${e.footprint.h} },`);
     lines.push(`    maxLevel: ${e.maxLevel},`);
     lines.push(`    startCitadel: ${e.startCitadel},`);
     lines.push(`    powerTotal: ${e.powerTotal === null ? "null" : e.powerTotal},`);
