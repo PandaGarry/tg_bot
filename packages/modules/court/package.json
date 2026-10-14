@@ -7,14 +7,17 @@
     "./module": "./src/module.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ../../../tools/run-vitest.mjs run"
   },
   "dependencies": {
     "@tdl/kernel": "workspace:*",
     "@tdl/protocol": "workspace:*",
-    "zod": "4.6.5"
+    "zod": "4.6.5",
+    "@tdl/content-buildings": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
   }
 }

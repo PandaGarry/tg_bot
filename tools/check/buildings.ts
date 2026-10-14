@@ -1,5 +1,5 @@
 /**
- * Проверка каталога зданий: файл packages/modules/buildings/src/catalog.gen.ts
+ * Проверка каталога зданий: файл packages/content-buildings/src/catalog.gen.ts
  * должен совпадать с результатом генерации из docs/balance/ladders.md и
  * docs/design/buildings.md. Дрейф — ошибка: правьте документы и запускайте
  * `pnpm gen:buildings`.

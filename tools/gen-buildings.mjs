@@ -1,5 +1,5 @@
 // Генератор каталога зданий: читает docs/balance/ladders.md и docs/design/buildings.md
-// и пишет packages/modules/buildings/src/catalog.gen.ts.
+// и пишет packages/content-buildings/src/catalog.gen.ts.
 // Правки в catalog.gen.ts затираются: правьте документы и запускайте `pnpm gen:buildings`.
 // Проверка `pnpm check` сравнивает файл с результатом генерации (дрейф = ошибка).
 
@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const LADDERS = resolve(ROOT, "docs/balance/ladders.md");
 const CATALOG_DOC = resolve(ROOT, "docs/design/buildings.md");
-export const OUT = resolve(ROOT, "packages/modules/buildings/src/catalog.gen.ts");
+export const OUT = resolve(ROOT, "packages/content-buildings/src/catalog.gen.ts");
 
 // Соответствие: id → имя в документе и заголовок лестницы в ladders.md.
 // Таверна — без лестницы (решено 10.10: 1 уровень, стоимость не назначена).
