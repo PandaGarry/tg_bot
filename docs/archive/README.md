@@ -18,7 +18,7 @@
 | `06-plan.md` | plan/roadmap.md (заменён 11.10) | перенесено, удалено 11.10 |
 | `07-modules.md` | `docs/modules.md` | перенесено, удалено 14.10 |
 | `08-ops.md` | `docs/ops.md` | перенесено, удалено 14.10 |
-| `10-modules-kinds.md` | design/modules.md (виды модулей, единицы, расписание) | ожидает разбора |
+| `10-modules-kinds.md` | `design/modules.md` (решено 25.09; открыто: плотность событий, параллельный мир); запись в DECISIONS добавлена 14.10 | перенесено, удалено 14.10 |
 | `11-calendar.md` | design/calendar.md | ожидает разбора |
 | `12-worlds.md` | design/worlds.md (миры, серверы, фазы) | ожидает разбора |
 | `13-genre-servers.md` | balance/competitors.md | ожидает разбора |
