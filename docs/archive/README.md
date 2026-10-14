@@ -46,6 +46,6 @@
 | Файл | Куда переносим | Статус |
 |---|---|---|
 | `../archive/design/31-buildings-data-spec.md` | design/buildings.md (заменён 10.10) | перенесено, удалено 11.10 |
-| `../archive/balance/09-numbers-3.md` | balance/* (разложен 10.10) | ожидает сверки |
+| `balance/09-numbers-3.md` | balance/* (разложен 10.10) | сверен и удалён 14.10 (последняя версия — коммит `a618fdd`) |
 | `../archive/balance/09-numbers-old.md` | — (старая версия, заменена 09-numbers-3) | перенесено, удалено 11.10 |
 | `../archive/root/STATUS.md` | docs/STATUS.md (заменён 11.10) | перенесено, удалено 11.10 |
