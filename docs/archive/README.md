@@ -27,7 +27,7 @@
 | `16-money.md` | balance/economy.md (монетизация, удержание) | ожидает разбора |
 | `17-ui.md` | §0–8, §10–11 → `design/ui-standards.md`; §2, §4, §5, §13–15 → `balance/competitors.md` §12–14; источники → §14; §9 (3D) не переносим (отменено 09.10) | перенесено, удалено 14.10 |
 | `17-ui-real-screens.md` | balance/competitors.md §11 (источники и выводы; картинки не храним) | перенесено, удалено 14.10 |
-| `18-ui-deep-dive.md` | design/hud-court.md | ожидает разбора |
+| `18-ui-deep-dive.md` | §5–6 → `design/ui-standards.md` §6–7; §1–4 (поигровые детали) сведены в `balance/competitors.md` §14; полный текст — в истории git | перенесено, удалено 14.10 |
 | `19-ui-research-tz.md` | design/hud-court.md | ожидает разбора |
 | `20-ui-style-variants.md` | канон уже в `canon/tone.md`, `canon/world-basics.md`, `canon/lore.md`; стиль — `DECISIONS.md` (skin 03 «forge») | перенесено, удалено 14.10 |
 | `21-rok-reference.md` | balance/competitors.md | ожидает разбора |
