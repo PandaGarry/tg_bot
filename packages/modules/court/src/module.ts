@@ -49,7 +49,7 @@ const DECOR_SIZES: Record<string, [number, number]> = Object.fromEntries(
 const PLACEABLE_BUILDINGS = buildings.filter((b) => b.id !== CITADEL && !b.costOpen).map((b) => b.id);
 const PLACEABLE = [...PLACEABLE_BUILDINGS, ...Object.keys(DECOR)];
 
-/** Пределы хранения до модификаторов: склад и погреб отдельно. */
+/** Пределы хранения до модификаторов. Погреба нет: склад единственный (решено 14.10). */
 const LIMIT_BASE: Record<string, number> = {
   meat: 5_000,
   wood: 5_000,
@@ -271,7 +271,7 @@ const court = defineModule({
       { id: "wood", storage: "warehouse" },
       { id: "stone", storage: "warehouse" },
       { id: "metal", storage: "warehouse" },
-      { id: "mushrooms", storage: "cellar" },
+      { id: "mushrooms", storage: "warehouse" },
       { id: "gold", storage: "warehouse" },
     ],
     modifiers: [
