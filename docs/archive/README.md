@@ -26,7 +26,7 @@
 | `15-genre-deep.md` | balance/competitors.md (таблицы зданий 10 игр — сверка с buildings.md) | ожидает разбора |
 | `16-money.md` | balance/economy.md (монетизация, удержание) | ожидает разбора |
 | `17-ui.md` | design/hud-court.md | ожидает разбора |
-| `17-ui-real-screens.md` | design/hud-court.md | ожидает разбора |
+| `17-ui-real-screens.md` | balance/competitors.md §11 (источники и выводы; картинки не храним) | перенесено, удалено 14.10 |
 | `18-ui-deep-dive.md` | design/hud-court.md | ожидает разбора |
 | `19-ui-research-tz.md` | design/hud-court.md | ожидает разбора |
 | `20-ui-style-variants.md` | канон уже в `canon/tone.md`, `canon/world-basics.md`, `canon/lore.md`; стиль — `DECISIONS.md` (skin 03 «forge») | перенесено, удалено 14.10 |
