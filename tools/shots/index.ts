@@ -196,12 +196,9 @@ const shots: Record<string, Shot> = {
     return [file];
   },
 
-  /** Страницы концептов: главный экран Bone-Wood №08, единая система round-08, первые десять картинок. */
+  /** Страницы концептов. Концепты удалены по решению 10.10 (выбран skin «forge»); список пуст. */
   async "concept-pages"(browser, origin) {
     const pages: Array<[path: string, file: string]> = [
-      ["/concepts/bone-wood-main-screen/index.html", "concept-bone-wood-main-screen.jpg"],
-      ["/concepts/bone-wood-round-08/index.html", "concept-bone-wood-round-08.jpg"],
-      ["/concepts/index.html", "concept-first-ten.jpg"],
     ];
     const files: string[] = [];
     for (const [path, name] of pages) {

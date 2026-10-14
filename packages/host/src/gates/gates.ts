@@ -23,6 +23,8 @@ export const PORTRAITS = [
   "portrait-6",
   "portrait-7",
   "portrait-8",
+  "portrait-9",
+  "portrait-10",
 ] as const;
 
 export const BANNER_SIGNS = ["skull", "bell", "tooth", "hand", "tower", "mushroom"] as const;

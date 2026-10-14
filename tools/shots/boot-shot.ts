@@ -1,5 +1,5 @@
 /**
- * Кадр окна входа: `npx tsx shots/boot-shot.ts [port]` → docs/game/ui/court3d/game-boot-portrait.jpg.
+ * Кадр окна входа: `npx tsx shots/boot-shot.ts [port]` → docs/game/ui/client/game-boot-portrait.jpg.
  */
 
 import { mkdirSync } from "node:fs";
@@ -9,7 +9,7 @@ import { launchBrowser, openPage } from "./browser.js";
 
 const port = process.argv[2] ?? "3000";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const out = join(root, "docs", "game", "ui", "court3d", "game-boot-portrait.jpg");
+const out = join(root, "docs", "game", "ui", "client", "game-boot-portrait.jpg");
 mkdirSync(dirname(out), { recursive: true });
 
 const browser = await launchBrowser();

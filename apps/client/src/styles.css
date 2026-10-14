@@ -3,12 +3,51 @@
 /* Экран целиком: двойное нажатие не увеличивает страницу, масштаб остаётся у карты. */
 @theme {
   --color-bone: #d8d2c4;
+  /* Окна входа, регистрации и создания: вариант A «Forge» (решено 14.10). */
+  --color-ink: #15110d;
+  --color-ink-2: #1d1812;
+  --color-line: #3b3228;
+  --color-parch: #f1e8d4;
+  --color-rust: #b8562c;
+  --color-mute: #9c8f7c;
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
+}
+
+/* Сцена (Pixi) — полноэкранный canvas внизу; HUD — поверх, клики по пустому
+   месту проходят в сцену (pointer-events разводятся). */
+#pixi-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+#pixi-root canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+#hud-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#hud-root > * {
+  pointer-events: auto;
+}
+
+/* Окна входа, регистрации и создания лорда неподвижны: прокрутки нет (14.10, заказчик).
+   Всё помещается в видимую область; см. docs/design/onboarding.md §6. */
+#hud-root:has(.entry-frame) {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 html {
@@ -61,59 +100,18 @@ button {
   }
 }
 
-.court-mode .game-nav,
-.court-mode .hud-top,
-.court-mode .hud-queues,
-.court-mode .hud-rb-row,
-.court-mode .hud-tabs,
-.court-mode .hud-panel {
-  position: absolute;
-}
-
-
-/* Подсказки поверх 3D-сцены двора: поворот и запасной кадр без WebGL. */
-.court-note {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(56px + env(safe-area-inset-bottom));
-  background: rgba(30, 22, 16, 0.78);
-  color: #f0e8d8;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 13px;
+/* Пустые зоны HUD пропускают жесты в Pixi-canvas; концепт-контролы включают события точечно. */
+#hud-root > .court-mode {
   pointer-events: none;
-  white-space: nowrap;
-  z-index: 5;
 }
 
-/* Лента хрониста поверх 3D-сцены: первая фраза, закрывается один раз.
-   Висит выше круглых кнопок «Строить/Карта», чтобы не закрывать их. */
-.court-tape {
-  position: absolute;
-  left: 12px;
-  right: 76px;
-  bottom: calc(190px + env(safe-area-inset-bottom));
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(30, 22, 16, 0.85);
-  border: 1px solid rgba(214, 178, 120, 0.4);
-  border-radius: 12px;
-  padding: 8px 10px;
-  color: #f0e8d8;
-  font-size: 13px;
-  line-height: 1.4;
+.court-mode,
+.court-mode * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.court-tape button {
-  min-height: 44px;
-  padding: 0 12px;
-  color: #f0d9a8;
-}
-
-
 
 /* ---------- Окна входа, регистрации и слайдов: современная тёмная карточка
    в палитре Bone-Wood (круг 18, по референсам заказчика) ---------- */
@@ -304,4 +302,247 @@ button {
   gap: 8px;
   font-weight: 400;
   color: #b9a887;
+}
+
+/* ---- Превью и загрузка первого запуска (решено 12.10: текст — Cormorant Garamond) ---- */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-cyrillic-400-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.preview-serif {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Кадр превью: лёгкое появление, без теней. */
+.preview-scene {
+  animation: preview-fade 0.9s ease-out both;
+}
+@keyframes preview-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Кольцо загрузки: два вращающихся дуги и пульс в центре. */
+.loader-ring-arc {
+  animation: loader-spin 1.4s linear infinite;
+}
+.loader-ring-arc-slow {
+  animation-duration: 2.2s;
+  animation-direction: reverse;
+}
+.loader-pulse {
+  animation: loader-pulse 1.25s ease-in-out infinite;
+}
+.loader-bar {
+  width: 0;
+  animation-name: loader-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.loader-hint {
+  animation: preview-fade 0.6s ease-out both;
+}
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes loader-pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes loader-fill {
+  to { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-scene,
+  .loader-ring-arc,
+  .loader-pulse,
+  .loader-hint {
+    animation: none;
+  }
+}
+
+/* ---- Шрифты (решено 13.10: Unbounded — заголовки, Manrope — интерфейс; тени нет) ---- */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/manrope-cyrillic-400-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/manrope-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/manrope-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/manrope-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Unbounded";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/unbounded-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Unbounded";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/unbounded-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ===== Загрузка: оверлей без картинок (13.10, по замечаниям заказчика) ===== */
+.load-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 1.5rem) 1.5rem calc(env(safe-area-inset-bottom) + 1.5rem);
+  background: #0c0a09;
+  color: var(--color-bone);
+  font-family: "Manrope", system-ui, sans-serif;
+  text-align: center;
+  transition: opacity 0.35s ease;
+  overflow: hidden;
+}
+.load-leave {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Мягкое свечение за текстом: два круга, медленно дышат. */
+.load-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(120vw, 620px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(185, 134, 47, 0.16), rgba(120, 113, 108, 0.06) 55%, transparent 100%);
+  animation: load-breathe 3.2s ease-in-out infinite;
+}
+.load-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 320px;
+}
+.load-title {
+  font-family: "Unbounded", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+.load-segments {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.load-seg {
+  height: 4px;
+  border-radius: 2px;
+  background: #292524;
+  overflow: hidden;
+  position: relative;
+}
+.load-seg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #b9862f, #e0b04a);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation-name: load-fill;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-duration: var(--seg-duration, 500ms);
+  animation-delay: var(--seg-delay, 0ms);
+}
+.load-hint {
+  min-height: 3.2rem;
+  max-width: 24rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  color: #a8a29e;
+  animation: load-hint-in 0.5s ease-out both;
+}
+@keyframes load-fill {
+  to { transform: scaleX(1); }
+}
+@keyframes load-breathe {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.96); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+}
+@keyframes load-hint-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-glow,
+  .load-seg::after,
+  .load-hint {
+    animation: none;
+  }
+  .load-seg::after {
+    transform: scaleX(1);
+  }
 }

@@ -106,7 +106,7 @@ export interface LaneRules {
 }
 
 /**
- * Полосы и их правила. Числа — календарные, из docs/game/11-calendar.md;
+ * Полосы и их правила. Числа — календарные, из docs/archive/game/11-calendar.md;
  * меняются здесь, а не в модулях.
  */
 export const LANES: Readonly<Record<LaneId, LaneRules>> = {

@@ -1,76 +1,55 @@
 /**
  * Модуль двора: экономика и застройка города.
  *
- * Шаг C1 (фундамент): шесть ресурсов двора (мясо, дерево, камень, металл,
- * грибы-в-погребе, золото), сетка двора с Ратушей в центре и медленное
- * производство по такту. Постройки ставятся командой, вид построек —
- * обязанность сцены двора, а не этого модуля.
+ * Шаг 2 замены court (решено 14.10): постройки — из каталога `@tdl/content-buildings`
+ * (docs/design/buildings.md), центр двора — Цитадель, сетка растёт по полосам
+ * Цитадели. Декор (фонарь, скамья, колодец, флаг) не трогаем — он не из каталога зданий.
  *
  * Модуль ничего не пишет в базу сам: строку своей таблицы он отдаёт
  * эффектом, снимок читает через store.
  */
 
 import { defineCommand, defineModule, type EffectList, type JsonValue } from "@tdl/kernel";
+import { buildingById, buildings } from "@tdl/content-buildings/catalog";
+import { openCount } from "@tdl/content-buildings/layout";
 import { z } from "zod";
+import {
+  CITADEL,
+  MAX_GRID,
+  cellsOf,
+  citadelAnchor,
+  defaultRoads,
+  fitsGrid,
+  gridSizeAt,
+  levelCost,
+  sizeOf,
+  startGridSize,
+} from "./grid.js";
 import { strings } from "./strings.js";
 
-/** Сетка двора в клетках: 14×14 сейчас, расширяемо до 22×22. */
-const GRID_SIZE = 14;
-/** Центр сетки — здесь стоит Ратуша. */
-const CENTER = Math.floor(GRID_SIZE / 2);
 /** Период производственного такта. */
 const TICK_MS = 60_000;
 /** Максимум построек, защита от абсурда. */
 const MAX_BUILDINGS = 60;
+/** Версия формата сетки: старые сохранения (до шага 2) сбрасываются при чтении. */
+const GRID_VERSION = 2;
 
-/** Вкладки режима строительства. */
-type BuildTab = "economy" | "military" | "decor";
-
-/**
- * Каталог построек: пятно [ширина, глубина] в клетках, вкладка, требование
- * и цена. Здания открываются постепенно — уровнем Ратуши (прокачка) и позже
- * расширением территории; всё, что не открыто, видно с замком.
- */
-const CATALOG: Record<
-  string,
-  { size: [number, number]; tab: BuildTab; th: number; cost: Partial<Record<CourtResource, number>> }
-> = {
-  // экономика — жилые и хозяйские дома в один ряд: 2×2
-  cottage: { size: [2, 2], tab: "economy", th: 1, cost: { wood: 50, stone: 20 } },
-  farm: { size: [2, 2], tab: "economy", th: 1, cost: { wood: 60, stone: 30 } },
-  sawmill: { size: [2, 2], tab: "economy", th: 2, cost: { wood: 80, stone: 40 } },
-  quarry: { size: [2, 2], tab: "economy", th: 2, cost: { wood: 60, stone: 80 } },
-  mine: { size: [2, 2], tab: "economy", th: 3, cost: { wood: 90, stone: 60, metal: 30 } },
-  // военные
-  barracks: { size: [2, 2], tab: "military", th: 3, cost: { wood: 150, stone: 120, metal: 40 } },
-  // украшения — игрок ставит их сам, сцена ничего не приносит
-  lantern: { size: [1, 1], tab: "decor", th: 1, cost: { wood: 10, gold: 5 } },
-  bench: { size: [2, 1], tab: "decor", th: 1, cost: { wood: 15 } },
-  well: { size: [2, 2], tab: "decor", th: 2, cost: { stone: 40, wood: 10 } },
-  flag: { size: [1, 1], tab: "decor", th: 1, cost: { wood: 20, gold: 10 } },
+/** Декор двора: пятно, требование уровня Цитадели и цена. Не из каталога зданий. */
+const DECOR: Record<string, { size: [number, number]; th: number; cost: Partial<Record<CourtResource, number>> }> = {
+  lantern: { size: [1, 1], th: 1, cost: { wood: 10, gold: 5 } },
+  bench: { size: [2, 1], th: 1, cost: { wood: 15 } },
+  well: { size: [2, 2], th: 2, cost: { stone: 40, wood: 10 } },
+  flag: { size: [1, 1], th: 1, cost: { wood: 20, gold: 10 } },
 };
+const DECOR_SIZES: Record<string, [number, number]> = Object.fromEntries(
+  Object.entries(DECOR).map(([id, def]) => [id, def.size]),
+);
 
-const PLACEABLE = Object.keys(CATALOG).filter((id) => id !== "townhall");
+/** Постройки, которые можно ставить: каталог без Цитадели и без зданий с нераспределённой ценой (Таверна). */
+const PLACEABLE_BUILDINGS = buildings.filter((b) => b.id !== CITADEL && !b.costOpen).map((b) => b.id);
+const PLACEABLE = [...PLACEABLE_BUILDINGS, ...Object.keys(DECOR)];
 
-/** Сколько клетки занимает постройка: [ширина, глубина]. */
-const FOOTPRINT: Record<string, [number, number]> = {
-  townhall: [3, 3],
-  ...Object.fromEntries(PLACEABLE.map((id) => [id, CATALOG[id]?.size ?? ([1, 1] as [number, number])])),
-};
-
-/** Цена улучшения Ратуши: индекс — целевой уровень. */
-const TH_COSTS: (Partial<Record<CourtResource, number>> | undefined)[] = [
-  undefined,
-  undefined,
-  { wood: 300, stone: 250, gold: 50 },
-  { wood: 600, stone: 500, metal: 100, gold: 150 },
-  { wood: 1200, stone: 900, metal: 250, gold: 400 },
-  { wood: 2400, stone: 1800, metal: 500, gold: 1000 },
-];
-/** Максимальный уровень Ратуши сейчас. */
-const TH_MAX = TH_COSTS.length - 1;
-
-/** Пределы хранения до модификаторов: склад и погреб отдельно. */
+/** Пределы хранения до модификаторов. Погреба нет: склад единственный (решено 14.10). */
 const LIMIT_BASE: Record<string, number> = {
   meat: 5_000,
   wood: 5_000,
@@ -103,38 +82,38 @@ const STARTER: Record<CourtResource, number> = {
 const RESOURCES = ["meat", "wood", "stone", "metal", "mushrooms", "gold"] as const;
 type CourtResource = (typeof RESOURCES)[number];
 
+const coord = () => z.number().int().min(0).max(MAX_GRID - 1);
+
 const zEmpty = z.object({}).strict();
 const zPlace = z
   .object({
     type: z.enum(PLACEABLE as [string, ...string[]]),
-    x: z.number().int().min(0).max(GRID_SIZE - 1),
-    z: z.number().int().min(0).max(GRID_SIZE - 1),
+    x: coord(),
+    z: coord(),
   })
   .strict();
 const zMove = z
   .object({
-    type: z.enum(["townhall", ...PLACEABLE] as [string, ...string[]]),
-    fromX: z.number().int().min(0).max(GRID_SIZE - 1),
-    fromZ: z.number().int().min(0).max(GRID_SIZE - 1),
-    toX: z.number().int().min(0).max(GRID_SIZE - 1),
-    toZ: z.number().int().min(0).max(GRID_SIZE - 1),
+    type: z.enum([CITADEL, ...PLACEABLE] as [string, ...string[]]),
+    fromX: coord(),
+    fromZ: coord(),
+    toX: coord(),
+    toZ: coord(),
   })
   .strict();
 const zRoad = z
   .object({
-    x: z.number().int().min(0).max(GRID_SIZE - 1),
-    z: z.number().int().min(0).max(GRID_SIZE - 1),
+    x: coord(),
+    z: coord(),
     remove: z.boolean().default(false),
-    moveFrom: z
-      .object({ x: z.number().int().min(0).max(GRID_SIZE - 1), z: z.number().int().min(0).max(GRID_SIZE - 1) })
-      .optional(),
+    moveFrom: z.object({ x: coord(), z: coord() }).optional(),
   })
   .strict();
 const zRemove = z
   .object({
-    type: z.enum(["townhall", ...PLACEABLE] as [string, ...string[]]),
-    x: z.number().int().min(0).max(GRID_SIZE - 1),
-    z: z.number().int().min(0).max(GRID_SIZE - 1),
+    type: z.enum(Object.keys(DECOR) as [string, ...string[]]),
+    x: coord(),
+    z: coord(),
   })
   .strict();
 
@@ -156,32 +135,46 @@ interface CourtGrid {
   size: number;
   buildings: CourtBuilding[];
   roads: CourtRoad[];
+  /** Версия формата сетки (GRID_VERSION). */
+  v: number;
   [key: string]: JsonValue;
 }
 
-/** Стартовая дорога: от ворот (восток) до крыльца Ратуши. */
-const ROAD_SEED: CourtRoad[] = Array.from({ length: 5 }, (_, i) => ({ x: 9 + i, z: 7 }));
-
 interface CourtState {
   starter: number;
+  /** Уровень Цитадели (имя поля сохранено от Ратуши, см. DECISIONS 14.10). */
   townhallLevel: number;
   grid: CourtGrid | null;
+}
+
+function defaultGrid(): CourtGrid {
+  const size = startGridSize();
+  const anchor = citadelAnchor(size);
+  return {
+    size,
+    buildings: [{ type: CITADEL, x: anchor.x, z: anchor.z }],
+    roads: defaultRoads(size).map((road) => ({ ...road })),
+    v: GRID_VERSION,
+  };
 }
 
 function stateOf(state: unknown): CourtState {
   const value = (state ?? {}) as Partial<CourtState>;
   const grid = value.grid;
+  // Старый формат (до шага 2) — не читаем: двор начинается заново, уровень Цитадели 1.
+  const current = grid && Array.isArray(grid.buildings) && grid.v === GRID_VERSION;
+  if (!current) {
+    return { starter: Number(value.starter ?? 0), townhallLevel: 1, grid: null };
+  }
   return {
     starter: Number(value.starter ?? 0),
     townhallLevel: Number(value.townhallLevel ?? 1),
-    grid:
-      grid && Array.isArray(grid.buildings)
-        ? {
-            size: Number(grid.size ?? GRID_SIZE),
-            buildings: grid.buildings,
-            roads: Array.isArray(grid.roads) ? grid.roads : [],
-          }
-        : null,
+    grid: {
+      size: Number(grid.size),
+      buildings: grid.buildings,
+      roads: Array.isArray(grid.roads) ? grid.roads : [],
+      v: GRID_VERSION,
+    },
   };
 }
 
@@ -192,15 +185,17 @@ interface StockOp {
   value: number;
 }
 
+type Cost = Partial<Record<CourtResource, number>>;
+
 /** Хватает ли ресурсов на покупку (склад читается из контекста команды). */
-function canAfford(stock: Readonly<Record<string, number>>, cost: Partial<Record<CourtResource, number>>): boolean {
+function canAfford(stock: Readonly<Record<string, number>>, cost: Cost): boolean {
   return (Object.entries(cost) as [CourtResource, number][]).every(
     ([resource, amount]) => (stock[resource] ?? 0) >= amount,
   );
 }
 
 /** Эффекты оплаты: списываем ресурсы со склада (хост отклонит нехватку). */
-function payEffects(cost: Partial<Record<CourtResource, number>>, holderId: string): EffectList {
+function payEffects(cost: Cost, holderId: string): EffectList {
   return (Object.entries(cost) as [CourtResource, number][]).map(([resource, amount]) => ({
     kind: "stock" as const,
     resource,
@@ -210,17 +205,12 @@ function payEffects(cost: Partial<Record<CourtResource, number>>, holderId: stri
 }
 
 /** Патч-операции оплаты: вычитание в строке ресурсов вида. */
-function payOps(cost: Partial<Record<CourtResource, number>>): StockOp[] {
+function payOps(cost: Cost): StockOp[] {
   return (Object.entries(cost) as [CourtResource, number][]).map(([resource, amount]) => ({
     op: "add" as const,
     path: `stock.${resource}`,
     value: -amount,
   }));
-}
-
-/** Сетка по умолчанию: пустой двор с Ратушей в центре. */
-function defaultGrid(): CourtGrid {
-  return { size: GRID_SIZE, buildings: [{ type: "townhall", x: CENTER, z: CENTER }], roads: ROAD_SEED };
 }
 
 function gridOf(state: unknown): CourtGrid {
@@ -236,16 +226,36 @@ function roadKeys(roads: CourtRoad[]): Set<string> {
 function footprintOf(buildings: CourtBuilding[]): Set<string> {
   const cells = new Set<string>();
   for (const building of buildings) {
-    const [w, h] = FOOTPRINT[building.type] ?? [1, 1];
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    for (let dx = -halfW; dx < w - halfW; dx += 1) {
-      for (let dz = -halfH; dz < h - halfH; dz += 1) {
-        cells.add(`${building.x + dx}:${building.z + dz}`);
-      }
-    }
+    for (const key of cellsOf(building.x, building.z, sizeOf(building.type, DECOR_SIZES))) cells.add(key);
   }
   return cells;
+}
+
+function countOf(type: string, buildingsList: CourtBuilding[]): number {
+  return buildingsList.filter((b) => b.type === type).length;
+}
+
+/**
+ * Цена постановки или `null`, если постройка сейчас не открыта.
+ * Здание — по лимиту уровня Цитадели; декор — по порогу уровня.
+ */
+function placementCost(type: string, citadel: number, buildingsList: CourtBuilding[]): Cost | null {
+  const decor = DECOR[type];
+  if (decor) return citadel >= decor.th ? decor.cost : null;
+  const def = buildingById(type);
+  if (!def) return null;
+  if (openCount(def, citadel) <= countOf(type, buildingsList)) return null;
+  return levelCost(type, 1);
+}
+
+/** Сохранение сетки: одна строка на двор, как и раньше. */
+function gridRow(holderId: string, level: number, grid: CourtGrid, now: number) {
+  return {
+    kind: "rows.upsert" as const,
+    table: "court_holder",
+    key: { holder_id: holderId },
+    value: { starter: 1, townhall_level: level, grid, updated_at_ms: now },
+  };
 }
 
 const tickDeadlineId = (holderId: string): string => `court.tick:${holderId}`;
@@ -261,7 +271,7 @@ const court = defineModule({
       { id: "wood", storage: "warehouse" },
       { id: "stone", storage: "warehouse" },
       { id: "metal", storage: "warehouse" },
-      { id: "mushrooms", storage: "cellar" },
+      { id: "mushrooms", storage: "warehouse" },
       { id: "gold", storage: "warehouse" },
     ],
     modifiers: [
@@ -295,6 +305,11 @@ const court = defineModule({
         to: 2,
         sql: `ALTER TABLE court_holder ADD COLUMN IF NOT EXISTS townhall_level integer NOT NULL DEFAULT 1`,
       },
+      {
+        // Шаг 2 замены court: сохранённые дворы сбрасываются (решено 14.10). Запасы не трогаем.
+        to: 3,
+        sql: `UPDATE court_holder SET grid = NULL, townhall_level = 1`,
+      },
     ],
     snapshot: async ({ store, actor }): Promise<JsonValue> => {
       const holderId = actor?.id ?? "world";
@@ -302,9 +317,9 @@ const court = defineModule({
         `SELECT starter, grid, townhall_level FROM court_holder WHERE world_id = $1 AND holder_id = $2`,
         [holderId],
       );
-      const state = stateOf({ ...rows[0], townhallLevel: rows[0]?.townhall_level });
+      const state = stateOf({ ...rows[0], grid: rows[0]?.grid, townhallLevel: rows[0]?.townhall_level });
       const grid = state.grid ?? defaultGrid();
-      // Уровень лорда растёт вместе с Ратушей; сила — видимый итог прогресса двора.
+      // Уровень лорда растёт вместе с Цитаделью; сила — видимый итог прогресса двора.
       const power = 120 * state.townhallLevel + 40 * (grid.buildings.length - 1) + 5 * grid.roads.length;
       return { starter: state.starter, townhallLevel: state.townhallLevel, level: state.townhallLevel, power, grid, holderId };
     },
@@ -347,7 +362,11 @@ const court = defineModule({
             {
               kind: "patch",
               route: { kind: "actor" },
-              ops: [{ op: "set", path: "modules.court.grid", value: grid }, ...stockOps],
+              ops: [
+                { op: "set", path: "modules.court.grid", value: grid },
+                { op: "set", path: "modules.court.townhallLevel", value: stateOf(ctx.state).townhallLevel },
+                ...stockOps,
+              ],
             },
             {
               kind: "deadline.set",
@@ -364,54 +383,30 @@ const court = defineModule({
         input: zPlace,
         handle: (ctx, input): EffectList => {
           const holderId = ctx.actor?.id ?? "world";
-          const item = CATALOG[input.type];
-          if (!item) return [];
           const grid = gridOf(ctx.state);
           const level = stateOf(ctx.state).townhallLevel;
-          // Постройка ещё не открыта: уровень Ратуши не дотягивает.
-          if (level < item.th) return [];
-          if (!canAfford(ctx.stock, item.cost)) return [];
+          const cost = placementCost(input.type, level, grid.buildings);
+          if (!cost) return [];
+          if (!canAfford(ctx.stock, cost)) return [];
           if (grid.buildings.length >= MAX_BUILDINGS) return [];
-          const [w, h] = item.size;
-          const halfW = Math.floor(w / 2);
-          const halfH = Math.floor(h / 2);
-          const fromX = -halfW;
-          const toX = w - halfW - 1;
-          const fromZ = -halfH;
-          const toZ = h - halfH - 1;
-          if (
-            input.x + fromX < 0 ||
-            input.z + fromZ < 0 ||
-            input.x + toX > grid.size - 1 ||
-            input.z + toZ > grid.size - 1
-          ) {
-            return [];
-          }
+          const size = sizeOf(input.type, DECOR_SIZES);
+          if (!fitsGrid(input.x, input.z, size, grid.size)) return [];
           const busy = footprintOf(grid.buildings);
           const roads = roadKeys(grid.roads);
-          for (let dx = fromX; dx <= toX; dx += 1) {
-            for (let dz = fromZ; dz <= toZ; dz += 1) {
-              const key = `${input.x + dx}:${input.z + dz}`;
-              if (busy.has(key) || roads.has(key)) return [];
-            }
+          for (const key of cellsOf(input.x, input.z, size)) {
+            if (busy.has(key) || roads.has(key)) return [];
           }
           const next: CourtGrid = {
-            size: grid.size,
+            ...grid,
             buildings: [...grid.buildings, { type: input.type, x: input.x, z: input.z }],
-            roads: grid.roads,
           };
           return [
-            {
-              kind: "rows.upsert",
-              table: "court_holder",
-              key: { holder_id: holderId },
-              value: { starter: 1, townhall_level: level, grid: next, updated_at_ms: ctx.now },
-            },
-            ...payEffects(item.cost, holderId),
+            gridRow(holderId, level, next, ctx.now),
+            ...payEffects(cost, holderId),
             {
               kind: "patch",
               route: { kind: "actor" },
-              ops: [{ op: "set", path: "modules.court.grid", value: next }, ...payOps(item.cost)],
+              ops: [{ op: "set", path: "modules.court.grid", value: next }, ...payOps(cost)],
             },
             {
               kind: "report",
@@ -433,42 +428,20 @@ const court = defineModule({
             (b) => b.type === input.type && b.x === input.fromX && b.z === input.fromZ,
           );
           if (index < 0) return [];
-          const [w, h] = FOOTPRINT[input.type] ?? [1, 1];
-          const halfW = Math.floor(w / 2);
-          const halfH = Math.floor(h / 2);
-          const fromX = -halfW;
-          const toX = w - halfW - 1;
-          const fromZ = -halfH;
-          const toZ = h - halfH - 1;
-          if (
-            input.toX + fromX < 0 ||
-            input.toZ + fromZ < 0 ||
-            input.toX + toX > grid.size - 1 ||
-            input.toZ + toZ > grid.size - 1
-          ) {
-            return [];
-          }
+          const size = sizeOf(input.type, DECOR_SIZES);
+          if (!fitsGrid(input.toX, input.toZ, size, grid.size)) return [];
           const others = grid.buildings.filter((_, i) => i !== index);
           const busy = footprintOf(others);
           const roads = roadKeys(grid.roads);
-          for (let dx = fromX; dx <= toX; dx += 1) {
-            for (let dz = fromZ; dz <= toZ; dz += 1) {
-              const key = `${input.toX + dx}:${input.toZ + dz}`;
-              if (busy.has(key) || roads.has(key)) return [];
-            }
+          for (const key of cellsOf(input.toX, input.toZ, size)) {
+            if (busy.has(key) || roads.has(key)) return [];
           }
           const next: CourtGrid = {
-            size: grid.size,
+            ...grid,
             buildings: [...others, { type: input.type, x: input.toX, z: input.toZ }],
-            roads: grid.roads,
           };
           return [
-            {
-              kind: "rows.upsert",
-              table: "court_holder",
-              key: { holder_id: holderId },
-              value: { starter: 1, townhall_level: stateOf(ctx.state).townhallLevel, grid: next, updated_at_ms: ctx.now },
-            },
+            gridRow(holderId, stateOf(ctx.state).townhallLevel, next, ctx.now),
             {
               kind: "patch",
               route: { kind: "actor" },
@@ -483,25 +456,19 @@ const court = defineModule({
         input: zRemove,
         handle: (ctx, input): EffectList => {
           const holderId = ctx.actor?.id ?? "world";
-          // Сносится только декор: экономика, военные и Ратуша не убираются
-          if (CATALOG[input.type]?.tab !== "decor") return [];
+          // Сносится только декор: здания и Цитадель не убираются
+          if (!DECOR[input.type]) return [];
           const grid = gridOf(ctx.state);
           const index = grid.buildings.findIndex(
             (b) => b.type === input.type && b.x === input.x && b.z === input.z,
           );
           if (index < 0) return [];
           const next: CourtGrid = {
-            size: grid.size,
+            ...grid,
             buildings: grid.buildings.filter((_, i) => i !== index),
-            roads: grid.roads,
           };
           return [
-            {
-              kind: "rows.upsert",
-              table: "court_holder",
-              key: { holder_id: holderId },
-              value: { starter: 1, townhall_level: stateOf(ctx.state).townhallLevel, grid: next, updated_at_ms: ctx.now },
-            },
+            gridRow(holderId, stateOf(ctx.state).townhallLevel, next, ctx.now),
             {
               kind: "patch",
               route: { kind: "actor" },
@@ -543,14 +510,9 @@ const court = defineModule({
             if (footprintOf(grid.buildings).has(key)) return [];
             roads = [...grid.roads, { x: input.x, z: input.z }];
           }
-          const next: CourtGrid = { size: grid.size, buildings: grid.buildings, roads };
+          const next: CourtGrid = { ...grid, roads };
           return [
-            {
-              kind: "rows.upsert",
-              table: "court_holder",
-              key: { holder_id: holderId },
-              value: { starter: 1, townhall_level: stateOf(ctx.state).townhallLevel, grid: next, updated_at_ms: ctx.now },
-            },
+            gridRow(holderId, stateOf(ctx.state).townhallLevel, next, ctx.now),
             {
               kind: "patch",
               route: { kind: "actor" },
@@ -567,21 +529,23 @@ const court = defineModule({
           const holderId = ctx.actor?.id ?? "world";
           const level = stateOf(ctx.state).townhallLevel;
           const target = level + 1;
-          const cost = TH_COSTS[target];
-          if (target > TH_MAX || !cost) return [];
+          const cost = levelCost(CITADEL, target);
+          if (!cost || target > (buildingById(CITADEL)?.maxLevel ?? 0)) return [];
           if (!canAfford(ctx.stock, cost)) return [];
+          const grid = gridOf(ctx.state);
+          // сетка растёт по полосам Цитадели и не уменьшается
+          const next: CourtGrid = { ...grid, size: gridSizeAt(target, grid.size) };
           return [
-            {
-              kind: "rows.upsert",
-              table: "court_holder",
-              key: { holder_id: holderId },
-              value: { starter: 1, townhall_level: target, grid: gridOf(ctx.state), updated_at_ms: ctx.now },
-            },
+            gridRow(holderId, target, next, ctx.now),
             ...payEffects(cost, holderId),
             {
               kind: "patch",
               route: { kind: "actor" },
-              ops: [{ op: "set", path: "modules.court.townhallLevel", value: target }, ...payOps(cost)],
+              ops: [
+                { op: "set", path: "modules.court.townhallLevel", value: target },
+                { op: "set", path: "modules.court.grid", value: next },
+                ...payOps(cost),
+              ],
             },
             {
               kind: "report",

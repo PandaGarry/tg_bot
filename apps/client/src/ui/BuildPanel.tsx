@@ -7,29 +7,39 @@
 
 import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
+import { buildings, buildingById } from "@tdl/content-buildings/catalog";
+import { openCount } from "@tdl/content-buildings/layout";
 import { translator } from "../i18n/index.js";
 
-type BuildTab = "economy" | "military" | "decor";
+export type BuildTab = "economy" | "military" | "decor";
 
-interface CatalogItem {
+export interface CatalogItem {
   id: string;
   tab: BuildTab;
   th: number;
   cost: [string, number][];
 }
 
-// Должно совпадать с CATALOG модуля court (сервер — власть, это показ).
-const CATALOG: CatalogItem[] = [
-  { id: "cottage", tab: "economy", th: 1, cost: [["wood", 50], ["stone", 20]] },
-  { id: "farm", tab: "economy", th: 1, cost: [["wood", 60], ["stone", 30]] },
-  { id: "sawmill", tab: "economy", th: 2, cost: [["wood", 80], ["stone", 40]] },
-  { id: "quarry", tab: "economy", th: 2, cost: [["wood", 60], ["stone", 80]] },
-  { id: "mine", tab: "economy", th: 3, cost: [["wood", 90], ["stone", 60], ["metal", 30]] },
-  { id: "barracks", tab: "military", th: 3, cost: [["wood", 150], ["stone", 120], ["metal", 40]] },
+/** Декор двора: не из каталога зданий; цены — как в модуле court. */
+const DECOR_ITEMS: CatalogItem[] = [
   { id: "lantern", tab: "decor", th: 1, cost: [["wood", 10], ["gold", 5]] },
   { id: "bench", tab: "decor", th: 1, cost: [["wood", 15]] },
   { id: "well", tab: "decor", th: 2, cost: [["stone", 40], ["wood", 10]] },
   { id: "flag", tab: "decor", th: 1, cost: [["wood", 20], ["gold", 10]] },
+];
+
+/** Военные постройки — на вкладке «Военные». Показ, не правило: сервер решает. */
+const MILITARY = new Set(["barracks", "range", "stable", "siege-yard"]);
+
+/**
+ * Здания из каталога `@tdl/content-buildings`: порог — startCitadel. Постановка уровня 1
+ * по лестнице ничего не стоит, поэтому цена не показывается. Таверна без цены не выставляется.
+ */
+export const BUILD_CATALOG: CatalogItem[] = [
+  ...buildings
+    .filter((b) => b.id !== "citadel" && !b.costOpen)
+    .map((b): CatalogItem => ({ id: b.id, tab: MILITARY.has(b.id) ? "military" : "economy", th: b.startCitadel, cost: [] })),
+  ...DECOR_ITEMS,
 ];
 
 const TABS: BuildTab[] = ["economy", "military", "decor"];
@@ -48,17 +58,18 @@ const RES_ICONS: Record<string, string> = {
   gold: "gold",
 };
 
-/** Цена улучшения Ратуши — копия TH_COSTS модуля (индекс — целевой уровень). */
-const TH_COSTS: Record<number, [string, number][]> = {
-  2: [["wood", 300], ["stone", 250], ["gold", 50]],
-  3: [["wood", 600], ["stone", 500], ["metal", 100], ["gold", 150]],
-  4: [["wood", 1200], ["stone", 900], ["metal", 250], ["gold", 400]],
-  5: [["wood", 2400], ["stone", 1800], ["metal", 500], ["gold", 1000]],
-};
-const TH_MAX = 5;
+/** Цена улучшения Цитадели по лестнице (индекс — целевой уровень), без нулевых строк. */
+const citadelDef = buildings.find((b) => b.id === "citadel")!;
+export const CITADEL_COSTS: Record<number, [string, number][]> = Object.fromEntries(
+  citadelDef.levels.map((row): [number, [string, number][]] => [
+    row.level,
+    ([["wood", row.wood], ["stone", row.stone], ["metal", row.metal]] as [string, number][]).filter(([, n]) => n > 0),
+  ]),
+);
+export const CITADEL_MAX_LEVEL = citadelDef.maxLevel;
 
 /** Значок постройки: тонкая SVG-пиктограмма в тёплой палитре игры. */
-function Sign({ id }: { id: string }) {
+function Sign({ id, label }: { id: string; label?: string }) {
   const wood = "#c89a62";
   const dark = "#6b4a2c";
   const roof = "#f0e6d2";
@@ -172,7 +183,10 @@ function Sign({ id }: { id: string }) {
     default:
       return (
         <svg {...common}>
-          <rect x="10" y="16" width="20" height="16" fill={wood} stroke={dark} strokeWidth="1.4" />
+          <rect x="10" y="16" width="20" height="16" rx="3" fill={wood} stroke={dark} strokeWidth="1.4" />
+          <text x="20" y="28" textAnchor="middle" fontSize="13" fontWeight="700" fill={roof}>
+            {(label ?? id).charAt(0).toUpperCase()}
+          </text>
         </svg>
       );
   }
@@ -198,7 +212,9 @@ export function BuildPanel({
   const stock = view.stock ?? {};
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
-  const upCost = TH_COSTS[level + 1];
+  const placedGrid = (view.modules.court ?? {}) as { grid?: { buildings?: { type: string }[] } };
+  const placed = (type: string) => (placedGrid.grid?.buildings ?? []).filter((b) => b.type === type).length;
+  const upCost = CITADEL_COSTS[level + 1];
 
   return (
     <div className="hud-build" onClick={(e) => e.stopPropagation()}>
@@ -213,16 +229,16 @@ export function BuildPanel({
       {tab === "economy" ? (
         <button
           type="button"
-          className={`th-up${level >= TH_MAX ? " max" : ""}`}
+          className={`th-up${level >= CITADEL_MAX_LEVEL ? " max" : ""}`}
           onClick={onUpgrade}
-          disabled={level >= TH_MAX || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
+          disabled={level >= CITADEL_MAX_LEVEL || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
         >
-          <Sign id="cottage" />
+          <Sign id="citadel" />
           <span className="th-up-text">
             <b>
-              {t("shell.hud.b.townhall")} · Ур. {level}
+              {t("shell.hud.b.citadel")} · Ур. {level}
             </b>
-            {level >= TH_MAX ? (
+            {level >= CITADEL_MAX_LEVEL ? (
               <i>{t("shell.hud.build.max")}</i>
             ) : (
               <i>
@@ -248,7 +264,7 @@ export function BuildPanel({
       ) : null}
 
       <div className="bcards">
-        {CATALOG.filter((item) => item.tab === tab).map((item) => {
+        {BUILD_CATALOG.filter((item) => item.tab === tab).map((item) => {
           const locked = level < item.th;
           const poor = !locked && !item.cost.every(([res, n]) => (stock[res] ?? 0) >= n);
           return (
@@ -259,9 +275,14 @@ export function BuildPanel({
               onClick={() => (locked || poor ? undefined : onPlaceStart(item.id))}
             >
               <span className="bic">
-                <Sign id={item.id} />
+                <Sign id={item.id} label={t(`shell.hud.b.${item.id}`)} />
               </span>
               <b>{t(`shell.hud.b.${item.id}`)}</b>
+              {!locked && buildingById(item.id) ? (
+                <span className="blimit">
+                  {placed(item.id)}/{openCount(buildingById(item.id)!, level)}
+                </span>
+              ) : null}
               <span className="bcost">
                 {item.cost.map(([res, n]) => (
                   <em key={res} className={locked ? "" : (stock[res] ?? 0) >= n ? "" : "lack"}>
