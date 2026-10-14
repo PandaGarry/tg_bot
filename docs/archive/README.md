@@ -37,7 +37,7 @@
 | `25-court-layout.md` | схема и правила → `design/hud-court.md` §0б; таблица жанра → `balance/competitors.md` §10 | перенесено, удалено 14.10 |
 | `27-frontend-os-research.md` | `design/client-stack.md` (стек, решения, спайк, референсы); 3D-часть — отменено | перенесено, удалено 14.10 |
 | `28-pixi-migration.md` | AGENTS.md (правила Pixi) — проверить и удалить | перенесено, удалено 11.10 |
-| `29-ui-refs-viking-rok.md` | balance/competitors.md и hud-court.md | ожидает разбора |
+| `29-ui-refs-viking-rok.md` | паттерны, приоритеты, пилюля, открытые вопросы → `balance/competitors.md` §15; скелет D заменён схемой §0б (`hud-court.md`) | перенесено, удалено 14.10 |
 | `DECISIONS.md` | DECISIONS.md — все решения уже перенесены | перенесено, удалено 11.10 |
 | `README.md (индекс)` | canon/world-basics.md — раздел «Уже решено» | перенесено, удалено 11.10 |
 
