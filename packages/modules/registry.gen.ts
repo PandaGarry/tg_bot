@@ -2,6 +2,7 @@
 
 import type { ModuleDefinition } from "@tdl/kernel";
 import probe from "@tdl/module-probe/module";
+import buildings from "@tdl/module-buildings/module";
 import court from "@tdl/module-court/module";
 import day_window from "@tdl/module-day-window/module";
 import holiday from "@tdl/module-holiday/module";
@@ -16,6 +17,7 @@ import week_window from "@tdl/module-week-window/module";
 /** Все модули сборки. Порядок загрузки считает ядро по depends. */
 export const modules: ModuleDefinition[] = [
   probe,
+  buildings,
   court,
   day_window,
   holiday,
@@ -29,4 +31,4 @@ export const modules: ModuleDefinition[] = [
 ];
 
 /** Имена модулей сборки: по ним проверяются границы пакетов. */
-export const moduleIds: string[] = ["_probe", "court", "day-window", "holiday", "hour-window", "month-window", "season-autumn", "season-spring", "season-summer", "season-winter", "week-window"];
+export const moduleIds: string[] = ["_probe", "buildings", "court", "day-window", "holiday", "hour-window", "month-window", "season-autumn", "season-spring", "season-summer", "season-winter", "week-window"];
