@@ -14,9 +14,9 @@
 | `02-tone.md` | canon/tone.md | перенесено, удалено 11.10 |
 | `03-first-session.md` | перенесено, удалено 11.10 (`design/first-session.md`) |
 | `04-systems.md` | перенесено, удалено 11.10 (`design/systems.md`; 11.10: пункт марша снят, слоты — Академия) |
-| `05-architecture.md` | AGENTS.md и docs/README.md (архитектура уже описана) | ожидает сверки |
+| `05-architecture.md` | `docs/architecture.md`; ссылка на ops — `archive/game/08-ops.md` до переноса | перенесено, удалено 14.10 |
 | `06-plan.md` | plan/roadmap.md (заменён 11.10) | перенесено, удалено 11.10 |
-| `07-modules.md` | plan/roadmap.md, принципы модулей | ожидает разбора |
+| `07-modules.md` | `docs/modules.md` | перенесено, удалено 14.10 |
 | `08-ops.md` | docs/ops.md (новый, эксплуатация) | ожидает разбора |
 | `10-modules-kinds.md` | design/modules.md (виды модулей, единицы, расписание) | ожидает разбора |
 | `11-calendar.md` | design/calendar.md | ожидает разбора |
