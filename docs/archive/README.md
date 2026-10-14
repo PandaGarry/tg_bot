@@ -25,7 +25,7 @@
 | `14-genre-core.md` | balance/competitors.md | ожидает разбора |
 | `15-genre-deep.md` | balance/competitors.md (таблицы зданий 10 игр — сверка с buildings.md) | ожидает разбора |
 | `16-money.md` | balance/economy.md (монетизация, удержание) | ожидает разбора |
-| `17-ui.md` | design/hud-court.md | ожидает разбора |
+| `17-ui.md` | **частично перенесено 14.10:** §0, §1, §6–8, §10–11 → `design/ui-standards.md`; §2, §4, §5, §13 → `balance/competitors.md` §12–13; §15.5–15.6 → competitors §12.3. **Не перенесено:** §15.1–15.4 (поигровые разборы Evony, GoT, State, Lords), §15.7 (галерея кадров, только ссылки), источники (`## Источники`), §9 (3D — отменено, не переносим), §12 (вопросы — часть закрыта: 3D и путь 3D отменены) | в работе |
 | `17-ui-real-screens.md` | balance/competitors.md §11 (источники и выводы; картинки не храним) | перенесено, удалено 14.10 |
 | `18-ui-deep-dive.md` | design/hud-court.md | ожидает разбора |
 | `19-ui-research-tz.md` | design/hud-court.md | ожидает разбора |
