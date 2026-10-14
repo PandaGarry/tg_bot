@@ -14,8 +14,8 @@
   Журнал решений — `docs/DECISIONS.md`, состояние — `docs/STATUS.md`.
   Старые документы — `docs/archive/game/`, разбираются по темам (см. `docs/README.md`).
 - Состояние работы: `docs/STATUS.md`. Корневой `STATUS.md` — указатель; старая версия в `docs/archive/root/STATUS.md`.
-- План миграции на PixiJS и статус этапов: [docs/game/28-pixi-migration.md](docs/archive/game/28-pixi-migration.md).
-- Разбор готовых open-source решений: [docs/game/27-frontend-os-research.md](docs/archive/game/27-frontend-os-research.md).
+- Стек клиента (PixiJS для сцены, React для HUD): [docs/design/client-stack.md](docs/design/client-stack.md). План этапов: [docs/plan/roadmap.md](docs/plan/roadmap.md).
+- Разбор open-source решений и референсы: [docs/design/client-stack.md](docs/design/client-stack.md) §4.
 
 ## Команды
 
@@ -53,7 +53,7 @@ apps/client/src/
   Никаких прямых вызовов методов между `game/` и `ui/`.
 - HUD — `src/ui/` + `hud.css` (единый источник правды). Визуальный дизайн UI
   согласуется с заказчиком по процессу «разбор → скелет → варианты → выбор»
-  (этап 2.5, [docs/game/28-pixi-migration.md](docs/archive/game/28-pixi-migration.md)).
+  (этап 2.5, [docs/plan/roadmap.md](docs/plan/roadmap.md)).
   Палитра для canvas/спрайтов — из палитры дизайна (`hud.css` / дизайн-документ).
 
 ### Правила Pixi (src/game/)
@@ -105,7 +105,7 @@ apps/client/src/
 
 ## Дисциплина этапов (чекпоинты)
 
-Работа идёт по этапам плана [28-pixi-migration.md](docs/archive/game/28-pixi-migration.md).
+Работа идёт по этапам плана [roadmap.md](docs/plan/roadmap.md).
 Каждый этап завершается:
 
 1. Все проверки зелёные: `pnpm typecheck && pnpm test && pnpm check && pnpm build`.
