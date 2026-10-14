@@ -291,7 +291,7 @@ describe("двор", () => {
     expect(container.querySelector(".ch-profile")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Строительство" }));
-    fireEvent.click(screen.getByRole("button", { name: /Жилой дом/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Лесопилка/ }));
     expect(container.querySelector(".concept-build-panel")).toBeNull();
     act(() => bridge.emit("tile:click", { x: 4, z: 7 }));
     expect(screen.getByRole("button", { name: "Поставить" })).toBeTruthy();

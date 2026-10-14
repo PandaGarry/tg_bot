@@ -1,4 +1,5 @@
 import { Container, Graphics } from "pixi.js";
+import { buildingById } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
 import type { CourtBuilding } from "./types.js";
 
@@ -7,14 +8,8 @@ export interface Footprint {
   depth: number;
 }
 
-const FOOTPRINTS: Record<string, Footprint> = {
-  townhall: { width: 3, depth: 3 },
-  cottage: { width: 2, depth: 2 },
-  farm: { width: 2, depth: 2 },
-  sawmill: { width: 2, depth: 2 },
-  quarry: { width: 2, depth: 2 },
-  mine: { width: 2, depth: 2 },
-  barracks: { width: 2, depth: 2 },
+/** Декор двора — не из каталога зданий (решено 14.10). */
+const DECOR_FOOTPRINTS: Record<string, Footprint> = {
   lantern: { width: 1, depth: 1 },
   bench: { width: 2, depth: 1 },
   well: { width: 2, depth: 2 },
@@ -22,7 +17,7 @@ const FOOTPRINTS: Record<string, Footprint> = {
 };
 
 const PALETTE: Record<string, { roof: number; light: number; dark: number; trim: number }> = {
-  townhall: { roof: 0x9c5435, light: 0xe4d2a9, dark: 0x70513a, trim: 0xf0c866 },
+  citadel: { roof: 0x9c5435, light: 0xe4d2a9, dark: 0x70513a, trim: 0xf0c866 },
   cottage: { roof: 0xa84f3b, light: 0xd8c49a, dark: 0x725039, trim: 0xf0d69b },
   farm: { roof: 0x6c7844, light: 0xb59a5d, dark: 0x675032, trim: 0xe4ca72 },
   sawmill: { roof: 0x72533a, light: 0xb78650, dark: 0x5d422d, trim: 0xdac08a },
@@ -35,8 +30,11 @@ const PALETTE: Record<string, { roof: number; light: number; dark: number; trim:
   flag: { roof: 0xa84f3b, light: 0x9a7043, dark: 0x49331f, trim: 0xe0b04a },
 };
 
+/** Размер пятна: здания — из каталога (buildings.md), декор — своя таблица. */
 function footprintOf(type: string): Footprint {
-  return FOOTPRINTS[type] ?? { width: 1, depth: 1 };
+  const def = buildingById(type);
+  if (def) return { width: def.footprint.w, depth: def.footprint.h };
+  return DECOR_FOOTPRINTS[type] ?? { width: 1, depth: 1 };
 }
 
 export interface BuildingFootprintBounds {
@@ -257,7 +255,7 @@ export function createBuilding(building: CourtBuilding, size: number, townhallLe
   const palette = PALETTE[building.type] ?? PALETTE.cottage!;
   drawFoundation(graphics, footprint.width, footprint.depth);
 
-  if (building.type === "townhall") {
+  if (building.type === "citadel") {
     drawTownhall(graphics, townhallLevel, palette);
   } else if (["cottage", "barracks"].includes(building.type)) {
     drawHouse(graphics, palette, building.type === "barracks");
@@ -280,7 +278,7 @@ export function hitBuilding(
   const centerY = projected.y - (size * TILE_HEIGHT) / 2;
   const halfWidth = ((footprint.width + footprint.depth) * TILE_WIDTH) / 4 + 10;
   const halfFootHeight = ((footprint.width + footprint.depth) * TILE_HEIGHT) / 4 + 10;
-  const tallest = building.type === "townhall" ? 112 : 72;
+  const tallest = building.type === "citadel" ? 112 : 72;
   const dx = Math.abs(pointInBoard.x - projected.x);
   const dy = pointInBoard.y - centerY;
   return dx <= halfWidth && dy >= -tallest && dy <= halfFootHeight;

@@ -23,11 +23,11 @@ describe("bridge — связь Pixi и HUD", () => {
   });
 
   it("emit без подписчиков не падает (этапы идут последовательно)", () => {
-    expect(() => bridge.emit("building:click", { id: "b1", type: "townhall", x: 7, z: 7 })).not.toThrow();
+    expect(() => bridge.emit("building:click", { id: "b1", type: "citadel", x: 7, z: 7 })).not.toThrow();
   });
 
   it("поздняя Pixi-сцена получает последний снимок двора при подписке", () => {
-    const payload = { court: { grid: { size: 14, buildings: [{ type: "townhall", x: 7, z: 7 }], roads: [] } } };
+    const payload = { court: { grid: { size: 14, buildings: [{ type: "citadel", x: 7, z: 7 }], roads: [] } } };
     bridge.emit("state:update", payload);
     const seen: typeof payload[] = [];
     const off = bridge.on("state:update", (state) => seen.push(state));

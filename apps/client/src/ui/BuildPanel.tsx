@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
+import { buildings } from "@tdl/content-buildings/catalog";
 import { translator } from "../i18n/index.js";
 
 export type BuildTab = "economy" | "military" | "decor";
@@ -18,18 +19,26 @@ export interface CatalogItem {
   cost: [string, number][];
 }
 
-// Должно совпадать с CATALOG модуля court (сервер — власть, это показ).
-export const BUILD_CATALOG: CatalogItem[] = [
-  { id: "cottage", tab: "economy", th: 1, cost: [["wood", 50], ["stone", 20]] },
-  { id: "farm", tab: "economy", th: 1, cost: [["wood", 60], ["stone", 30]] },
-  { id: "sawmill", tab: "economy", th: 2, cost: [["wood", 80], ["stone", 40]] },
-  { id: "quarry", tab: "economy", th: 2, cost: [["wood", 60], ["stone", 80]] },
-  { id: "mine", tab: "economy", th: 3, cost: [["wood", 90], ["stone", 60], ["metal", 30]] },
-  { id: "barracks", tab: "military", th: 3, cost: [["wood", 150], ["stone", 120], ["metal", 40]] },
+/** Декор двора: не из каталога зданий; цены — как в модуле court. */
+const DECOR_ITEMS: CatalogItem[] = [
   { id: "lantern", tab: "decor", th: 1, cost: [["wood", 10], ["gold", 5]] },
   { id: "bench", tab: "decor", th: 1, cost: [["wood", 15]] },
   { id: "well", tab: "decor", th: 2, cost: [["stone", 40], ["wood", 10]] },
   { id: "flag", tab: "decor", th: 1, cost: [["wood", 20], ["gold", 10]] },
+];
+
+/** Военные постройки — на вкладке «Военные». Показ, не правило: сервер решает. */
+const MILITARY = new Set(["barracks", "range", "stable", "siege-yard"]);
+
+/**
+ * Здания из каталога `@tdl/content-buildings`: порог — startCitadel. Постановка уровня 1
+ * по лестнице ничего не стоит, поэтому цена не показывается. Таверна без цены не выставляется.
+ */
+export const BUILD_CATALOG: CatalogItem[] = [
+  ...buildings
+    .filter((b) => b.id !== "citadel" && !b.costOpen)
+    .map((b): CatalogItem => ({ id: b.id, tab: MILITARY.has(b.id) ? "military" : "economy", th: b.startCitadel, cost: [] })),
+  ...DECOR_ITEMS,
 ];
 
 const TABS: BuildTab[] = ["economy", "military", "decor"];
@@ -48,14 +57,15 @@ const RES_ICONS: Record<string, string> = {
   gold: "gold",
 };
 
-/** Цена улучшения Ратуши — копия TH_COSTS модуля (индекс — целевой уровень). */
-export const TOWNHALL_COSTS: Record<number, [string, number][]> = {
-  2: [["wood", 300], ["stone", 250], ["gold", 50]],
-  3: [["wood", 600], ["stone", 500], ["metal", 100], ["gold", 150]],
-  4: [["wood", 1200], ["stone", 900], ["metal", 250], ["gold", 400]],
-  5: [["wood", 2400], ["stone", 1800], ["metal", 500], ["gold", 1000]],
-};
-export const TOWNHALL_MAX_LEVEL = 5;
+/** Цена улучшения Цитадели по лестнице (индекс — целевой уровень), без нулевых строк. */
+const citadelDef = buildings.find((b) => b.id === "citadel")!;
+export const CITADEL_COSTS: Record<number, [string, number][]> = Object.fromEntries(
+  citadelDef.levels.map((row): [number, [string, number][]] => [
+    row.level,
+    ([["wood", row.wood], ["stone", row.stone], ["metal", row.metal]] as [string, number][]).filter(([, n]) => n > 0),
+  ]),
+);
+export const CITADEL_MAX_LEVEL = citadelDef.maxLevel;
 
 /** Значок постройки: тонкая SVG-пиктограмма в тёплой палитре игры. */
 function Sign({ id }: { id: string }) {
@@ -198,7 +208,7 @@ export function BuildPanel({
   const stock = view.stock ?? {};
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
-  const upCost = TOWNHALL_COSTS[level + 1];
+  const upCost = CITADEL_COSTS[level + 1];
 
   return (
     <div className="hud-build" onClick={(e) => e.stopPropagation()}>
@@ -213,16 +223,16 @@ export function BuildPanel({
       {tab === "economy" ? (
         <button
           type="button"
-          className={`th-up${level >= TOWNHALL_MAX_LEVEL ? " max" : ""}`}
+          className={`th-up${level >= CITADEL_MAX_LEVEL ? " max" : ""}`}
           onClick={onUpgrade}
-          disabled={level >= TOWNHALL_MAX_LEVEL || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
+          disabled={level >= CITADEL_MAX_LEVEL || !upCost?.every(([res, n]) => (stock[res] ?? 0) >= n)}
         >
-          <Sign id="cottage" />
+          <Sign id="citadel" />
           <span className="th-up-text">
             <b>
-              {t("shell.hud.b.townhall")} · Ур. {level}
+              {t("shell.hud.b.citadel")} · Ур. {level}
             </b>
-            {level >= TOWNHALL_MAX_LEVEL ? (
+            {level >= CITADEL_MAX_LEVEL ? (
               <i>{t("shell.hud.build.max")}</i>
             ) : (
               <i>

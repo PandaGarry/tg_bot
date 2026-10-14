@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
-import { BUILD_CATALOG, TOWNHALL_COSTS, TOWNHALL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
+import { BUILD_CATALOG, CITADEL_COSTS, CITADEL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
 import { ConceptIcon, type ConceptIconName } from "./ConceptIcon.js";
 import { CourtChrome } from "./CourtChrome.js";
 import "./court-chrome.css";
@@ -395,8 +395,8 @@ function ConceptBuildPanel({
   const stock = view.stock ?? {};
   const court = (view.modules.court ?? {}) as { townhallLevel?: number };
   const level = Number(court.townhallLevel ?? 1);
-  const nextCost = TOWNHALL_COSTS[level + 1];
-  const canUpgrade = level < TOWNHALL_MAX_LEVEL && Boolean(nextCost?.every(([id, amount]) => (stock[id] ?? 0) >= amount));
+  const nextCost = CITADEL_COSTS[level + 1];
+  const canUpgrade = level < CITADEL_MAX_LEVEL && Boolean(nextCost?.every(([id, amount]) => (stock[id] ?? 0) >= amount));
   return (
     <section className={`concept-build-panel concept-build-panel--${variant}`} aria-label={copy.build}>
       <header className="concept-build-panel__head">
@@ -410,7 +410,7 @@ function ConceptBuildPanel({
         <span className="concept-upgrade__icon"><ConceptIcon name="court" /></span>
         <span className="concept-upgrade__text">
           <b>{t("shell.hud.b.townhall")} · {level}</b>
-          <small>{level >= TOWNHALL_MAX_LEVEL ? copy.maxLevel : `${copy.upgrade} · ${level + 1}`}</small>
+          <small>{level >= CITADEL_MAX_LEVEL ? copy.maxLevel : `${copy.upgrade} · ${level + 1}`}</small>
         </span>
         <span className="concept-upgrade__cost">
           {nextCost?.map(([id, amount]) => <span key={id}>{resourceAbbreviation(id, lang)} {amount}</span>) ?? copy.maxLevel}
