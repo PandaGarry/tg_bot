@@ -29,7 +29,7 @@
 | `17-ui-real-screens.md` | design/hud-court.md | ожидает разбора |
 | `18-ui-deep-dive.md` | design/hud-court.md | ожидает разбора |
 | `19-ui-research-tz.md` | design/hud-court.md | ожидает разбора |
-| `20-ui-style-variants.md` | канон: выбран skin 03 «forge» (решено 10.10); остальное — удалить после переноса | ожидает разбора |
+| `20-ui-style-variants.md` | канон уже в `canon/tone.md`, `canon/world-basics.md`, `canon/lore.md`; стиль — `DECISIONS.md` (skin 03 «forge») | перенесено, удалено 14.10 |
 | `21-rok-reference.md` | balance/competitors.md | ожидает разбора |
 | `22-seasons-daytime-buildings.md` | design/hud-court.md, design/calendar.md | ожидает разбора |
 | `23-court-scene.md` | design/hud-court.md (сцена двора) | ожидает разбора |
