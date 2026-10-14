@@ -9,7 +9,7 @@
  * откатить мир назад, ни заморозить его навсегда.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestWorld, deadlinesOf, drain, reopenTestWorld, dueCount } from "./harness.js";
 import { kitModule } from "./kit.js";
 
@@ -38,7 +38,10 @@ describe("часы мира и календарь", () => {
   });
 
   it("мир стоял 40 суток: события идут по календарю, сроки игроков не сгорают", async () => {
-    // Модуль краёв держит сроки: на нём и проверяется, что минуты не сгорели.
+    // Календарь фиксируется только в части Date: сезон «осень» стартует 1 сентября,
+    // и простой в 40 суток должен его захватывать. Без фиксации тест зависел от даты запуска
+    // (падал с 12 октября 2026). Таймеры не трогаем: база и тики идут по-настоящему.
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-09-20T12:00:00Z") });
     const world = await createTestWorld({ extraModules: [kitModule()] });
     try {
       const worldAtStop = world.service.now();
@@ -95,7 +98,8 @@ describe("часы мира и календарь", () => {
       expect((await deadlinesOf(world, "_kit")).some((row) => row.id === "kit.waits")).toBe(true);
 
       // Через полторы секунды хода мира срок наступает и проходит.
-      await new Promise((done) => setTimeout(done, 2_000));
+      // Время сдвигается в фиксированных часах, а не ожиданием: ход мира идёт по Date.
+      vi.setSystemTime(Date.now() + 2_000);
       await drain(world);
       const rows = await world.db.pool.query<{ marks: number }>(
         "SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = 'world'",
@@ -105,6 +109,7 @@ describe("часы мира и календарь", () => {
       expect((await deadlinesOf(world, "_kit")).some((row) => row.id === "kit.waits")).toBe(false);
     } finally {
       await world.close();
+      vi.useRealTimers();
     }
   });
 });
