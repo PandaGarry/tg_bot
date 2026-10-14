@@ -31,8 +31,8 @@
 | `19-ui-research-tz.md` | design/hud-court.md | ожидает разбора |
 | `20-ui-style-variants.md` | канон уже в `canon/tone.md`, `canon/world-basics.md`, `canon/lore.md`; стиль — `DECISIONS.md` (skin 03 «forge») | перенесено, удалено 14.10 |
 | `21-rok-reference.md` | balance/competitors.md | ожидает разбора |
-| `22-seasons-daytime-buildings.md` | design/hud-court.md, design/calendar.md | ожидает разбора |
-| `23-court-scene.md` | design/hud-court.md (сцена двора) | ожидает разбора |
+| `22-seasons-daytime-buildings.md` | предложения (пора, время суток, стадии, растущий двор) → `design/court-scene.md` §5–9; календарь → `design/calendar.md` (позже) | перенесено, удалено 14.10 |
+| `23-court-scene.md` | `design/court-scene.md` (геометрия, камера, стройка) | перенесено, удалено 14.10 |
 | `24-court-3d.md` | отменено (3D не используется, решение 09–10.10) — удалить | перенесено, удалено 11.10 |
 | `25-court-layout.md` | схема и правила → `design/hud-court.md` §0б; таблица жанра → `balance/competitors.md` §10 | перенесено, удалено 14.10 |
 | `27-frontend-os-research.md` | design/hud-court.md (исследование оболочки) | ожидает разбора |
