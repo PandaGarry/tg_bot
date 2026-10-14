@@ -19,7 +19,7 @@
 | `07-modules.md` | `docs/modules.md` | перенесено, удалено 14.10 |
 | `08-ops.md` | `docs/ops.md` | перенесено, удалено 14.10 |
 | `10-modules-kinds.md` | `design/modules.md` (решено 25.09; открыто: плотность событий, параллельный мир); запись в DECISIONS добавлена 14.10 | перенесено, удалено 14.10 |
-| `11-calendar.md` | design/calendar.md | ожидает разбора |
+| `11-calendar.md` | `design/calendar.md` (утверждённые решения 25.09 в разделе 5; предложения раздела 2 — с пометкой статуса) | перенесено, удалено 14.10 |
 | `12-worlds.md` | design/worlds.md (миры, серверы, фазы) | ожидает разбора |
 | `13-genre-servers.md` | balance/competitors.md | ожидает разбора |
 | `14-genre-core.md` | balance/competitors.md | ожидает разбора |
