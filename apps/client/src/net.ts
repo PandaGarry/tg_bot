@@ -9,12 +9,13 @@ import {
   type ClientMessage,
   type JsonValue,
 } from "@tdl/protocol";
-import { store } from "./store.js";
+import { storedToken, store } from "./store.js";
 
 let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let pingTimer: number | null = null;
 let counter = 0;
+let authenticated = false;
 
 function url(): string {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
@@ -35,7 +36,12 @@ export function idempotencyKey(commandId: string): string {
 }
 
 export function sendCommand(commandId: string, payload: JsonValue = {}): void {
-  const state = store.get();
+  // Не отправляем команды до подтверждения auth сервером: открытый WebSocket
+  // ещё не означает, что сессия восстановлена после переподключения.
+  if (!authenticated || !socket || socket.readyState !== WebSocket.OPEN) {
+    store.addError("kernel.connection.lost");
+    return;
+  }
   send({
     t: "command",
     protocolVersion: PROTOCOL_VERSION,
@@ -43,7 +49,6 @@ export function sendCommand(commandId: string, payload: JsonValue = {}): void {
     idempotencyKey: idempotencyKey(commandId),
     command: { id: commandId, payload },
   });
-  void state;
 }
 
 export function sendViewport(x: number, y: number, w: number, h: number): void {
@@ -58,7 +63,8 @@ export function connect(): void {
 
   next.addEventListener("open", () => {
     store.setStatus("online");
-    const token = store.get().auth?.token;
+    authenticated = false;
+    const token = store.get().auth?.token ?? storedToken();
     if (token) {
       send({ t: "auth.token", protocolVersion: PROTOCOL_VERSION, token, lang: store.get().lang });
     }
@@ -78,6 +84,7 @@ export function connect(): void {
     const data = message.data;
     switch (data.t) {
       case "auth":
+        authenticated = true;
         store.setAuth(
           { needsLord: data.needsLord, token: data.token, accountId: data.accountId },
           data.token,
@@ -93,6 +100,10 @@ export function connect(): void {
         store.addReport((data.report as { rows?: never[] }).rows ?? [], data.serverNow);
         break;
       case "error":
+        if (!authenticated && data.key === "kernel.session.expired" && storedToken()) {
+          // Сервер отверг сохранённый токен (истёк/отозван/не тот мир).
+          store.setAuth(null, null);
+        }
         store.addError(data.key, data.params);
         break;
       case "ready":
@@ -100,8 +111,13 @@ export function connect(): void {
         store.setReady({ modules: data.modules, resources: data.resources });
         break;
       case "out":
-        // Сервер подтвердил отзыв сессии: окно входа открыто.
-        store.setAuth(null, null);
+        // Локальный токен удаляем только после подтверждения сервера.
+        if (data.ok) {
+          authenticated = false;
+          store.setAuth(null, null);
+        } else {
+          store.addError("kernel.connection.lost");
+        }
         break;
       case "pong":
         break;
@@ -109,6 +125,7 @@ export function connect(): void {
   });
 
   next.addEventListener("close", () => {
+    authenticated = false;
     store.setStatus("offline");
     if (pingTimer) window.clearInterval(pingTimer);
     if (reconnectTimer) window.clearTimeout(reconnectTimer);
@@ -149,9 +166,18 @@ export function login(login: string, password: string): void {
  * сессию — украденный токен после выхода не живёт.
  */
 export function logout(): void {
-  const token = store.get().auth?.token;
-  if (token) send({ t: "auth.logout", protocolVersion: PROTOCOL_VERSION, token });
-  store.setAuth(null, null);
+  const token = store.get().auth?.token ?? storedToken();
+  if (!token) {
+    store.setAuth(null, null);
+    return;
+  }
+  if (!authenticated || !socket || socket.readyState !== WebSocket.OPEN) {
+    // Без связи нельзя считать серверную сессию отозванной. Сохраняем токен,
+    // чтобы повторить logout или восстановить авторизацию после reconnect.
+    store.addError("kernel.connection.lost");
+    return;
+  }
+  send({ t: "auth.logout", protocolVersion: PROTOCOL_VERSION, token });
 }
 
 export function createLord(input: {
