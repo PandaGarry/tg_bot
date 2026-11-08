@@ -51,7 +51,7 @@ describe("сокет и ворота", () => {
         const url = `ws://127.0.0.1:${booted.port}/socket`;
         const socket = headers ? new WebSocket(url, { headers }) : new WebSocket(url);
         socket.once("unexpected-response", (_request, response) => {
-          resolve(response.statusCode);
+          resolve(response.statusCode ?? 0);
           socket.terminate();
         });
         socket.once("open", () => {
