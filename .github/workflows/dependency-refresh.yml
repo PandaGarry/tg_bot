@@ -1,0 +1,103 @@
+name: Patch vulnerable dependencies
+
+on:
+  push:
+    branches:
+      - arena/dependency-refresh
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tdl-dependency-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Patch Vite, Zod and source-map-js advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: tdl
+          POSTGRES_PASSWORD: tdl
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tdl -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      TDL_TEST_SERVER_URL: postgres://tdl:tdl@127.0.0.1:5432/postgres
+      TDL_TEST_ADMIN_DB: postgres
+      CI: "true"
+    steps:
+      - name: Checkout рабочей ветки обновления
+        uses: actions/checkout@v7
+        with:
+          ref: arena/dependency-refresh
+
+      - name: Установить pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.6.0
+          run_install: false
+
+      - name: Установить Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Зафиксировать безопасную версию source-map-js
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const path = "package.json";
+          const root = JSON.parse(fs.readFileSync(path, "utf8"));
+          root.pnpm ??= {};
+          root.pnpm.overrides ??= {};
+          root.pnpm.overrides["source-map-js"] = "1.2.2";
+          fs.writeFileSync(path, JSON.stringify(root, null, 2) + "\n");
+          NODE
+
+      - name: Обновить Vite и Zod до исправленных версий
+        run: pnpm update -r --latest vite@8.3.6 zod@4.6.7
+
+      - name: Пересобрать lockfile
+        run: pnpm install --lockfile-only
+
+      - name: Проверить воспроизводимую установку
+        run: pnpm install --frozen-lockfile
+
+      - name: Проверить уязвимости
+        run: pnpm audit --audit-level high
+
+      - name: Проверить типы
+        run: pnpm typecheck
+
+      - name: Запустить тесты
+        run: pnpm test
+
+      - name: Проверить архитектурные границы и расписания
+        run: pnpm check
+
+      - name: Собрать production
+        run: pnpm build
+
+      - name: Commit и push только проверенного обновления
+        run: |
+          git rm -f .github/DEPENDENCY_REFRESH_TRIGGER.md || true
+          if git diff --quiet; then
+            echo "Dependency tree is already patched; no commit required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -m "deps: patch high-severity Vite, Zod and source-map-js advisories"
+          git push origin HEAD:arena/dependency-refresh
