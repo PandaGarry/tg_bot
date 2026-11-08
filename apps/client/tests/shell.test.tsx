@@ -299,7 +299,7 @@ describe("двор", () => {
 });
 
 describe("аккаунт", () => {
-  it("выход из игры стирает сессию и возвращает окно входа с регистрацией", () => {
+  it("без подтверждения сервера выход не стирает действующую сессию", () => {
     store.setAuth({ needsLord: false, token: "токен-из-теста-0123456789", accountId: "acc-1" }, "токен-из-теста-0123456789");
     expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
 
@@ -307,10 +307,11 @@ describe("аккаунт", () => {
     fireEvent.click(document.querySelector(".ch-profile") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Выйти из аккаунта" }));
 
-    // Токен убран: и из памяти, и с устройства — чужой человек за этим телефоном
-    // увидит окно входа, а не двор ушедшего.
-    expect(store.get().auth).toBe(null);
-    expect(localStorage.getItem("tdl.token")).toBe(null);
+    // Без открытого и авторизованного сокета отзыв сессии не подтверждён.
+    // Клиент не должен изображать успешный выход или терять единственный токен.
+    expect(store.get().auth?.token).toBe("токен-из-теста-0123456789");
+    expect(localStorage.getItem("tdl.token")).toBe("токен-из-теста-0123456789");
+    expect(store.get().errors[0]?.key).toBe("kernel.connection.lost");
   });
 });
 
