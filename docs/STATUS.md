@@ -13,7 +13,7 @@
 - AUD-022: транзакционный advisory lock + уникальный индекс PostgreSQL `(world_id, account_id)`; конкурентная регрессия и восстановление привязки сессии проходят CI.
 - AUD-030: полный startup bootstrap выполняется под одним PostgreSQL advisory lock; конкурентный интеграционный тест проходит CI #101. Mixed-version rolling deploy остаётся отдельной проверкой перед production.
 - AUD-033: область идемпотентности теперь включает мир и игрока; повтор с чужим commandId не затирает первоначальный outcome. Регрессии проходят CI.
-- P0 AUD-034/035 и P1 AUD-002/004 остаются открытыми: backup/restore drill, остаток production hardening, утверждённая экономика и производство по зданиям. Для AUD-035 уже реализован и протестирован HTTPS Origin allowlist на WebSocket; AUD-030 закрыт по результатам CI #101.
+- P0 AUD-034/035 и P1 AUD-002/004 остаются открытыми: фактический backup/restore drill (runbook и безопасные скрипты подготовлены, но не запускались на целевой БД), остаток production hardening, утверждённая экономика и производство по зданиям. Для AUD-035 уже реализован и протестирован HTTPS Origin allowlist на WebSocket; AUD-030 закрыт по результатам CI #101.
 - Графика: PixiJS main chunk 735.16 КБ / 213.81 КБ gzip; ленивой загрузки и инкрементальной перерисовки пока нет.
 - Dependency audit в CI #101: 0 известных уязвимостей на порогах High и Moderate; AUD-039 закрыт для текущего lockfile.
 
