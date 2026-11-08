@@ -46,7 +46,7 @@ interface AuthBucket {
 
 function normalizeIp(value: string | undefined): string | null {
   if (!value) return null;
-  const trimmed = value.trim();
+  const trimmed = value.trim().toLowerCase();
   const candidate = trimmed.startsWith("::ffff:") ? trimmed.slice(7) : trimmed;
   return isIP(candidate) === 0 ? null : candidate.toLowerCase();
 }
