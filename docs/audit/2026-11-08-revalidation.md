@@ -119,7 +119,7 @@
 |---|---|---|
 | TDL-DB-007 | **Snapshot baseline проверен; CI #146/#160 PASS** | Commit `633ed3c` добавил `0005_schema_snapshot_sync.sql` (`SELECT 1` без DDL), `0005_snapshot.json` и запись journal `idx: 5` после `0004_world_invariants`. Snapshot включает уже существующие объекты из migrations 0001–0004: `unit_states`, `unit_health`, `module_states.until_ms/reason`, `deadlines.unit_id`, `lords_account_world_idx`, `accounts_email_key_idx` и defaults email. `pnpm-lock.yaml` добавляет overrides из `pnpm-workspace.yaml` и обновляет Vitest 5.0.1 → 5.0.3. Drizzle snapshot check прошёл в CI #146. |
 | TDL-AUD-030 | **Закрыто для полного startup bootstrap; CI #86/#101/#124/#131/#146 PASS** | `bootstrapWorld` удерживает единый database-wide advisory lock на всех четырёх стадиях запуска. Тест `полный bootstrap сериализуется одним замком от ядра до миграций модулей` запускает два bootstrap одновременно и проверяет однократное применение миграции. Mixed-version rolling deploy остаётся отдельной проверкой совместимости схемы и кода. |
-| TDL-AUD-035 | **Частично закрыто; CI #101/#124/#131/#146/#160 PASS** | `ALLOWED_ORIGINS` обязателен в production и принимает только точные HTTPS origins без путей; WebSocket handshake разрешает только `/socket` и только allowlisted Origin. Добавлены базовые HTTP security headers и `no-store` для API, тесты покрывают health/static responses и отсутствие permissive CORS. CSP/frame policy, диагностические endpoints и TLS/proxy deployment остаются открытыми. |
+| TDL-AUD-035 | **Частично закрыто; CI #101/#124/#131/#146/#160/#189 PASS** | `ALLOWED_ORIGINS` обязателен в production; WebSocket Origin allowlist, базовые HTTP security headers, CSP `base-uri/object-src/frame-ancestors`, `X-Frame-Options` и защита подробной health-диагностики реализованы и покрыты тестами. Осталось подтвердить TLS/reverse-proxy deployment на целевой площадке; публичный `/api/schedule` требует отдельного contract review. |
 | TDL-TEST-001 | **Исправлена нестабильность теста; CI #101 PASS** | Тест истечения unit override больше не ждёт 60 мс в реальном времени: он задаёт истёкший срок через публичную операцию. Проверка стала детерминированной и не зависит от задержки CI. |
 | TDL-AUD-033 | **Исправлено + CI #75 PASS** | PK `commands` теперь `(world_id, actor_id, idempotency_key)`; SELECT/INSERT/UPDATE scoped по actor; rejected-key conflict использует `DO NOTHING`, поэтому конфликтующий commandId не перезаписывает ранее успешный outcome. Есть тесты межигрового ключа и сохранения исходного результата. |
 | TDL-AUD-036 | **Открыто, P1 производительность** | PixiJS импортируется статически в `main.tsx` и инициализируется до авторизации. Production main chunk — 735.16 КБ minified / 213.81 КБ gzip; требуется dynamic import после входа в мир и повторный замер. |
@@ -149,7 +149,7 @@
 
 ## 8. Новая находка: TDL-AUD-042 — публичная операционная диагностика
 
-**Приоритет:** P1 security / information disclosure. **Статус:** реализация внесена; CI #184 pending.
+**Приоритет:** P1 security / information disclosure. **Статус:** **закрыто для текущей рабочей ветки; CI #189 PASS**.
 
 **Доказательство до исправления:** `GET /api/health` возвращал `world`, `net`, `calendarNow`, `worldNow`, `modules` и `stats` без авторизации. Клиентская `Diagnostics` опрашивала этот endpoint каждые 5 секунд; нагрузочный инструмент использовал его же для серверных метрик.
 
@@ -162,6 +162,6 @@
 
 **Регрессии:** `apps/server/tests/http.test.ts` проверяет точный публичный payload и отсутствие полей `world/net/calendarNow/worldNow/modules/stats`; защищённый endpoint проверяется без токена, с неверным и корректным токеном, включая `no-store` и детальные счётчики.
 
-**Коммиты:** `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`. **Проверка:** GitHub Actions run #184 запущен на `46a8525`; не закрывать до полного CI PASS.
+**Коммиты:** `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`, `1b1e179`, `3aa0334`. **Проверка:** GitHub Actions run #189 (`42525680616`) завершился PASS на `3aa0334e8d0b54ca9dd7135efee16b35fa57099c`: 270 тестов / 31 файл; typecheck, tests, checks, shell syntax, production build, оба dependency audit и Drizzle snapshot check прошли.
 
 **Остаточный риск:** подробная диагностика доступна любому обладателю `ADMIN_TOKEN`; этот секрет нельзя передавать в браузер, URL, логи или публичные скрипты. Для `tools/load` задавать его только через защищённое окружение. Отдельно проверить `/api/schedule` и production TLS/reverse proxy в рамках AUD-035.
