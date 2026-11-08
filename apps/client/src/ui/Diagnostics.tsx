@@ -1,6 +1,6 @@
 /**
- * Служебная полоса для разработки: связь, эпоха писателя, число патчей
- * и отказов. Игроку такое не показывают — это проверка ядра.
+ * Служебная полоса только для разработки: состояние связи и локальные
+ * счётчики клиента. В production компонент не монтируется.
  */
 
 import { useEffect, useState } from "react";
@@ -47,7 +47,7 @@ export function Diagnostics({ lang }: { lang: Locale }) {
       </button>
       {open ? (
         <div className="mt-2 flex flex-col gap-1 font-mono">
-           <span>
+          <span>
             {t("shell.diag.patches")}: {state.patches} · {t("shell.diag.errors")}: {state.errors.length}
           </span>
           <span>
