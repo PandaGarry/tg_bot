@@ -363,3 +363,48 @@ describe("напор на сокет", () => {
     for (const session of sessions) session.close();
   });
 });
+
+describe("защита ворот от перебора", () => {
+  let booted: BootedServer;
+
+  beforeAll(async () => {
+    booted = await bootServer({ config: testConfig(), serveClient: false });
+  }, 60_000);
+
+  afterAll(async () => {
+    await booted.stop("test");
+  });
+
+  it("ограничивает попытки входа общим лимитом IP, а не отдельного сокета", async () => {
+    const first = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
+    const second = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
+    const attempt = (login: string) => ({
+      t: "auth.login",
+      protocolVersion: PROTOCOL_VERSION,
+      login,
+      password: "secret-12345",
+      lang: "ru",
+    });
+
+    try {
+      for (let index = 0; index < 3; index += 1) {
+        first.send(attempt("missing-" + index));
+        const reply = await first.next<{ t: "error"; key: string }>((message) => message.t === "error");
+        expect(reply.key).toBe(KERNEL_KEYS.login);
+      }
+      for (let index = 0; index < 2; index += 1) {
+        second.send(attempt("missing-second-" + index));
+        const reply = await second.next<{ t: "error"; key: string }>((message) => message.t === "error");
+        expect(reply.key).toBe(KERNEL_KEYS.login);
+      }
+
+      // Новый сокет с того же IP не получает новый бюджет попыток.
+      second.send(attempt("missing-blocked"));
+      const blocked = await second.next<{ t: "error"; key: string }>((message) => message.t === "error");
+      expect(blocked.key).toBe(KERNEL_KEYS.rate);
+    } finally {
+      first.close();
+      second.close();
+    }
+  });
+});

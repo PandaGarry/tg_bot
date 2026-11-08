@@ -3,7 +3,7 @@
  * чужой склад, чужой состав марша и чужой гарнизон в чужой патч не попадают.
  */
 
-import type { Server } from "node:http";
+import type { IncomingMessage, Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import {
   KERNEL_KEYS,
@@ -34,7 +34,20 @@ interface SocketState {
   tokens: number;
   lastRefill: number;
   alive: boolean;
+  /** Адрес TCP-пира; X-Forwarded-For не доверяем без proxy allowlist. */
+  remoteAddress: string;
 }
+
+interface AuthBucket {
+  tokens: number;
+  lastRefill: number;
+  lastSeen: number;
+}
+
+const AUTH_BUCKET_CAPACITY = 5;
+const AUTH_BUCKET_REFILL_MS = 60_000;
+const AUTH_BUCKET_TTL_MS = 10 * 60_000;
+const AUTH_BUCKET_MAX_KEYS = 10_000;
 
 export interface HubOptions {
   gates: GatesOptions;
@@ -68,6 +81,8 @@ export class SocketHub implements ViewSink {
   /** Медленные клиенты: их отключают, чтобы память мира не росла. */
   private slowClients = 0;
   private readonly states = new Set<SocketState>();
+  /** Общий IP bucket: открытие новых сокетов не обнуляет лимит перебора пароля. */
+  private readonly authBuckets = new Map<string, AuthBucket>();
   private service: WorldService | null = null;
   private wss: WebSocketServer | null = null;
   private heartbeat: NodeJS.Timeout | null = null;
@@ -87,8 +102,11 @@ export class SocketHub implements ViewSink {
   attach(server: Server): void {
     const wss = new WebSocketServer({ server, maxPayload: LIMITS.maxMessageBytes });
     this.wss = wss;
-    wss.on("connection", (socket) => this.onConnection(socket));
-    this.heartbeat = setInterval(() => this.checkAlive(), 30_000);
+    wss.on("connection", (socket, request) => this.onConnection(socket, request));
+    this.heartbeat = setInterval(() => {
+      this.checkAlive();
+      this.pruneAuthBuckets(Date.now());
+    }, 30_000);
     this.journal.write({ channel: "app", worldId: this.worldId, event: "net.ready" });
   }
 
@@ -193,7 +211,7 @@ export class SocketHub implements ViewSink {
     return this.states.size;
   }
 
-  private onConnection(socket: WebSocket): void {
+  private onConnection(socket: WebSocket, request: IncomingMessage): void {
     const state: SocketState = {
       socket,
       accountId: null,
@@ -204,6 +222,7 @@ export class SocketHub implements ViewSink {
       tokens: this.commandRate,
       lastRefill: Date.now(),
       alive: true,
+      remoteAddress: request.socket.remoteAddress ?? "unknown",
     };
     this.states.add(state);
     socket.on("pong", () => {
@@ -212,7 +231,16 @@ export class SocketHub implements ViewSink {
     socket.on("close", () => this.states.delete(state));
     socket.on("error", () => this.states.delete(state));
     socket.on("message", (raw) => {
-      void this.onMessage(state, raw.toString());
+      void this.onMessage(state, raw.toString()).catch((error: unknown) => {
+        // Ошибка БД/обработчика не должна превращаться в unhandled rejection процесса.
+        this.journal.write({
+          channel: "security",
+          worldId: this.worldId,
+          event: "net.message.failed",
+          detail: { error: error instanceof Error ? error.name : "unknown" },
+        });
+        this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.generic }));
+      });
     });
   }
 
@@ -252,6 +280,10 @@ export class SocketHub implements ViewSink {
         return;
 
       case "auth.register": {
+        if (!this.takeAuthToken(state)) {
+          this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.rate }));
+          return;
+        }
         state.lang = data.lang;
         const created = await register(this.gates, {
           login: data.login,
@@ -279,6 +311,10 @@ export class SocketHub implements ViewSink {
       }
 
       case "auth.login": {
+        if (!this.takeAuthToken(state)) {
+          this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.rate }));
+          return;
+        }
         state.lang = data.lang;
         const entered = await login(this.gates, {
           login: data.login,
@@ -422,6 +458,33 @@ export class SocketHub implements ViewSink {
     if (state.actor && this.service) {
       const view = await this.service.view(state.actor);
       this.send(state, zServerState.parse({ t: "state", serverNow: this.service.now(), view }));
+    }
+  }
+
+  /** Ограничение дорогих операций login/register на TCP-IP, общее для всех сокетов IP. */
+  private takeAuthToken(state: SocketState): boolean {
+    const now = Date.now();
+    const key = state.remoteAddress;
+    let bucket = this.authBuckets.get(key);
+    if (!bucket) {
+      this.pruneAuthBuckets(now);
+      // При исчерпании карты не создаём бесконечный набор ключей: новый IP получает отказ.
+      if (this.authBuckets.size >= AUTH_BUCKET_MAX_KEYS) return false;
+      bucket = { tokens: AUTH_BUCKET_CAPACITY, lastRefill: now, lastSeen: now };
+      this.authBuckets.set(key, bucket);
+    }
+    const elapsed = Math.max(0, now - bucket.lastRefill);
+    bucket.tokens = Math.min(AUTH_BUCKET_CAPACITY, bucket.tokens + (elapsed * AUTH_BUCKET_CAPACITY) / AUTH_BUCKET_REFILL_MS);
+    bucket.lastRefill = now;
+    bucket.lastSeen = now;
+    if (bucket.tokens < 1) return false;
+    bucket.tokens -= 1;
+    return true;
+  }
+
+  private pruneAuthBuckets(now: number): void {
+    for (const [key, bucket] of this.authBuckets) {
+      if (now - bucket.lastSeen > AUTH_BUCKET_TTL_MS) this.authBuckets.delete(key);
     }
   }
 
