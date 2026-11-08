@@ -113,7 +113,7 @@
 - **AUD-029** — исправлено: вся подготовка pump находится под `try/finally`; регрессионный тест синтетического отказа sweep и восстановления следующего прохода проходит CI.
 - **AUD-031** — исправлена проверка мира в `resume/logout`, при привязке сессии к лорду, WebSocket `enterWorld` и `submitCommand`; тесты межмирового токена и чужого actor проходят CI. Отдельно проверять все новые модули при их добавлении.
 - **AUD-042** — реализация диагностики проверена: публичный `/api/health` возвращает только `{ok, ready}`; подробный `/api/ops/health` и остальные служебные endpoints требуют `x-admin-token`; `Diagnostics` подключается только в DEV; `tools/load` использует защищённую ручку и `ADMIN_TOKEN`. HTTP-тесты проверяют публичный контракт и 403/200 для оператора. Текущий HEAD `f41198c` ожидает CI #219; закрывать пункт только после PASS.
-- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, Origin policy и базовые HTTP security headers проходят CI #101/#124/#131. CSP/frame policy, защищённая подробная диагностика и operator-only `/api/schedule` реализованы; осталось проверить фактический TLS/proxy production deployment.
+- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS` и теперь также непустой точный `TRUSTED_PROXY_IPS` (исключает общий proxy-IP bucket для всех игроков); `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, Origin policy и базовые HTTP security headers проходят CI #101/#124/#131. CSP/frame policy, защищённая подробная диагностика и operator-only `/api/schedule` реализованы; осталось проверить фактический TLS/proxy production deployment.
 - **AUD-005** — `/api/kernel/rejections` закрыт операторским токеном; HTTP-регрессия 403 без токена / 200 с токеном проходит CI.
 - **AUD-018** — logout очищает все активные сокеты с тем же bearer token; серверный регрессионный тест проходит полный CI.
 - **AUD-022** — исправлено в приложении и БД: `createLord` сериализует создание через транзакционный advisory lock; уникальный индекс `(world_id, account_id)` защищает инвариант на уровне PostgreSQL. Конкурентный тест проходит CI run #86.
@@ -313,3 +313,8 @@ AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Пр
 ## 14. AUD-036 — lazy Pixi import (09.11.2026)
 
 `main.tsx` больше не загружает Pixi и court scene статически. Dynamic imports запускаются только после авторизации, когда серверный view содержит `me` и аккаунт не находится на этапе создания лорда. Bridge сохраняет последний снимок и режим до монтирования сцены. CI #218 build показал initial `index` chunk 470.71 KB / 136.09 KB gzip против baseline 735.16 KB / 213.81 KB gzip (примерно -36%); `application` и `courtScene` вынесены в отдельные chunks. AUD-036 частично закрыт; реальные iOS/Android WebView first-load, GPU/FPS, память и latency lazy chunks ещё измерить.
+
+
+### AUD-035 — уточнение production proxy boundary (09.11.2026)
+
+Статический аудит runbook выявил, что пустой `TRUSTED_PROXY_IPS` при TLS termination на reverse proxy заставлял сервер игнорировать XFF и использовать общий TCP peer IP для login/register rate limits. Production startup теперь требует непустой список точных proxy peer IP; проверка формата IPv4/IPv6, запрет CIDR и duplicate entries уже реализованы. Добавлены регрессии config и уточнены `.env.example`/production runbook. Реальные IP, сертификат, firewall, WSS и поведение выбранного хостинга остаются непроверенными — AUD-035 не закрывать.
