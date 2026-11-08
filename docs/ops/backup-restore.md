@@ -27,6 +27,22 @@
 
 Custom dump не содержит роли PostgreSQL и глобальные настройки кластера. Роли и права должны восстанавливаться инфраструктурной конфигурацией, а не копированием секретов в dump.
 
+## Автоматический end-to-end drill в CI
+
+В workflow добавлен отдельный изолированный сценарий `tools/db/ci-restore-drill.sh` (запускается после production build на disposable PostgreSQL 18):
+
+1. Создаёт две временные базы с отдельными именами — source и `tdl_restore_*`.
+2. Запускает собранный TDL server с production-конфигурацией против source DB и ждёт `/api/health: ready=true`; это применяет штатные миграции и создаёт мир.
+3. Снимает custom dump через `tools/db/backup.sh`, проверяет TOC и SHA-256.
+4. Восстанавливает dump в пустую отдельную target DB через `tools/db/restore-drill.sh`.
+5. Сравнивает количество строк в ключевых таблицах (`worlds`, `module_states`, `accounts`, `lords`, `stock`, `deadlines`, `reports`) source и restored.
+6. Повторно запускает собранный сервер с production-конфигурацией уже на восстановленной БД и проверяет readiness.
+7. Удаляет только созданные этим CI-сценарием временные базы и временный каталог.
+
+Для dump/restore workflow устанавливает PostgreSQL 18 client, чтобы major version клиента соответствовала service PostgreSQL 18. Сам `backup.sh` также отклоняет `pg_dump`, major version которого ниже версии исходного сервера. Restore script отказывается от target, где уже есть пользовательские relation objects или дополнительные схемы; после восстановления требует как минимум одну строку мира и состояния модуля и сравнивает контрольные row counts с source.
+
+**Граница доказательства:** CI drill подтверждает восстановление схемы/данных и повторный запуск приложения на disposable базе. Он не подтверждает backup production provider, внешнее зашифрованное хранение, retention, point-in-time recovery, доступность реальной production-копии или production RPO/RTO. Эти пункты требуют отдельного доступа и согласования оператора.
+
 ## 1. Создать backup
 
 Задай `DATABASE_URL` через secret manager или защищённую переменную окружения. Не вставляй реальный URL в команды, которые сохраняются в shell history.
