@@ -3,25 +3,26 @@
 
 :root[data-ui-mockup="forge"] {
   color-scheme: dark;
-  --ui-page: #181917;
-  --ui-panel: #292a26;
-  --ui-paper: #e9e5d7;
-  --ui-ink: #eee9dc;
-  --ui-muted: #aaa395;
-  --ui-dark: #101211;
-  --ui-panel-dark: #202321;
-  --ui-line: #615b4e;
-  --ui-accent: #ed743d;
-  --ui-accent-2: #a83e35;
-  --ui-accent-3: #d0ae59;
-  --ui-danger: #ca473a;
+  /* Undead Frontier: obsidian surfaces, cold slate, aged bone and restrained brass/ember. */
+  --ui-page: #0d1218;
+  --ui-panel: #18222c;
+  --ui-paper: #d8d2c5;
+  --ui-ink: #e7e1d5;
+  --ui-muted: #a8a295;
+  --ui-dark: #080d13;
+  --ui-panel-dark: #101922;
+  --ui-line: #52616d;
+  --ui-accent: #b79b64;
+  --ui-accent-2: #b65f43;
+  --ui-accent-3: #d0c09a;
+  --ui-danger: #b84c43;
   --ui-radius: 3px;
-  --ui-font: "Arial Narrow", "Roboto Condensed", sans-serif;
-  --ui-avatar-bg: #51584c;
-  --ui-avatar-ring: #e07a44;
-  --ui-avatar-cloak: #853c32;
+  --ui-font: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --ui-avatar-bg: #34454b;
+  --ui-avatar-ring: #b79b64;
+  --ui-avatar-cloak: #40564f;
   --ui-avatar-face: #b79472;
-  --ui-avatar-helm: #252a29;
+  --ui-avatar-helm: #17232c;
 }
 
 
@@ -200,29 +201,29 @@
 .concept-quick__item.is-active { background: var(--ui-accent-2); border-color: var(--ui-accent-3); color: var(--ui-paper); }
 
 /* 03 — Кузня приказов: угольная консоль, сигнальные цвета, командная полоса. */
-.concept-header--forge { top: calc(10px + env(safe-area-inset-top)); left: 10px; right: 69px; display: flex; flex-direction: column; gap: 5px; padding: 7px; border-left: 4px solid var(--ui-accent); background: linear-gradient(100deg, rgba(20,23,22,.97), rgba(37,38,34,.93)); box-shadow: 0 8px 25px rgba(0,0,0,.5); }
-.concept-profile--forge { padding: 4px 6px; border: 0; border-bottom: 1px solid #615b4e; border-radius: 0; background: transparent; box-shadow: none; color: #eee9dc; }
+.concept-header--forge { top: calc(10px + env(safe-area-inset-top)); left: 10px; right: 69px; display: flex; flex-direction: column; gap: 5px; padding: 7px; border-left: 4px solid var(--ui-accent); background: linear-gradient(105deg, rgba(8,13,19,.98), rgba(25,36,47,.95)); box-shadow: 0 8px 25px rgba(0,0,0,.5); }
+.concept-profile--forge { padding: 4px 6px; border: 0; border-bottom: 1px solid var(--ui-line); border-radius: 0; background: transparent; box-shadow: none; color: #eee9dc; }
 .concept-profile--forge .concept-profile__portrait { width: 40px; height: 40px; flex-basis: 40px; border-radius: 3px; }
 .concept-profile--forge .concept-profile__copy small { color: #aaa395; }
-.concept-profile--forge .concept-profile__copy > span { color: #e3a74d; }
-.concept-profile--forge .concept-profile__crest { color: #ed743d; }
+.concept-profile--forge .concept-profile__copy > span { color: var(--ui-accent-3); }
+.concept-profile--forge .concept-profile__crest { color: var(--ui-accent); }
 .concept-forge-status { display: flex; min-height: 25px; align-items: center; padding: 0 5px; }
 .concept-world--forge { gap: 6px; }
 .concept-world--forge .concept-world__sigil { width: 22px; height: 22px; flex-basis: 22px; border-radius: 2px; }
 .concept-world--forge .concept-world__sigil svg { width: 16px; height: 16px; }
 .concept-world--forge small { color: #b1a690; }
 .concept-world--forge b { font: 800 9px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-.concept-resources--forge { grid-template-columns: repeat(6, minmax(0,1fr)); padding-top: 5px; border-top: 1px solid #615b4e; gap: 3px; }
+.concept-resources--forge { grid-template-columns: repeat(6, minmax(0,1fr)); padding-top: 5px; border-top: 1px solid var(--ui-line); gap: 3px; }
 .concept-resources--forge .concept-resource { flex-direction: column; gap: 2px; padding: 1px; }
 .concept-resources--forge .concept-resource__icon { width: 22px; height: 22px; flex-basis: 22px; border-radius: 3px; }
 .concept-resources--forge .concept-resource__icon svg { width: 16px; height: 16px; }
 .concept-resources--forge .concept-resource__label { display: none; }
 .concept-quick--forge { top: 43%; right: 10px; width: 49px; flex-direction: column; transform: translateY(-50%); }
-.concept-quick--forge .concept-quick__item { width: 49px; height: 49px; border-radius: 3px; border-left: 3px solid var(--ui-accent); background: rgba(20,22,21,.94); }
+.concept-quick--forge .concept-quick__item { width: 49px; height: 49px; border-radius: 3px; border-left: 3px solid var(--ui-accent); background: linear-gradient(150deg, rgba(28,40,51,.97), rgba(8,13,19,.98)); }
 .concept-quick--forge .concept-quick__icon { color: var(--ui-accent); }
-.concept-nav--forge { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; padding: 4px; border-top: 2px solid var(--ui-accent); background: rgba(20,22,21,.97); box-shadow: 0 -5px 20px rgba(0,0,0,.45); }
-.concept-nav--forge .concept-nav__item { flex-direction: column; border-radius: 2px; color: #b6b0a2; }
-.concept-nav--forge .concept-nav__item.is-active { background: #342c26; color: #ffb05a; }
+.concept-nav--forge { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 3px; padding: 4px; border-top: 2px solid var(--ui-accent); background: linear-gradient(180deg, rgba(23,34,45,.98), rgba(8,13,19,.99)); box-shadow: 0 -5px 20px rgba(0,0,0,.45); }
+.concept-nav--forge .concept-nav__item { flex-direction: column; border-radius: 2px; color: var(--ui-muted); }
+.concept-nav--forge .concept-nav__item.is-active { background: #263541; color: var(--ui-accent-3); }
 .concept-nav--forge .concept-nav__icon { width: 20px; height: 20px; }
 
 /* На служебных экранах вспомогательные ленты сворачиваются, чтобы не теснить содержимое. */
@@ -407,3 +408,45 @@
 .proto-overlay { pointer-events: auto; position: fixed; inset: 0; z-index: 400; background: #0c0a09; }
 .proto-overlay iframe { display: block; width: 100%; height: 100%; border: 0; }
 .proto-overlay__close { position: absolute; top: 8px; right: 8px; z-index: 1; min-height: 40px; padding: 0 10px; border: 1px solid #b45309; border-radius: 8px; background: rgba(12,10,9,.92); color: #fbbf24; font: 700 11px/1 ui-sans-serif, system-ui, sans-serif; }
+
+
+/* В активном каталоге строительства поверхности тёмные; иллюстрации — единые PNG из Pixi art catalog. */
+.concept-build-panel--forge .concept-upgrade,
+.concept-build-panel--forge .concept-building-card,
+.concept-build-panel--forge .concept-road-card {
+  border-color: color-mix(in srgb, var(--ui-line) 76%, var(--ui-accent));
+  background: linear-gradient(145deg, #202d38, #121b24);
+  color: var(--ui-ink);
+  box-shadow: inset 0 1px 0 rgba(222,216,202,.05), 0 2px 7px rgba(0,0,0,.22);
+}
+.concept-build-panel--forge .concept-upgrade__icon,
+.concept-build-panel--forge .concept-action-panel__icon {
+  color: var(--ui-ink);
+  background: linear-gradient(145deg, #7b4b39, #402b27);
+}
+.concept-build-panel--forge .concept-panel-close,
+.concept-build-panel--forge .concept-build-tabs button {
+  border-color: var(--ui-line);
+  background: #111b24;
+  color: var(--ui-muted);
+}
+.concept-build-panel--forge .concept-build-tabs button.is-active {
+  border-color: var(--ui-accent);
+  background: linear-gradient(180deg, #6c5534, #332c24);
+  color: #f0e7d5;
+}
+.concept-build-panel--forge .concept-building-art {
+  border-color: rgba(183,155,100,.48);
+  background: radial-gradient(circle at 50% 35%, #35444a, #101820 78%);
+  color: var(--ui-accent-3);
+}
+.concept-building-art img,
+.concept-upgrade__icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.42));
+}
+.concept-building-art img { padding: 2px; }
+.concept-upgrade__icon img { padding: 1px; }

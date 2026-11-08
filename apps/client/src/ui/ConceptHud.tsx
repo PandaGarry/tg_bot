@@ -4,6 +4,7 @@ import { translator } from "../i18n/index.js";
 import { BUILD_CATALOG, CITADEL_COSTS, CITADEL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
 import { ConceptIcon, type ConceptIconName } from "./ConceptIcon.js";
 import { CourtChrome } from "./CourtChrome.js";
+import { BUILDING_SPRITES, buildingSpriteUrl } from "../game/court/spriteCatalog.js";
 import "./court-chrome.css";
 import type { UiMockupId } from "./mockups.js";
 
@@ -367,6 +368,11 @@ function formatAmount(value: number, lang: Locale): string {
   return new Intl.NumberFormat(lang === "ru" ? "ru-RU" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
+function BuildingArtwork({ id, fallback }: { id: string; fallback: ConceptIconName }) {
+  const src = buildingSpriteUrl(id);
+  return src ? <img src={src} alt="" draggable={false} /> : <ConceptIcon name={fallback} />;
+}
+
 function ConceptBuildPanel({
   variant,
   view,
@@ -407,7 +413,7 @@ function ConceptBuildPanel({
         <button type="button" className="concept-panel-close" aria-label={lang === "ru" ? "Закрыть" : "Close"} onClick={onClose}>×</button>
       </header>
       <button type="button" className="concept-upgrade" onClick={onUpgrade} disabled={!canUpgrade}>
-        <span className="concept-upgrade__icon"><ConceptIcon name="court" /></span>
+        <span className="concept-upgrade__icon"><BuildingArtwork id="citadel" fallback="court" /></span>
         <span className="concept-upgrade__text">
           <b>{t("shell.hud.b.townhall")} · {level}</b>
           <small>{level >= CITADEL_MAX_LEVEL ? copy.maxLevel : `${copy.upgrade} · ${level + 1}`}</small>
@@ -447,7 +453,7 @@ function ConceptBuildPanel({
               disabled={disabled}
               onClick={() => onPlaceStart(item.id)}
             >
-              <span className="concept-building-art"><ConceptIcon name={item.id as ConceptIconName} /></span>
+              <span className="concept-building-art"><BuildingArtwork id={item.id} fallback={item.id as ConceptIconName} /></span>
               <span className="concept-building-card__copy">
                 <b>{t(`shell.hud.b.${item.id}`)}</b>
                 <small>{locked ? `${copy.locked} · ${item.th}` : item.cost.map(([id, amount]) => `${resourceAbbreviation(id, lang)} ${amount}`).join(" · ")}</small>
