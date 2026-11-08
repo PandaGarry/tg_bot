@@ -1767,16 +1767,18 @@ export class WorldService {
   private async pump(): Promise<void> {
     if (this.stopped || this.pumping || Date.now() < this.quietUntilMs) return;
     this.pumping = true;
-    this.deadlineStalled = false;
-    this.clearCaches();
-    // Просроченные запреты снимаются до работы шага: мир возвращается сам.
-    await this.sweepExpiredOverrides();
-    // Лечение карантина: вышел отступ — единица вернулась в расчёт.
-    await this.sweepQuarantine();
-    // Журнал расписания: старт и стоп окон.
-    this.refreshScheduleJournal();
     const startedAt = performance.now();
     try {
+      // Вся подготовка прохода находится под тем же finally, что и основная работа.
+      // Ошибка БД при sweep не должна навсегда оставлять writer в pumping=true.
+      this.deadlineStalled = false;
+      this.clearCaches();
+      // Просроченные запреты снимаются до работы шага: мир возвращается сам.
+      await this.sweepExpiredOverrides();
+      // Лечение карантина: вышел отступ — единица вернулась в расчёт.
+      await this.sweepQuarantine();
+      // Журнал расписания: старт и стоп окон.
+      this.refreshScheduleJournal();
       const stepEndsAt = startedAt + this.stepBudgetMs;
       // Сроки идут первыми, но не съедают весь бюджет: остаток — командам.
       const deadlineEndsAt = Math.min(startedAt + this.deadlineBudgetMs, stepEndsAt);
