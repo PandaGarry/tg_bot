@@ -79,6 +79,9 @@ describe("порт мира", () => {
     const url = `http://127.0.0.1:${booted.port}/api/ops/health`;
     expect((await fetch(url)).status).toBe(403);
     expect((await fetch(url, { headers: { "x-admin-token": "wrong-token-000000000" } })).status).toBe(403);
+    // Равное число символов не гарантирует равную длину UTF-8: такой токен
+    // должен получить обычный 403, а не вызвать RangeError/500 в timingSafeEqual.
+    expect((await fetch(url, { headers: { "x-admin-token": "é".repeat("operator-token-0123456789".length) } })).status).toBe(403);
     const response = await fetch(url, { headers: { "x-admin-token": "operator-token-0123456789" } });
     const body = (await response.json()) as {
       ok: boolean;
