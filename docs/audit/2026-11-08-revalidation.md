@@ -180,3 +180,11 @@
 **Граница:** даже успешный CI drill не проверяет production provider backups, внешнее шифрованное хранение, retention/PITR, актуальную production копию, роли/глобальные настройки PostgreSQL, фактическое production RPO/RTO или аварийный доступ к ключам. Для закрытия AUD-034 потребуется операторская production-like процедура с безопасной отдельной restore DB и записью времени/версий/hash/counts.
 
 **Изменения:** `62c1cb2`, `8f871d1`, `d9c3b3f`, `64b8a69`, `7176424`, `342d964`, `b3de90c`. CI run после изменения workflow ожидает завершения.
+
+### AUD-034 — результат CI drill #203
+
+**Проверка:** [GitHub Actions run #203](https://github.com/PandaGarry/tg_bot/actions/runs/42526523241) — **PASS** на кодовом HEAD `611c2ada2889dadd44ab08c91f4eac8c7afb3aa`. Полный workflow: 270 тестов / 31 файл, typecheck, checks, shell syntax, PostgreSQL 18 client install, production build, restore drill, dependency audits и Drizzle snapshot check.
+
+**Фактический CI результат:** custom dump — 30 402 bytes; SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`; restore — 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
+
+**Статус:** CI-механика backup/restore подтверждена; **AUD-034 остаётся P0/open частично**, потому что disposable CI не является production-like backup drill. До закрытия нужны provider-managed backups/PITR, encrypted off-host copy, retention, восстановление актуальной production-like копии, проверка доступа/ролей и фиксация реальных production RPO/RTO.
