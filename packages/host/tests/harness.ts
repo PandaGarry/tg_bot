@@ -86,6 +86,8 @@ export interface TestWorldOptions {
   slowCommandMs?: number;
   quarantineStrikes?: number;
   strikeWindowMs?: number;
+  /** Управляемые игровые часы для детерминированных тестов сроков. */
+  now?: () => number;
 }
 
 export interface TestWorld {
@@ -143,6 +145,7 @@ export async function createTestWorld(options: TestWorldOptions = {}): Promise<T
     quarantineStrikes: options.quarantineStrikes,
     strikeWindowMs: options.strikeWindowMs,
     maxIdleMs: options.maxIdleMs,
+    ...(options.now ? { now: options.now } : {}),
   });
   return {
     id,
