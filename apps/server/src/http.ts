@@ -143,9 +143,29 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       return;
     }
     if (url.pathname === "/api/kernel/rejections") {
+      // Отказы содержат actorId и claimed/computed: это служебная диагностика,
+      // а не публичный игровой API. Закрываем её тем же операторским токеном.
+      const token = options.adminToken ?? "";
+      const given = req.headers["x-admin-token"];
+      const authorized =
+        token.length > 0 &&
+        typeof given === "string" &&
+        given.length === token.length &&
+        timingSafeEqual(Buffer.from(given), Buffer.from(token));
+      if (!authorized) {
+        options.journal.write({
+          channel: "security",
+          worldId: options.worldId,
+          event: "admin.denied",
+          detail: { path: url.pathname },
+        });
+        res.writeHead(403, { "content-type": "application/json", "cache-control": "no-store" });
+        res.end(JSON.stringify({ ok: false, error: "нет доступа" }));
+        return;
+      }
       const service = options.service();
       const rows = service ? await service.rejections(100) : [];
-      res.writeHead(200, { "content-type": "application/json" });
+      res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
       res.end(JSON.stringify({ rows }));
       return;
     }
