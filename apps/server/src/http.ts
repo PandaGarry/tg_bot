@@ -129,26 +129,42 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     // API-состояние не должно кэшироваться браузером или промежуточным proxy.
     if (url.pathname.startsWith("/api/")) res.setHeader("cache-control", "no-store");
     if (url.pathname === "/api/health") {
-      const service = options.service();
-      const stats = service?.stats() ?? null;
-      // Смотр мира: сколько соединений, сколько медленных клиентов отключено.
-      const net = options.net?.() ?? null;
+      // Публичная проверка готовности: без идентификаторов мира и внутренней телеметрии.
       res.writeHead(200, { "content-type": "application/json" });
-      res.end(
-        JSON.stringify({
-          ok: true,
-          world: options.worldId,
-          ready: service !== null,
-          net,
-          // Двое часов названы явно: календарь — настоящий (окна событий и сроки
-          // оператора), ход мира — игровой (он стоит, пока процесс не работает).
-          calendarNow: service?.calendarNow() ?? Date.now(),
-          worldNow: service?.now() ?? Date.now(),
-          // Состояния модулей: видно, что выключено и что включено обратно.
-          modules: service?.statesOfModules() ?? [],
-          stats,
-        }),
-      );
+      res.end(JSON.stringify({ ok: true, ready: options.service() !== null }));
+      return;
+    }
+    if (url.pathname === "/api/ops/health") {
+      const token = options.adminToken ?? "";
+      const given = req.headers["x-admin-token"];
+      const authorized =
+        token.length > 0 &&
+        typeof given === "string" &&
+        given.length === token.length &&
+        timingSafeEqual(Buffer.from(given), Buffer.from(token));
+      if (!authorized) {
+        options.journal.write({
+          channel: "security",
+          worldId: options.worldId,
+          event: "admin.denied",
+          detail: { path: url.pathname },
+        });
+        res.writeHead(403, { "content-type": "application/json", "cache-control": "no-store" });
+        res.end(JSON.stringify({ ok: false, error: "нет доступа" }));
+        return;
+      }
+      const service = options.service();
+      res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+      res.end(JSON.stringify({
+        ok: true,
+        world: options.worldId,
+        ready: service !== null,
+        net: options.net?.() ?? null,
+        calendarNow: service?.calendarNow() ?? Date.now(),
+        worldNow: service?.now() ?? Date.now(),
+        modules: service?.statesOfModules() ?? [],
+        stats: service?.stats() ?? null,
+      }));
       return;
     }
     if (url.pathname === "/api/kernel/rejections") {
