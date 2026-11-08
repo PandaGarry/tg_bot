@@ -156,6 +156,8 @@ export class SocketHub implements ViewSink {
     this.upgradeHandler = null;
     for (const state of this.states) state.socket.close(1001, "server shutdown");
     this.states.clear();
+    this.authBuckets.clear();
+    this.commandBuckets.clear();
     await new Promise<void>((resolve) => (this.wss ? this.wss.close(() => resolve()) : resolve()));
   }
 
