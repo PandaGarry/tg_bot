@@ -53,8 +53,9 @@ cleanup() {
   stop_server
   # Both databases are created exclusively for this disposable CI drill.
   psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
-    "DROP DATABASE IF EXISTS \"$target_db\" WITH (FORCE); DROP DATABASE IF EXISTS \"$source_db\" WITH (FORCE);" \
-    >/dev/null 2>&1 || true
+    "DROP DATABASE IF EXISTS \"$target_db\" WITH (FORCE);" >/dev/null 2>&1 || true
+  psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
+    "DROP DATABASE IF EXISTS \"$source_db\" WITH (FORCE);" >/dev/null 2>&1 || true
   rm -rf -- "$backup_dir"
   return "$status"
 }
