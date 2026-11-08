@@ -38,7 +38,11 @@ describe("сокет и ворота", () => {
   let booted: BootedServer;
 
   beforeAll(async () => {
-    booted = await bootServer({ config: testConfig(), serveClient: false });
+    booted = await bootServer({
+      config: testConfig(),
+      serveClient: false,
+      adminToken: "socket-test-operator-token-0123456789",
+    });
   }, 60_000);
 
   afterAll(async () => {
@@ -251,7 +255,11 @@ describe("закрытая регистрация", () => {
   let booted: BootedServer;
 
   beforeAll(async () => {
-    booted = await bootServer({ config: testConfig({ REGISTRATION_OPEN: "0" }), serveClient: false });
+    booted = await bootServer({
+      config: testConfig({ REGISTRATION_OPEN: "0" }),
+      serveClient: false,
+      adminToken: "socket-test-operator-token-0123456789",
+    });
   }, 60_000);
 
   afterAll(async () => {
@@ -275,10 +283,14 @@ describe("закрытая регистрация", () => {
     expect(error.key).toBe(KERNEL_KEYS.registration);
     // Мир при этом жив: health отвечает, сроки идут.
     const health = await fetch(`http://127.0.0.1:${booted.port}/api/health`);
-    const body = (await health.json()) as { ok: boolean; ready: boolean; stats: { epoch: number } };
-    expect(body.ok).toBe(true);
-    expect(body.ready).toBe(true);
-    expect(body.stats.epoch).toBeGreaterThan(0);
+    const body = (await health.json()) as { ok: boolean; ready: boolean };
+    expect(body).toEqual({ ok: true, ready: true });
+    const ops = await fetch(`http://127.0.0.1:${booted.port}/api/ops/health`, {
+      headers: { "x-admin-token": "socket-test-operator-token-0123456789" },
+    });
+    const diagnostics = (await ops.json()) as { stats: { epoch: number } };
+    expect(ops.status).toBe(200);
+    expect(diagnostics.stats.epoch).toBeGreaterThan(0);
     client.close();
   });
 });
@@ -364,9 +376,14 @@ describe("напор на сокет", () => {
     const pong = await fresh.next((message) => message.t === "pong");
     expect(pong.t).toBe("pong");
     const health = await fetch(`http://127.0.0.1:${booted.port}/api/health`);
-    const body = (await health.json()) as { ok: boolean; stats: { failures: number } };
-    expect(body.ok).toBe(true);
-    expect(body.stats.failures).toBe(0);
+    const body = (await health.json()) as { ok: boolean; ready: boolean };
+    expect(body).toEqual({ ok: true, ready: true });
+    const ops = await fetch(`http://127.0.0.1:${booted.port}/api/ops/health`, {
+      headers: { "x-admin-token": "socket-test-operator-token-0123456789" },
+    });
+    const diagnostics = (await ops.json()) as { stats: { failures: number } };
+    expect(ops.status).toBe(200);
+    expect(diagnostics.stats.failures).toBe(0);
     fresh.close();
     client.close();
   });
