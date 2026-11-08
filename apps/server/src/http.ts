@@ -122,6 +122,9 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     res.setHeader("x-content-type-options", "nosniff");
     res.setHeader("referrer-policy", "strict-origin-when-cross-origin");
     res.setHeader("permissions-policy", "camera=(), microphone=(), geolocation=()");
+    // Запрещаем встраивание мира и legacy object/embed; базовый URL остаётся same-origin.
+    res.setHeader("content-security-policy", "base-uri 'self'; object-src 'none'; frame-ancestors 'none'");
+    res.setHeader("x-frame-options", "DENY");
     const url = new URL(req.url ?? "/", "http://localhost");
     // API-состояние не должно кэшироваться браузером или промежуточным proxy.
     if (url.pathname.startsWith("/api/")) res.setHeader("cache-control", "no-store");
