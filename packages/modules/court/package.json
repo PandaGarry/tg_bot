@@ -11,10 +11,10 @@
     "test": "node ../../../tools/run-vitest.mjs run"
   },
   "dependencies": {
+    "@tdl/content-buildings": "workspace:*",
     "@tdl/kernel": "workspace:*",
     "@tdl/protocol": "workspace:*",
-    "zod": "4.6.5",
-    "@tdl/content-buildings": "workspace:*"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "typescript": "5.9.3",
