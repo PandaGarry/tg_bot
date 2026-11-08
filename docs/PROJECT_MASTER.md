@@ -121,7 +121,7 @@
 
 ### P1 — экономика, команды, сессии, сохранность прогресса
 
-- **AUD-002/003/004** — отделить защищённый склад от потолка накопления; выдавать единый фактически применённый баланс и реализовать производство по зданиям/уровням.
+- **AUD-002/004** — отделить защищённый склад от потолка накопления и утвердить производство по зданиям/уровням. **AUD-003 закрыт:** `applyEffects` отправляет клиенту фактический баланс после clamp, регрессионный тест сравнивает patch с БД.
 - **AUD-006** — login/register используют общие IP-buckets; поддержка `TRUSTED_PROXY_IPS` добавлена с точной валидацией IPv4/IPv6 и разбором XFF справа налево. До production остаётся внести реальные IP адреса proxy выбранного провайдера.
 - **AUD-040** — поддержка trusted proxy реализована: exact IP allowlist, XFF принимается только от доверенного TCP peer и разбирается справа налево; до production требуется заполнить `TRUSTED_PROXY_IPS` адресами реального proxy.
 - **AUD-041** — закрыто: command token bucket общий для всех WebSocket-сессий одного аккаунта в пределах мира; новый регрессионный тест подтверждает, что повторный сокет не обходит COMMAND_RATE.
@@ -267,7 +267,7 @@ CI, observability, политика хранения, индексы БД, ин�
 1. [ ] Сверить актуальный HEAD рабочей ветки с PR #9 и `main`; не перезаписывать новые коммиты и не менять `main`.
 2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: CSP/frame policy, diagnostic-route review, TLS/proxy deployment validation). Production WebSocket Origin allowlist и базовые HTTP security headers реализованы и подтверждены CI #101/#124/#131. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
 3. [x] Получить воспроизводимый CI baseline: typecheck/test/check/build прошли на `13e59a7`; 247 тестов / 29 файлов.
-4. [ ] Продолжить P1: экономика/склад и тест на clamp patch (AUD-002/003/004), конфигурацию реальных proxy IP для IP rate limits (AUD-006/AUD-040), история отчётов (AUD-032), явные отказы команд двора (AUD-038). AUD-041 (account-level command bucket) закрыт.
+4. [ ] Продолжить P1: экономика/склад и производство (AUD-002/004), конфигурацию реальных proxy IP для IP rate limits (AUD-006/AUD-040), история отчётов (AUD-032), явные отказы команд двора (AUD-038). AUD-041 (account-level command bucket) закрыт.
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
