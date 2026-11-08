@@ -70,6 +70,12 @@ describe("склад и модификатор", () => {
     }
     const stock = await stockOf(world, actor.id);
     expect(stock.probe_dust).toBeLessThanOrEqual(500);
+    const lastStockPatch = world.sink
+      .patchesFor(actor.id)
+      .filter((op) => op.path === "stock.probe_dust")
+      .at(-1);
+    // UI получает фактический остаток из БД, а не дельту до clamp.
+    expect(lastStockPatch).toMatchObject({ op: "set", value: stock.probe_dust });
     const clamps = await world.db.pool.query(`SELECT reason FROM sim_rejections WHERE world_id = $1 AND reason = 'stock.clamped'`, [
       world.id,
     ]);

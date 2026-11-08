@@ -498,7 +498,33 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
           noteSim(params, "patch.invalid", { claimed: effect.route.kind });
           break;
         }
-        result.patches.push(parsed.data as AppliedPatch);
+
+        // Stock всегда приходит из БД: модуль не может отправить клиенту
+        // исходную дельту, если ядро обрезало её по пределу склада.
+        const stockResources = parsed.data.ops
+          .filter((op) => op.path.startsWith("stock."))
+          .map((op) => op.path.slice("stock.".length));
+        let ops = parsed.data.ops;
+        if (stockResources.length > 0) {
+          if (parsed.data.route.kind !== "actor") {
+            noteSim(params, "patch.stock.route", { claimed: parsed.data.route.kind });
+            throw new CommandRejected(KERNEL_KEYS.generic, { channel: "sim" });
+          }
+          const holderId = parsed.data.route.id ?? params.actor?.id ?? "world";
+          const resources = [...new Set(stockResources)];
+          const rows = await params.client.query(
+            `SELECT resource_id, amount FROM stock
+             WHERE world_id = $1 AND holder_id = $2 AND resource_id = ANY($3::text[])`,
+            [params.worldId, holderId, resources],
+          );
+          const actual = new Map(rows.rows.map((row) => [String(row.resource_id), Number(row.amount)]));
+          ops = parsed.data.ops.map((op) => {
+            if (!op.path.startsWith("stock.")) return op;
+            const resource = op.path.slice("stock.".length);
+            return { op: "set", path: op.path, value: actual.get(resource) ?? 0 };
+          });
+        }
+        result.patches.push({ ...parsed.data, ops } as AppliedPatch);
         break;
       }
 
