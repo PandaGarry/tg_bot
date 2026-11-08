@@ -56,10 +56,8 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - name: Обновить lockfile и установить зависимости
-        run: |
-          pnpm install --lockfile-only --ignore-scripts
-          pnpm install --frozen-lockfile
+      - name: Установить зависимости по зафиксированному lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Проверить типы
         run: pnpm typecheck
@@ -79,32 +77,15 @@ jobs:
       - name: Проверить уязвимости зависимостей
         run: pnpm audit --audit-level high
 
-      - name: Показать оставшиеся moderate advisories
+      - name: Проверить уязвимости средней и высокой критичности
         if: always()
         run: pnpm audit --audit-level moderate
-        continue-on-error: true
 
-      - name: Сохранить обновлённый pnpm lockfile
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pnpm-lockfile-refresh
-          path: pnpm-lock.yaml
-          if-no-files-found: error
-
-      - name: Диагностика Drizzle snapshots
-        if: always()
+      - name: Проверить актуальность Drizzle snapshots
         run: |
-          pnpm --filter @tdl/host exec drizzle-kit generate --name=ci_snapshot_probe || true
-          mkdir -p /tmp/tdl-drizzle-snapshot
-          cp -R packages/host/drizzle/. /tmp/tdl-drizzle-snapshot/
-          git status --short -- packages/host/drizzle
-        continue-on-error: true
-
-      - name: Сохранить Drizzle snapshot probe
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: drizzle-snapshot-probe
-          path: /tmp/tdl-drizzle-snapshot/
-          if-no-files-found: ignore
+          pnpm --filter @tdl/host exec drizzle-kit generate --name=ci_snapshot_drift_check
+          if [[ -n "$(git status --porcelain -- packages/host/drizzle)" ]]; then
+            git status --short -- packages/host/drizzle
+            echo "::error::Drizzle snapshots are out of sync with the current schema. Generate and commit the migration and snapshot."
+            exit 1
+          fi
