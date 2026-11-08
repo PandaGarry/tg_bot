@@ -279,6 +279,19 @@ describe("двор", () => {
     expect(chronicleEntries().filter((entry) => entry.key === "shell.tutor.palisade")).toHaveLength(1);
   });
 
+  it("не показывает вымышленные силу, VIP, доходы, квесты и сообщения", () => {
+    render(<World view={view()} lang="ru" serverNow={1} />);
+
+    expect(screen.queryByText(/Сила/)).toBeNull();
+    expect(screen.queryByText(/VIP/)).toBeNull();
+    expect(screen.queryByText(/Королевский писарь|Лорд Варн|Гамлет/)).toBeNull();
+    expect(screen.getByText(/Задания появятся после подключения системы/)).toBeTruthy();
+    expect(screen.getByText("Чат ещё не подключён")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Открыть чат" }));
+    expect(screen.getByText(/Сообщения появятся после подключения серверного чата/)).toBeTruthy();
+  });
+
   it("кнопка прототипа скрыта на экране двора (код сохранён для следующих тестов)", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
     expect(screen.queryByRole("button", { name: "Прототип раскладки" })).toBeNull();
