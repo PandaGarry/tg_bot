@@ -56,16 +56,16 @@ fi
 pg_restore --no-password --exit-on-error --single-transaction --no-owner --no-acl \
   --dbname="$TDL_RESTORE_DATABASE_URL" "$TDL_BACKUP_FILE"
 
-schema_ok="$(psql "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+schema_ok="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
   "SELECT (to_regclass('public.worlds') IS NOT NULL AND to_regclass('public.module_states') IS NOT NULL)::int")"
 if [[ "$schema_ok" != "1" ]]; then
   printf 'restore smoke check failed: required core tables are missing\n' >&2
   exit 1
 fi
 
-world_count="$(psql "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+world_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
   "SELECT count(*) FROM public.worlds")"
-module_state_count="$(psql "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+module_state_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
   "SELECT count(*) FROM public.module_states")"
 if [[ "$world_count" -lt 1 ]]; then
   printf 'restore smoke check failed: no world rows were restored\n' >&2
