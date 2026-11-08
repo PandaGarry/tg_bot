@@ -71,8 +71,12 @@ jobs:
       - name: Проверить воспроизводимую установку
         run: pnpm install --frozen-lockfile
 
-      - name: Проверить уязвимости
+      - name: Проверить уязвимости высокой критичности
         run: pnpm audit --audit-level high
+
+      - name: Диагностировать умеренные и низкие уязвимости
+        run: pnpm audit --audit-level low
+        continue-on-error: true
 
       - name: Проверить типы
         run: pnpm typecheck
