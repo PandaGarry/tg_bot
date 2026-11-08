@@ -90,3 +90,6 @@
 3. Этап 0: разбор `docs/archive/` файл за файлом (перенос в архитектуру, затем удаление файла).
 4. Вход (параллельная линия, если заказчик подтвердит): поле «описание»; полный набор сообщений по `onboarding.md` §4; сверка файлов превью с голосами; портрет 7; проверка заказчиком на устройстве.
 5. Этап 1: каталог зданий как данные модуля (без старого каталога двора).
+
+- Drizzle snapshot metadata: corrected the malformed partial-index column encoding in `0001_snapshot.json`; the next CI run must confirm that `drizzle-kit generate` can create the current-schema snapshot without manual SQL duplication.
+- Dependency overrides resolve the three moderate advisories in CI, but the refreshed `pnpm-lock.yaml` still needs to be committed; until then, local frozen-lockfile installs may retain old resolutions.
