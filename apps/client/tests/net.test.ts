@@ -120,8 +120,10 @@ describe("клиентская сессия и переподключение", 
       t: "auth.logout",
       token: "persisted-session-token",
     });
-    // Токен остаётся до ответа сервера.
+    // Токен остаётся до ответа сервера, но новые игровые команды уже блокируются.
     expect(localStorage.getItem("tdl.token")).toBe("persisted-session-token");
+    sendCommand("_probe.poke", { steps: 1 });
+    expect(second!.sent).toHaveLength(2);
 
     second!.message({ t: "out", serverNow: Date.now(), ok: true });
     expect(localStorage.getItem("tdl.token")).toBeNull();
