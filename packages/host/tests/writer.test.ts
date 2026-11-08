@@ -217,3 +217,24 @@ describe("восстановление прохода писателя", () => {
     )).rows[0]).toEqual({ marks: 2 });
   });
 });
+
+describe("изоляция команд между мирами", () => {
+  it("не ставит в очередь команду actor из другого мира", async () => {
+    const base = await stand();
+    const opened = await openService(base, "процесс-изоляции");
+    const foreignActor = { id: "foreign-lord", worldId: "another-world", name: "чужой", clanId: null, isBot: false };
+    const outcome = await opened.service.submitCommand({
+      actor: foreignActor,
+      commandId: "_kit.mark",
+      payload: { count: 10 },
+      requestId: "req-cross-world",
+      idempotencyKey: "key-cross-world",
+    });
+    expect(outcome).toEqual({ status: "error", key: "auth.session" });
+    expect(opened.records.some((record) => record.event === "command.cross_world")).toBe(true);
+    expect((await base.db.pool.query(
+      "SELECT count(*)::int AS n FROM kit_state WHERE world_id = $1",
+      [base.worldId],
+    )).rows[0]).toEqual({ n: 0 });
+  });
+});
