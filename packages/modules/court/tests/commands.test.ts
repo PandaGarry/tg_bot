@@ -89,42 +89,42 @@ describe("court.place", () => {
       { type: "citadel", x: 5, z: 5 },
       { type: "sawmill", x: 2, z: 2 },
     ]);
-    expect(cmd("court.place")(ctxOf(st, {}), { type: "sawmill", x: 7, z: 2 })).toEqual([]);
+    expect(cmd("court.place")(ctxOf(st, {}), { type: "sawmill", x: 7, z: 2 })).toEqual([{ kind: "error", key: "court.error.unavailable" }]);
   });
 
   it("здание не выходит за край сетки", () => {
     // стена 3×3 с якорем в углу не помещается
-    expect(cmd("court.place")(ctxOf(state(2, [{ type: "citadel", x: 5, z: 5 }]), {}), { type: "wall", x: 0, z: 0 })).toEqual([]);
+    expect(cmd("court.place")(ctxOf(state(2, [{ type: "citadel", x: 5, z: 5 }]), {}), { type: "wall", x: 0, z: 0 })).toEqual([{ kind: "error", key: "court.error.out_of_bounds" }]);
   });
 
   it("не ставит на Цитадель и на дорогу", () => {
     const st = state(2, [{ type: "citadel", x: 5, z: 5 }]);
-    expect(cmd("court.place")(ctxOf(st, {}), { type: "wall", x: 4, z: 4 })).toEqual([]);
+    expect(cmd("court.place")(ctxOf(st, {}), { type: "wall", x: 4, z: 4 })).toEqual([{ kind: "error", key: "court.error.occupied" }]);
   });
 
   it("Таверна не ставится, пока не назначена стоимость", () => {
-    expect(cmd("court.place")(ctxOf(state(3, [{ type: "citadel", x: 5, z: 5 }]), {}), { type: "tavern", x: 1, z: 1 })).toEqual([]);
+    expect(cmd("court.place")(ctxOf(state(3, [{ type: "citadel", x: 5, z: 5 }]), {}), { type: "tavern", x: 1, z: 1 })).toEqual([{ kind: "error", key: "court.error.unavailable" }]);
   });
 });
 
 describe("court.road", () => {
   it("не размещает дорогу за границей сетки и разрешает валидную клетку", () => {
     const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
-    expect(cmd("court.road")(ctxOf(st, {}), { x: -1, z: 0 })).toEqual([]);
-    expect(cmd("court.road")(ctxOf(st, {}), { x: 10, z: 0 })).toEqual([]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: -1, z: 0 })).toEqual([{ kind: "error", key: "court.error.out_of_bounds" }]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: 10, z: 0 })).toEqual([{ kind: "error", key: "court.error.out_of_bounds" }]);
     const effects = cmd("court.road")(ctxOf(st, {}), { x: 0, z: 0 });
     expect(gridOf(effects)?.roads).toContainEqual({ x: 0, z: 0 });
   });
 
   it("не размещает дорогу под зданием и не переносит за край", () => {
     const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
-    expect(cmd("court.road")(ctxOf(st, {}), { x: 5, z: 5 })).toEqual([]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: 5, z: 5 })).toEqual([{ kind: "error", key: "court.error.occupied" }]);
     const withRoad = { ...st, grid: { ...st.grid, roads: [{ x: 0, z: 0 }] } };
     expect(cmd("court.road")(ctxOf(withRoad, {}), {
       x: 10,
       z: 0,
       moveFrom: { x: 0, z: 0 },
-    })).toEqual([]);
+    })).toEqual([{ kind: "error", key: "court.error.out_of_bounds" }]);
   });
 });
 
@@ -138,7 +138,7 @@ describe("court.upgrade (Цитадель)", () => {
   });
 
   it("без ресурсов не улучшает", () => {
-    expect(cmd("court.upgrade")(ctxOf(state(1, [{ type: "citadel", x: 5, z: 5 }]), { wood: 100 }), {})).toEqual([]);
+    expect(cmd("court.upgrade")(ctxOf(state(1, [{ type: "citadel", x: 5, z: 5 }]), { wood: 100 }), {})).toEqual([{ kind: "error", key: "court.error.insufficient" }]);
   });
 
   it("уровень 3 растит сетку до 12×12", () => {
@@ -156,7 +156,7 @@ describe("court.remove", () => {
       { type: "citadel", x: 5, z: 5 },
       { type: "lantern", x: 1, z: 1 },
     ]);
-    expect(cmd("court.remove")(ctxOf(st, {}), { type: "citadel", x: 5, z: 5 })).toEqual([]);
+    expect(cmd("court.remove")(ctxOf(st, {}), { type: "citadel", x: 5, z: 5 })).toEqual([{ kind: "error", key: "court.error.invalid" }]);
     const effects = cmd("court.remove")(ctxOf(st, {}), { type: "lantern", x: 1, z: 1 });
     expect(gridOf(effects)!.buildings.map((b) => b.type)).toEqual(["citadel"]);
   });
