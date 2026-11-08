@@ -40,15 +40,15 @@
 
 Повторная проверка GitHub 08.11.2026:
 - default branch `main`: `8a46482422a2127db73597dea65b3f07464fd9dc`;
-- текущий HEAD рабочей ветки после повторной проверки: `1351fbbc25d450b8bbaa30969bbcde7ef7da94c9`; этот HEAD прошёл полный CI run #75.
-- PR #9 остаётся открытым и не слит (`${pr.commits}` коммитов, `${pr.changed_files}` файлов, ${pr.additions} добавлений и ${pr.deletions} удалений на момент этой синхронизации). Его mergeability не является критерием готовности;
-- GitHub Actions run #75 на HEAD `1351fbb` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build` и `pnpm audit --audit-level high` — все обязательные этапы зелёные; 255 тестов в 30 файлах. Аудит не обнаружил High, но сообщил о 3 Moderate advisories, которые ещё нужно классифицировать.
+- текущий кодовый HEAD рабочей ветки: `877942da7cd3a1dcfc41ada87ee8e87b006148f3`; полный CI run #86 завершился PASS.
+- PR #9 остаётся открытым и не слит в `main`; все изменения аудита продолжаются только в рабочей ветке `arena/8885a9e3-tg-bot`.
+- GitHub Actions run #86 на HEAD `877942d` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 261 тест в 31 файле. Dependency audit не обнаружил известных уязвимостей. Исторический run #75 сохранён ниже как предыдущая контрольная точка.
 - на `ed19b71` typecheck падал из-за двух аргументов размера дорожной плиты; исправление находится в `2c110a8`;
 - на `2c110a8` typecheck прошёл, но один старый тест неверно ожидал logout без подтверждения сервера; тест обновлён на `85c0505`, а сетевой тест подтверждает удаление токена после серверного ответа;
 - HEAD `316c2f8` добавил защиту от сдвига производственного срока при повторном входе и два теста; последующий HEAD `13e59a7` добавил уточнение теста расписания;
 - статические находки и актуальные статусы перечислены в `audit/2026-11-08-revalidation.md`.
 
-**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие активных P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `1351fbb` подтверждает технический baseline ветки, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
+**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие оставшихся P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `877942d` подтверждает текущие проверки кода, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
 
 ---
 
@@ -85,7 +85,7 @@
 
 - Node.js: CI использует Node 24; root требует Node >=22.12. Зафиксировать Node 24 как production runtime. После стабилизации добавить Node 26 отдельной CI-матрицей и проверить нативные модули и PostgreSQL-драйвер.
 - React 19.3.0 и PixiJS 8.22.0 соответствуют актуальным стабильным версиям на дату проверки; менять их сейчас оснований нет.
-- Vite в lockfile обновлён до 8.3.6; Zod — до 4.6.7, `source-map-js` — до 1.2.2. Полный CI проходит; `pnpm audit --audit-level high` не находит High, но остаются 3 Moderate advisories для отдельной проверки.
+- Vite в lockfile обновлён до 8.3.6; Zod — до 4.6.7, `source-map-js` — до 1.2.2. Run #86 прошёл полный CI и оба порога `pnpm audit`; известных уязвимостей в текущем lockfile не обнаружено.
 - TypeScript в lockfile — 5.9.3; актуальная major-линия уже 7.0.2. Не делать слепой major bump: сначала отдельная проверка TypeScript 7 с tsconfig, Vitest, Zod, Vite plugins и всеми workspace-пакетами; при несовместимости рассмотреть промежуточную миграцию.
 - Первый CI прогон выдал предупреждение о Node 20 в GitHub Actions v4. Workflow обновляется на Node 24-compatible major versions; обязательный CI включает `pnpm audit --audit-level high`.
 
@@ -114,7 +114,7 @@
 - **AUD-005** — `/api/kernel/rejections` закрыт операторским токеном; HTTP-регрессия 403 без токена / 200 с токеном проходит CI.
 - **AUD-018** — logout очищает все активные сокеты с тем же bearer token; серверный регрессионный тест проходит полный CI.
 - **AUD-022** — исправлено в приложении и БД: `createLord` сериализует создание через транзакционный advisory lock; уникальный индекс `(world_id, account_id)` защищает инвариант на уровне PostgreSQL. Конкурентный тест проходит CI run #75.
-- **AUD-030** — частично закрыто: kernel и module migrations используют общий advisory lock key, версия модуля читается под lock. Блокировка всё ещё освобождается между этапами полного bootstrap; следующий шаг — один lock на весь startup migration sequence и тест смешанного rolling deploy.
+- **AUD-030** — исправлено в коде: production boot использует `bootstrapWorld`, удерживающий один PostgreSQL advisory lock на последовательности kernel migrations → ensure world → sync module states → module migrations. Конкурентный интеграционный тест проходит CI #86. Совместимость смешанных версий при rolling deploy остаётся отдельной проверкой перед production.
 - **AUD-034** — бэкап/restore: регламент, проверка целостности и регулярный restore drill до боевых данных.
 
 ### P1 — экономика, команды, сессии, сохранность прогресса
@@ -145,7 +145,7 @@
 - **AUD-036** — PixiJS загружается до авторизации; главный JS chunk 735.16 КБ (213.81 КБ gzip). Нужны lazy import после входа в мир и повторный замер initial bundle.
 - **AUD-037** — `CourtScene` полностью перерисовывает сетку/здания при обновлении; перейти к diff/reconciliation и render-on-demand после профилирования.
 - **AUD-038** — часть невалидных команд двора возвращает пустой список effects, то есть успешный no-op; нужны явные локализованные причины отказа.
-- **AUD-039** — 3 Moderate dependency advisories; получить полный отчёт, классифицировать по runtime/dev/transitive и закрыть либо задокументировать.
+- **AUD-039** — закрыто на текущем lockfile: `pnpm audit --audit-level high` и `--audit-level moderate` в CI #86 завершились без известных уязвимостей.
   
 Каждую находку при закрытии переводить в один из статусов: `подтверждена тестом`, `исправлена`, `проверена регрессией`, `отложена решением`, `ложное срабатывание`. Нельзя удалять находку без объяснения.
 
@@ -261,13 +261,13 @@ CI, observability, политика хранения, индексы БД, ин�
 ## 8. Текущий ближайший рабочий спринт
 
 1. [ ] Сверить актуальный HEAD рабочей ветки с PR #9 и `main`; не перезаписывать новые коммиты и не менять `main`.
-2. [ ] Закрыть оставшиеся P0: полный migration bootstrap lock (AUD-030), fail-closed production config (AUD-035), backup/restore drill (AUD-034). Уникальность лорда на аккаунт/мир закрыта на уровне БД и тестов.
+2. [ ] Закрыть оставшиеся P0: fail-closed production config (AUD-035) и backup/restore drill (AUD-034). Полный migration bootstrap lock (AUD-030) реализован и подтверждён конкурентным интеграционным тестом; rolling-deploy compatibility остаётся отдельным релизным пунктом.
 3. [x] Получить воспроизводимый CI baseline: typecheck/test/check/build прошли на `13e59a7`; 247 тестов / 29 файлов.
 4. [ ] Продолжить P1: экономика/склад и тест на clamp patch (AUD-002/003/004), actor/account command rate limiting (AUD-006), история отчётов (AUD-032), явные отказы команд двора (AUD-038).
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
-**Текущий статус:** HEAD `1351fbb` прошёл полный CI run #75: 255 тестов / 30 файлов, typecheck, checks, build и audit threshold High. Остались 3 Moderate advisories, полный migration bootstrap lock, production hardening, backup/restore и P1 по экономике/сетям/графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
+**Текущий статус:** HEAD `877942d` прошёл полный CI run #86: 261 тест / 31 файл, typecheck, checks, production build и оба порога dependency audit; известных уязвимостей не обнаружено. AUD-030 закрыт на уровне полного startup bootstrap. Открыты P0 production hardening (AUD-035) и backup/restore drill (AUD-034), а также P1 по экономике, сетям и графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
 
 
 ## 10. Повторная проверка и актуальные статусы
