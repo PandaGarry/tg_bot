@@ -271,7 +271,7 @@ CI, observability, политика хранения, индексы БД, ин�
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
-**Текущий статус:** HEAD `d99438bcc0eb5d0003aada31aed50714be050b96` прошёл полный CI run #214: 270 тестов / 31 файл, typecheck, checks, backup/restore shell syntax, production build, end-to-end disposable PostgreSQL restore drill, оба dependency audit и Drizzle snapshot check; известных уязвимостей не обнаружено. AUD-002 закрыт; AUD-042 (включая operator-only `/api/schedule`) подтверждён тестами и CI #214/#216. AUD-034 остаётся частично открытым до production-like restore/provider backups/RPO/RTO; AUD-009 частично усилен тестами успешного и ошибочного move, AUD-035 — до фактической TLS/reverse-proxy deployment validation. AUD-004, сетевые production настройки и клиентская производительность остаются открыты. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
+**Текущий статус:** HEAD `acbaa2b3bfe24da0485eb04411d6e50b222a0312` прошёл полный CI run #214: 270 тестов / 31 файл, typecheck, checks, backup/restore shell syntax, production build, end-to-end disposable PostgreSQL restore drill, оба dependency audit и Drizzle snapshot check; известных уязвимостей не обнаружено. AUD-002 закрыт; AUD-042 (включая operator-only `/api/schedule`) подтверждён тестами и CI #214/#216/#218. AUD-034 остаётся частично открытым до production-like restore/provider backups/RPO/RTO; AUD-009 частично усилен тестами успешного и ошибочного move; AUD-036 частично закрыт lazy Pixi import (initial bundle -36%), AUD-035 — до фактической TLS/reverse-proxy deployment validation. AUD-004, сетевые production настройки и клиентская производительность остаются открыты. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
 
 
 ## 10. Повторная проверка и актуальные статусы
@@ -307,3 +307,8 @@ AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Пр
 ## 13. AUD-035 — production deployment reference (09.11.2026)
 
 Создан `docs/ops/production-deployment.md`: provider-neutral пример Nginx TLS + WebSocket proxy на loopback Node, systemd service, production env, exact HTTPS `ALLOWED_ORIGINS`, точный `TRUSTED_PROXY_IPS`, secrets, smoke checklist и rollback ограничения. Это документация-шаблон, а не deployment. Нужны выбранный provider/domain, действующий сертификат, реальные proxy peer IP и DB endpoint. AUD-035 остаётся частично открытым до реальной проверки на целевом хостинге.
+
+
+## 14. AUD-036 — lazy Pixi import (09.11.2026)
+
+`main.tsx` больше не загружает Pixi и court scene статически. Dynamic imports запускаются только после авторизации, когда серверный view содержит `me` и аккаунт не находится на этапе создания лорда. Bridge сохраняет последний снимок и режим до монтирования сцены. CI #218 build показал initial `index` chunk 470.71 KB / 136.09 KB gzip против baseline 735.16 KB / 213.81 KB gzip (примерно -36%); `application` и `courtScene` вынесены в отдельные chunks. AUD-036 частично закрыт; реальные iOS/Android WebView first-load, GPU/FPS, память и latency lazy chunks ещё измерить.

@@ -120,6 +120,6 @@ AUD-034 можно закрыть только после того, как за�
 
 ## Последний CI результат
 
-GitHub Actions run #216: **PASS**. На disposable PostgreSQL 18 TDL был запущен с production-конфигурацией, создан custom dump размером 30 402 bytes, SHA-256 `6766f3eb9fb755a374dd6cd8868a40bd225e89f213e6010ecf12fef7cea5b747`. Restore завершился менее чем за 1 секунду; восстановлено 1 world и 12 module states, row counts source/restored совпали, затем сервер повторно запустился на restored DB с readiness.
+GitHub Actions run #218: **PASS**. На disposable PostgreSQL 18 TDL был запущен с production-конфигурацией, создан custom dump размером 30 401 bytes, SHA-256 `008b7ee4011fde41c735318e81d4d4dbf90214a72852b145f22c7e4b03e3d2b7`. Restore завершился менее чем за 1 секунду; восстановлено 1 world и 12 module states, row counts source/restored совпали, затем сервер повторно запустился на restored DB с readiness.
 
 Это подтверждает работоспособность скриптов и восстановление приложения в CI. Это **не** production RPO/RTO и не подтверждение provider backup/PITR или off-host encrypted copy. AUD-034 остаётся открытым до операторского drill на актуальной production-like копии.

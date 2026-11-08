@@ -1,12 +1,12 @@
 # Состояние проекта
 
-> Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; проверенный HEAD `d99438bcc0eb5d0003aada31aed50714be050b96` прошёл полный CI run #214.
+> Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; проверенный HEAD `acbaa2b3bfe24da0485eb04411d6e50b222a0312` прошёл полный CI run #214.
 
-> Документы аудита и мастер-план синхронизированы после run #216. PR #9 остаётся открытым и не слит.
+> Документы аудита и мастер-план синхронизированы после run #218. PR #9 остаётся открытым и не слит.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
-- Актуальный проверенный HEAD: `d99438b`; полный CI run #216 — **PASS**: typecheck, 272 теста в 31 файле, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Известных уязвимостей в текущем lockfile не обнаружено.
+- Актуальный проверенный HEAD: `acbaa2b`; полный CI run #218 — **PASS**: typecheck, 272 теста в 31 файле, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Известных уязвимостей в текущем lockfile не обнаружено.
 - Commit `633ed3c` обновил `pnpm-lock.yaml` по overrides из `pnpm-workspace.yaml` и добавил Drizzle baseline `0005_schema_snapshot_sync`. Snapshot вручную сверён с migrations 0001–0004, SQL содержит только `SELECT 1`; последующий CI #146 на HEAD `b4c1c51` подтвердил lockfile, snapshot check и полный набор проверок. Старый workflow #136 (`action_required`) superseded run #146.
 - PR #9: открыт, не слит; 378 изменённых файлов (14 048 добавлений, 10 721 удаление) на момент синхронизации. Никаких изменений в `main` не внесено.
 - AUD-003: закрыт — серверный stock patch соответствует фактическому балансу после clamp/gather; regression test проверяет БД, patch и sim fact (CI #160/#175).
@@ -135,3 +135,10 @@
 - Добавлен `docs/ops/production-deployment.md`: пример топологии Nginx TLS → loopback Node → managed PostgreSQL, точные требования `ALLOWED_ORIGINS` и `TRUSTED_PROXY_IPS`, Nginx WebSocket forwarding, systemd unit, secrets и smoke/rollback checklist.
 - Это шаблон для обсуждения/переноса на целевую платформу, не фактическая настройка сервера. Домен, сертификаты, firewall, реальные proxy peer IP, DB provider и provider backup guarantees пока не подтверждены.
 - **AUD-035 остаётся частично открытым** до выполнения checklist на выбранном production host и подтверждения WSS/TLS/restart/DB connectivity.
+
+
+## AUD-036 — отложенная загрузка PixiJS (09.11.2026)
+
+- Убраны статические импорты `gameApp` и `mountCourtScene` из `main.tsx`; приложение и сцена импортируются динамически только после валидной авторизации и появления `view.me` (экран создания лорда Pixi не загружает).
+- CI #218 production build: initial `index` chunk 470.71 KB minified / 136.09 KB gzip против предыдущих 735.16 KB / 213.81 KB — снижение примерно на 36%. `application` (5.56 KB) и `courtScene` (17.76 KB) вынесены в отдельные chunks.
+- **AUD-036 частично закрыт:** initial bundle уменьшен и WebGL не стартует до входа в мир. Нужны измерения на реальных iOS/Android WebView: first-load, memory, GPU/FPS, scene redraw и lazy chunk latency.
