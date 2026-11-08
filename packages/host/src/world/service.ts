@@ -253,6 +253,7 @@ export class WorldService {
   private readonly calendar: Clock;
   /** Часы хода мира: сроки игроков. */
   private clockValue: WorldClock;
+  private readonly nowSource: () => number;
   private epoch = 0;
   private pumping = false;
   private stopped = false;
@@ -306,10 +307,11 @@ export class WorldService {
     this.world = options.world;
     this.worldId = options.world.id;
     this.calendar = options.calendar ?? { now: () => Date.now() };
+    this.nowSource = options.now ?? Date.now;
     this.clockValue = new WorldClock({
       offsetMs: options.world.clockOffsetMs,
-      lastWorldAtMs: options.now?.() ?? Date.now(),
-      ...(options.now ? { nowReal: options.now } : {}),
+      lastWorldAtMs: this.nowSource(),
+      nowReal: this.nowSource,
     });
   }
 
@@ -1355,6 +1357,7 @@ export class WorldService {
     );
     const row = pulse.rows[0];
     const nowReal = this.calendarNow();
+    const worldClockNowReal = this.nowSource();
     let downtimeMs = 0;
     if (row) {
       const realAt = Number(row.real_at_ms);
@@ -1365,9 +1368,9 @@ export class WorldService {
       // испорченная запись не сдвинет мир назад и не заморозит его навсегда.
       const sane = worldAt > 0 && worldAt <= nowReal;
       if (sane) {
-        this.clockValue = new WorldClock({ offsetMs: nowReal - worldAt, lastWorldAtMs: worldAt });
+        this.clockValue = new WorldClock({ offsetMs: worldClockNowReal - worldAt, lastWorldAtMs: worldAt, nowReal: this.nowSource });
       } else {
-        this.clockValue = new WorldClock({ offsetMs: this.world.clockOffsetMs, lastWorldAtMs: nowReal });
+        this.clockValue = new WorldClock({ offsetMs: this.world.clockOffsetMs, lastWorldAtMs: worldClockNowReal, nowReal: this.nowSource });
         this.journal.write({
           channel: "app",
           worldId: this.worldId,
@@ -1382,7 +1385,7 @@ export class WorldService {
         detail: { downtimeMs, worldAt: this.clockValue.now(), calendarNow: nowReal },
       });
     } else {
-      this.clockValue = new WorldClock({ offsetMs: 0, lastWorldAtMs: nowReal });
+      this.clockValue = new WorldClock({ offsetMs: 0, lastWorldAtMs: worldClockNowReal, nowReal: this.nowSource });
     }
     this.world = { ...this.world, clockOffsetMs: this.clockValue.offset };
     await this.db.pool.query(`UPDATE worlds SET clock_offset_ms = $2 WHERE world_id = $1`, [
