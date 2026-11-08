@@ -93,6 +93,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     worldId: world.id,
     commandRate: config.commandRate,
     sendBufferBytes: options.sendBufferBytes,
+    allowedOrigins: config.allowedOrigins,
   });
 
   // Порт занимается до права писателя: процесс, которому негде слушать,
