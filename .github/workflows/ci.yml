@@ -1,0 +1,72 @@
+name: Проверки TDL
+
+on:
+  push:
+    branches:
+      - main
+      - "arena/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tdl-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, tests, checks and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: tdl
+          POSTGRES_PASSWORD: tdl
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tdl -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      TDL_TEST_SERVER_URL: postgres://tdl:tdl@127.0.0.1:5432/postgres
+      TDL_TEST_ADMIN_DB: postgres
+      CI: "true"
+    steps:
+      - name: Получить исходный код
+        uses: actions/checkout@v4
+
+      - name: Установить Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Установить pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.6.0
+          run_install: false
+
+      - name: Установить зависимости по lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Проверить типы
+        run: pnpm typecheck
+
+      - name: Запустить тесты на отдельной PostgreSQL
+        run: pnpm test
+
+      - name: Проверить реестры, границы пакетов, i18n и расписание
+        run: pnpm check
+
+      - name: Собрать production
+        run: pnpm build
