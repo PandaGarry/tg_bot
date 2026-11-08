@@ -316,8 +316,9 @@ describe("напор на сокет", () => {
     for (const client of [...firstSessions, secondSession, second]) client.close();
   });
 
-  it("частота команд считается на соединение и не наказывает соседа", async () => {
+  it("частота команд общая для аккаунта и не наказывает соседа", async () => {
     const noisy = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Шумный ${randomUUID().slice(0, 4)}`);
+    const sameAccount = await openWithToken(booted, tokenOf(noisy));
     const neighbour = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, `Сосед ${randomUUID().slice(0, 4)}`);
     for (let index = 0; index < 25; index += 1) noisy.send(commandMessage("_probe.poke", { steps: 1 }));
     const rate = await noisy.next<{ t: "error"; key: string }>(
@@ -325,11 +326,19 @@ describe("напор на сокет", () => {
     );
     expect(rate.key).toBe(KERNEL_KEYS.rate);
 
+    // Новый сокет того же аккаунта не получает новый командный бюджет.
+    sameAccount.send(commandMessage("_probe.poke", { steps: 1 }));
+    const sameAccountRate = await sameAccount.next<{ t: "error"; key: string }>(
+      (message) => message.t === "error" && message.key === KERNEL_KEYS.rate,
+    );
+    expect(sameAccountRate.key).toBe(KERNEL_KEYS.rate);
+
     // Сосед в тот же миг отправил одну команду: её принимают.
     neighbour.send(commandMessage("_probe.poke", { steps: 1 }));
     const patch = await neighbour.next((message) => message.t === "patch");
     expect(patch.t).toBe("patch");
     noisy.close();
+    sameAccount.close();
     neighbour.close();
   });
 
