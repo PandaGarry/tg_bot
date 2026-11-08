@@ -47,9 +47,9 @@ fi
 pg_restore --no-password --list "$TDL_BACKUP_FILE" >/dev/null
 
 object_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
-  "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')")"
+  "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'")"
 custom_schema_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
-  "SELECT count(*) FROM pg_namespace WHERE nspname NOT IN ('pg_catalog', 'information_schema', 'public')")"
+  "SELECT count(*) FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname NOT IN ('information_schema', 'public')")"
 if [[ "$object_count" != "0" || "$custom_schema_count" != "0" ]]; then
   printf 'restore target is not empty; refusing to overwrite existing objects\n' >&2
   exit 1
