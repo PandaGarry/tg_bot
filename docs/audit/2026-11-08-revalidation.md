@@ -165,3 +165,18 @@
 **Коммиты:** `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`, `1b1e179`, `3aa0334`. **Проверка:** GitHub Actions run #189 (`42525680616`) завершился PASS на `3aa0334e8d0b54ca9dd7135efee16b35fa57099c`: 270 тестов / 31 файл; typecheck, tests, checks, shell syntax, production build, оба dependency audit и Drizzle snapshot check прошли.
 
 **Остаточный риск:** подробная диагностика доступна любому обладателю `ADMIN_TOKEN`; этот секрет нельзя передавать в браузер, URL, логи или публичные скрипты. Для `tools/load` задавать его только через защищённое окружение. Отдельно проверить `/api/schedule` и production TLS/reverse proxy в рамках AUD-035.
+
+
+## 9. AUD-034 — end-to-end backup/restore drill
+
+**Статус:** автоматизированный disposable CI drill добавлен; CI pending; finding остаётся P0/open до production-like проверки.
+
+**Что добавлено:**
+- `tools/db/ci-restore-drill.sh` запускает собранный TDL на временной source PostgreSQL с production env, ждёт readiness, делает backup штатным скриптом, восстанавливает в отдельную пустую `tdl_restore_*` БД, сравнивает row counts семи ключевых таблиц и повторно запускает приложение на restored DB.
+- Workflow устанавливает PostgreSQL 18 client. `backup.sh` проверяет совместимость major версии `pg_dump` с сервером.
+- `restore-drill.sh` проверяет не только наличие таблиц в target, но и relation objects/custom schemas; требует world/module-state rows и сверяет source/restored row counts.
+- Runbook описывает шаги и чётко отделяет CI evidence от production evidence.
+
+**Граница:** даже успешный CI drill не проверяет production provider backups, внешнее шифрованное хранение, retention/PITR, актуальную production копию, роли/глобальные настройки PostgreSQL, фактическое production RPO/RTO или аварийный доступ к ключам. Для закрытия AUD-034 потребуется операторская production-like процедура с безопасной отдельной restore DB и записью времени/версий/hash/counts.
+
+**Изменения:** `62c1cb2`, `8f871d1`, `d9c3b3f`, `64b8a69`, `7176424`, `342d964`, `b3de90c`. CI run после изменения workflow ожидает завершения.
