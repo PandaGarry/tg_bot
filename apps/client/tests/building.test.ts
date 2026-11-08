@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cwd } from "node:process";
 import { describe, expect, it } from "vitest";
-import { BUILDING_SPRITES, buildingCenter, buildingDepth, buildingFootprintBounds, createBuilding } from "../src/game/court/building.js";
+import { BUILDING_SPRITES, buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteBounds, isInsideBuildingSpriteHitArea, createBuilding } from "../src/game/court/building.js";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
 
 describe("court building geometry", () => {
@@ -33,6 +33,17 @@ describe("court building geometry", () => {
   });
 });
 
+
+describe("court sprite hit area", () => {
+  it("covers the visible upper Citadel body instead of the old fixed 112px cap", () => {
+    const bounds = buildingSpriteBounds({ type: "citadel", x: 7, z: 7 }, 14);
+    expect(bounds).not.toBeNull();
+    expect(bounds!.height).toBeGreaterThan(112);
+    const visibleUpperBody = { x: bounds!.left + bounds!.width / 2, y: bounds!.top + bounds!.height * 0.2 };
+    expect(isInsideBuildingSpriteHitArea(bounds!, visibleUpperBody)).toBe(true);
+    expect(isInsideBuildingSpriteHitArea(bounds!, { x: bounds!.left + 1, y: visibleUpperBody.y })).toBe(false);
+  });
+});
 
 describe("court building sprite assets", () => {
   it("ships valid day/night PNG pairs with anchors inside the day sprite", () => {

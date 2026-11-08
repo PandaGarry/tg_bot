@@ -318,12 +318,43 @@ export function createBuilding(building: CourtBuilding, size: number, townhallLe
   return container;
 }
 
+export interface BuildingSpriteBounds { left: number; top: number; width: number; height: number }
+
+/** Экранная область PNG, рассчитанная из подошвы и масштаба реального footprint. */
+export function buildingSpriteBounds(building: CourtBuilding, size: number): BuildingSpriteBounds | null {
+  const definition = BUILDING_SPRITES[building.type];
+  if (!definition) return null;
+  const footprint = footprintOf(building.type);
+  const bounds = buildingFootprintBounds(building.type, building.x, building.z);
+  const foot = worldToScreen(bounds.maxX, bounds.maxZ);
+  const scale = ((footprint.width + footprint.depth) * TILE_WIDTH * 0.5) / definition.patch;
+  return {
+    left: foot.x - definition.tipX * scale,
+    top: foot.y - (size * TILE_HEIGHT) / 2 - definition.tipY * scale,
+    width: definition.width * scale,
+    height: definition.height * scale,
+  };
+}
+
+/** Хит-зона повторяет inset старого sprite hit-layer, исключая прозрачные края. */
+export function isInsideBuildingSpriteHitArea(bounds: BuildingSpriteBounds, point: { x: number; y: number }): boolean {
+  const x = point.x - bounds.left;
+  const y = point.y - bounds.top;
+  return x >= bounds.width * 0.08 && x <= bounds.width * 0.92
+    && y >= bounds.height * 0.10 && y <= bounds.height * 0.96;
+}
+
 /** Грубый hit-area для выбора спрайта; реальные клетки вычисляются отдельно. */
 export function hitBuilding(
   building: CourtBuilding,
   pointInBoard: { x: number; y: number },
   size: number,
 ): boolean {
+  const spriteBounds = buildingSpriteBounds(building, size);
+  if (spriteBounds && getTexture(buildingTextureKey(building.type))) {
+    return isInsideBuildingSpriteHitArea(spriteBounds, pointInBoard);
+  }
+
   const footprint = footprintOf(building.type);
   const center = buildingCenter(building);
   const projected = worldToScreen(center.x, center.z);
