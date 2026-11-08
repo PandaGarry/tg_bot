@@ -271,3 +271,16 @@ This closes the configuration ambiguity in code, not deployment acceptance. AUD-
 **План:** следовать Фазе 3A в `PROJECT_MASTER.md`: инвентаризация экранов/состояний → единая undead design system → HUD и навигация → оригинальные ассеты/атласы → изометрическая сцена/эффекты → viewport/device acceptance → performance budgets на реальных устройствах. Не копировать ассеты или точные UI решения Viking Rise.
 
 **Статус AUD-036:** partial; lazy-load реализован, real-device measurements open. **Статус AUD-037:** open; incremental redraw/render-on-demand нельзя считать закрытым до профилирования и теста корректности diff updates.
+
+
+### UI audit follow-up — active HUD and legacy cleanup
+
+Проверен фактический путь монтирования: `main.tsx → World.tsx → ConceptHud.tsx`; единственный активный mockup — `forge`. Ресурсная панель активного HUD читает `view.stock`, а не использует фиктивный доход. `CourtChrome.tsx` и прежний `Hud.tsx` не являются текущими точками монтирования.
+
+В `CourtChrome.tsx` обнаружены старые demo constants (сила, VIP, уровень, доходы ресурсов, номер мира, почтовый счётчик, объявления, квесты и сообщения). Не использовать эти значения в production UI и не подключать старый компонент без удаления заглушек/привязки к серверному контракту.
+
+`ConceptHud.tsx` ранее импортировал `CourtChrome` и `court-chrome.css`, но не рендерил компонент; stylesheet содержит legacy `.ch-*` оболочку. Неиспользуемые импорты удалены в коммите `6557425ba19305f93e5671bde4db076d2c7e65cb`. Legacy-файлы пока сохранены до завершения полного поиска ссылок и CI.
+
+Сцена `CourtScene` сейчас строит землю/дороги через Pixi `Graphics`; `building.ts` использует геометрические примитивы и палитру. Это placeholder/prototype art, не финальные игровые ассеты. `ConceptIcon.tsx` — набор SVG-пиктограмм, не production illustration set. Подробный checklist, pipeline и критерии приёмки внесены в `docs/design/ui-overhaul.md`.
+
+**Статусы:** UI/ART overhaul — open; AUD-036 lazy-load — partial; AUD-037 incremental redraw — open. Не заявлять визуальную или производительную готовность до art pass, screenshot/device acceptance и измерений.
