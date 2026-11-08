@@ -96,3 +96,15 @@
 
 - Drizzle snapshot metadata: corrected the malformed partial-index column encoding in `0001_snapshot.json`; the next CI run must confirm that `drizzle-kit generate` can create the current-schema snapshot without manual SQL duplication.
 - Dependency overrides resolve the three moderate advisories in CI, but the refreshed `pnpm-lock.yaml` still needs to be committed; until then, local frozen-lockfile installs may retain old resolutions.
+
+
+## Техническое обновление — AUD-042 (09.11.2026)
+
+- Публичный `GET /api/health` теперь возвращает только `{ ok, ready }`; идентификатор мира, сетевые сведения, игровые часы, модули и счётчики больше не выдаются наружу.
+- Подробная телеметрия перенесена в `GET /api/ops/health` и требует `x-admin-token`; неверный/отсутствующий токен даёт 403 и запись `admin.denied`.
+- `/api/kernel/rejections` и `/api/modules` остаются под операторской авторизацией. `/api/schedule` не менялся: его контракт отдельно используется клиентом.
+- Клиентская `Diagnostics` отображается только при `import.meta.env.DEV`; она использует только публичный readiness endpoint и локальные клиентские счётчики.
+- `tools/load` перенесён на `/api/ops/health`. Для серверной телеметрии нагрузочного прогона передавать `ADMIN_TOKEN`; без него latency/throughput прогон выполняется, но серверные счётчики будут недоступны.
+- Добавлены HTTP regression tests на минимальный публичный ответ, отсутствие внутренних полей и 403/200 для защищённой телеметрии.
+
+Изменения AUD-042: `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`. CI run #184 ещё выполняется; до его завершения статус — **реализовано, CI pending**, не считать закрытым.
