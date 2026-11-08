@@ -167,10 +167,11 @@ describe("email uniqueness migration", () => {
         );
       await insert("empty-1", "", "");
       await insert("empty-2", "", "");
-      await insert("filled-1", "same@example.com", "same@example.com");
+      const uniqueEmail = `same-${world.id}@example.com`;
+      await insert("filled-1", uniqueEmail, uniqueEmail);
       let duplicateCode: string | undefined;
       try {
-        await insert("filled-2", "same@example.com", "same@example.com");
+        await insert("filled-2", uniqueEmail, uniqueEmail);
       } catch (error) {
         duplicateCode = (error as { code?: string }).code;
       }
