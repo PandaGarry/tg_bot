@@ -49,16 +49,6 @@ const DECOR_SIZES: Record<string, [number, number]> = Object.fromEntries(
 const PLACEABLE_BUILDINGS = buildings.filter((b) => b.id !== CITADEL && !b.costOpen).map((b) => b.id);
 const PLACEABLE = [...PLACEABLE_BUILDINGS, ...Object.keys(DECOR)];
 
-/** Пределы хранения до модификаторов. Погреба нет: склад единственный (решено 14.10). */
-const LIMIT_BASE: Record<string, number> = {
-  meat: 5_000,
-  wood: 5_000,
-  stone: 5_000,
-  metal: 3_000,
-  mushrooms: 2_000,
-  gold: 100_000,
-};
-
 /** Прирост за такт до модификаторов: скромно, баланс придёт с постройками. */
 const PRODUCTION_BASE: Record<CourtResource, number> = {
   meat: 10,
@@ -266,6 +256,7 @@ const court = defineModule({
   kind: "core",
   content: { strings },
   rules: {
+    // Без фазы limit: склад защищает объём от грабежа, но не ограничивает накопление.
     resources: [
       { id: "meat", storage: "warehouse" },
       { id: "wood", storage: "warehouse" },
@@ -273,18 +264,6 @@ const court = defineModule({
       { id: "metal", storage: "warehouse" },
       { id: "mushrooms", storage: "warehouse" },
       { id: "gold", storage: "warehouse" },
-    ],
-    modifiers: [
-      {
-        id: "court_limit",
-        phase: "limit",
-        priority: 20,
-        apply: (input) => {
-          if (input.resource === undefined) return {};
-          const base = LIMIT_BASE[input.resource];
-          return base === undefined ? {} : { add: base };
-        },
-      },
     ],
   },
   server: {

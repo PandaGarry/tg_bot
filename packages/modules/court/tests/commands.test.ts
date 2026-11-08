@@ -65,6 +65,13 @@ describe("court.enter", () => {
   });
 });
 
+describe("склад и накопление", () => {
+  it("не ограничивает накопление ресурсов пределом склада", () => {
+    const limitModifiers = (court.rules?.modifiers ?? []).filter((modifier) => modifier.phase === "limit");
+    expect(limitModifiers).toHaveLength(0);
+  });
+});
+
 describe("court.place", () => {
   it("на старте ставит одну лесопилку бесплатно и отдаёт сетку с ней", () => {
     const effects = cmd("court.place")(ctxOf(state(1, [{ type: "citadel", x: 5, z: 5 }]), {}), {
