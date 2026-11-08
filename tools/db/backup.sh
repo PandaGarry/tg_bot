@@ -43,6 +43,14 @@ cleanup_failed_backup() {
 trap cleanup_failed_backup EXIT
 
 server_version="$(psql --no-password "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc "SHOW server_version")"
+server_major="${server_version%%.*}"
+dump_version="$(pg_dump --version | awk '{print $3}')"
+dump_major="${dump_version%%.*}"
+if [[ ! "$server_major" =~ ^[0-9]+$ || ! "$dump_major" =~ ^[0-9]+$ || "$dump_major" -lt "$server_major" ]]; then
+  printf 'pg_dump major version %s must be at least the PostgreSQL server major version %s\\n' \
+    "$dump_major" "$server_major" >&2
+  exit 1
+fi
 pg_dump --no-password --format=custom --no-owner --no-acl --file="$dump_file" --dbname="$DATABASE_URL"
 pg_restore --no-password --list "$dump_file" >/dev/null
 
