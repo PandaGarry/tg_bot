@@ -72,6 +72,20 @@ describe("production configuration", () => {
     expect(valid.allowedOrigins).toEqual(["https://game.example.com"]);
   });
 
+  it("accepts only exact trusted proxy IPs, not CIDR or duplicate entries", () => {
+    const valid = productionEnv();
+    valid.TRUSTED_PROXY_IPS = "127.0.0.1, ::1";
+    expect(loadConfig(valid).trustedProxyIps).toEqual(["127.0.0.1", "::1"]);
+
+    const cidr = productionEnv();
+    cidr.TRUSTED_PROXY_IPS = "127.0.0.0/8";
+    expect(() => loadConfig(cidr)).toThrow(/exact IPv4\/IPv6 addresses/);
+
+    const duplicate = productionEnv();
+    duplicate.TRUSTED_PROXY_IPS = "127.0.0.1,127.0.0.1";
+    expect(() => loadConfig(duplicate)).toThrow(/must not contain duplicates/);
+  });
+
   it("rejects non-PostgreSQL URLs and ephemeral production ports", () => {
     const wrongDatabase = productionEnv();
     wrongDatabase.DATABASE_URL = "mysql://localhost/tdl";
