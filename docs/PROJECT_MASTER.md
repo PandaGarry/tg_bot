@@ -1,6 +1,6 @@
 # The Dead Lords — мастер-план проекта
 
-> Статус: **рабочий документ / источник оперативного плана** · Обновлено: 08.11.2026
+> Статус: **рабочий документ / источник оперативного плана** · Обновлено: 09.11.2026
 > Репозиторий: `PandaGarry/tg_bot` · Рабочая ветка: `arena/8885a9e3-tg-bot`
 > Продукт: **The Dead Lords (TDL) / «Мёртвые лорды»** — оригинальная undead-fantasy многопользовательская стратегия 4X.
 > Платформы: адаптивный браузерный клиент сейчас; мобильная поставка и desktop — отдельные проверяемые цели.
@@ -44,7 +44,7 @@
 - PR #9 остаётся открытым и не слит в `main`; все изменения аудита продолжаются только в рабочей ветке `arena/8885a9e3-tg-bot`.
 
 - Commit `633ed3c` обновил `pnpm-lock.yaml` по overrides из `pnpm-workspace.yaml` (включая Vitest 5.0.3) и добавил Drizzle baseline `0005_schema_snapshot_sync`. Snapshot вручную сверён с migrations 0001–0004; SQL содержит только `SELECT 1`. Первичный workflow #136 получил `action_required`, но последующий полный CI #146 на текущем HEAD прошёл, включая install, tests, build, audit и Drizzle snapshot check.
-- GitHub Actions run #160 на HEAD `320d7e2` завершился **success**: 266 тестов в 31 файле. Последующий полный run #175 на HEAD `83487bd` также завершился **success**: 269 тестов в 31 файле; typecheck, test, check, `bash -n` backup/restore scripts, production build, оба dependency audit и Drizzle snapshot check — все этапы зелёные. Dependency audit не обнаружил известных уязвимостей.
+- GitHub Actions run #214 на HEAD `9334971` завершился **success**: 270 тестов в 31 файле; typecheck, test, check, bash syntax, PostgreSQL 18 client install, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check — все этапы зелёные. Drill восстановил 1 world и 12 module states, затем сервер повторно стал ready на restored DB. Dependency audit не обнаружил известных уязвимостей.
 - на `ed19b71` typecheck падал из-за двух аргументов размера дорожной плиты; исправление находится в `2c110a8`;
 - на `2c110a8` typecheck прошёл, но один старый тест неверно ожидал logout без подтверждения сервера; тест обновлён на `85c0505`, а сетевой тест подтверждает удаление токена после серверного ответа;
 - HEAD `316c2f8` добавил защиту от сдвига производственного срока при повторном входе и два теста; последующий HEAD `13e59a7` добавил уточнение теста расписания;
@@ -121,7 +121,7 @@
 
 ### P1 — экономика, команды, сессии, сохранность прогресса
 
-- **AUD-002/004** — отделить защищённый склад от потолка накопления и утвердить производство по зданиям/уровням. **AUD-003 закрыт:** `applyEffects` отправляет клиенту фактический баланс после clamp, регрессионный тест сравнивает patch с БД.
+- **AUD-002 закрыт:** `court.rules` не содержит modifiers фазы `limit`, а `packages/modules/court/tests/commands.test.ts` явно проверяет отсутствие потолка накопления; защищённая ёмкость склада остаётся отдельной механикой. **AUD-004 открыт:** текущий `PRODUCTION_BASE` фиксирован по ресурсам и не связан с ресурсными зданиями/уровнями; требуется утверждённая экономика и модель производства. **AUD-003 закрыт:** `applyEffects` отправляет клиенту фактический баланс после clamp, регрессионный тест сравнивает patch с БД.
 - **AUD-006** — login/register используют общие IP-buckets; поддержка `TRUSTED_PROXY_IPS` добавлена с точной валидацией IPv4/IPv6 и разбором XFF справа налево. До production остаётся внести реальные IP адреса proxy выбранного провайдера.
 - **AUD-040** — поддержка trusted proxy реализована: exact IP allowlist, XFF принимается только от доверенного TCP peer и разбирается справа налево; до production требуется заполнить `TRUSTED_PROXY_IPS` адресами реального proxy.
 - **AUD-041** — закрыто: command token bucket общий для всех WebSocket-сессий одного аккаунта в пределах мира; новый регрессионный тест подтверждает, что повторный сокет не обходит COMMAND_RATE.
@@ -265,13 +265,13 @@ CI, observability, политика хранения, индексы БД, ин�
 ## 8. Текущий ближайший рабочий спринт
 
 1. [ ] Сверить актуальный HEAD рабочей ветки с PR #9 и `main`; не перезаписывать новые коммиты и не менять `main`.
-2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: фактическая TLS/reverse-proxy deployment validation). Production WebSocket Origin allowlist и базовые HTTP security headers реализованы и подтверждены CI #101/#124/#131. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
+2. [ ] Закрыть оставшиеся P0: production-like backup/restore drill на выбранном provider с RPO/RTO (AUD-034; disposable CI drill уже PASS) и остаток production hardening (AUD-035: фактическая TLS/reverse-proxy deployment validation). Production WebSocket Origin allowlist и базовые HTTP security headers реализованы и подтверждены CI #101/#124/#131. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
 3. [x] Получить воспроизводимый CI baseline: typecheck/test/check/build прошли на `13e59a7`; 247 тестов / 29 файлов.
-4. [ ] Продолжить P1: экономика/склад и производство (AUD-002/004), конфигурацию реальных proxy IP для IP rate limits (AUD-006/AUD-040), история отчётов (AUD-032). AUD-038 (типизированные локализованные отказы команд двора) и AUD-041 (account-level command bucket) закрыты.
+4. [ ] Продолжить P1: утвердить и связать производство с зданиями/уровнями (AUD-004), конфигурацию реальных proxy IP для IP rate limits (AUD-006/AUD-040), историю отчётов (AUD-032). AUD-002 закрыт. AUD-038 (типизированные локализованные отказы команд двора) и AUD-041 (account-level command bucket) закрыты.
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
-**Текущий статус:** HEAD `3aa0334e8d0b54ca9dd7135efee16b35fa57099c` прошёл полный CI run #189: 270 тестов / 31 файл, typecheck, checks, backup/restore shell syntax, production build, оба порога dependency audit и Drizzle snapshot check; известных уязвимостей не обнаружено. AUD-042 закрыт тестами и CI. AUD-035 остаётся частично открытым только до фактической TLS/reverse-proxy deployment validation; AUD-034 (реальный backup/restore drill) и P1 по экономике, сетям и графике остаются открыты. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
+**Текущий статус:** HEAD `933497144a62a83c8f9d617bb42e5ad1be186ef5` прошёл полный CI run #214: 270 тестов / 31 файл, typecheck, checks, backup/restore shell syntax, production build, end-to-end disposable PostgreSQL restore drill, оба dependency audit и Drizzle snapshot check; известных уязвимостей не обнаружено. AUD-002 закрыт; AUD-042 (включая operator-only `/api/schedule`) подтверждён тестами и CI. AUD-034 остаётся частично открытым до production-like restore/provider backups/RPO/RTO; AUD-035 — до фактической TLS/reverse-proxy deployment validation. AUD-004, сетевые production настройки и клиентская производительность остаются открыты. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
 
 
 ## 10. Повторная проверка и актуальные статусы

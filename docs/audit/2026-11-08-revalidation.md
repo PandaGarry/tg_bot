@@ -33,9 +33,9 @@
 | ID | Первичный вывод | Текущий статус | Доказательство / следующий шаг |
 |---|---|---|---|
 | TDL-AUD-001 | Миграция сбрасывала дворы всех миров | **Исправлено + интеграционный тест PASS** | `applyModuleMigrations` задаёт transaction-local `tdl.world_id`; миграция `to: 3` фильтрует текущий мир. `packages/host/tests/migrations.test.ts` проверяет, что второй мир не меняется до своей миграции; тест проходит run #35. До production проверить backup и возможный исторический сброс. |
-| TDL-AUD-002 | Жёсткий предел склада противоречит модели экономики | **Активно, P1** | `LIMIT_BASE` и фаза `limit` по-прежнему ограничивают баланс. Уточнить канон: вместимость склада, защищённый объём и фактическое накопление — разные величины |
+| TDL-AUD-002 | Жёсткий предел склада противоречил модели экономики | **Закрыто; CI #203/#214 PASS** | В актуальном `packages/modules/court/src/module.ts` для ресурсов нет modifiers фазы `limit`; `packages/modules/court/tests/commands.test.ts` явно проверяет `limitModifiers` пустым. Накопление не ограничено потолком; вместимость склада — отдельная защита от будущего грабежа согласно `docs/balance/economy.md` и `formulas.md`. |
 | TDL-AUD-003 | Клиентский stock patch может расходиться с БД при clamp | **Закрыто; CI #160 PASS** | `applyStock` сохраняет фактический баланс после clamp в `stockBalances`; финальная сборка patch переписывает `stock.*` в `set` с фактическим значением. `packages/host/tests/foundation.test.ts` проверяет, что баланс не превышает 500, последний patch равен значению БД и создаётся `stock.clamped` sim fact. |
-| TDL-AUD-004 | Производство не зависит от зданий и включает пассивное золото | **Активно, P1 до включения экономики** | `PRODUCTION_BASE` остаётся фиксированным по ресурсам; связать выпуск с утверждёнными зданиями/уровнями и источниками валюты |
+| TDL-AUD-004 | Производство не зависит от зданий и включает пассивное золото | **Открыто, P1 до утверждения экономики** | `packages/modules/court/src/module.ts` задаёт flat `PRODUCTION_BASE` на каждую минуту для всех игроков: meat 10, wood 12, stone 8, metal 4, mushrooms 6, gold 2. В 150 дней (216 000 минут) это baseline 2,592 млн дерева, 864 тыс. металла, 1,296 млн грибов и 432 тыс. золота независимо от ресурсных зданий/уровней. Это противоречит экономическому направлению (пассивное золото отсутствует; металл открывается поздно; грибы идут с фермы/карты/событий; дерево-пассив планировался как 15% бюджета). `ctx.modulate` может применять общие модификаторы, но связи выпуска с построенными зданиями в court нет. Не менять числа до утверждения модели владельцем продукта. |
 | TDL-AUD-005 | Диагностический маршрут был публичным | **Исправлено + HTTP-тест PASS** | `/api/kernel/rejections` требует `x-admin-token`, пустой токен не даёт доступ; `apps/server/tests/http.test.ts` проверяет 403 без токена и 200 с корректным токеном; run #35 PASS. |
 | TDL-AUD-006 | Auth limits, account command bucket и trusted proxy parser реализованы | **Частично закрыто, P1 до production** | Login/register используют общий IP bucket между сокетами; команды используют общий account bucket между WebSocket-сессиями. `TRUSTED_PROXY_IPS` принимает только exact IPv4/IPv6; XFF учитывается только от allowlisted TCP peer и разбирается справа налево. Перед production требуется заполнить список реальными IP выбранного провайдера и проверить его на целевом proxy. |
 | TDL-AUD-007 | Повторный вход сдвигает производственный deadline | **Исправлено в HEAD 316c2f8; CI PASS на 13e59a7** | `court.enter` читает `ctx.deadlines()` и создаёт tick только если его нет. Добавлены тесты повторного входа и первого входа |
@@ -64,8 +64,8 @@
 
 ## 4. Следующий порядок работ
 
-1. Закрыть оставшиеся P0: backup/restore drill (AUD-034) и остаток production hardening (AUD-035: CSP/frame policy, diagnostic-route review, TLS/reverse-proxy deployment validation). AUD-030 (полный startup migration lock) и AUD-022 (уникальность lord per account/world) закрыты и подтверждены CI.
-2. Исправить склад/production только после сверки с утверждённой экономикой (AUD-002/003/004).
+1. Закрыть оставшиеся P0: production-like backup/restore drill (AUD-034; disposable CI drill PASS) и фактический TLS/reverse-proxy deployment (AUD-035). AUD-030 и AUD-022 закрыты и подтверждены CI.
+2. Утвердить и реализовать производство по зданиям/уровням только после решения по экономике (AUD-004). AUD-002 закрыт: жёсткого потолка накопления больше нет.
 3. Настроить реальные IP в `TRUSTED_PROXY_IPS` на выбранном production proxy и завершить idempotency scope (AUD-006/033). Auth/register, trusted proxy parser и account-level command buckets реализованы.
 4. Восстановить историю отчётов при входе (AUD-032) и проверить конкурирующие команды/гонки.
 5. Провести review HTTP/WebSocket security, CSP/security headers, localStorage token threat model и observability.
@@ -100,7 +100,8 @@
 | TDL-AUD-006 | **Частично закрыто; CI #75/#146/#160 PASS** | `apps/server/src/net.ts`: login/register используют общий IP bucket между сокетами (login — 5, register — 10 попыток на окно 60 секунд), TTL и максимальный размер карты ограничены. Команды ограничиваются общим token bucket по `accountId` в пределах мира. `TRUSTED_PROXY_IPS` валидирует exact IPv4/IPv6; XFF учитывается только при trusted TCP peer и разбирается справа налево. Для production остаётся указать реальные IP proxy. |
 | TDL-AUD-022 | **Исправлено на уровне приложения и БД; CI #75 PASS** | `createLord` сериализует создание через `pg_advisory_xact_lock`; миграция `0004_world_invariants.sql` добавляет уникальный индекс `(world_id, account_id)` после fail-fast проверки дублей. Тесты проверяют конкурентное создание и восстановление `sessions.lord_id`. До production выполнить read-only запрос на существующие дубли; миграция намеренно не удаляет данные. |
 | TDL-AUD-030 | **Исправлено в startup bootstrap; CI #86/#101/#124/#131 PASS** | `bootServer` вызывает `bootstrapWorld`: один PostgreSQL advisory lock охватывает kernel migrations → `ensureWorld` → `syncModuleStates` → module migrations. Добавлен конкурентный интеграционный тест: два одновременных bootstrap не применяют ступень модуля повторно. Совместимость mixed-version rolling deploy остаётся отдельной production-проверкой. |
-| TDL-AUD-002/004 | **Открыто, P1** | Склад по-прежнему поддерживает фазу limit/clamp, а `PRODUCTION_BASE` в модуле двора задаёт фиксированный выпуск. Требуется утвердить экономическую модель и только после этого менять баланс. |
+| TDL-AUD-002 | **Закрыто; CI #203/#214 PASS** | Нет `limit` phase modifiers в court; regression test проверяет отсутствие потолка накопления. Ёмкость склада и накопление разведены. |
+| TDL-AUD-004 | **Открыто, P1** | `PRODUCTION_BASE` остаётся фиксированным по ресурсам и не зависит от зданий/уровней; baseline также включает пассивное золото, металл и грибы. Утвердить экономику до изменения чисел. |
 | TDL-AUD-003 | **Закрыто; CI #160 PASS** | Проверка `foundation.test.ts`: после 30 выдач клиентский stock patch содержит фактический DB balance после clamp, а не исходную дельту; `sim_rejections` фиксирует `stock.clamped`. Реализация находится в `packages/host/src/world/effects.ts`. |
 | TDL-AUD-034 | **Открыто, P0 до production** | Подготовлены `tools/db/backup.sh`, `tools/db/restore-drill.sh` и `docs/ops/backup-restore.md`: custom dump, checksum, права файлов, restore только в пустую `tdl_restore_*` БД и smoke check core tables. Скрипты прошли `bash -n` вручную и в CI #124/#131. Фактический backup/restore drill на целевой БД не выполнялся; нужны провайдер, изолированная БД, application smoke test и запись RPO/RTO. |
 | TDL-AUD-035 | **Частично закрыто, P0 до production** | Production config требует сильные раздельные `SESSION_SECRET`/`ADMIN_TOKEN`, явные `WORLD_ID`, `ACCESS_MODE`, `REGISTRATION_OPEN` и точный HTTPS `ALLOWED_ORIGINS`. WebSocket `/socket` отклоняет отсутствующий/неразрешённый Origin до авторизации. HTTP-ответы добавляют `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `/api/*` помечаются `no-store`, permissive CORS не включён. Config, socket и HTTP header tests проходят CI #101/#124/#131. Осталось определить CSP/frame policy по asset/preview inventory, проверить диагностические endpoints и фактический TLS/reverse-proxy deployment на целевой площадке. |
@@ -164,7 +165,7 @@
 
 **Коммиты:** `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`, `1b1e179`, `3aa0334`. **Проверка:** GitHub Actions run #189 (`42525680616`) завершился PASS на `3aa0334e8d0b54ca9dd7135efee16b35fa57099c`: 270 тестов / 31 файл; typecheck, tests, checks, shell syntax, production build, оба dependency audit и Drizzle snapshot check прошли.
 
-**Остаточный риск:** подробная диагностика доступна любому обладателю `ADMIN_TOKEN`; этот секрет нельзя передавать в браузер, URL, логи или публичные скрипты. Для `tools/load` задавать его только через защищённое окружение. Отдельно проверить `/api/schedule` и production TLS/reverse proxy в рамках AUD-035.
+**Остаточный риск:** подробная диагностика доступна любому обладателю `ADMIN_TOKEN`; этот секрет нельзя передавать в браузер, URL, логи или публичные скрипты. Для `tools/load` задавать его только через защищённое окружение. Доступ к `/api/schedule` теперь operator-only и покрыт тестом; на deployment проверить, что token не попадает в браузер/логи, а TLS/reverse proxy настроены правильно.
 
 
 ## 9. AUD-034 — end-to-end backup/restore drill
@@ -181,18 +182,18 @@
 
 **Изменения:** `62c1cb2`, `8f871d1`, `d9c3b3f`, `64b8a69`, `7176424`, `342d964`, `b3de90c`. CI run после изменения workflow ожидает завершения.
 
-### AUD-034 — результат CI drill #203
+### AUD-034 — результат CI drill #214
 
-**Проверка:** [GitHub Actions run #203](https://github.com/PandaGarry/tg_bot/actions/runs/42526523241) — **PASS** на кодовом HEAD `611c2ada2889dadd44ab08c91f4eac8c7afb3aa`. Полный workflow: 270 тестов / 31 файл, typecheck, checks, shell syntax, PostgreSQL 18 client install, production build, restore drill, dependency audits и Drizzle snapshot check.
+**Проверка:** [GitHub Actions run #214](https://github.com/PandaGarry/tg_bot/actions/runs/42527180330) — **PASS** на кодовом HEAD `933497144a62a83c8f9d617bb42e5ad1be186ef5`. Полный workflow: 270 тестов / 31 файл, typecheck, checks, shell syntax, PostgreSQL 18 client install, production build, restore drill, dependency audits и Drizzle snapshot check.
 
-**Фактический CI результат:** custom dump — 30 402 bytes; SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`; restore — 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
+**Фактический CI результат:** custom dump — 30 400 bytes; SHA-256 `c285b7cbcaeccabc0c30d2b9a13ff26ba0721a608b89254f2a772062e436f139`; restore — 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
 
 **Статус:** CI-механика backup/restore подтверждена; **AUD-034 остаётся P0/open частично**, потому что disposable CI не является production-like backup drill. До закрытия нужны provider-managed backups/PITR, encrypted off-host copy, retention, восстановление актуальной production-like копии, проверка доступа/ролей и фиксация реальных production RPO/RTO.
 
 
 ### AUD-042 follow-up: `/api/schedule` operator-only
 
-Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. CI на новом HEAD ожидает завершения; до PASS изменение не считается закрытым.
+Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. **CI #214 PASS** подтвердил изменение на HEAD `9334971`.
 
 
 ## 10. AUD-035 — production deployment reference runbook
