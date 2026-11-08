@@ -587,7 +587,7 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
         if (!stockBalances.has(key)) stockBalances.set(key, 0);
       }
     }
-    const ops = patch.ops.map((op) => {
+    const ops: PatchOp[] = patch.ops.map((op): PatchOp => {
       if (!op.path.startsWith("stock.")) return op;
       const resource = op.path.slice("stock.".length) as ResourceId;
       return { op: "set", path: op.path, value: stockBalances.get(stockBalanceKey(holderId, resource)) ?? 0 };
