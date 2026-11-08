@@ -154,3 +154,29 @@ describe("изоляция миграций миров", () => {
     }
   });
 });
+
+describe("email uniqueness migration", () => {
+  it("allows multiple accounts without email and rejects duplicate non-empty email", async () => {
+    const world = await createTestWorld();
+    try {
+      const insert = (suffix: string, email: string, emailKey: string) =>
+        world.db.pool.query(
+          `INSERT INTO accounts (account_id, login, login_key, email, email_key, password_hash)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [`email-test-${world.id}-${suffix}`, `email-test-${suffix}`, `email-test-${world.id}-${suffix}`, email, emailKey, "test-hash"],
+        );
+      await insert("empty-1", "", "");
+      await insert("empty-2", "", "");
+      await insert("filled-1", "same@example.com", "same@example.com");
+      let duplicateCode: string | undefined;
+      try {
+        await insert("filled-2", "same@example.com", "same@example.com");
+      } catch (error) {
+        duplicateCode = (error as { code?: string }).code;
+      }
+      expect(duplicateCode).toBe("23505");
+    } finally {
+      await world.close();
+    }
+  });
+});

@@ -58,14 +58,14 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": ""
+          "default": "''"
         },
         "email_key": {
           "name": "email_key",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": ""
+          "default": "''"
         },
         "accept_mail": {
           "name": "accept_mail",

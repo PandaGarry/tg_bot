@@ -4,6 +4,7 @@
  * часы мира стоят, пока процесс не работает, и простой не сжигает минуты.
  */
 
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -257,7 +258,7 @@ export const accounts = pgTable(
   },
   (table) => [
     uniqueIndex("accounts_login_key_idx").on(table.loginKey),
-    uniqueIndex("accounts_email_key_idx").on(table.emailKey),
+    uniqueIndex("accounts_email_key_idx").on(table.emailKey).where(sql`${table.emailKey} <> ''`),
   ],
 );
 
