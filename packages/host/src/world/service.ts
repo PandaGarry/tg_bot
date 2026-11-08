@@ -2357,7 +2357,7 @@ export class WorldService {
         await client.query(
           `INSERT INTO commands (world_id, idempotency_key, request_id, actor_id, module_id, command_id, outcome, error_key, at_ms)
            VALUES ($1, $2, $3, $4, $5, $6, 'error', $7, $8)
-           ON CONFLICT (world_id, actor_id, idempotency_key) DO UPDATE SET outcome = 'error', error_key = EXCLUDED.error_key`,
+           ON CONFLICT (world_id, actor_id, idempotency_key) DO NOTHING`,
           [
             this.worldId,
             queued.idempotencyKey,

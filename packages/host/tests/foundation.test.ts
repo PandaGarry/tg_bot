@@ -123,6 +123,20 @@ describe("повтор команды", () => {
     expect(rows.rowCount).toBe(2);
   });
 
+  it("повтор с другим commandId не перезаписывает исходный результат", async () => {
+    const world = await makeWorld();
+    const actor = world.actor();
+    const key = "stable-result-key";
+    const original = await runCommand(world, actor, "_probe.poke", { steps: 1 }, key);
+    const mismatch = await runCommand(world, actor, "_probe.nope", {}, key);
+    const retry = await runCommand(world, actor, "_probe.poke", { steps: 1 }, key);
+    expect(original.status).toBe("ok");
+    expect(mismatch.status).toBe("error");
+    expect(retry.status).toBe("ok");
+    expect(retry.repeat).toBe(true);
+    expect((await stockOf(world, actor.id)).probe_dust).toBe(28);
+  });
+
   it("отказ по тому же ключу повторяется тем же ключом", async () => {
     const world = await makeWorld();
     const actor = world.actor();
