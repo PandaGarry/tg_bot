@@ -108,3 +108,11 @@
 - Добавлены HTTP regression tests на минимальный публичный ответ, отсутствие внутренних полей и 403/200 для защищённой телеметрии.
 
 Изменения AUD-042: `3ed5116`, `658c5e0`, `0116740`, `7b1010e`, `46a8525`. CI run #189 завершился **PASS** на HEAD `3aa0334`; typecheck, 270 тестов / 31 файл, checks, backup/restore shell syntax, production build, dependency audits и Drizzle snapshot check прошли. AUD-042 закрыт по проверенному коду; production deployment и эксплуатационная проверка остаются отдельными задачами.
+
+
+## AUD-034 — автоматизация фактического restore drill (09.11.2026)
+
+- Добавлен `tools/db/ci-restore-drill.sh`: на disposable PostgreSQL 18 он поднимает собранный TDL с production-конфигурацией, снимает backup, проверяет SHA-256/TOC, восстанавливает его в отдельную пустую БД, сравнивает row counts семи ключевых таблиц и повторно запускает TDL на restored DB.
+- CI устанавливает PostgreSQL 18 client; `backup.sh` отказывает при `pg_dump` старше? Нет: клиент должен быть той же или более новой major версии, чем сервер. Restore script дополнительно проверяет отсутствие relation objects/custom schemas в target и требует восстановленные world + module state rows.
+- Runbook `docs/ops/backup-restore.md` дополнен описанием автоматического drill и границ доказательства.
+- **Статус: implementation committed; CI run pending. AUD-034 не закрыт.** Даже после CI PASS остаются production provider backups, off-host encrypted copy, retention/PITR, запуск на актуальной production-like копии и реальные RPO/RTO. CI timings не подменяют production RPO/RTO.
