@@ -35,6 +35,14 @@ export interface HttpHandle {
   close(): Promise<void>;
 }
 
+/** Сравнение операторского токена по UTF-8 байтам: timingSafeEqual требует равные byte length. */
+function hasValidAdminToken(given: string | string[] | undefined, token: string): boolean {
+  if (token.length === 0 || typeof given !== "string") return false;
+  const expected = Buffer.from(token, "utf8");
+  const actual = Buffer.from(given, "utf8");
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
 export async function createHttpServer(options: HttpOptions): Promise<HttpHandle> {
   const middlewares: ((req: IncomingMessage, res: ServerResponse) => Promise<boolean>)[] = [];
   const hmrEnabled = process.env.TDL_HMR === "1";
@@ -135,13 +143,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
       return;
     }
     if (url.pathname === "/api/ops/health") {
-      const token = options.adminToken ?? "";
-      const given = req.headers["x-admin-token"];
-      const authorized =
-        token.length > 0 &&
-        typeof given === "string" &&
-        given.length === token.length &&
-        timingSafeEqual(Buffer.from(given), Buffer.from(token));
+      const authorized = hasValidAdminToken(req.headers["x-admin-token"], options.adminToken ?? "");
       if (!authorized) {
         options.journal.write({
           channel: "security",
@@ -222,13 +224,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
    */
   async function handleModules(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
     const token = options.adminToken ?? "";
-    if (token.length === 0) {
-      res.writeHead(403, { "content-type": "application/json" });
-      res.end(JSON.stringify({ ok: false, error: "путь выключен: ADMIN_TOKEN не задан" }));
-      return;
-    }
-    const given = req.headers["x-admin-token"];
-    if (typeof given !== "string" || given.length !== token.length || !timingSafeEqual(Buffer.from(given), Buffer.from(token))) {
+    if (!hasValidAdminToken(req.headers["x-admin-token"], token)) {
       options.journal.write({ channel: "security", worldId: options.worldId, event: "admin.denied", detail: { path: url.pathname } });
       res.writeHead(403, { "content-type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: "нет доступа" }));
