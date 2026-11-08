@@ -46,9 +46,11 @@ fi
 
 pg_restore --no-password --list "$TDL_BACKUP_FILE" >/dev/null
 
-table_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
-  "SELECT count(*) FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema')")"
-if [[ "$table_count" != "0" ]]; then
+object_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+  "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')")"
+custom_schema_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+  "SELECT count(*) FROM pg_namespace WHERE nspname NOT IN ('pg_catalog', 'information_schema', 'public')")"
+if [[ "$object_count" != "0" || "$custom_schema_count" != "0" ]]; then
   printf 'restore target is not empty; refusing to overwrite existing objects\n' >&2
   exit 1
 fi
@@ -67,8 +69,17 @@ world_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STO
   "SELECT count(*) FROM public.worlds")"
 module_state_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
   "SELECT count(*) FROM public.module_states")"
-if [[ "$world_count" -lt 1 ]]; then
-  printf 'restore smoke check failed: no world rows were restored\n' >&2
+if [[ "$world_count" -lt 1 || "$module_state_count" -lt 1 ]]; then
+  printf 'restore smoke check failed: world/module state rows are missing\n' >&2
+  exit 1
+fi
+
+source_snapshot="$(psql --no-password "$DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+  "SELECT (SELECT count(*) FROM public.worlds) || ':' || (SELECT count(*) FROM public.module_states) || ':' || (SELECT count(*) FROM public.accounts) || ':' || (SELECT count(*) FROM public.lords) || ':' || (SELECT count(*) FROM public.stock) || ':' || (SELECT count(*) FROM public.deadlines) || ':' || (SELECT count(*) FROM public.reports)")"
+restored_snapshot="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+  "SELECT (SELECT count(*) FROM public.worlds) || ':' || (SELECT count(*) FROM public.module_states) || ':' || (SELECT count(*) FROM public.accounts) || ':' || (SELECT count(*) FROM public.lords) || ':' || (SELECT count(*) FROM public.stock) || ':' || (SELECT count(*) FROM public.deadlines) || ':' || (SELECT count(*) FROM public.reports)")"
+if [[ "$source_snapshot" != "$restored_snapshot" ]]; then
+  printf 'restore data verification failed: source=%s restored=%s\n' "$source_snapshot" "$restored_snapshot" >&2
   exit 1
 fi
 
