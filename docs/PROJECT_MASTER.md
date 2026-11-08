@@ -112,7 +112,7 @@
 - **AUD-001** — миграция сбрасывала дворы всех миров; исправлена через transaction-local `tdl.world_id`, интеграционный тест двух миров проходит CI. Перед боевой БД всё равно сверить, не был ли прежний сброс уже выполнен и нужна ли реставрация из backup.
 - **AUD-029** — исправлено: вся подготовка pump находится под `try/finally`; регрессионный тест синтетического отказа sweep и восстановления следующего прохода проходит CI.
 - **AUD-031** — исправлена проверка мира в `resume/logout`, при привязке сессии к лорду, WebSocket `enterWorld` и `submitCommand`; тесты межмирового токена и чужого actor проходят CI. Отдельно проверять все новые модули при их добавлении.
-- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, Origin policy и базовые HTTP security headers проходят CI #101/#124/#131. CSP/frame policy и защита подробной диагностики реализованы; осталось проверить фактический TLS/proxy production deployment и отдельно пересмотреть публичный контракт `/api/schedule`.
+- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, Origin policy и базовые HTTP security headers проходят CI #101/#124/#131. CSP/frame policy, защищённая подробная диагностика и operator-only `/api/schedule` реализованы; осталось проверить фактический TLS/proxy production deployment.
 - **AUD-005** — `/api/kernel/rejections` закрыт операторским токеном; HTTP-регрессия 403 без токена / 200 с токеном проходит CI.
 - **AUD-018** — logout очищает все активные сокеты с тем же bearer token; серверный регрессионный тест проходит полный CI.
 - **AUD-022** — исправлено в приложении и БД: `createLord` сериализует создание через транзакционный advisory lock; уникальный индекс `(world_id, account_id)` защищает инвариант на уровне PostgreSQL. Конкурентный тест проходит CI run #86.
@@ -287,7 +287,7 @@ CI, observability, политика хранения, индексы БД, ин�
 - `GET /api/ops/health` — подробные world/net/time/module/stats данные только с `x-admin-token`; 403 при отсутствии/ошибке токена.
 - Клиентская панель диагностики собирается/показывается только в DEV; production не опрашивает служебную панель.
 - `tools/load` читает подробную телеметрию из защищённой ручки. Для неё требуется `ADMIN_TOKEN`; без токена основной нагрузочный замер остаётся доступным без серверных counters.
-- `/api/schedule` оставлен публичным до отдельной проверки клиентского контракта; его не следует закрывать в рамках AUD-042 автоматически.
+- `/api/schedule` после проверки клиентских callsites не найден в приложении; ручка переведена под `x-admin-token`, покрыта HTTP regression test и отвечает `no-store`.
 
 Коммиты: `3ed5116` (HTTP), `658c5e0` (регрессии), `0116740` (клиентская диагностика), `7b1010e` (DEV guard), `46a8525` (load tool). CI #184 на HEAD `46a8525` запущен; закрытие finding — только после полного PASS и проверки документации.
 
@@ -299,3 +299,6 @@ CI, observability, политика хранения, индексы БД, ин�
 **Приёмка:** CI PASS подтверждает только механический end-to-end сценарий на disposable базе. AUD-034 останется открытым до проверки реального production provider backup, encrypted off-host copy, retention/PITR, восстановления актуальной production-like копии и фиксации фактических production RPO/RTO. CI timings не выдаются за production RPO/RTO. Текущий run на новом workflow ожидает завершения.
 
 CI run #203 завершился **PASS** на кодовом HEAD `611c2ada2889dadd44ab08c91f4eac8c7afb3aa`: 270 тестов / 31 файл, typecheck, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, dependency audits и Drizzle snapshot check. Drill создал dump 30 402 bytes (SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`), восстановил 1 world + 12 module states за 1 с и подтвердил повторный production startup на restored DB. Это CI/disposable evidence; AUD-034 остаётся открытым до production provider/PITR/off-host/retention и фактического production RPO/RTO.
+
+
+AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Проверены `apps/client/src/net.ts`, `apps/client/src/ui/World.tsx`, `apps/client/src/store.ts` — client callsite отсутствует; HTTP tests покрывают 403/200 и `no-store`. Ожидается CI на новом HEAD.
