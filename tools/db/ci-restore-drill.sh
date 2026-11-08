@@ -32,6 +32,8 @@ source_url="$base_url/$source_db"
 target_url="$base_url/$target_db"
 backup_dir="$(mktemp -d "${TMPDIR:-/tmp}/tdl-restore-drill.XXXXXX")"
 server_pid=""
+source_created=0
+target_created=0
 server_log="$backup_dir/server.log"
 restored_log="$backup_dir/restored-server.log"
 
@@ -51,11 +53,15 @@ stop_server() {
 cleanup() {
   local status=$?
   stop_server
-  # Both databases are created exclusively for this disposable CI drill.
-  psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
-    "DROP DATABASE IF EXISTS \"$target_db\" WITH (FORCE);" >/dev/null 2>&1 || true
-  psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
-    "DROP DATABASE IF EXISTS \"$source_db\" WITH (FORCE);" >/dev/null 2>&1 || true
+  # Drop only databases that this invocation successfully created.
+  if [[ "$target_created" == "1" ]]; then
+    psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
+      "DROP DATABASE IF EXISTS \"$target_db\" WITH (FORCE);" >/dev/null 2>&1 || true
+  fi
+  if [[ "$source_created" == "1" ]]; then
+    psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
+      "DROP DATABASE IF EXISTS \"$source_db\" WITH (FORCE);" >/dev/null 2>&1 || true
+  fi
   rm -rf -- "$backup_dir"
   return "$status"
 }
@@ -63,8 +69,10 @@ trap cleanup EXIT
 
 psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
   "CREATE DATABASE \"$source_db\";"
+source_created=1
 psql --no-password "$admin_url" -X -v ON_ERROR_STOP=1 -qAtc \
   "CREATE DATABASE \"$target_db\";"
+target_created=1
 
 start_world() {
   local database_url="$1" port="$2" log_file="$3"
