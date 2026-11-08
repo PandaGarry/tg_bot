@@ -36,6 +36,8 @@ export const configSchema = z.object({
   ACCESS_MODE: z.enum(["public", "admins"]).default("public"),
   /** Служебные логины через запятую: им открыт вход в закрытый мир. */
   ADMIN_LOGINS: z.string().default(""),
+  /** Exact browser origins allowed to open production WebSocket sessions. */
+  ALLOWED_ORIGINS: z.string().default(""),
 });
 
 /**
@@ -69,6 +71,8 @@ export type HostConfig = z.infer<typeof configSchema> & {
   commandRate: number;
   /** Служебные логины: сравнение по ключу логина, как в воротах. */
   adminLogins: readonly string[];
+  /** Exact origins allowed to open WebSocket sessions; empty only outside production. */
+  allowedOrigins: readonly string[];
   /** Мир открыт всем или только служебным аккаунтам. */
   accessPublic: boolean;
   isProduction: boolean;
@@ -91,6 +95,21 @@ function assertProductionConfig(parsed: z.infer<typeof configSchema>, env: NodeJ
   if (!env.ACCESS_MODE?.trim()) problems.push("ACCESS_MODE must be explicitly set");
   if (!env.REGISTRATION_OPEN?.trim()) problems.push("REGISTRATION_OPEN must be explicitly set to 0 or 1");
   if (parsed.ACCESS_MODE === "admins" && parsed.ADMIN_LOGINS.length === 0) problems.push("ADMIN_LOGINS must contain at least one login when ACCESS_MODE=admins");
+  const allowedOrigins = parsed.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean);
+  if (!env.ALLOWED_ORIGINS?.trim() || allowedOrigins.length === 0) {
+    problems.push("ALLOWED_ORIGINS must be explicitly set to one or more HTTPS origins");
+  }
+  if (new Set(allowedOrigins).size !== allowedOrigins.length) problems.push("ALLOWED_ORIGINS must not contain duplicates");
+  for (const origin of allowedOrigins) {
+    try {
+      const url = new URL(origin);
+      if (url.protocol !== "https:" || url.origin !== origin || url.username || url.password) {
+        problems.push("ALLOWED_ORIGINS must contain exact HTTPS origins without paths or credentials");
+      }
+    } catch {
+      problems.push("ALLOWED_ORIGINS contains an invalid origin");
+    }
+  }
   if (parsed.PORT === 0) problems.push("PORT must be non-zero in production");
   try {
     const protocol = new URL(parsed.DATABASE_URL).protocol;
@@ -124,6 +143,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
     adminLogins: parsed.ADMIN_LOGINS.split(",")
       .map((login) => login.trim().toLowerCase())
       .filter((login) => login.length > 0),
+    allowedOrigins: parsed.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
     accessPublic: parsed.ACCESS_MODE === "public",
     commandRate: parsed.COMMAND_RATE,
     isProduction: parsed.NODE_ENV === "production",
