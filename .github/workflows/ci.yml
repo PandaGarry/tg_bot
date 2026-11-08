@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "arena/**"
   pull_request:
     branches:
       - main
@@ -15,7 +14,7 @@ permissions:
 
 concurrency:
   # Push и pull_request для одной ветки используют одну группу.
-  group: tdl-ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: tdl-ci-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
