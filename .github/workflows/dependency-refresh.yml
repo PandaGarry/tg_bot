@@ -55,18 +55,14 @@ jobs:
 
       - name: Зафиксировать безопасную версию source-map-js
         run: |
-          node --input-type=module <<'NODE'
-          import fs from "node:fs";
-          const path = "package.json";
-          const root = JSON.parse(fs.readFileSync(path, "utf8"));
-          root.pnpm ??= {};
-          root.pnpm.overrides ??= {};
-          root.pnpm.overrides["source-map-js"] = "1.2.2";
-          fs.writeFileSync(path, JSON.stringify(root, null, 2) + "\n");
-          NODE
+          cat >> pnpm-workspace.yaml <<'YAML'
+
+          overrides:
+            source-map-js: 1.2.2
+          YAML
 
       - name: Обновить Vite и Zod до исправленных версий
-        run: pnpm update -r --latest vite@8.3.6 zod@4.6.7
+        run: pnpm update -r vite@8.3.6 zod@4.6.7
 
       - name: Пересобрать lockfile
         run: pnpm install --lockfile-only
