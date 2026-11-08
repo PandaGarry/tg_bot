@@ -336,3 +336,6 @@ AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Пр
 ### AUD-035 — уточнение production proxy boundary (09.11.2026)
 
 Статический аудит runbook выявил, что пустой `TRUSTED_PROXY_IPS` при TLS termination на reverse proxy заставлял сервер игнорировать XFF и использовать общий TCP peer IP для login/register rate limits. Production startup теперь требует непустой список точных proxy peer IP; проверка формата IPv4/IPv6, запрет CIDR и duplicate entries уже реализованы. Добавлены регрессии config и уточнены `.env.example`/production runbook. Реальные IP, сертификат, firewall, WSS и поведение выбранного хостинга остаются непроверенными — AUD-035 не закрывать.
+
+
+**Визуальный inventory gate (09.11.2026):** создан `docs/design/court-asset-inventory.md` с геометрией 14×14, диметрией 71.4×41.4 px, фактическими 19 building IDs/footprints и таблицей legacy mappings. Сверка выявила несовпадения footprint старого prototype для Цитадели (3×3 → актуальные 4×4), склада (2×2 → 3×3), лазарета (2×2 → 3×3), загона (3×2 → 2×2). Неподтверждённый `c-01` («Паутина») снят с Академии; добавлен regression test. Эти старые спрайты — только fallback, а не эталон масштаба для нового арта.
