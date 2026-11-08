@@ -33,14 +33,14 @@
 | ID | Первичный вывод | Текущий статус | Доказательство / следующий шаг |
 |---|---|---|---|
 | TDL-AUD-001 | Миграция сбрасывала дворы всех миров | **Исправлено + интеграционный тест PASS** | `applyModuleMigrations` задаёт transaction-local `tdl.world_id`; миграция `to: 3` фильтрует текущий мир. `packages/host/tests/migrations.test.ts` проверяет, что второй мир не меняется до своей миграции; тест проходит run #35. До production проверить backup и возможный исторический сброс. |
-| TDL-AUD-002 | Жёсткий предел склада противоречил модели экономики | **Закрыто; CI #203/#214 PASS** | В актуальном `packages/modules/court/src/module.ts` для ресурсов нет modifiers фазы `limit`; `packages/modules/court/tests/commands.test.ts` явно проверяет `limitModifiers` пустым. Накопление не ограничено потолком; вместимость склада — отдельная защита от будущего грабежа согласно `docs/balance/economy.md` и `formulas.md`. |
+| TDL-AUD-002 | Жёсткий предел склада противоречил модели экономики | **Закрыто; CI #203/#214/#216 PASS** | В актуальном `packages/modules/court/src/module.ts` для ресурсов нет modifiers фазы `limit`; `packages/modules/court/tests/commands.test.ts` явно проверяет `limitModifiers` пустым. Накопление не ограничено потолком; вместимость склада — отдельная защита от будущего грабежа согласно `docs/balance/economy.md` и `formulas.md`. |
 | TDL-AUD-003 | Клиентский stock patch может расходиться с БД при clamp | **Закрыто; CI #160 PASS** | `applyStock` сохраняет фактический баланс после clamp в `stockBalances`; финальная сборка patch переписывает `stock.*` в `set` с фактическим значением. `packages/host/tests/foundation.test.ts` проверяет, что баланс не превышает 500, последний patch равен значению БД и создаётся `stock.clamped` sim fact. |
 | TDL-AUD-004 | Производство не зависит от зданий и включает пассивное золото | **Открыто, P1 до утверждения экономики** | `packages/modules/court/src/module.ts` задаёт flat `PRODUCTION_BASE` на каждую минуту для всех игроков: meat 10, wood 12, stone 8, metal 4, mushrooms 6, gold 2. В 150 дней (216 000 минут) это baseline 2,592 млн дерева, 864 тыс. металла, 1,296 млн грибов и 432 тыс. золота независимо от ресурсных зданий/уровней. Это противоречит экономическому направлению (пассивное золото отсутствует; металл открывается поздно; грибы идут с фермы/карты/событий; дерево-пассив планировался как 15% бюджета). `ctx.modulate` может применять общие модификаторы, но связи выпуска с построенными зданиями в court нет. Не менять числа до утверждения модели владельцем продукта. |
 | TDL-AUD-005 | Диагностический маршрут был публичным | **Исправлено + HTTP-тест PASS** | `/api/kernel/rejections` требует `x-admin-token`, пустой токен не даёт доступ; `apps/server/tests/http.test.ts` проверяет 403 без токена и 200 с корректным токеном; run #35 PASS. |
 | TDL-AUD-006 | Auth limits, account command bucket и trusted proxy parser реализованы | **Частично закрыто, P1 до production** | Login/register используют общий IP bucket между сокетами; команды используют общий account bucket между WebSocket-сессиями. `TRUSTED_PROXY_IPS` принимает только exact IPv4/IPv6; XFF учитывается только от allowlisted TCP peer и разбирается справа налево. Перед production требуется заполнить список реальными IP выбранного провайдера и проверить его на целевом proxy. |
 | TDL-AUD-007 | Повторный вход сдвигает производственный deadline | **Исправлено в HEAD 316c2f8; CI PASS на 13e59a7** | `court.enter` читает `ctx.deadlines()` и создаёт tick только если его нет. Добавлены тесты повторного входа и первого входа |
 | TDL-AUD-008 | Дороги размещались вне текущей площадки | **Исправлено + тест PASS** | Оба пути постановки/переноса вызывают `fitsGrid(..., { w: 1, h: 1 }, grid.size)`; тесты проверяют границы, перенос и коллизии; run #35 PASS. |
-| TDL-AUD-009 | Недостаточно тестов ключевых команд двора | **Частично активно** | Есть тесты place/road/upgrade/remove/enter; остаются move, конкурирующие команды, миграция двух миров, склад и production |
+| TDL-AUD-009 | Недостаточно тестов ключевых команд двора | **Частично активно; CI #216 PASS** | `court.move` теперь покрыт успешным переносом, not-found, occupied, out-of-bounds и road collision; тест сверяет сохранённую строку `court_holder.grid` с клиентским patch. Остаются конкурентные команды, межмировая миграция/изоляция и end-to-end stock/production. |
 | TDL-AUD-010 | Сила — временная формула, уровни зданий не реализованы | **Активно, продуктовый пробел** | Не показывать формулу как финальную силу до утверждения доменной модели и уровней зданий |
 | TDL-AUD-011 | Нативная поставка и полноценный desktop не подтверждены | **Активно, план платформ** | Сейчас доказан browser client; отдельно спроектировать responsive desktop и принять решение PWA/Capacitor/native |
 | TDL-AUD-012 | Основной 4X-геймплей не реализован | **Активно, блокер готовности продукта** | Карта, марши, армия, бой, командиры, альянсы и исследования — этапы roadmap, не считать прототип готовой стратегией |
@@ -182,18 +182,18 @@
 
 **Изменения:** `62c1cb2`, `8f871d1`, `d9c3b3f`, `64b8a69`, `7176424`, `342d964`, `b3de90c`. CI run после изменения workflow ожидает завершения.
 
-### AUD-034 — результат CI drill #214
+### AUD-034 — результат CI drill #216
 
-**Проверка:** [GitHub Actions run #214](https://github.com/PandaGarry/tg_bot/actions/runs/42527180330) — **PASS** на кодовом HEAD `933497144a62a83c8f9d617bb42e5ad1be186ef5`. Полный workflow: 270 тестов / 31 файл, typecheck, checks, shell syntax, PostgreSQL 18 client install, production build, restore drill, dependency audits и Drizzle snapshot check.
+**Проверка:** [GitHub Actions run #216](https://github.com/PandaGarry/tg_bot/actions/runs/42527642415) — **PASS** на кодовом HEAD `d99438bcc0eb5d0003aada31aed50714be050b96`. Полный workflow: 272 теста / 31 файл, typecheck, checks, shell syntax, PostgreSQL 18 client install, production build, restore drill, dependency audits и Drizzle snapshot check.
 
-**Фактический CI результат:** custom dump — 30 400 bytes; SHA-256 `c285b7cbcaeccabc0c30d2b9a13ff26ba0721a608b89254f2a772062e436f139`; restore — 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
+**Фактический CI результат:** custom dump — 30 402 bytes; SHA-256 `6766f3eb9fb755a374dd6cd8868a40bd225e89f213e6010ecf12fef7cea5b747`; restore — менее 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
 
 **Статус:** CI-механика backup/restore подтверждена; **AUD-034 остаётся P0/open частично**, потому что disposable CI не является production-like backup drill. До закрытия нужны provider-managed backups/PITR, encrypted off-host copy, retention, восстановление актуальной production-like копии, проверка доступа/ролей и фиксация реальных production RPO/RTO.
 
 
 ### AUD-042 follow-up: `/api/schedule` operator-only
 
-Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. **CI #214 PASS** подтвердил изменение на HEAD `9334971`.
+Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. **CI #214 и #216 PASS** подтвердили изменение на HEAD `d99438b`.
 
 
 ## 10. AUD-035 — production deployment reference runbook
@@ -201,3 +201,8 @@
 Создан `docs/ops/production-deployment.md` с reference topology Nginx TLS → loopback Node → managed PostgreSQL, примером Nginx WebSocket proxy и systemd unit, production env requirements, exact origin/proxy trust rules, deploy/smoke/rollback checklist.
 
 **Статус:** documentation prepared; production validation not performed. Неизвестны целевой provider, domain/certificate, реальный адрес непосредственного proxy peer, PostgreSQL endpoint и firewall policy. AUD-035 не закрывается документом: нужен deployment на выбранном host, WSS Origin checks, прямой доступ к Node закрыт, health endpoints проверены, restart/shutdown и DB connectivity подтверждены.
+
+
+### AUD-009 — расширение unit coverage court.move
+
+В `packages/modules/court/tests/commands.test.ts` добавлены проверки успешного переноса постройки, синхронности persisted `court_holder.grid` и client patch, отказа при выходе за границы сетки и при пересечении с дорогой. Вместе с ранее имевшимися not-found/occupied тестами основные ветви `court.move` покрыты. CI #216 PASS: 272 теста / 31 файл. Finding остаётся частично активным: concurrency, межмировые миграции и end-to-end production/stock требуют отдельных интеграционных сценариев.

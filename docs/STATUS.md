@@ -1,12 +1,12 @@
 # Состояние проекта
 
-> Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; проверенный HEAD `933497144a62a83c8f9d617bb42e5ad1be186ef5` прошёл полный CI run #214.
+> Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; проверенный HEAD `d99438bcc0eb5d0003aada31aed50714be050b96` прошёл полный CI run #214.
 
-> Документы аудита и мастер-план синхронизированы после run #214. PR #9 остаётся открытым и не слит.
+> Документы аудита и мастер-план синхронизированы после run #216. PR #9 остаётся открытым и не слит.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
-- Актуальный проверенный HEAD: `9334971`; полный CI run #214 — **PASS**: typecheck, 270 тестов в 31 файле, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Известных уязвимостей в текущем lockfile не обнаружено.
+- Актуальный проверенный HEAD: `d99438b`; полный CI run #216 — **PASS**: typecheck, 272 теста в 31 файле, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Известных уязвимостей в текущем lockfile не обнаружено.
 - Commit `633ed3c` обновил `pnpm-lock.yaml` по overrides из `pnpm-workspace.yaml` и добавил Drizzle baseline `0005_schema_snapshot_sync`. Snapshot вручную сверён с migrations 0001–0004, SQL содержит только `SELECT 1`; последующий CI #146 на HEAD `b4c1c51` подтвердил lockfile, snapshot check и полный набор проверок. Старый workflow #136 (`action_required`) superseded run #146.
 - PR #9: открыт, не слит; 378 изменённых файлов (14 048 добавлений, 10 721 удаление) на момент синхронизации. Никаких изменений в `main` не внесено.
 - AUD-003: закрыт — серверный stock patch соответствует фактическому балансу после clamp/gather; regression test проверяет БД, patch и sim fact (CI #160/#175).
@@ -16,7 +16,7 @@
 - AUD-022: транзакционный advisory lock + уникальный индекс PostgreSQL `(world_id, account_id)`; конкурентная регрессия и восстановление привязки сессии проходят CI.
 - AUD-030: полный startup bootstrap выполняется под одним PostgreSQL advisory lock; конкурентный интеграционный тест проходит CI #101/#124/#131. Mixed-version rolling deploy остаётся отдельной проверкой перед production.
 - AUD-033: область идемпотентности теперь включает мир и игрока; повтор с чужим commandId не затирает первоначальный outcome. Регрессии проходят CI.
-- AUD-034 и AUD-035 остаются частично открытыми до production-like backup/restore и фактической TLS/reverse-proxy проверки на целевом хостинге. Механический backup/restore drill в disposable PostgreSQL 18 прошёл CI #203 и повторно CI #214: дамп, checksum, restore, сверка строк и повторный production startup успешны; это не подтверждает provider backups/PITR, off-host retention или production RPO/RTO. Для AUD-035 реализованы HTTPS WebSocket Origin allowlist, CSP/frame policy, защищённые `/api/ops/health` и `/api/schedule`; остаётся реальный TLS/proxy deployment. **AUD-002 закрыт:** в `court` нет фазы `limit`, тест явно проверяет отсутствие лимита накопления; склад остаётся объёмом защиты, а не потолком. **AUD-004 открыт:** выпуск ресурсов пока фиксирован и не зависит от зданий/уровней, включая пассивное золото. AUD-030, AUD-038, AUD-041 закрыты.
+- AUD-034 и AUD-035 остаются частично открытыми до production-like backup/restore и фактической TLS/reverse-proxy проверки на целевом хостинге. Механический backup/restore drill в disposable PostgreSQL 18 прошёл CI #203, #214 и повторно #216: дамп, checksum, restore, сверка строк и повторный production startup успешны; это не подтверждает provider backups/PITR, off-host retention или production RPO/RTO. Для AUD-035 реализованы HTTPS WebSocket Origin allowlist, CSP/frame policy, защищённые `/api/ops/health` и `/api/schedule`; остаётся реальный TLS/proxy deployment. **AUD-002 закрыт:** в `court` нет фазы `limit`, тест явно проверяет отсутствие лимита накопления; склад остаётся объёмом защиты, а не потолком. **AUD-004 открыт:** выпуск ресурсов пока фиксирован и не зависит от зданий/уровней, включая пассивное золото. AUD-030, AUD-038, AUD-041 закрыты.
 - Графика: PixiJS main chunk 735.16 КБ / 213.81 КБ gzip; ленивой загрузки и инкрементальной перерисовки пока нет.
 - Dependency audit в CI #101/#124/#131: 0 известных уязвимостей на порогах High и Moderate; AUD-039 закрыт для текущего lockfile.
 
@@ -127,7 +127,7 @@
 - Проверка `apps/client/src/net.ts`, `apps/client/src/ui/World.tsx` и `apps/client/src/store.ts` не обнаружила использования `/api/schedule`; документация описывает его как операторский инструмент.
 - `GET /api/schedule` теперь требует корректный `x-admin-token`, неверный/отсутствующий ключ даёт 403 и пишет `admin.denied`; успешный ответ получает `cache-control: no-store`.
 - `apps/server/tests/http.test.ts` проверяет отказ без токена, отказ с неверным токеном, доступ с правильным токеном, покрытие расписания и fallback параметра.
-- CI для изменения ожидает завершения; AUD-042 считаем закрытым только после PASS на новом HEAD.
+- CI #214 и #216 PASS подтвердили изменение; AUD-042 закрыт для текущей ветки.
 
 
 ## AUD-035 — reference runbook production deployment (09.11.2026)
