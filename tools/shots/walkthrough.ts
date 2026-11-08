@@ -144,8 +144,12 @@ async function measureTop(label: string): Promise<string> {
       : null;
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
-      documentWidth: document.documentElement.scrollWidth,
-      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+      topBarWidth: document.querySelector(".ch-top")?.clientWidth ?? null,
+      topBarScrollWidth: document.querySelector(".ch-top")?.scrollWidth ?? null,
+      horizontalOverflow: (() => {
+        const top = document.querySelector(".ch-top");
+        return top ? top.scrollWidth > top.clientWidth + 1 : true;
+      })(),
       profile,
       resources,
       firstResource: rect(".ch-res__item:first-child"),
@@ -180,7 +184,7 @@ console.log("сохранён game-court-build.jpg");
 // чтобы скриншотный сценарий не изменял состояние тестового королевства.
 await page.evaluate(() => {
   const tab = [...document.querySelectorAll(".concept-build-tabs button")]
-    .find((button) => /двор|decor/i.test(button.textContent ?? ""));
+    .find((button) => /украшения|decor/i.test(button.textContent ?? ""));
   (tab as HTMLButtonElement | undefined)?.click();
 });
 await sleep(350);
