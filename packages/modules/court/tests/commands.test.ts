@@ -119,6 +119,9 @@ describe("court.road", () => {
   it("не размещает дорогу под зданием и не переносит за край", () => {
     const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
     expect(cmd("court.road")(ctxOf(st, {}), { x: 5, z: 5 })).toEqual([{ kind: "error", key: "court.error.occupied" }]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: 0, z: 0, remove: true })).toEqual([
+      { kind: "error", key: "court.error.not_found" },
+    ]);
     const withRoad = { ...st, grid: { ...st.grid, roads: [{ x: 0, z: 0 }] } };
     expect(cmd("court.road")(ctxOf(withRoad, {}), {
       x: 10,
@@ -150,6 +153,33 @@ describe("court.upgrade (Цитадель)", () => {
   });
 });
 
+describe("court.move", () => {
+  it("возвращает ошибку, если постройка не найдена", () => {
+    const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
+    expect(cmd("court.move")(ctxOf(st, {}), {
+      type: "sawmill",
+      fromX: 1,
+      fromZ: 1,
+      toX: 2,
+      toZ: 2,
+    })).toEqual([{ kind: "error", key: "court.error.not_found" }]);
+  });
+
+  it("возвращает ошибку, если целевая клетка занята", () => {
+    const st = state(1, [
+      { type: "citadel", x: 5, z: 5 },
+      { type: "sawmill", x: 2, z: 2 },
+    ]);
+    expect(cmd("court.move")(ctxOf(st, {}), {
+      type: "sawmill",
+      fromX: 2,
+      fromZ: 2,
+      toX: 5,
+      toZ: 5,
+    })).toEqual([{ kind: "error", key: "court.error.occupied" }]);
+  });
+});
+
 describe("court.remove", () => {
   it("Цитадель и здания не убираются, декор — да", () => {
     const st = state(2, [
@@ -159,6 +189,9 @@ describe("court.remove", () => {
     expect(cmd("court.remove")(ctxOf(st, {}), { type: "citadel", x: 5, z: 5 })).toEqual([{ kind: "error", key: "court.error.invalid" }]);
     const effects = cmd("court.remove")(ctxOf(st, {}), { type: "lantern", x: 1, z: 1 });
     expect(gridOf(effects)!.buildings.map((b) => b.type)).toEqual(["citadel"]);
+    expect(cmd("court.remove")(ctxOf(st, {}), { type: "lantern", x: 3, z: 3 })).toEqual([
+      { kind: "error", key: "court.error.not_found" },
+    ]);
   });
 });
 
