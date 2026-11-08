@@ -39,6 +39,8 @@ jobs:
     env:
       TDL_TEST_SERVER_URL: postgres://tdl:tdl@127.0.0.1:5432/postgres
       TDL_TEST_ADMIN_DB: postgres
+      TDL_DRILL_ADMIN_URL: postgres://tdl:tdl@127.0.0.1:5432/postgres
+      TDL_DRILL_SOURCE_DB: tdl_backup_source
       CI: "true"
     steps:
       - name: Получить исходный код
@@ -69,10 +71,20 @@ jobs:
         run: pnpm check
 
       - name: Проверить синтаксис backup/restore scripts
-        run: bash -n tools/db/backup.sh tools/db/restore-drill.sh
+        run: bash -n tools/db/backup.sh tools/db/restore-drill.sh tools/db/ci-restore-drill.sh
+
+      - name: Установить PostgreSQL 18 client для совместимого dump/restore
+        run: |
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo "$VERSION_CODENAME")-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
 
       - name: Собрать production
         run: pnpm build
+
+      - name: Выполнить настоящий PostgreSQL backup/restore drill
+        run: bash tools/db/ci-restore-drill.sh
 
       - name: Проверить уязвимости зависимостей
         run: pnpm audit --audit-level high
