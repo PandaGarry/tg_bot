@@ -16,6 +16,7 @@ let reconnectTimer: number | null = null;
 let pingTimer: number | null = null;
 let counter = 0;
 let authenticated = false;
+let logoutPending = false;
 
 function url(): string {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
@@ -38,7 +39,7 @@ export function idempotencyKey(commandId: string): string {
 export function sendCommand(commandId: string, payload: JsonValue = {}): void {
   // Не отправляем команды до подтверждения auth сервером: открытый WebSocket
   // ещё не означает, что сессия восстановлена после переподключения.
-  if (!authenticated || !socket || socket.readyState !== WebSocket.OPEN) {
+  if (!authenticated || logoutPending || !socket || socket.readyState !== WebSocket.OPEN) {
     store.addError("kernel.connection.lost");
     return;
   }
@@ -85,6 +86,7 @@ export function connect(): void {
     switch (data.t) {
       case "auth":
         authenticated = true;
+        logoutPending = false;
         store.setAuth(
           { needsLord: data.needsLord, token: data.token, accountId: data.accountId },
           data.token,
@@ -112,6 +114,7 @@ export function connect(): void {
         break;
       case "out":
         // Локальный токен удаляем только после подтверждения сервера.
+        logoutPending = false;
         if (data.ok) {
           authenticated = false;
           store.setAuth(null, null);
@@ -126,6 +129,7 @@ export function connect(): void {
 
   next.addEventListener("close", () => {
     authenticated = false;
+    logoutPending = false;
     store.setStatus("offline");
     if (pingTimer) window.clearInterval(pingTimer);
     if (reconnectTimer) window.clearTimeout(reconnectTimer);
@@ -177,6 +181,7 @@ export function logout(): void {
     store.addError("kernel.connection.lost");
     return;
   }
+  logoutPending = true;
   send({ t: "auth.logout", protocolVersion: PROTOCOL_VERSION, token });
 }
 
