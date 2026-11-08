@@ -199,7 +199,7 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
               extra={{ opened: true, open: () => undefined, close: () => undefined }}
               empty={<Panel>{t("shell.sheet.title")}: пусто</Panel>}
             />
-            <Diagnostics lang={lang} />
+            {import.meta.env.DEV ? <Diagnostics lang={lang} /> : null}
             <section className="concept-account-card">
               <div className="concept-account-card__title">{t("shell.account.title")}</div>
               <p>{t("shell.account.note")}</p>
