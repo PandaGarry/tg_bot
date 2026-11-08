@@ -35,6 +35,13 @@ export const strings = {
     "court.report.placed": "Возведена постройка: {building}",
     "court.report.upgraded": "Цитадель улучшена: уровень {level}",
     "court.report.removed": "Постройка убрана: {building}",
+    "court.error.unavailable": "Это действие сейчас недоступно",
+    "court.error.insufficient": "Недостаточно ресурсов",
+    "court.error.limit": "Достигнут предел построек",
+    "court.error.out_of_bounds": "Эта клетка находится за пределами двора",
+    "court.error.occupied": "Клетка уже занята",
+    "court.error.not_found": "Объект не найден",
+    "court.error.invalid": "Нельзя выполнить это действие для выбранного объекта",
   },
   en: {
     "resource.meat": "Meat",
@@ -70,6 +77,13 @@ export const strings = {
     "court.report.placed": "Building raised: {building}",
     "court.report.upgraded": "Citadel improved: level {level}",
     "court.report.removed": "Building removed: {building}",
+    "court.error.unavailable": "This action is not available right now",
+    "court.error.insufficient": "Not enough resources",
+    "court.error.limit": "The building limit has been reached",
+    "court.error.out_of_bounds": "That cell is outside the court",
+    "court.error.occupied": "That cell is already occupied",
+    "court.error.not_found": "The object was not found",
+    "court.error.invalid": "This action is not valid for the selected object",
   },
 } as const;
 
