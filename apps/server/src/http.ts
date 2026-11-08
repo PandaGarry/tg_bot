@@ -172,13 +172,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
     if (url.pathname === "/api/kernel/rejections") {
       // Отказы содержат actorId и claimed/computed: это служебная диагностика,
       // а не публичный игровой API. Закрываем её тем же операторским токеном.
-      const token = options.adminToken ?? "";
-      const given = req.headers["x-admin-token"];
-      const authorized =
-        token.length > 0 &&
-        typeof given === "string" &&
-        given.length === token.length &&
-        timingSafeEqual(Buffer.from(given), Buffer.from(token));
+      const authorized = hasValidAdminToken(req.headers["x-admin-token"], options.adminToken ?? "");
       if (!authorized) {
         options.journal.write({
           channel: "security",
