@@ -105,6 +105,13 @@ function assertProductionConfig(parsed: z.infer<typeof configSchema>, env: NodeJ
     problems.push("ALLOWED_ORIGINS must be explicitly set to one or more HTTPS origins");
   }
   if (new Set(allowedOrigins).size !== allowedOrigins.length) problems.push("ALLOWED_ORIGINS must not contain duplicates");
+  // Production deployment terminates TLS at a reverse proxy. Without an
+  // explicit peer allowlist, every proxied player would share the proxy IP
+  // for login/register rate limits, or attacker-supplied XFF could be trusted.
+  const trustedProxyIps = parsed.TRUSTED_PROXY_IPS.split(",").map((ip) => ip.trim()).filter(Boolean);
+  if (!env.TRUSTED_PROXY_IPS?.trim() || trustedProxyIps.length === 0) {
+    problems.push("TRUSTED_PROXY_IPS must explicitly list the exact reverse-proxy peer IPs");
+  }
   for (const origin of allowedOrigins) {
     try {
       const url = new URL(origin);
