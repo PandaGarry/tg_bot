@@ -44,7 +44,7 @@ interface AuthBucket {
   lastSeen: number;
 }
 
-const AUTH_BUCKET_CAPACITY = 5;
+const AUTH_BUCKET_CAPACITY = { login: 5, register: 10 } as const;
 const AUTH_BUCKET_REFILL_MS = 60_000;
 const AUTH_BUCKET_TTL_MS = 10 * 60_000;
 const AUTH_BUCKET_MAX_KEYS = 10_000;
@@ -280,7 +280,7 @@ export class SocketHub implements ViewSink {
         return;
 
       case "auth.register": {
-        if (!this.takeAuthToken(state)) {
+        if (!this.takeAuthToken(state, "register")) {
           this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.rate }));
           return;
         }
@@ -311,7 +311,7 @@ export class SocketHub implements ViewSink {
       }
 
       case "auth.login": {
-        if (!this.takeAuthToken(state)) {
+        if (!this.takeAuthToken(state, "login")) {
           this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.rate }));
           return;
         }
@@ -462,19 +462,20 @@ export class SocketHub implements ViewSink {
   }
 
   /** Ограничение дорогих операций login/register на TCP-IP, общее для всех сокетов IP. */
-  private takeAuthToken(state: SocketState): boolean {
+  private takeAuthToken(state: SocketState, action: keyof typeof AUTH_BUCKET_CAPACITY): boolean {
     const now = Date.now();
-    const key = state.remoteAddress;
+    const key = `${state.remoteAddress}:${action}`;
+    const capacity = AUTH_BUCKET_CAPACITY[action];
     let bucket = this.authBuckets.get(key);
     if (!bucket) {
       this.pruneAuthBuckets(now);
       // При исчерпании карты не создаём бесконечный набор ключей: новый IP получает отказ.
       if (this.authBuckets.size >= AUTH_BUCKET_MAX_KEYS) return false;
-      bucket = { tokens: AUTH_BUCKET_CAPACITY, lastRefill: now, lastSeen: now };
+      bucket = { tokens: capacity, lastRefill: now, lastSeen: now };
       this.authBuckets.set(key, bucket);
     }
     const elapsed = Math.max(0, now - bucket.lastRefill);
-    bucket.tokens = Math.min(AUTH_BUCKET_CAPACITY, bucket.tokens + (elapsed * AUTH_BUCKET_CAPACITY) / AUTH_BUCKET_REFILL_MS);
+    bucket.tokens = Math.min(capacity, bucket.tokens + (elapsed * capacity) / AUTH_BUCKET_REFILL_MS);
     bucket.lastRefill = now;
     bucket.lastSeen = now;
     if (bucket.tokens < 1) return false;
