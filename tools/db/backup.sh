@@ -6,7 +6,7 @@ umask 077
 
 for tool in pg_dump pg_restore psql sha256sum; do
   command -v "$tool" >/dev/null 2>&1 || {
-    printf 'required command not found: %s\\n' "$tool" >&2
+    printf 'required command not found: %s\n' "$tool" >&2
     exit 1
   }
 done
@@ -17,7 +17,7 @@ backup_dir="$(cd "$backup_dir" && pwd -P)"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_root="$(cd "$script_dir/../.." && pwd -P)"
 if [[ "$backup_dir/" == "$repo_root/"* ]]; then
-  printf 'backup directory must be outside the repository\\n' >&2
+  printf 'backup directory must be outside the repository\n' >&2
   exit 1
 fi
 chmod 700 "$backup_dir"
@@ -29,7 +29,7 @@ meta_file="$dump_file.meta"
 checksum_file="$dump_file.sha256"
 
 if [[ -e "$dump_file" || -e "$meta_file" || -e "$checksum_file" ]]; then
-  printf 'refusing to overwrite an existing backup\\n' >&2
+  printf 'refusing to overwrite an existing backup\n' >&2
   exit 1
 fi
 
@@ -52,13 +52,13 @@ pg_restore --no-password --list "$dump_file" >/dev/null
 )
 
 {
-  printf 'created_at_utc=%s\\n' "$stamp"
-  printf 'format=postgres-custom\\n'
-  printf 'server_version=%s\\n' "$server_version"
+  printf 'created_at_utc=%s\n' "$stamp"
+  printf 'format=postgres-custom\n'
+  printf 'server_version=%s\n' "$server_version"
   pg_dump --version
 } > "$meta_file"
 
 chmod 600 "$dump_file" "$meta_file" "$checksum_file"
 trap - EXIT
-printf 'backup created: %s\\n' "$dump_file"
-printf 'checksum: %s\\n' "$checksum_file"
+printf 'backup created: %s\n' "$dump_file"
+printf 'checksum: %s\n' "$checksum_file"
