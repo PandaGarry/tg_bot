@@ -79,8 +79,8 @@ start_world() {
   DATABASE_URL="$database_url" NODE_ENV=production \
     SESSION_SECRET=ci-restore-drill-session-secret-0123456789 \
     ADMIN_TOKEN=ci-restore-drill-admin-token-0123456789 \
-    ALLOWED_ORIGINS=https://restore-drill.example ACCESS_MODE=admins ADMIN_LOGINS=ci-operator \
-    PORT="$port" HOST=127.0.0.1 WORLD_ID=restore-drill WORLD_NAME="Restore drill" \
+    ALLOWED_ORIGINS=https://restore-drill.example TRUSTED_PROXY_IPS=127.0.0.1 \
+    ACCESS_MODE=admins ADMIN_LOGINS=ci-operator PORT="$port" HOST=127.0.0.1 WORLD_ID=restore-drill WORLD_NAME="Restore drill" \
     WORLD_SEED=1541 WORLD_SIZE=64 REGISTRATION_OPEN=0 \
     node apps/server/dist/index.mjs >"$log_file" 2>&1 &
   server_pid=$!
