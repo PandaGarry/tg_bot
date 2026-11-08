@@ -19,8 +19,8 @@ export const configSchema = z.object({
   WORLD_ID: z.string().default("world-1"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   /**
-   * Команд в секунду на соединение. Тестовый мир поднимает флаг для
-   * нагрузочного прогона; на боевом мира флага нет.
+   * Команд в секунду на аккаунт в пределах одного мира. Тестовый мир
+   * может снизить лимит для проверки общей квоты нескольких сокетов.
    */
   COMMAND_RATE: z.coerce.number().int().min(1).max(1_000).default(20),
   /**
@@ -67,7 +67,7 @@ export type HostConfig = z.infer<typeof configSchema> & {
   registrationOpen: boolean;
   /** Токен оператора: пустая строка — путь выключен. */
   adminToken: string;
-  /** Команд в секунду на соединение. */
+  /** Команд в секунду на аккаунт в пределах одного мира. */
   commandRate: number;
   /** Служебные логины: сравнение по ключу логина, как в воротах. */
   adminLogins: readonly string[];
