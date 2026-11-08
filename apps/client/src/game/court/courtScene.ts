@@ -2,7 +2,7 @@ import { Application, Container, Graphics } from "pixi.js";
 import { bridge } from "../bridge.js";
 import type { StateUpdate } from "../bridge.js";
 import { CourtCamera } from "./camera.js";
-import { buildingDepth, createBuilding, hitBuilding } from "./building.js";
+import { buildingDepth, createBuilding, hitBuilding, preloadBuildingSprites } from "./building.js";
 import { drawGhost } from "./ghost.js";
 import { CourtInput } from "./input.js";
 import { screenToCell } from "./isometric.js";
@@ -28,6 +28,7 @@ export class CourtScene {
   private townhallLevel = 1;
   private mode: CourtSceneMode = INITIAL_MODE;
   private hover: { x: number; z: number } | null = null;
+  private destroyed = false;
 
   constructor(private readonly app: Application) {
     this.root.label = "court-scene";
@@ -54,9 +55,13 @@ export class CourtScene {
 
     this.resize();
     this.redraw();
+    void preloadBuildingSprites().then(() => {
+      if (!this.destroyed) this.redraw();
+    });
   }
 
   destroy(): void {
+    this.destroyed = true;
     this.input.destroy();
     this.unsubscribeState();
     this.unsubscribeMode();

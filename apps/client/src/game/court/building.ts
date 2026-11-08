@@ -1,4 +1,5 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Sprite } from "pixi.js";
+import { getTexture, loadTexture } from "../core/assets.js";
 import { buildingById } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
 import type { CourtBuilding } from "./types.js";
@@ -16,6 +17,37 @@ const DECOR_FOOTPRINTS: Record<string, Footprint> = {
   flag: { width: 1, depth: 1 },
 };
 
+/**
+ * Проверенные спрайты из оригинального прототипа двора.
+ * Размеры/подошвы перенесены из docs/game/ui/court/court.js.
+ * Ночные версии размещены рядом, но подключаются после появления
+ * авторитетного поля времени суток в CourtState.
+ */
+const BUILDING_SPRITES: Record<string, { file: string; patch: number; tipX: number; tipY: number }> = {
+  citadel: { file: "a-01", patch: 585, tipX: 295, tipY: 563 },
+  sawmill: { file: "d-01", patch: 600, tipX: 302, tipY: 513 },
+  quarry: { file: "a-03", patch: 388, tipX: 197, tipY: 321 },
+  farm: { file: "b-01", patch: 588, tipX: 296, tipY: 367 },
+  pen: { file: "b-02", patch: 512, tipX: 310, tipY: 357 },
+  warehouse: { file: "c-03", patch: 459, tipX: 232, tipY: 539 },
+  barracks: { file: "b-03", patch: 608, tipX: 306, tipY: 501 },
+  infirmary: { file: "c-02", patch: 509, tipX: 257, tipY: 492 },
+};
+
+const buildingTextureKey = (type: string) => `court-building:${type}`;
+
+/** Загружает только подтверждённые типы; при ошибке остаётся векторный fallback. */
+export async function preloadBuildingSprites(): Promise<void> {
+  await Promise.all(
+    Object.entries(BUILDING_SPRITES).map(async ([type, definition]) => {
+      try {
+        await loadTexture(buildingTextureKey(type), `/court/sprites/${definition.file}.png`);
+      } catch (error) {
+        console.warn(`[Pixi] Не удалось загрузить спрайт здания ${type}; используется fallback`, error);
+      }
+    }),
+  );
+}
 const PALETTE: Record<string, { roof: number; light: number; dark: number; trim: number }> = {
   citadel: { roof: 0x9c5435, light: 0xe4d2a9, dark: 0x70513a, trim: 0xf0c866 },
   cottage: { roof: 0xa84f3b, light: 0xd8c49a, dark: 0x725039, trim: 0xf0d69b },
@@ -261,6 +293,24 @@ export function createBuilding(building: CourtBuilding, size: number, townhallLe
     drawHouse(graphics, palette, building.type === "barracks");
   } else {
     drawSmallFeature(graphics, building.type, palette);
+  }
+
+  // Реальный PNG привязывается подошвой к нижнему углу footprint.
+  const definition = BUILDING_SPRITES[building.type];
+  const texture = getTexture(buildingTextureKey(building.type));
+  if (definition && texture) {
+    const bounds = buildingFootprintBounds(building.type, building.x, building.z);
+    const foot = worldToScreen(bounds.maxX, bounds.maxZ);
+    const scale = ((footprint.width + footprint.depth) * TILE_WIDTH * 0.5) / definition.patch;
+    const sprite = new Sprite(texture);
+    sprite.scale.set(scale);
+    sprite.position.set(
+      foot.x - projected.x - definition.tipX * scale,
+      foot.y - projected.y - definition.tipY * scale,
+    );
+    sprite.label = `building-art:${building.type}`;
+    container.addChild(sprite);
+    graphics.visible = false;
   }
 
   return container;
