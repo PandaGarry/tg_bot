@@ -5,6 +5,7 @@
 
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
+import { KERNEL_KEYS } from "@tdl/protocol";
 import { loadConfig, type HostConfig } from "../src/config.js";
 import { createJournal, type JournalRecord } from "../src/logger.js";
 import { WorldService } from "../src/world/service.js";
@@ -230,7 +231,7 @@ describe("изоляция команд между мирами", () => {
       requestId: "req-cross-world",
       idempotencyKey: "key-cross-world",
     });
-    expect(outcome).toEqual({ status: "error", key: "auth.session" });
+    expect(outcome).toEqual({ status: "error", key: KERNEL_KEYS.session });
     expect(opened.records.some((record) => record.event === "command.cross_world")).toBe(true);
     expect((await base.db.pool.query(
       "SELECT count(*)::int AS n FROM kit_state WHERE world_id = $1",
