@@ -308,7 +308,7 @@ const court = defineModule({
       {
         // Шаг 2 замены court: сохранённые дворы сбрасываются (решено 14.10). Запасы не трогаем.
         to: 3,
-        sql: `UPDATE court_holder SET grid = NULL, townhall_level = 1`,
+        sql: `UPDATE court_holder SET grid = NULL, townhall_level = 1 WHERE world_id = current_setting('tdl.world_id', true)`,
       },
     ],
     snapshot: async ({ store, actor }): Promise<JsonValue> => {
