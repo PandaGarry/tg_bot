@@ -72,3 +72,29 @@
 | TDL-AUD-007 | Повторный `court.enter` не переносит существующий production deadline | `packages/modules/court/tests/commands.test.ts`: повторный вход не сдвигает срок |
 
 **Ограничение:** эти статусы означают «исправлено в рабочей ветке и подтверждено CI», а не «выпущено в production». PR #9 не слит; production DB не мигрировалась.
+
+
+## 6. Повторная проверка после обновления ветки — 08.11.2026, 22:58 UTC
+
+> Текущий проверенный HEAD: `c0b113fdaa7386a859aa502ae759cba819d347c1` · PR #9 открыт, не слит · CI run #74: **SUCCESS**.
+
+Полный workflow #74 на этом HEAD завершил успешно все обязательные этапы: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`, `pnpm audit --audit-level high`. Предыдущий run #72 на HEAD `16fa322` упал на typecheck в `packages/host/tests/stress.test.ts`: тест обращался к `outcome.key` без narrowing и терял тип `CommandOutcome` в результате `.then()`. Коммит `150fe8d` сохранил возвращаемый outcome и убрал ошибочный доступ; run #74 подтвердил исправление полным CI. Не путать run #72 (FAIL) и run #74 (PASS).
+
+### Пересмотр отдельных находок по коду HEAD c0b113f
+
+| ID | Уточнённый статус | Подтверждение и остаток |
+|---|---|---|
+| TDL-AUD-003 | **Исправление в реализации; тестовое покрытие требует усиления** | `packages/host/src/world/effects.ts`: при сборке `stock.*` патчей ядро заменяет переданное значение фактическим балансом из `stockBalances`, включая результат clamp и gather. Не считать находку полностью закрытой, пока нет отдельной регрессии на БД + клиентский патч при clamp. |
+| TDL-AUD-006 | **Частично исправлено** | `apps/server/src/net.ts`: login/register используют общий IP bucket между сокетами, login — 5 токенов, register — 10, пополнение за 60 секунд; записи очищаются по TTL и ограничены по числу ключей. Командный лимит всё ещё хранится в `SocketState` и обходится открытием нескольких соединений; нет общего лимита на аккаунт. Нужны тесты IP-bucket и решение по account/global command throttling. Не доверять X-Forwarded-For без явного allowlist прокси. |
+| TDL-AUD-022 | **Исправлено в коде; CI PASS** | `createLord` берёт `pg_advisory_xact_lock` по world/account до SELECT+INSERT; существующий лорд возвращается вместо создания второго. `packages/host/tests/gates.test.ts` содержит конкурентную регрессию и проверку одного лорда на аккаунт/мир. |
+| TDL-AUD-030 | **Частично закрыто / требуется архитектурная проверка** | `applyKernelMigrations` и `applyModuleMigrations` используют один advisory lock key, а версия модуля читается под lock. Но lock освобождается между kernel migrations и module migrations в boot-последовательности. Проверить сценарий rolling deploy со смешанными версиями процессов; предпочтительно один lock вокруг полного migration bootstrap. |
+| TDL-AUD-002/004 | **Открыто, P1** | Склад по-прежнему поддерживает фазу limit/clamp, а `PRODUCTION_BASE` в модуле двора задаёт фиксированный выпуск. Требуется утвердить экономическую модель и только после этого менять баланс. |
+| TDL-AUD-034/035 | **Открыто, P0 до production** | В просмотренных файлах не найден подтверждённый restore drill и полный fail-closed production startup policy. Нужны проверяемый backup/restore, безопасные production defaults и тесты отсутствующих/слабых секретов, регистрации, админских маршрутов и origin policy. |
+| TDL-AUD-016 | **Исправлено, CI PASS** | Workflow выполняет полный typecheck/test/check/build и `pnpm audit --audit-level high`; run #74 прошёл на указанном HEAD. |
+
+### Что нельзя объявлять готовым
+
+- PR #9 не слит в `main`; успешный CI рабочей ветки не равен production-релизу.
+- Полный аудит безопасности и diff-review 375 файлов ещё не завершены.
+- CI не заменяет нагрузочное тестирование на целевой инфраструктуре, проверку восстановления БД и ручную приёмку UI на телефонах/широких экранах.
+- Экономика, production model и оставшиеся P0/P1 требуют отдельного закрытия с тестами.
