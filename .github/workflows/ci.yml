@@ -70,6 +70,9 @@ jobs:
       - name: Проверить реестры, границы пакетов, i18n и расписание
         run: pnpm check
 
+      - name: Проверить синтаксис backup/restore scripts
+        run: bash -n tools/db/backup.sh tools/db/restore-drill.sh
+
       - name: Собрать production
         run: pnpm build
 
