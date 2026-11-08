@@ -15,7 +15,7 @@
     "dev:parallel": "node tools/parallel-world.mjs",
     "db:reset": "TDL_ALLOW_DB_RESET=1 tsx tools/devdb/reset.ts",
     "build": "pnpm check && turbo run build",
-    "start": "node apps/server/dist/index.mjs",
+    "start": "node tools/start-production.mjs",
     "test": "turbo run test --concurrency=1",
     "typecheck": "turbo run typecheck",
     "db:generate": "pnpm --filter @tdl/host db:generate",

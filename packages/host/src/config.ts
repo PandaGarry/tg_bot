@@ -74,6 +74,35 @@ export type HostConfig = z.infer<typeof configSchema> & {
   isProduction: boolean;
 };
 
+
+function assertProductionConfig(parsed: z.infer<typeof configSchema>, env: NodeJS.ProcessEnv): void {
+  if (parsed.NODE_ENV !== "production") return;
+  const problems: string[] = [];
+  const isWeakSecret = (value: string): boolean => {
+    const normalized = value.trim().toLowerCase();
+    const placeholders = new Set(["dev-only-secret-change-me", "change-me", "changeme", "secret", "password", "test", "development", "default"]);
+    return value.length < 32 || new Set(value).size < 8 || placeholders.has(normalized);
+  };
+  if (isWeakSecret(parsed.SESSION_SECRET)) problems.push("SESSION_SECRET must be a random value of at least 32 characters");
+  if (isWeakSecret(parsed.ADMIN_TOKEN)) problems.push("ADMIN_TOKEN must be a separate random value of at least 32 characters");
+  if (parsed.SESSION_SECRET === parsed.ADMIN_TOKEN) problems.push("SESSION_SECRET and ADMIN_TOKEN must differ");
+  if (!env.WORLD_ID?.trim()) problems.push("WORLD_ID must be explicitly set");
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(parsed.WORLD_ID)) problems.push("WORLD_ID must be a 1–64 character slug");
+  if (!env.ACCESS_MODE?.trim()) problems.push("ACCESS_MODE must be explicitly set");
+  if (!env.REGISTRATION_OPEN?.trim()) problems.push("REGISTRATION_OPEN must be explicitly set to 0 or 1");
+  if (parsed.ACCESS_MODE === "admins" && parsed.ADMIN_LOGINS.length === 0) problems.push("ADMIN_LOGINS must contain at least one login when ACCESS_MODE=admins");
+  if (parsed.PORT === 0) problems.push("PORT must be non-zero in production");
+  try {
+    const protocol = new URL(parsed.DATABASE_URL).protocol;
+    if (protocol !== "postgres:" && protocol !== "postgresql:") problems.push("DATABASE_URL must use PostgreSQL");
+  } catch {
+    problems.push("DATABASE_URL must be a valid PostgreSQL URL");
+  }
+  if (problems.length > 0) {
+    // Never include actual env values here: configuration errors must not leak secrets.
+    throw new Error("Production configuration rejected: " + problems.join("; "));
+  }
+}
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
   let parsed: z.infer<typeof configSchema>;
   try {
@@ -87,6 +116,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
         : "Проверьте настройки окружения и файл .env.";
     throw new Error(`${hint}\n${String(error)}`);
   }
+  assertProductionConfig(parsed, env);
   return {
     ...parsed,
     registrationOpen: parsed.REGISTRATION_OPEN === "1",

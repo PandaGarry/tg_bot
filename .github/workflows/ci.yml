@@ -73,3 +73,25 @@ jobs:
 
       - name: Проверить уязвимости зависимостей
         run: pnpm audit --audit-level high
+
+      - name: Показать оставшиеся moderate advisories
+        if: always()
+        run: pnpm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: Диагностика Drizzle snapshots
+        if: always()
+        run: |
+          pnpm --filter @tdl/host exec drizzle-kit generate --name=ci_snapshot_probe || true
+          mkdir -p /tmp/tdl-drizzle-snapshot
+          cp -R packages/host/drizzle/. /tmp/tdl-drizzle-snapshot/
+          git status --short -- packages/host/drizzle
+        continue-on-error: true
+
+      - name: Сохранить Drizzle snapshot probe
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drizzle-snapshot-probe
+          path: /tmp/tdl-drizzle-snapshot/
+          if-no-files-found: ignore
