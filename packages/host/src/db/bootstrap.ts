@@ -128,6 +128,10 @@ export async function applyModuleMigrations(
     const client = await db.pool.connect();
     try {
       await client.query("BEGIN");
+      // Миграции модулей могут менять общие таблицы нескольких миров.
+      // Контекст мира доступен SQL как transaction-local setting, чтобы data
+      // migrations не затрагивали соседние миры на общей базе.
+      await client.query("SELECT set_config('tdl.world_id', $1, true)", [worldId]);
       for (const migration of pending) {
         await client.query(migration.sql);
       }
