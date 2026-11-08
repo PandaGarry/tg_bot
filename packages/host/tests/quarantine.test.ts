@@ -160,7 +160,9 @@ describe("карантин и лечение единиц", () => {
     const world = await quickWorld({ backoff: [120, 240, 480] });
     try {
       const actor = world.actor();
-      await runCommand(world, actor, "_kit.arm", { count: 30 });
+      // Окно должно быть заметно длиннее трёх DB-backed команд: 30 ms
+      // делали тест зависимым от нагрузки CI и иногда истекали до карантина.
+      await runCommand(world, actor, "_kit.arm", { count: 1_000 });
       const armed = await deadlinesOf(world, "_kit");
       expect(armed).toHaveLength(1);
       expect(armed[0]?.unitId).toBe("gadget");
@@ -169,7 +171,7 @@ describe("карантин и лечение единиц", () => {
       for (let attempt = 0; attempt < 3; attempt += 1) await runCommand(world, actor, "_kit.crash");
       expect(world.service.unitStateOf(GADGET)!.reason).toBe("quarantine");
 
-      await new Promise((done) => setTimeout(done, 60));
+      await new Promise((done) => setTimeout(done, 1_050));
       await world.service.pumpOnce();
       expect(world.records.some((record) => record.event === "deadline.postponed")).toBe(true);
       const stillThere = await deadlinesOf(world, "_kit");
