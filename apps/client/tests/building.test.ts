@@ -6,8 +6,19 @@ import { buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteB
 import { BUILDING_ART_BACKLOG, BUILDING_SPRITES, buildingSpriteUrl } from "../src/game/court/spriteCatalog.js";
 import { buildings } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
+import { buildings } from "@tdl/content-buildings/catalog";
 
 describe("court building geometry", () => {
+  it("matches the authoritative footprint for every catalog building", () => {
+    for (const definition of buildings) {
+      const bounds = buildingFootprintBounds(definition.id, 7, 7);
+      expect(bounds.width, definition.id).toBe(definition.footprint.w);
+      expect(bounds.depth, definition.id).toBe(definition.footprint.h);
+      expect(bounds.maxX - bounds.minX, definition.id).toBe(definition.footprint.w);
+      expect(bounds.maxZ - bounds.minZ, definition.id).toBe(definition.footprint.h);
+    }
+  });
+
   it("centers the visual footprint on the server's occupied cells", () => {
     expect(buildingFootprintBounds("citadel", 7, 7)).toMatchObject({
       minX: 5,
