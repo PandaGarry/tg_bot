@@ -94,6 +94,7 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     commandRate: config.commandRate,
     sendBufferBytes: options.sendBufferBytes,
     allowedOrigins: config.allowedOrigins,
+    trustedProxyIps: config.trustedProxyIps,
   });
 
   // Порт занимается до права писателя: процесс, которому негде слушать,
