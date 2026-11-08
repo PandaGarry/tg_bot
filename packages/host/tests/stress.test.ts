@@ -17,8 +17,8 @@ afterEach(async () => {
   while (open.length > 0) await open.pop()?.close();
 });
 
-async function makeWorld(): Promise<TestWorld> {
-  const world = await createTestWorld({ extraModules: [kitModule()] });
+async function makeWorld(queueWaitMs?: number): Promise<TestWorld> {
+  const world = await createTestWorld({ extraModules: [kitModule()], ...(queueWaitMs ? { queueWaitMs } : {}) });
   open.push(world);
   return world;
 }
@@ -39,7 +39,9 @@ function percentile(values: number[], share: number): number {
 
 describe("напор команд", () => {
   it("двести команд от двадцати дворов применяются ровно по разу", async () => {
-    const world = await makeWorld();
+    // Нагрузка измеряется по p95; 10 s queue budget не даёт конкурирующим
+    // Vitest/PostgreSQL workers маскировать результат отказом на 2 s.
+    const world = await makeWorld(10_000);
     const actors = Array.from({ length: 20 }, (_, index) => world.actor(`lord-load-${index}`));
     const perActor = 10;
 
@@ -59,7 +61,7 @@ describe("напор команд", () => {
           })
           .then((outcome) => {
             latencies.push(Date.now() - at);
-            expect(outcome.status).toBe("ok");
+            expect(outcome.status, `command rejected: ${outcome.key ?? "unknown"}`).toBe("ok");
           });
         pending.push(done);
       }
