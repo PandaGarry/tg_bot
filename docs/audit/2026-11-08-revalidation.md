@@ -1,6 +1,6 @@
 # Повторная проверка аудита TDL — 08.11.2026
 
-> Ветка: `arena/8885a9e3-tg-bot` · первоначальный baseline: `13e59a7029eb273c8253af7992008441a2baeb23`; актуальный проверенный HEAD: `1351fbbc25d450b8bbaa30969bbcde7ef7da94c9`
+> Ветка: `arena/8885a9e3-tg-bot` · первоначальный baseline: `13e59a7029eb273c8253af7992008441a2baeb23`; актуальный проверенный HEAD: `877942da7cd3a1dcfc41ada87ee8e87b006148f3`
 > Назначение: актуализировать статический аудит по текущему коду и результатам CI. Это не акт релизной приёмки.
 
 ## 1. Проверки CI
@@ -13,9 +13,11 @@
 | `85c0505` | UI-тест logout | Исправлен | Тест подтверждает, что офлайн-клиент не изображает успешный отзыв серверной сессии |
 | `316c2f8` | court deadline | Исправлен | Повторный вход не сдвигает существующий производственный срок; добавлены два теста |
 | `13e59a7` | Полный CI run #35 | **PASS** | Исторический baseline: 247 тестов в 29 файлах |
-| `1351fbb` | Полный CI run #75 | **PASS** | 255 тестов в 30 файлах; typecheck, test, check, build и audit threshold High успешно. Остались 3 Moderate advisories. |
+| `1351fbb` | Полный CI run #75 | **PASS (исторический)** | 255 тестов в 30 файлах; на тот момент оставались 3 Moderate advisories. |
+| `13deea4` | Полный CI run #85 | FAIL | Typecheck прошёл; один новый тест не прошёл контракт реестра из-за отсутствующих словарей ru/en. Исправлено в `877942d`. |
+| `877942d` | Полный CI run #86 | **PASS** | 261 тест в 31 файле; typecheck, test, check, production build и audit thresholds High/Moderate. Известных уязвимостей не обнаружено. |
 
-Ссылки: [CI run #32](https://github.com/PandaGarry/tg_bot/actions/runs/42514624495), [CI run #33](https://github.com/PandaGarry/tg_bot/actions/runs/42514707562), [CI run #34](https://github.com/PandaGarry/tg_bot/actions/runs/42514844082), [CI run #35 — полный успех](https://github.com/PandaGarry/tg_bot/actions/runs/42514990088).
+Ссылки: [CI run #32](https://github.com/PandaGarry/tg_bot/actions/runs/42514624495), [CI run #33](https://github.com/PandaGarry/tg_bot/actions/runs/42514707562), [CI run #34](https://github.com/PandaGarry/tg_bot/actions/runs/42514844082), [CI run #35 — исторический baseline](https://github.com/PandaGarry/tg_bot/actions/runs/42514990088), [CI run #85 — исправление тестового контракта](https://github.com/PandaGarry/tg_bot/actions/runs/42519010100), [CI run #86 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42519146771).
 
 ## 2. Повторная верификация находок первичного аудита
 
@@ -88,10 +90,10 @@
 | TDL-AUD-003 | **Исправление в реализации; тестовое покрытие требует усиления** | `packages/host/src/world/effects.ts`: при сборке `stock.*` патчей ядро заменяет переданное значение фактическим балансом из `stockBalances`, включая результат clamp и gather. Не считать находку полностью закрытой, пока нет отдельной регрессии на БД + клиентский патч при clamp. |
 | TDL-AUD-006 | **Частично исправлено** | `apps/server/src/net.ts`: login/register используют общий IP bucket между сокетами (login — 5, register — 10 попыток на окно 60 секунд), TTL и максимальный размер карты ограничены; тест двух сокетов проходит CI #75. Командный лимит всё ещё per-connection и обходится несколькими сокетами; требуется actor/account-level limiter. `X-Forwarded-For` не используется без доверенного proxy allowlist; прокси-конфигурация ещё не реализована. |
 | TDL-AUD-022 | **Исправлено на уровне приложения и БД; CI #75 PASS** | `createLord` сериализует создание через `pg_advisory_xact_lock`; миграция `0004_world_invariants.sql` добавляет уникальный индекс `(world_id, account_id)` после fail-fast проверки дублей. Тесты проверяют конкурентное создание и восстановление `sessions.lord_id`. До production выполнить read-only запрос на существующие дубли; миграция намеренно не удаляет данные. |
-| TDL-AUD-030 | **Частично закрыто / требуется архитектурная проверка** | `applyKernelMigrations` и `applyModuleMigrations` используют один advisory lock key, а версия модуля читается под lock. Но lock освобождается между kernel migrations и module migrations в boot-последовательности. Проверить сценарий rolling deploy со смешанными версиями процессов; предпочтительно один lock вокруг полного migration bootstrap. |
+| TDL-AUD-030 | **Исправлено в startup bootstrap; CI #86 PASS** | `bootServer` вызывает `bootstrapWorld`: один PostgreSQL advisory lock охватывает kernel migrations → `ensureWorld` → `syncModuleStates` → module migrations. Добавлен конкурентный интеграционный тест: два одновременных bootstrap не применяют ступень модуля повторно. Совместимость mixed-version rolling deploy остаётся отдельной production-проверкой. |
 | TDL-AUD-002/004 | **Открыто, P1** | Склад по-прежнему поддерживает фазу limit/clamp, а `PRODUCTION_BASE` в модуле двора задаёт фиксированный выпуск. Требуется утвердить экономическую модель и только после этого менять баланс. |
-| TDL-AUD-034/035 | **Открыто, P0 до production** | В просмотренных файлах не найден подтверждённый restore drill и полный fail-closed production startup policy. Нужны проверяемый backup/restore, безопасные production defaults и тесты отсутствующих/слабых секретов, регистрации, админских маршрутов и origin policy. |
-| TDL-AUD-016 | **Исправлено, CI #75 PASS** | Полный workflow проходит typecheck/test/check/build и `pnpm audit --audit-level high`; 255 тестов в 30 файлах. Audit threshold High не находит High, но сообщает о 3 Moderate. |
+| TDL-AUD-034/035 | **Открыто, P0 до production** | Не найден подтверждённый restore drill; fail-closed конфигурация требует отдельной проверки всей production-поверхности, включая origin policy, секреты, регистрацию, админские маршруты и диагностические endpoints. Нужны проверяемый backup/restore и тесты безопасного отказа. |
+| TDL-AUD-016 | **Исправлено, CI #86 PASS** | Полный workflow проходит typecheck/test/check/build и оба порога `pnpm audit --audit-level high` / `moderate`; 261 тест в 31 файле. Известных уязвимостей в текущем lockfile не обнаружено. |
 
 ### Что нельзя объявлять готовым
 
@@ -100,16 +102,16 @@
 - CI не заменяет нагрузочное тестирование на целевой инфраструктуре, проверку восстановления БД и ручную приёмку UI на телефонах/широких экранах.
 - Экономика, production model и оставшиеся P0/P1 требуют отдельного закрытия с тестами.
 
-## 7. Дополнительные исправления и новые находки — HEAD 1351fbb
+## 7. Дополнительные исправления и новые находки — HEAD 877942d
 
 | ID | Статус | Доказательство / следующий шаг |
 |---|---|---|
-| TDL-AUD-030 | **Частично закрыто** | `applyKernelMigrations` и `applyModuleMigrations` используют общий PostgreSQL advisory lock; версия модуля читается под lock. Но boot вызывает эти этапы раздельно, lock освобождается между ними. Следующий шаг — один lock вокруг полного startup bootstrap (kernel migrations → ensure world → sync module states → module migrations), затем тест конкурирующих стартов и mixed-version deploy. |
+| TDL-AUD-030 | **Закрыто для полного startup bootstrap; CI #86 PASS** | `bootstrapWorld` удерживает единый database-wide advisory lock на всех четырёх стадиях запуска. Тест `полный bootstrap сериализуется одним замком от ядра до миграций модулей` запускает два bootstrap одновременно и проверяет однократное применение миграции. Mixed-version rolling deploy остаётся отдельной проверкой совместимости схемы и кода. |
 | TDL-AUD-033 | **Исправлено + CI #75 PASS** | PK `commands` теперь `(world_id, actor_id, idempotency_key)`; SELECT/INSERT/UPDATE scoped по actor; rejected-key conflict использует `DO NOTHING`, поэтому конфликтующий commandId не перезаписывает ранее успешный outcome. Есть тесты межигрового ключа и сохранения исходного результата. |
 | TDL-AUD-036 | **Открыто, P1 производительность** | PixiJS импортируется статически в `main.tsx` и инициализируется до авторизации. Production main chunk — 735.16 КБ minified / 213.81 КБ gzip; требуется dynamic import после входа в мир и повторный замер. |
 | TDL-AUD-037 | **Открыто, P1/P2 производительность** | `CourtScene.redraw` заново строит сетку и пересоздаёт здания при обновлении состояния; нет diff-based reconciliation/render-on-demand. Сначала добавить измерение времени redraw и затем обновлять только изменившиеся объекты. |
 | TDL-AUD-038 | **Открыто, P1 корректность UX** | Несколько ветвей `court.place/move/remove/road/upgrade` возвращают пустой список effects при невалидном действии/недостатке ресурсов; ядро считает это успешным no-op. Добавить типизированные локализованные ошибки и тесты rejected outcomes. |
-| TDL-AUD-039 | **Открыто, P1 supply chain** | `pnpm audit --audit-level high` проходит, но сообщает о 3 Moderate advisories. Получить полный `pnpm audit --json`, определить пакет/путь/исправленную версию и классифицировать runtime vs dev/transitive; не игнорировать без причины. |
+| TDL-AUD-039 | **Закрыто для текущего lockfile; CI #86 PASS** | `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` завершились сообщением `No known vulnerabilities found`. Повторять audit при каждом обновлении зависимостей; статус не является гарантией отсутствия будущих advisories. |
 | TDL-AUD-040 | **Открыто, P1 сеть** | Login/register ограничены по TCP peer IP, но trusted proxy allowlist отсутствует; за reverse proxy все игроки могут разделять один IP bucket. Добавить явную конфигурацию доверенных прокси и безопасный разбор XFF либо ограничивать на edge. |
 | TDL-AUD-041 | **Открыто, P1 сеть** | Command rate limit пока на сокет; открытие нескольких соединений позволяет одному actor обходить `COMMAND_RATE`. Добавить actor/account-level bucket в пределах активного world writer и тест на два сокета одного аккаунта. |
 
@@ -128,4 +130,4 @@
 - До применения миграции 0004 к существующей БД выполнить:
   `SELECT world_id, account_id, count(*), array_agg(lord_id) FROM lords GROUP BY world_id, account_id HAVING count(*) > 1;`
   При наличии строк требуется ручное решение по данным, автоматическое удаление запрещено.
-- 3 Moderate advisories требуют отдельного triage; threshold High не означает «уязвимостей нет».
+- На текущем lockfile CI #86 не обнаружил известных High или Moderate advisories. Это не отменяет повторного dependency audit при каждом обновлении.
