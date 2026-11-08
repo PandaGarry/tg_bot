@@ -1,7 +1,7 @@
 /** Регрессия: миграции изолированы по миру и сериализованы между процессами. */
 import type { ModuleDefinition } from "@tdl/kernel";
 import { describe, expect, it } from "vitest";
-import { applyModuleMigrations, syncModuleStates } from "../src/db/bootstrap.js";
+import { applyModuleMigrations, bootstrapWorld, syncModuleStates } from "../src/db/bootstrap.js";
 import { createJournal } from "../src/logger.js";
 import { createTestWorld } from "./harness.js";
 
@@ -98,4 +98,53 @@ describe("изоляция миграций миров", () => {
       await world.close();
     }
   });
-});
+
+  it("полный bootstrap сериализуется одним замком от ядра до миграций модулей", async () => {
+    const definition: ModuleDefinition = {
+      id: "migration-bootstrap-race",
+      version: 1,
+      kind: "core",
+      server: {
+        migrations: [
+          {
+            to: 1,
+            sql: `SELECT pg_sleep(0.15);
+                  CREATE TABLE IF NOT EXISTS migration_bootstrap_probe (
+                    world_id text NOT NULL,
+                    module_id text NOT NULL
+                  );
+                  INSERT INTO migration_bootstrap_probe (world_id, module_id)
+                  VALUES (current_setting('tdl.world_id', true), 'migration-bootstrap-race')`,
+          },
+        ],
+      },
+    };
+    const world = await createTestWorld({ extraModules: [definition] });
+    try {
+      await world.db.pool.query(
+        "UPDATE module_states SET version = 0 WHERE world_id = $1 AND module_id = $2",
+        [world.id, definition.id],
+      );
+      await world.db.pool.query("DELETE FROM migration_bootstrap_probe WHERE world_id = $1", [world.id]);
+
+      const events: string[] = [];
+      const journal = createJournal((record) => events.push(record.event));
+      const [first, second] = await Promise.all([
+        bootstrapWorld(world.db, world.config, world.registry, journal),
+        bootstrapWorld(world.db, world.config, world.registry, journal),
+      ]);
+
+      expect(first.id).toBe(world.id);
+      expect(second.id).toBe(world.id);
+      const rows = await world.db.pool.query<{ count: string }>(
+        "SELECT count(*)::text AS count FROM migration_bootstrap_probe WHERE world_id = $1 AND module_id = $2",
+        [world.id, definition.id],
+      );
+      expect(Number(rows.rows[0]?.count)).toBe(1);
+      expect(events.filter((event) => event === "module.migrated")).toHaveLength(1);
+    } finally {
+      await world.db.pool.query("DELETE FROM migration_bootstrap_probe WHERE world_id = $1", [world.id]).catch(() => undefined);
+      await world.close();
+    }
+  });
+ });
