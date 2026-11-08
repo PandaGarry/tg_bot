@@ -4,6 +4,7 @@
  */
 
 import type { IncomingMessage, Server } from "node:http";
+import { isIP } from "node:net";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type WebSocket } from "ws";
 import {
@@ -33,7 +34,7 @@ interface SocketState {
   viewport: { x: number; y: number; w: number; h: number } | null;
   lang: "ru" | "en";
   alive: boolean;
-  /** Адрес TCP-пира; X-Forwarded-For не доверяем без proxy allowlist. */
+  /** Разрешённый client IP после проверки доверенной proxy chain. */
   remoteAddress: string;
 }
 
@@ -41,6 +42,13 @@ interface AuthBucket {
   tokens: number;
   lastRefill: number;
   lastSeen: number;
+}
+
+function normalizeIp(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  const candidate = trimmed.startsWith("::ffff:") ? trimmed.slice(7) : trimmed;
+  return isIP(candidate) === 0 ? null : candidate.toLowerCase();
 }
 
 const AUTH_BUCKET_CAPACITY = { login: 5, register: 10 } as const;
@@ -60,6 +68,8 @@ export interface HubOptions {
   sendBufferBytes?: number;
   /** Exact browser origins allowed to open production WebSocket sessions. */
   allowedOrigins?: readonly string[];
+  /** Exact IPs of trusted reverse proxies; CIDR is intentionally unsupported. */
+  trustedProxyIps?: readonly string[];
 }
 
 export function containsTile(
@@ -82,6 +92,7 @@ export class SocketHub implements ViewSink {
   private readonly commandRate: number;
   private readonly sendBufferBytes: number;
   private readonly allowedOrigins: ReadonlySet<string>;
+  private readonly trustedProxyIps: ReadonlySet<string>;
   /** Медленные клиенты: их отключают, чтобы память мира не росла. */
   private slowClients = 0;
   private readonly states = new Set<SocketState>();
@@ -102,6 +113,7 @@ export class SocketHub implements ViewSink {
     this.commandRate = options.commandRate ?? LIMITS.commandsPerSecond;
     this.sendBufferBytes = options.sendBufferBytes ?? LIMITS.sendBufferBytes;
     this.allowedOrigins = new Set(options.allowedOrigins ?? []);
+    this.trustedProxyIps = new Set((options.trustedProxyIps ?? []).map((ip) => normalizeIp(ip)).filter((ip): ip is string => ip !== null));
   }
 
   setService(service: WorldService): void {
@@ -254,6 +266,29 @@ export class SocketHub implements ViewSink {
     return this.states.size;
   }
 
+  /** Trust X-Forwarded-For only when the direct TCP peer is explicitly allowlisted. */
+  private resolveRemoteAddress(request: IncomingMessage): string {
+    const peer = normalizeIp(request.socket.remoteAddress);
+    if (!peer) return "unknown";
+    if (!this.trustedProxyIps.has(peer)) return peer;
+
+    const header = request.headers["x-forwarded-for"];
+    const forwarded = Array.isArray(header) ? header.join(",") : header;
+    if (!forwarded) return peer;
+    const chain = forwarded
+      .split(",")
+      .map((address) => normalizeIp(address))
+      .filter((address): address is string => address !== null);
+    if (chain.length === 0) return peer;
+
+    // XFF is client, proxy-1, proxy-2. Walk right-to-left through trusted hops;
+    // the first untrusted address is the client. Ignore any forged prefix to its left.
+    const hops = [...chain, peer];
+    let index = hops.length - 1;
+    while (index > 0 && this.trustedProxyIps.has(hops[index]!)) index -= 1;
+    return hops[index] ?? peer;
+  }
+
   private onConnection(socket: WebSocket, request: IncomingMessage): void {
     const state: SocketState = {
       socket,
@@ -263,7 +298,7 @@ export class SocketHub implements ViewSink {
       viewport: null,
       lang: "ru",
       alive: true,
-      remoteAddress: request.socket.remoteAddress ?? "unknown",
+      remoteAddress: this.resolveRemoteAddress(request),
     };
     this.states.add(state);
     socket.on("pong", () => {
