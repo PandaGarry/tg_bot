@@ -116,3 +116,7 @@
 - CI устанавливает PostgreSQL 18 client; `backup.sh` отказывает, если major-версия `pg_dump` ниже major-версии исходного сервера. Restore script дополнительно проверяет отсутствие relation objects/custom schemas в target и требует восстановленные world + module state rows.
 - Runbook `docs/ops/backup-restore.md` дополнен описанием автоматического drill и границ доказательства.
 - **Статус: implementation committed; CI run pending. AUD-034 не закрыт.** Даже после CI PASS остаются production provider backups, off-host encrypted copy, retention/PITR, запуск на актуальной production-like копии и реальные RPO/RTO. CI timings не подменяют production RPO/RTO.
+
+- **CI #203 PASS** на кодовом HEAD `611c2ada2889dadd44ab08c91f4eac8c7afb3aa`: 270 тестов / 31 файл; typecheck, tests, checks, bash syntax, PostgreSQL 18 client install, production build, end-to-end restore drill, оба dependency audits и Drizzle snapshot check прошли.
+- Сам drill: source world поднялся на production-конфигурации; dump 30 402 байта; SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`; restore 1 с; восстановлено 1 world и 12 module states; TDL повторно стал ready на restored DB.
+- Это закрывает механическую проверку backup/restore в disposable CI environment, **но не закрывает AUD-034 полностью**: нужны provider-managed production backups/PITR, off-host encrypted copy, retention, restore актуальной production-like копии и реальные production RPO/RTO.
