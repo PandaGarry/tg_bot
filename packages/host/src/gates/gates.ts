@@ -61,6 +61,12 @@ export function lordNameKey(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+function isUniqueViolation(error: unknown, constraint: string): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const value = error as { code?: unknown; constraint?: unknown };
+  return value.code === "23505" && value.constraint === constraint;
+}
+
 /** Имя лорда: 2–18 знаков, буквы, цифры, пробел, дефис. Разметка не проходит. */
 export function validateLordName(name: string): GateResult<string> {
   const trimmed = name.trim();
@@ -254,6 +260,7 @@ export async function createLord(
     type: string;
   },
 ): Promise<GateResult<{ lordId: string }>> {
+  if (input.worldId !== options.config.WORLD_ID) return { ok: false, key: KERNEL_KEYS.session };
   const name = validateLordName(input.name);
   if (!name.ok) return name;
   if (!PORTRAITS.includes(input.portrait as (typeof PORTRAITS)[number])) {
@@ -267,15 +274,26 @@ export async function createLord(
   }
   if (!LORD_TYPES.includes(input.type as LordType)) return { ok: false, key: KERNEL_KEYS.nameBad };
 
-  const existing = await options.db.pool.query<{ lord_id: string }>(
-    `SELECT lord_id FROM lords WHERE world_id = $1 AND account_id = $2 LIMIT 1`,
-    [input.worldId, input.accountId],
-  );
-  if (existing.rows[0]) return { ok: true, value: { lordId: existing.rows[0].lord_id } };
-
   const lordId = randomUUID();
+  const client = await options.db.pool.connect();
   try {
-    await options.db.pool.query(
+    await client.query("BEGIN");
+    // Два сокета одного аккаунта могут одновременно создать персонажа.
+    // Транзакционная блокировка по world/account делает SELECT+INSERT атомарными
+    // между всеми процессами, а не только внутри одного WebSocket-соединения.
+    await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
+      `tdl:lord:${input.worldId}:${input.accountId}`,
+    ]);
+    const existing = await client.query<{ lord_id: string }>(
+      `SELECT lord_id FROM lords WHERE world_id = $1 AND account_id = $2 LIMIT 1`,
+      [input.worldId, input.accountId],
+    );
+    if (existing.rows[0]) {
+      await client.query("COMMIT");
+      return { ok: true, value: { lordId: existing.rows[0].lord_id } };
+    }
+
+    await client.query(
       `INSERT INTO lords (lord_id, world_id, account_id, name, name_key, portrait, banner_sign, banner_color, lord_type)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
@@ -290,15 +308,20 @@ export async function createLord(
         input.type,
       ],
     );
+    await client.query(
+      `UPDATE sessions SET lord_id = $3
+       WHERE account_id = $1 AND world_id = $2 AND lord_id IS NULL`,
+      [input.accountId, input.worldId, lordId],
+    );
+    await client.query("COMMIT");
   } catch (error) {
-    if (String(error).includes("lords_name_idx")) return { ok: false, key: KERNEL_KEYS.nameTaken };
+    await client.query("ROLLBACK").catch(() => undefined);
+    if (isUniqueViolation(error, "lords_name_idx")) return { ok: false, key: KERNEL_KEYS.nameTaken };
     throw error;
+  } finally {
+    client.release();
   }
-  await options.db.pool.query(
-    `UPDATE sessions SET lord_id = $3
-     WHERE account_id = $1 AND world_id = $2 AND lord_id IS NULL`,
-    [input.accountId, input.worldId, lordId],
-  );
+
   options.journal.write({ channel: "audit", worldId: input.worldId, actorId: lordId, event: "lord.created" });
   return { ok: true, value: { lordId } };
 }
