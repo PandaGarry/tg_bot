@@ -319,6 +319,25 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
    * ничего тайного: те же даты игрок видит в панели событий.
    */
   async function handleSchedule(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
+    // Расписание и внутренние состояния единиц предназначены оператору, не игроку.
+    const token = options.adminToken ?? "";
+    const given = req.headers["x-admin-token"];
+    const authorized =
+      token.length > 0 &&
+      typeof given === "string" &&
+      given.length === token.length &&
+      timingSafeEqual(Buffer.from(given), Buffer.from(token));
+    if (!authorized) {
+      options.journal.write({
+        channel: "security",
+        worldId: options.worldId,
+        event: "admin.denied",
+        detail: { path: url.pathname },
+      });
+      res.writeHead(403, { "content-type": "application/json", "cache-control": "no-store" });
+      res.end(JSON.stringify({ ok: false, error: "нет доступа" }));
+      return;
+    }
     const service = options.service();
     if (!service) {
       res.writeHead(503, { "content-type": "application/json" });
@@ -341,7 +360,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
         start: window.start,
         stop: window.stop,
       }));
-    res.writeHead(200, { "content-type": "application/json" });
+    res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
     res.end(
       JSON.stringify({
         ok: true,
