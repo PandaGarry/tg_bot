@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { buildingCenter, buildingDepth, buildingFootprintBounds, createBuilding } from "../src/game/court/building.js";
+import { BUILDING_SPRITES, buildingCenter, buildingDepth, buildingFootprintBounds, createBuilding } from "../src/game/court/building.js";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
 
 describe("court building geometry", () => {
@@ -27,5 +28,32 @@ describe("court building geometry", () => {
     expect(sprite.position.y).toBeCloseTo(center.y - (14 * TILE_HEIGHT) / 2, 6);
     expect(buildingDepth(building)).toBe(12);
     sprite.destroy({ children: true });
+  });
+});
+
+
+describe("court building sprite assets", () => {
+  it("ships valid day/night PNG pairs with anchors inside the day sprite", () => {
+    const dimensions = (file: string) => {
+      const bytes = readFileSync(new URL(`../public/court/sprites/${file}`, import.meta.url));
+      expect(Array.from(bytes.subarray(0, 8))).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
+    };
+
+    for (const [type, asset] of Object.entries(BUILDING_SPRITES)) {
+      const day = dimensions(`${asset.file}.png`);
+      const nightFile = asset.file.replace(/-(\\d+)$/, "-night-$1");
+      const night = dimensions(`${nightFile}.png`);
+
+      expect(day, type).toEqual({ width: asset.width, height: asset.height });
+      expect(night.width, `${type} night width`).toBeGreaterThan(0);
+      expect(night.height, `${type} night height`).toBeGreaterThan(0);
+      expect(asset.tipX, `${type} anchor x`).toBeGreaterThanOrEqual(0);
+      expect(asset.tipX, `${type} anchor x`).toBeLessThan(day.width);
+      expect(asset.tipY, `${type} anchor y`).toBeGreaterThanOrEqual(0);
+      expect(asset.tipY, `${type} anchor y`).toBeLessThan(day.height);
+      expect(asset.patch, `${type} footprint width`).toBeGreaterThan(0);
+    }
   });
 });

@@ -1,6 +1,6 @@
 /* Оболочка двора (CourtChrome). Якоря от краёв. Элементы компактные и полупрозрачные,
    чтобы игрок видел двор. Слой не перехватывает клики по сцене: интерактивные элементы — pointer-events: auto. */
-.ch-root { --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px); --left: max(var(--sl), 8px); --right: max(var(--sr), 8px); --top: max(var(--st), 8px); --bottom: max(var(--sb), 8px); position: absolute; inset: 0; z-index: 30; pointer-events: none; font: 11px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e7e4dc; }
+.ch-root { --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px); --left: max(var(--sl), 8px); --right: max(var(--sr), 8px); --top: max(var(--st), 8px); --bottom: max(var(--sb), 8px); --ch-obsidian-950: #090c12; --ch-obsidian-900: #111720; --ch-obsidian-800: #1c2732; --ch-slate: #65717d; --ch-bone: #ded8ca; --ch-bone-muted: #a7a092; --ch-brass: #a88a54; --ch-brass-light: #d0b579; --ch-ember: #a94e38; --ch-rot: #587b70; position: absolute; inset: 0; z-index: 30; pointer-events: none; font: 11px/1.2 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ch-bone); }
 /* Глобальный styles.css задаёт всем кнопкам min-height: 44px — сбрасываем здесь. */
 .ch-root button { font: inherit; color: inherit; min-height: 0; margin: 0; pointer-events: auto; cursor: pointer; }
 .ch-root img { display: block; }
@@ -17,41 +17,41 @@
 .ch-ticker__text { position: absolute; left: 0; top: 0; white-space: nowrap; line-height: 18px; font-size: 10px; color: #f0d98a; text-shadow: 0 1px 2px #000; animation: ch-marquee 12s linear forwards; }
 @keyframes ch-marquee { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
 
-/* Верх: профиль (портрет с уровнем, сила, VIP) и ресурсы */
+/* Верх: профиль и подтверждённые серверные ресурсы */
 .ch-top { position: absolute; left: var(--left); right: var(--right); top: var(--top); height: 50px; display: flex; align-items: flex-start; gap: 8px; }
 .ch-profile { flex: none; display: flex; align-items: center; gap: 7px; height: 50px; padding: 0 6px 0 0; border: 0; background: transparent; text-align: left; }
-.ch-profile__portrait { position: relative; width: 46px; height: 46px; flex: none; border-radius: 50%; border: 2px solid #c9a35a; background: #1b1f27; box-shadow: 0 0 0 1px rgba(0,0,0,.6); display: grid; place-items: center; }
+.ch-profile__portrait { position: relative; width: 46px; height: 46px; flex: none; border-radius: 50%; border: 2px solid var(--ch-brass); background: radial-gradient(circle at 35% 25%, #39434a, var(--ch-obsidian-950) 72%); box-shadow: 0 0 0 1px rgba(0,0,0,.6); display: grid; place-items: center; }
 .ch-profile__portrait svg { width: 42px; height: 42px; border-radius: 50%; }
-.ch-profile__level { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 22px; height: 14px; padding: 0 5px; border-radius: 7px; background: #15181f; border: 1px solid #c9a35a; color: #f0d98a; font-size: 9px; font-weight: 700; line-height: 12px; text-align: center; }
+.ch-profile__level { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 22px; height: 14px; padding: 0 5px; border-radius: 7px; background: var(--ch-obsidian-950); border: 1px solid var(--ch-brass-light); color: var(--ch-bone); font-size: 9px; font-weight: 700; line-height: 12px; text-align: center; }
 .ch-profile__info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding-top: 2px; }
 .ch-profile__info > b { max-width: 96px; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
 
 /* Ресурсы: компактные иконка и подтверждённый серверный остаток */
 .ch-res { flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 2px; padding-top: 2px; }
 .ch-res__item { flex: 1 1 0; min-width: 0; max-width: 40px; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: auto; }
-.ch-res__icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; border: 1px solid rgba(255,255,255,.14); background: rgba(10,12,16,.3); }
+.ch-res__icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; border: 1px solid rgba(168,138,84,.32); background: linear-gradient(145deg, rgba(28,39,50,.86), rgba(9,12,18,.9)); box-shadow: inset 0 1px 0 rgba(222,216,202,.08), 0 2px 5px rgba(0,0,0,.25); }
 .ch-res__icon img { width: 22px; height: 22px; object-fit: contain; }
 .ch-res__item b { font-size: 9px; font-weight: 600; white-space: nowrap; text-shadow: 0 1px 2px #000; }
 .ch-res__item--gold { flex: 0 0 40px; }
-.ch-res__item--gold .ch-res__icon { border-color: rgba(230,195,92,.5); }
+.ch-res__item--gold .ch-res__icon { border-color: rgba(208,181,121,.72); }
 .ch-res__item--gold b { color: #e6c35c; }
 
 /* Справа: переключатель — тонкие рейки; действия — тонкая рамка */
 .ch-side { position: absolute; right: var(--right); top: calc(var(--top) + 76px); display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .ch-switch { display: flex; flex-direction: row; gap: 10px; padding: 0 2px; }
 .ch-switch button { flex: 0 0 auto; height: 18px; padding: 0 2px 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #8d897e; font-size: 10px; line-height: 14px; text-shadow: 0 1px 2px #000; }
-.ch-switch button.is-on { border-bottom-color: #e6c35c; color: #f0d98a; }
-.ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: transparent; }
+.ch-switch button.is-on { border-bottom-color: var(--ch-brass-light); color: var(--ch-bone); }
+.ch-action { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 8px; border: 1px solid rgba(168,138,84,.48); background: linear-gradient(155deg, rgba(34,46,58,.92), rgba(9,12,18,.94)); box-shadow: inset 0 1px 0 rgba(222,216,202,.09), 0 3px 8px rgba(0,0,0,.3); }
 .ch-action img { width: 30px; height: 30px; object-fit: contain; }
 
 /* Слева: честное пустое состояние до подключения системы заданий */
 .ch-quests { position: absolute; left: calc(var(--left) + 16px); top: calc(var(--top) + 76px); width: 168px; display: flex; flex-direction: column; gap: 6px; }
-.ch-quests--empty { min-height: 30px; flex-direction: row; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: rgba(10,12,16,.55); color: #aaa497; font-size: 9px; line-height: 1.25; }
+.ch-quests--empty { min-height: 30px; flex-direction: row; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: linear-gradient(145deg, rgba(28,39,50,.9), rgba(9,12,18,.94)); color: var(--ch-bone-muted); font-size: 9px; line-height: 1.25; }
 .ch-quests--empty img { width: 16px; height: 16px; flex: none; opacity: .7; }
 .ch-empty { max-width: 46px; padding: 5px 3px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; color: #aaa497; font-size: 8px; line-height: 1.2; text-align: center; }
 .ch-quests--empty { min-height: 30px; flex-direction: row; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: rgba(10,12,16,.55); color: #aaa497; font-size: 9px; line-height: 1.25; }
-.ch-quests--empty img { width: 16px; height: 16px; flex: none; opacity: .7; }
-.ch-empty { max-width: 46px; padding: 5px 3px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; color: #aaa497; font-size: 8px; line-height: 1.2; text-align: center; }
+
+
 .ch-quests li.is-active button { color: #f2eee4; }
 
 /* Свёрнутый чат: нейтральный статус до подключения серверного чата */
@@ -60,7 +60,7 @@
 
 /* Раскрытый чат: ~55% ширины, между верхней панелью и нижним меню */
 .ch-chat-backdrop { position: absolute; inset: 0; pointer-events: auto; background: transparent; }
-.ch-chat { position: absolute; left: calc(var(--left) + 16px); top: calc(var(--top) + 76px); bottom: calc(var(--bottom) + 44px); width: 55%; padding: 6px; display: flex; flex-direction: column; gap: 5px; border-radius: 9px; border: 1px solid rgba(255,255,255,.08); background: rgba(12,14,19,.9); pointer-events: auto; }
+.ch-chat { position: absolute; left: calc(var(--left) + 16px); top: calc(var(--top) + 76px); bottom: calc(var(--bottom) + 44px); width: 55%; padding: 6px; display: flex; flex-direction: column; gap: 5px; border-radius: 9px; border: 1px solid rgba(255,255,255,.08); background: linear-gradient(155deg, rgba(23,32,42,.97), rgba(8,11,17,.98)); border-color: rgba(168,138,84,.28); box-shadow: 0 12px 32px rgba(0,0,0,.42), inset 0 1px 0 rgba(222,216,202,.06); pointer-events: auto; }
 .ch-chat__head { display: flex; align-items: flex-start; gap: 4px; }
 .ch-chat__tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; }
 .ch-chat__tabs > button { position: relative; height: 26px; padding: 0 7px; border: 0; border-radius: 6px; background: #1d2129; color: #9a968a; font-size: 11px; }
@@ -69,7 +69,7 @@
 .ch-chat__settings { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 6px; background: #1d2129; color: #9a968a; font-size: 14px; line-height: 1; }
 .ch-chat__close { width: 26px; height: 26px; padding: 0; border: 0; background: transparent; font-size: 18px; line-height: 1; color: #9a968a; }
 .ch-chat__empty { flex: 1; display: grid; place-items: center; margin: 0; padding: 14px; color: #9a968a; font-size: 11px; line-height: 1.4; text-align: center; }
-.ch-chat__empty { flex: 1; display: grid; place-items: center; margin: 0; padding: 14px; color: #9a968a; font-size: 11px; line-height: 1.4; text-align: center; }
+
 
 /* В чате пока нет локальной имитации отправки сообщений */
 
@@ -79,8 +79,8 @@
 .ch-bottom__group { flex: 1; min-width: 0; display: flex; gap: 4px; align-items: center; }
 .ch-bottom__group--left { justify-content: flex-end; }
 .ch-bottom__group--right { justify-content: flex-start; }
-.ch-nav { position: relative; flex: 1 1 0; min-width: 0; max-width: 64px; height: 34px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: rgba(20,23,31,.6); font-size: 10px; }
-.ch-map { flex: none; width: 98px; height: 38px; border-radius: 8px; border: 1px solid rgba(230,195,92,.55); background: rgba(42,36,22,.8); color: #f0d98a; font-size: 12px; font-weight: 600; }
+.ch-nav { position: relative; flex: 1 1 0; min-width: 0; max-width: 64px; height: 34px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: linear-gradient(180deg, rgba(34,46,58,.88), rgba(9,12,18,.92)); border-color: rgba(168,138,84,.3); font-size: 10px; }
+.ch-map { flex: none; width: 98px; height: 38px; border-radius: 8px; border: 1px solid rgba(208,181,121,.7); background: linear-gradient(180deg, rgba(87,70,42,.95), rgba(30,27,23,.98)); color: var(--ch-bone); box-shadow: inset 0 1px 0 rgba(255,238,194,.14), 0 3px 9px rgba(0,0,0,.35); font-size: 12px; font-weight: 600; }
 
 /* Заглушка: короткое сообщение над нижним меню */
 .ch-stub { position: absolute; left: 50%; bottom: calc(var(--bottom) + 42px); transform: translateX(-50%); padding: 4px 8px; border-radius: 6px; background: rgba(12,14,19,.92); border: 1px solid rgba(255,255,255,.1); font-size: 10px; white-space: nowrap; pointer-events: none; }
@@ -93,4 +93,27 @@
   .ch-bottom { left: calc(var(--left) + 214px); }
   .ch-chat-strip { bottom: var(--bottom); }
   .ch-root:has(.ch-chat) .ch-quests { visibility: hidden; }
+}
+
+
+/* Единая тактильная обратная связь; фокус виден и без hover на сенсорных устройствах. */
+.ch-root button:focus-visible {
+  outline: 2px solid var(--ch-brass-light);
+  outline-offset: 2px;
+}
+.ch-action:active,
+.ch-nav:active,
+.ch-map:active {
+  filter: brightness(1.16);
+  transform: translateY(1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ch-root *,
+  .ch-root *::before,
+  .ch-root *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
