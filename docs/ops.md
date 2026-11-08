@@ -197,6 +197,7 @@ pnpm dev:parallel                        # WORLD_ID=dev-1, порт 3100
 - Постоянный первичный Postgres, provider-managed copies и restore drill. Регламент и безопасные команды: [backup/restore runbook](ops/backup-restore.md). AUD-034 остаётся открытым до фактического drill. Шифрование диска — у площадки базы.
 - Повторный вход для действий уровня `owner`.
 - Production WebSocket endpoint `/socket` принимает только точные HTTPS origins из `ALLOWED_ORIGINS`; отсутствующий или чужой `Origin` отклоняется до авторизации. Разрешённый список задаётся явно в окружении.
+- IP rate limits доверяют `X-Forwarded-For` только если TCP peer входит в `TRUSTED_PROXY_IPS`; цепочка разбирается справа налево до первого недоверенного hop. Указываются только точные IPv4/IPv6 адреса, CIDR не поддерживается. Пустой список означает полное игнорирование forwarded headers.
 - HTTP-ответы получают `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`; все `/api/*` ответы помечены `Cache-Control: no-store`. HSTS задаётся на TLS-прокси. CSP и frame policy остаются на production review после фиксации всех клиентских asset/preview origins.
 - Внешний перебор и обрыв соединения режет прокси, не формула боя.
 
