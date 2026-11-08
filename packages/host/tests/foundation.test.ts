@@ -104,6 +104,25 @@ describe("повтор команды", () => {
     expect(auditRepeat.rows[0]?.count).toBe(1);
   });
 
+  it("один ключ идемпотентности независим для разных игроков", async () => {
+    const world = await makeWorld();
+    const firstActor = world.actor("lord-idempotency-a");
+    const secondActor = world.actor("lord-idempotency-b");
+    const key = "shared-idempotency-key";
+    const first = await runCommand(world, firstActor, "_probe.poke", { steps: 1 }, key);
+    const second = await runCommand(world, secondActor, "_probe.poke", { steps: 1 }, key);
+    expect(first.status).toBe("ok");
+    expect(second.status).toBe("ok");
+    expect(second.repeat).not.toBe(true);
+    expect((await stockOf(world, firstActor.id)).probe_dust).toBe(28);
+    expect((await stockOf(world, secondActor.id)).probe_dust).toBe(28);
+    const rows = await world.db.pool.query(
+      "SELECT actor_id FROM commands WHERE world_id = $1 AND idempotency_key = $2",
+      [world.id, key],
+    );
+    expect(rows.rowCount).toBe(2);
+  });
+
   it("отказ по тому же ключу повторяется тем же ключом", async () => {
     const world = await makeWorld();
     const actor = world.actor();

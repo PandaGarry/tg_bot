@@ -378,6 +378,17 @@ describe("лорд", () => {
 
     const lords = await world.db.pool.query("SELECT lord_id FROM lords WHERE account_id = $1", [entered.value.accountId]);
     expect(lords.rowCount).toBe(1);
+    await world.db.pool.query(
+      "UPDATE sessions SET lord_id = NULL WHERE world_id = $1 AND account_id = $2",
+      [world.config.WORLD_ID, entered.value.accountId],
+    );
+    const repaired = await createLord(world.gates, { ...base, name: `Лорд ${randomUUID().slice(0, 6)}` });
+    expect(repaired).toEqual({ ok: true, value: { lordId: first.value.lordId } });
+    const sessions = await world.db.pool.query<{ lord_id: string | null }>(
+      "SELECT lord_id FROM sessions WHERE world_id = $1 AND account_id = $2",
+      [world.config.WORLD_ID, entered.value.accountId],
+    );
+    expect(sessions.rows.every((row) => row.lord_id === first.value.lordId)).toBe(true);
   });
 
   it("конкурентное создание и чужой world_id не создают лишнего лорда", async () => {

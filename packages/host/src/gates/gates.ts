@@ -289,6 +289,12 @@ export async function createLord(
       [input.worldId, input.accountId],
     );
     if (existing.rows[0]) {
+      // Восстанавливаем привязку сессий, если лорд уже есть, а lord_id ещё пуст.
+      await client.query(
+        `UPDATE sessions SET lord_id = $3
+         WHERE account_id = $1 AND world_id = $2 AND lord_id IS NULL`,
+        [input.accountId, input.worldId, existing.rows[0].lord_id],
+      );
       await client.query("COMMIT");
       return { ok: true, value: { lordId: existing.rows[0].lord_id } };
     }

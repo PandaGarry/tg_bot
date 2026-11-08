@@ -183,7 +183,7 @@ export const commands = pgTable(
     errorKey: text("error_key"),
     atMs: bigint("at_ms", { mode: "number" }).notNull(),
   },
-  (table) => [primaryKey({ columns: [table.worldId, table.idempotencyKey] })],
+  (table) => [primaryKey({ columns: [table.worldId, table.actorId, table.idempotencyKey] })],
 );
 
 /** Канал audit: кто изменил склад. Пишется в той же транзакции, что и мир. */
@@ -296,6 +296,7 @@ export const lords = pgTable(
   },
   (table) => [
     uniqueIndex("lords_name_idx").on(table.worldId, table.nameKey),
+    uniqueIndex("lords_account_world_idx").on(table.worldId, table.accountId),
     index("lords_account_idx").on(table.accountId),
   ],
 );

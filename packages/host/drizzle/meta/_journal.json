@@ -29,6 +29,13 @@
       "when": 1790900100000,
       "tag": "0003_unit_health",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794168054052,
+      "tag": "0004_world_invariants",
+      "breakpoints": true
     }
   ]
 }

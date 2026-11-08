@@ -2194,7 +2194,7 @@ export class WorldService {
         const inserted = await client.query(
           `INSERT INTO commands (world_id, idempotency_key, request_id, actor_id, module_id, command_id, outcome, at_ms)
            VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7)
-           ON CONFLICT (world_id, idempotency_key) DO NOTHING
+           ON CONFLICT (world_id, actor_id, idempotency_key) DO NOTHING
            RETURNING idempotency_key`,
           [
             this.worldId,
@@ -2208,8 +2208,8 @@ export class WorldService {
         );
         if (inserted.rowCount === 0) {
           const previous = await client.query<{ outcome: string; error_key: string | null; command_id: string }>(
-            `SELECT outcome, error_key, command_id FROM commands WHERE world_id = $1 AND idempotency_key = $2`,
-            [this.worldId, queued.idempotencyKey],
+            `SELECT outcome, error_key, command_id FROM commands WHERE world_id = $1 AND actor_id = $2 AND idempotency_key = $3`,
+            [this.worldId, queued.actor.id, queued.idempotencyKey],
           );
           const row = previous.rows[0];
           if (row && row.command_id !== queued.commandId) {
@@ -2268,8 +2268,8 @@ export class WorldService {
           simFacts,
         });
         await client.query(
-          `UPDATE commands SET outcome = 'ok' WHERE world_id = $1 AND idempotency_key = $2`,
-          [this.worldId, queued.idempotencyKey],
+          `UPDATE commands SET outcome = 'ok' WHERE world_id = $1 AND actor_id = $2 AND idempotency_key = $3`,
+          [this.worldId, queued.actor.id, queued.idempotencyKey],
         );
       });
     } catch (error) {
@@ -2357,7 +2357,7 @@ export class WorldService {
         await client.query(
           `INSERT INTO commands (world_id, idempotency_key, request_id, actor_id, module_id, command_id, outcome, error_key, at_ms)
            VALUES ($1, $2, $3, $4, $5, $6, 'error', $7, $8)
-           ON CONFLICT (world_id, idempotency_key) DO UPDATE SET outcome = 'error', error_key = EXCLUDED.error_key`,
+           ON CONFLICT (world_id, actor_id, idempotency_key) DO UPDATE SET outcome = 'error', error_key = EXCLUDED.error_key`,
           [
             this.worldId,
             queued.idempotencyKey,
