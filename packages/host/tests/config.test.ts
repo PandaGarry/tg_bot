@@ -12,6 +12,7 @@ function productionEnv(): NodeJS.ProcessEnv {
     WORLD_ID: "tdl-production-1",
     NODE_ENV: "production",
     ACCESS_MODE: "public",
+    ALLOWED_ORIGINS: "https://game.example.com",
   };
 }
 
@@ -52,6 +53,23 @@ describe("production configuration", () => {
     privateWorld.ACCESS_MODE = "admins";
     privateWorld.ADMIN_LOGINS = "";
     expect(() => loadConfig(privateWorld)).toThrow(/ADMIN_LOGINS/);
+  });
+
+  it("requires an explicit exact HTTPS origin allowlist in production", () => {
+    const missing = productionEnv();
+    delete missing.ALLOWED_ORIGINS;
+    expect(() => loadConfig(missing)).toThrow(/ALLOWED_ORIGINS/);
+
+    const insecure = productionEnv();
+    insecure.ALLOWED_ORIGINS = "http://game.example.com";
+    expect(() => loadConfig(insecure)).toThrow(/HTTPS origins/);
+
+    const path = productionEnv();
+    path.ALLOWED_ORIGINS = "https://game.example.com/play";
+    expect(() => loadConfig(path)).toThrow(/exact HTTPS origins/);
+
+    const valid = loadConfig(productionEnv());
+    expect(valid.allowedOrigins).toEqual(["https://game.example.com"]);
   });
 
   it("rejects non-PostgreSQL URLs and ephemeral production ports", () => {
