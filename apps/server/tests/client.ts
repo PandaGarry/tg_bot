@@ -32,8 +32,8 @@ export class Client {
     });
   }
 
-  static async open(url: string): Promise<Client> {
-    const socket = new WebSocket(url, { headers: { Origin: "https://game.example.com" } });
+  static async open(url: string, headers: Record<string, string> = {}): Promise<Client> {
+    const socket = new WebSocket(url, { headers: { Origin: "https://game.example.com", ...headers } });
     await new Promise<void>((resolve, reject) => {
       socket.once("open", () => resolve());
       socket.once("error", reject);
