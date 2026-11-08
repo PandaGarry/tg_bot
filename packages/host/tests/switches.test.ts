@@ -293,10 +293,13 @@ describe("переключатели единиц мира", () => {
 
       // Содержимое повседневных окон берётся по примеряемой поре: зимние окна
       // выпадают, летние — нет. Иначе примерка была бы видна в панели, но не в мире.
+      // Проверяем активный день, а не весь 120-дневный горизонт: после
+      // окончания короткой примерки будущие дни снова подчиняются календарю.
+      const now = world.service.calendarNow();
       const daily = new Set(
         world.service
           .schedulePlan()
-          .filter((window) => window.moduleId === "day-window")
+          .filter((window) => window.moduleId === "day-window" && window.start <= now && now < window.stop)
           .map((window) => window.unitId),
       );
       expect(daily.has("wall-day")).toBe(true);
