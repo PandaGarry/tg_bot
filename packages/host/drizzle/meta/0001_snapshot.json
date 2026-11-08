@@ -94,7 +94,12 @@
         "accounts_email_key_idx": {
           "name": "accounts_email_key_idx",
           "columns": [
-            "email_key"
+            {
+              "expression": "email_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
           "isUnique": true,
           "where": "\"email_key\" <> ''",
