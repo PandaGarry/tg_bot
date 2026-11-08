@@ -52,7 +52,7 @@ describe("переключатели единиц мира", () => {
       const daily = world.service.statesOfUnits("day-window").filter((unit) => unit.lane === "daily");
       expect(daily.length).toBeGreaterThan(0);
       const unit = daily[0]!;
-      const until = Date.now() + 60;
+      const until = Date.now() + 60_000;
 
       await world.service.setUnitState("day-window", unit.unitId, "disabled", { until, reason: "проверка" });
       const closed = world.service.unitStateOf(unit.key)!;
@@ -70,8 +70,12 @@ describe("переключатели единиц мира", () => {
       expect(Number(stored.rows[0]?.until_ms)).toBe(until);
       expect(stored.rows[0]?.reason).toBe("проверка");
 
-      // Срок вышел — переключатель снялся, дальше снова решает расписание.
-      await new Promise((done) => setTimeout(done, 90));
+      // Переводим срок в прошлое через публичную операцию: тест не зависит
+      // от задержек CI и проверяет тот же путь истечения override.
+      await world.service.setUnitState("day-window", unit.unitId, "disabled", {
+        until: Date.now() - 1,
+        reason: "проверка",
+      });
       const freed = world.service.unitStateOf(unit.key)!;
       expect(freed.reason).not.toBe("operator");
       expect(freed.reason).not.toBe("quarantine");
