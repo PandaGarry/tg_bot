@@ -20,10 +20,13 @@ const DECOR_FOOTPRINTS: Record<string, Footprint> = {
 
 const buildingTextureKey = (type: string) => `court-building:${type}`;
 
-/** Загружает только подтверждённые типы; при ошибке остаётся векторный fallback. */
-export async function preloadBuildingSprites(): Promise<void> {
+/** Загружает только нужные типы; отсутствующие/неподтверждённые остаются на vector fallback. */
+export async function preloadBuildingSprites(types: readonly string[]): Promise<void> {
+  const requested = [...new Set(types)].filter((type) => Object.prototype.hasOwnProperty.call(BUILDING_SPRITES, type));
   await Promise.all(
-    Object.entries(BUILDING_SPRITES).map(async ([type, definition]) => {
+    requested.map(async (type) => {
+      const definition = BUILDING_SPRITES[type];
+      if (!definition) return;
       try {
         await loadTexture(buildingTextureKey(type), `/court/sprites/${definition.file}.png`);
       } catch (error) {

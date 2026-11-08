@@ -55,9 +55,6 @@ export class CourtScene {
 
     this.resize();
     this.redraw();
-    void preloadBuildingSprites().then(() => {
-      if (!this.destroyed) this.redraw();
-    });
   }
 
   destroy(): void {
@@ -79,18 +76,29 @@ export class CourtScene {
     const viewport = this.viewportSize();
     this.camera.resize(viewport.width, viewport.height, grid.size);
     this.redraw();
+    this.preloadBuildingTypes(this.grid.buildings.map((building) => building.type));
   }
 
   private updateMode(mode: CourtSceneMode): void {
     this.mode = mode;
     this.root.visible = mode.active;
     this.drawPreview();
+    const activeType = mode.placing ?? mode.pending?.type;
+    if (activeType) this.preloadBuildingTypes([activeType]);
   }
 
   private resize(): void {
     const viewport = this.viewportSize();
     this.camera.resize(viewport.width, viewport.height, this.grid.size);
     this.drawPreview();
+  }
+
+  /** Подгружает арт только для видимых/выбранных типов, не блокируя первый кадр. */
+  private preloadBuildingTypes(types: readonly string[]): void {
+    if (types.length === 0) return;
+    void preloadBuildingSprites(types).then(() => {
+      if (!this.destroyed) this.redraw();
+    });
   }
 
   private viewportSize(): { width: number; height: number } {
