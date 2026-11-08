@@ -1,6 +1,7 @@
-/** Регрессия: миграция двора не должна менять данные соседнего мира. */
+/** Регрессия: миграции изолированы по миру и сериализованы между процессами. */
+import type { ModuleDefinition } from "@tdl/kernel";
 import { describe, expect, it } from "vitest";
-import { applyModuleMigrations } from "../src/db/bootstrap.js";
+import { applyModuleMigrations, syncModuleStates } from "../src/db/bootstrap.js";
 import { createJournal } from "../src/logger.js";
 import { createTestWorld } from "./harness.js";
 
@@ -46,6 +47,55 @@ describe("изоляция миграций миров", () => {
     } finally {
       await first.close();
       await second.close();
+    }
+  });
+
+  it("двойной конкурентный запуск не применяет одну миграцию дважды", async () => {
+    const world = await createTestWorld();
+    try {
+      await world.db.pool.query(
+        `CREATE TABLE IF NOT EXISTS migration_race_probe (
+          world_id text NOT NULL,
+          module_id text NOT NULL
+        )`,
+      );
+      await world.db.pool.query("DELETE FROM migration_race_probe WHERE world_id = $1", [world.id]);
+
+      const definition: ModuleDefinition = {
+        id: "migration-race",
+        version: 1,
+        kind: "core",
+        server: {
+          migrations: [
+            {
+              to: 1,
+              // Пауза расширяет окно гонки, чтобы тест ловил чтение версии до lock.
+              sql: `SELECT pg_sleep(0.15);
+                    INSERT INTO migration_race_probe (world_id, module_id)
+                    VALUES (current_setting('tdl.world_id', true), 'migration-race')`,
+            },
+          ],
+        },
+      };
+      const registry = { modules: [definition] };
+      await syncModuleStates(world.db, registry, world.id);
+
+      const events: string[] = [];
+      const journal = createJournal((record) => events.push(record.event));
+      await Promise.all([
+        applyModuleMigrations(world.db, registry, world.id, journal),
+        applyModuleMigrations(world.db, registry, world.id, journal),
+      ]);
+
+      const rows = await world.db.pool.query<{ count: string }>(
+        "SELECT count(*)::text AS count FROM migration_race_probe WHERE world_id = $1 AND module_id = 'migration-race'",
+        [world.id],
+      );
+      expect(Number(rows.rows[0]?.count)).toBe(1);
+      expect(events.filter((event) => event === "module.migrated")).toHaveLength(1);
+    } finally {
+      await world.db.pool.query("DELETE FROM migration_race_probe WHERE world_id = $1", [world.id]).catch(() => undefined);
+      await world.close();
     }
   });
 });
