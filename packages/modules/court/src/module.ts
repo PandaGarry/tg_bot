@@ -332,7 +332,7 @@ const court = defineModule({
       defineCommand({
         id: "court.enter",
         input: zEmpty,
-        handle: (ctx): EffectList => {
+        handle: async (ctx): Promise<EffectList> => {
           const holderId = ctx.actor?.id ?? "world";
           const grid = gridOf(ctx.state);
           const fresh = stateOf(ctx.state).starter === 0;
@@ -350,7 +350,11 @@ const court = defineModule({
           const report: EffectList = fresh
             ? [{ kind: "report", id: holderId, reportKind: "court", rows: [{ key: "court.report.welcome" }] }]
             : [];
-          return [
+          // Повторный вход, reconnect или повтор команды не должен сдвигать
+          // уже назначенный производственный такт и задерживать начисление.
+          const tickId = tickDeadlineId(holderId);
+          const hasTick = (await ctx.deadlines()).some((deadline) => deadline.id === tickId);
+          const effects: EffectList[number][] = [
             {
               kind: "rows.upsert",
               table: "court_holder",
@@ -368,14 +372,17 @@ const court = defineModule({
                 ...stockOps,
               ],
             },
-            {
-              kind: "deadline.set",
-              id: tickDeadlineId(holderId),
-              wakeAt: ctx.now + TICK_MS,
-              key: tickDeadlineId(holderId),
-              payload: { holderId },
-            },
           ];
+          if (!hasTick) {
+            effects.push({
+              kind: "deadline.set",
+              id: tickId,
+              wakeAt: ctx.now + TICK_MS,
+              key: tickId,
+              payload: { holderId },
+            });
+          }
+          return effects;
         },
       }),
       defineCommand({

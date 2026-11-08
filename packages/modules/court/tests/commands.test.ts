@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import court from "../src/module.js";
 
 type Handler = (ctx: Record<string, unknown>, input: Record<string, unknown>) => unknown[];
-const cmd = (id: string): Handler => {
-  const found = (court as unknown as { server: { commands: { id: string; handle: Handler }[] } }).server.commands.find(
+type AnyHandler = (ctx: Record<string, unknown>, input: Record<string, unknown>) => unknown[] | Promise<unknown[]>;
+const handlerOf = (id: string): AnyHandler => {
+  const found = (court as unknown as { server: { commands: { id: string; handle: AnyHandler }[] } }).server.commands.find(
     (c) => c.id === id,
   );
   if (!found) throw new Error(`нет команды ${id}`);
   return found.handle;
 };
+const cmd = (id: string): Handler => handlerOf(id) as Handler;
+const asyncCmd = (id: string): AnyHandler => handlerOf(id);
 
 /** Состояние двора в формате снимка модуля (v2). */
 function state(level: number, buildings: { type: string; x: number; z: number }[], size = 10) {
@@ -19,8 +22,12 @@ function state(level: number, buildings: { type: string; x: number; z: number }[
   };
 }
 
-function ctxOf(st: unknown, stock: Record<string, number>) {
-  return { actor: { id: "h1" }, now: 1000, state: st, stock, facts: {}, world: {} };
+function ctxOf(
+  st: unknown,
+  stock: Record<string, number>,
+  deadlines: () => Promise<{ id: string }[]> = async () => [],
+) {
+  return { actor: { id: "h1" }, now: 1000, state: st, stock, facts: {}, world: {}, deadlines };
 }
 
 /** Патч с сеткой из эффектов команды (первый patch актёра). */
@@ -36,6 +43,27 @@ function gridOf(effects: unknown[]): {
   }
   return null;
 }
+
+describe("court.enter", () => {
+  it("не переносит уже назначенный производственный такт при повторном входе", async () => {
+    const effects = await asyncCmd("court.enter")(
+      ctxOf(state(1, [{ type: "citadel", x: 5, z: 5 }]), {}, async () => [{ id: "court.tick:h1" }]),
+      {},
+    );
+    expect(effects.some((effect) => (effect as { kind?: string }).kind === "deadline.set")).toBe(false);
+  });
+
+  it("ставит производственный такт, если срока ещё нет", async () => {
+    const effects = await asyncCmd("court.enter")(
+      ctxOf({ starter: 0, townhallLevel: 1, grid: null }, {}),
+      {},
+    );
+    const deadline = effects.find((effect) => (effect as { kind?: string }).kind === "deadline.set") as
+      | { wakeAt: number }
+      | undefined;
+    expect(deadline?.wakeAt).toBe(61_000);
+  });
+});
 
 describe("court.place", () => {
   it("на старте ставит одну лесопилку бесплатно и отдаёт сетку с ней", () => {
