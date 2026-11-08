@@ -11,7 +11,7 @@ import { createDb, type Db } from "../src/db/index.js";
 import { loadConfig, type HostConfig } from "../src/config.js";
 import { createJournal, type JournalRecord } from "../src/logger.js";
 import { applyKernelMigrations, ensureWorld } from "../src/db/bootstrap.js";
-import { createLord, login, register, resume, validateLordName, type GatesOptions } from "../src/gates/gates.js";
+import { createLord, login, logout, register, resume, validateLordName, type GatesOptions } from "../src/gates/gates.js";
 import { readTestDbUrl } from "../../../tools/devdb/testing.js";
 
 interface Stand {
@@ -273,6 +273,34 @@ describe("сессия", () => {
     expect(await resume(world.gates, { token: entered.value.token, protocolVersion: PROTOCOL_VERSION - 1 })).toEqual({
       ok: false,
       key: KERNEL_KEYS.protocol,
+    });
+  });
+});
+
+describe("изоляция миров", () => {
+
+  it("токен и logout из другого мира не дают читать или отзывать чужую сессию", async () => {
+    const ownerWorld = await stand();
+    const foreignWorld = await stand();
+    const name = login_();
+    expect((await register(ownerWorld.gates, account(name))).ok).toBe(true);
+    const entered = await login(ownerWorld.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
+    if (!entered.ok) throw new Error("вход не прошёл");
+
+    expect(await resume(foreignWorld.gates, { token: entered.value.token, protocolVersion: PROTOCOL_VERSION })).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.session,
+    });
+    expect(await logout(foreignWorld.gates, { token: entered.value.token })).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.login,
+    });
+    // Чужой мир не отозвал сессию владельца.
+    expect((await resume(ownerWorld.gates, { token: entered.value.token, protocolVersion: PROTOCOL_VERSION })).ok).toBe(true);
+    expect((await logout(ownerWorld.gates, { token: entered.value.token })).ok).toBe(true);
+    expect(await resume(ownerWorld.gates, { token: entered.value.token, protocolVersion: PROTOCOL_VERSION })).toEqual({
+      ok: false,
+      key: KERNEL_KEYS.session,
     });
   });
 });
