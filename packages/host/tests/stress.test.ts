@@ -47,7 +47,7 @@ describe("напор команд", () => {
 
     const startedAt = Date.now();
     const latencies: number[] = [];
-    const pending: Promise<void>[] = [];
+    const pending: ReturnType<typeof world.service.submitCommand>[] = [];
     for (let round = 0; round < perActor; round += 1) {
       for (const actor of actors) {
         const at = Date.now();
@@ -68,7 +68,15 @@ describe("напор команд", () => {
     }
     expect(world.service.pending).toBe(actors.length * perActor);
     await drain(world);
-    await Promise.all(pending);
+    const outcomes = await Promise.all(pending);
+    const errors = outcomes.filter((outcome) => outcome.status === "error");
+    if (errors.length > 0) {
+      console.log(
+        `[напор: отказы] ${errors.length}: ${JSON.stringify(errors.slice(0, 12))}; ` +
+          `dropped=${world.service.stats().dropped}, failures=${world.service.stats().failures}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
     const elapsedMs = Date.now() - startedAt;
 
     // Ни одна команда не потерялась и не применилась дважды.
