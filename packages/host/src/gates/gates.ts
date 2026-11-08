@@ -187,8 +187,8 @@ export async function login(
  */
 export async function logout(options: GatesOptions, input: { token: string }): Promise<GateResult<{ accountId: string }>> {
   const removed = await options.db.pool.query<{ account_id: string }>(
-    `DELETE FROM sessions WHERE token_hash = $1 RETURNING account_id`,
-    [tokenHash(input.token, options.config.SESSION_SECRET)],
+    `DELETE FROM sessions WHERE token_hash = $1 AND world_id = $2 RETURNING account_id`,
+    [tokenHash(input.token, options.config.SESSION_SECRET), options.config.WORLD_ID],
   );
   const accountId = removed.rows[0]?.account_id ?? null;
   if (!accountId) return { ok: false, key: KERNEL_KEYS.login };
@@ -222,8 +222,8 @@ export async function resume(
             l.name, l.clan_id, l.lord_type, l.is_bot
      FROM sessions s
      LEFT JOIN lords l ON l.lord_id = s.lord_id
-     WHERE s.token_hash = $1`,
-    [tokenHash(input.token, options.config.SESSION_SECRET)],
+     WHERE s.token_hash = $1 AND s.world_id = $2`,
+    [tokenHash(input.token, options.config.SESSION_SECRET), options.config.WORLD_ID],
   );
   const row = rows.rows[0];
   if (!row) return { ok: false, key: KERNEL_KEYS.session };
@@ -294,10 +294,11 @@ export async function createLord(
     if (String(error).includes("lords_name_idx")) return { ok: false, key: KERNEL_KEYS.nameTaken };
     throw error;
   }
-  await options.db.pool.query(`UPDATE sessions SET lord_id = $2 WHERE account_id = $1 AND lord_id IS NULL`, [
-    input.accountId,
-    lordId,
-  ]);
+  await options.db.pool.query(
+    `UPDATE sessions SET lord_id = $3
+     WHERE account_id = $1 AND world_id = $2 AND lord_id IS NULL`,
+    [input.accountId, input.worldId, lordId],
+  );
   options.journal.write({ channel: "audit", worldId: input.worldId, actorId: lordId, event: "lord.created" });
   return { ok: true, value: { lordId } };
 }
