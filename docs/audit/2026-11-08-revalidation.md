@@ -3,6 +3,8 @@
 > Ветка: `arena/8885a9e3-tg-bot` · первоначальный baseline: `13e59a7029eb273c8253af7992008441a2baeb23`; актуальный проверенный HEAD: `042f0cfae410f66d17e635b18c03f62e98898540`
 > Назначение: актуализировать статический аудит по текущему коду и результатам CI. Это не акт релизной приёмки.
 
+> Текущий branch HEAD: `633ed3ce3dd65b3980041c3a68c4b3042e1782b2`. Последний завершённый полный CI — #131 на `042f0cf`. Workflow #136 для bot commit получил `action_required`, jobs не выполнялись; lockfile и Drizzle snapshot baseline вручную сверены ниже.
+
 ## 1. Проверки CI
 
 | HEAD | Проверка | Результат | Вывод |
@@ -19,8 +21,9 @@
 | `76f50e3` | Полный CI run #101 | **PASS (исторический)** | 263 теста в 31 файле; typecheck, test, check, production build, audit thresholds High/Moderate; Origin allowlist и истечение override покрыты тестами. Известных уязвимостей не обнаружено. |
 | `69268de` | Полный CI run #124 | **PASS (исторический)** | 264 теста в 31 файле; typecheck, test, check, `bash -n` backup/restore scripts, production build, audit thresholds High/Moderate. Известных уязвимостей не обнаружено. |
 | `042f0cf` | Полный CI run #131 | **PASS** | 264 теста в 31 файле; typecheck, test, check, HTTP security headers tests, `bash -n` backup/restore scripts, production build, audit thresholds High/Moderate. Известных уязвимостей не обнаружено. |
+| `633ed3c` | CI run #136 | **ACTION_REQUIRED** | Commit от `github-actions[bot]` с refreshed `pnpm-lock.yaml` и Drizzle snapshot baseline. Approval требуется до запуска jobs; не считать отдельным завершённым CI. Run #131 обновлял lockfile до install/test/build/audit, но snapshot 0005 был добавлен после этого прогона. |
 
-Ссылки: [CI run #32](https://github.com/PandaGarry/tg_bot/actions/runs/42514624495), [CI run #33](https://github.com/PandaGarry/tg_bot/actions/runs/42514707562), [CI run #34](https://github.com/PandaGarry/tg_bot/actions/runs/42514844082), [CI run #35 — исторический baseline](https://github.com/PandaGarry/tg_bot/actions/runs/42514990088), [CI run #85 — исправление тестового контракта](https://github.com/PandaGarry/tg_bot/actions/runs/42519010100), [CI run #86 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42519146771), [CI run #101 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42519773732), [CI run #124 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42520465831), [CI run #131 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42520902658).
+Ссылки: [CI run #32](https://github.com/PandaGarry/tg_bot/actions/runs/42514624495), [CI run #33](https://github.com/PandaGarry/tg_bot/actions/runs/42514707562), [CI run #34](https://github.com/PandaGarry/tg_bot/actions/runs/42514844082), [CI run #35 — исторический baseline](https://github.com/PandaGarry/tg_bot/actions/runs/42514990088), [CI run #85 — исправление тестового контракта](https://github.com/PandaGarry/tg_bot/actions/runs/42519010100), [CI run #86 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42519146771), [CI run #101 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42519773732), [CI run #124 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42520465831), [CI run #131 — полный PASS](https://github.com/PandaGarry/tg_bot/actions/runs/42520902658). [CI run #136 — action required](https://github.com/PandaGarry/tg_bot/actions/runs/42521138693).
 
 ## 2. Повторная верификация находок первичного аудита
 
@@ -106,10 +109,11 @@
 - CI не заменяет нагрузочное тестирование на целевой инфраструктуре, проверку восстановления БД и ручную приёмку UI на телефонах/широких экранах.
 - Экономика, production model и оставшиеся P0/P1 требуют отдельного закрытия с тестами.
 
-## 7. Дополнительные исправления и новые находки — HEAD 042f0cf
+## 7. Дополнительные исправления и новые находки — проверенный HEAD 042f0cf / текущий branch HEAD 633ed3c
 
 | ID | Статус | Доказательство / следующий шаг |
 |---|---|---|
+| TDL-DB-007 | **Snapshot baseline вручную проверен; повторный CI pending approval** | Commit `633ed3c` добавил `0005_schema_snapshot_sync.sql` (`SELECT 1` без DDL), `0005_snapshot.json` и запись journal `idx: 5` после `0004_world_invariants`. Snapshot включает уже существующие объекты из migrations 0001–0004: `unit_states`, `unit_health`, `module_states.until_ms/reason`, `deadlines.unit_id`, `lords_account_world_idx`, `accounts_email_key_idx` и defaults email. `pnpm-lock.yaml` добавляет overrides из `pnpm-workspace.yaml` и обновляет Vitest 5.0.1 → 5.0.3; run #131 обновлял lockfile до install/test/build/audit. Bot commit workflow #136 action_required; требуется approval для отдельного CI. |
 | TDL-AUD-030 | **Закрыто для полного startup bootstrap; CI #86/#101/#124 PASS** | `bootstrapWorld` удерживает единый database-wide advisory lock на всех четырёх стадиях запуска. Тест `полный bootstrap сериализуется одним замком от ядра до миграций модулей` запускает два bootstrap одновременно и проверяет однократное применение миграции. Mixed-version rolling deploy остаётся отдельной проверкой совместимости схемы и кода. |
 | TDL-AUD-035 | **Частично закрыто; CI #101/#124/#131 PASS** | `ALLOWED_ORIGINS` обязателен в production и принимает только точные HTTPS origins без путей; WebSocket handshake разрешает только `/socket` и только allowlisted Origin. Добавлены базовые HTTP security headers и `no-store` для API, тесты покрывают health/static responses и отсутствие permissive CORS. CSP/frame policy, диагностические endpoints и TLS/proxy deployment остаются открытыми. |
 | TDL-TEST-001 | **Исправлена нестабильность теста; CI #101 PASS** | Тест истечения unit override больше не ждёт 60 мс в реальном времени: он задаёт истёкший срок через публичную операцию. Проверка стала детерминированной и не зависит от задержки CI. |
@@ -132,7 +136,7 @@
 ### Текущие ограничения
 
 - PR #9 открыт, не слит; в нём 378 файлов. Полный diff review не завершён.
-- CI #75 не выполняет restore drill и не проверяет production DB; миграция 0004 проверена только на чистой тестовой PostgreSQL.
+- CI #131 не выполняет restore drill и не проверяет production DB; миграция 0004 проверена только на чистой тестовой PostgreSQL.
 - До применения миграции 0004 к существующей БД выполнить:
   `SELECT world_id, account_id, count(*), array_agg(lord_id) FROM lords GROUP BY world_id, account_id HAVING count(*) > 1;`
   При наличии строк требуется ручное решение по данным, автоматическое удаление запрещено.
