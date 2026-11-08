@@ -102,7 +102,7 @@
 
 - Публичный `GET /api/health` теперь возвращает только `{ ok, ready }`; идентификатор мира, сетевые сведения, игровые часы, модули и счётчики больше не выдаются наружу.
 - Подробная телеметрия перенесена в `GET /api/ops/health` и требует `x-admin-token`; неверный/отсутствующий токен даёт 403 и запись `admin.denied`.
-- `/api/kernel/rejections` и `/api/modules` остаются под операторской авторизацией. `/api/schedule` не менялся: его контракт отдельно используется клиентом.
+- `/api/kernel/rejections`, `/api/modules` и `/api/schedule` требуют операторский `x-admin-token`; `/api/schedule` не вызывается игровым клиентом и возвращает `no-store`.
 - Клиентская `Diagnostics` отображается только при `import.meta.env.DEV`; она использует только публичный readiness endpoint и локальные клиентские счётчики.
 - `tools/load` перенесён на `/api/ops/health`. Для серверной телеметрии нагрузочного прогона передавать `ADMIN_TOKEN`; без него latency/throughput прогон выполняется, но серверные счётчики будут недоступны.
 - Добавлены HTTP regression tests на минимальный публичный ответ, отсутствие внутренних полей и 403/200 для защищённой телеметрии.
@@ -120,3 +120,11 @@
 - **CI #203 PASS** на кодовом HEAD `611c2ada2889dadd44ab08c91f4eac8c7afb3aa`: 270 тестов / 31 файл; typecheck, tests, checks, bash syntax, PostgreSQL 18 client install, production build, end-to-end restore drill, оба dependency audits и Drizzle snapshot check прошли.
 - Сам drill: source world поднялся на production-конфигурации; dump 30 402 байта; SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`; restore 1 с; восстановлено 1 world и 12 module states; TDL повторно стал ready на restored DB.
 - Это закрывает механическую проверку backup/restore в disposable CI environment, **но не закрывает AUD-034 полностью**: нужны provider-managed production backups/PITR, off-host encrypted copy, retention, restore актуальной production-like копии и реальные production RPO/RTO.
+
+
+## AUD-042 — закрытие оставшейся публичной schedule ручки (09.11.2026)
+
+- Проверка `apps/client/src/net.ts`, `apps/client/src/ui/World.tsx` и `apps/client/src/store.ts` не обнаружила использования `/api/schedule`; документация описывает его как операторский инструмент.
+- `GET /api/schedule` теперь требует корректный `x-admin-token`, неверный/отсутствующий ключ даёт 403 и пишет `admin.denied`; успешный ответ получает `cache-control: no-store`.
+- `apps/server/tests/http.test.ts` проверяет отказ без токена, отказ с неверным токеном, доступ с правильным токеном, покрытие расписания и fallback параметра.
+- CI для изменения ожидает завершения; AUD-042 считаем закрытым только после PASS на новом HEAD.
