@@ -18,9 +18,7 @@ export interface ClockInit {
   offsetMs: number;
   /** Последнее известное мировое время. */
   lastWorldAtMs: number;
-  /** Источник реального времени; подменяется в детерминированных тестах. */
-  nowReal?: () => number;
-  /** Источник времени для детерминированных тестов; в production — Date.now. */
+  /** Источник реального времени; в production — Date.now, в тестах управляется. */
   nowReal?: () => number;
 }
 
