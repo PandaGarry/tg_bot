@@ -174,3 +174,46 @@ describe("простой и пульс", () => {
     expect(downtime).toBeLessThan(1_000);
   });
 });
+
+
+describe("восстановление прохода писателя", () => {
+  it("сбой в подготовительном sweep освобождает pumping и следующий проход продолжает работу", async () => {
+    const base = await stand();
+    const opened = await openService(base, "процесс-восстановления");
+    const internals = opened.service as unknown as {
+      sweepExpiredOverrides: () => Promise<number>;
+      pumping: boolean;
+    };
+    const originalSweep = internals.sweepExpiredOverrides;
+
+    internals.sweepExpiredOverrides = async () => {
+      throw new Error("synthetic database failure during sweep");
+    };
+
+    try {
+      // Ошибка должна быть обработана самим pump, а не оставить проход незавершённым.
+      await expect(opened.service.pumpOnce()).resolves.toBeUndefined();
+      expect(internals.pumping).toBe(false);
+      expect(opened.records.some((record) => record.event === "world.error")).toBe(true);
+    } finally {
+      internals.sweepExpiredOverrides = originalSweep;
+    }
+
+    // После backoff писатель обязан снова принять и провести игровую команду.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const actor = { id: "lord-recovered", worldId: base.worldId, name: "лорд", clanId: null, isBot: false };
+    const pending = opened.service.submitCommand({
+      actor,
+      commandId: "_kit.mark",
+      payload: { count: 2 },
+      requestId: "req-after-sweep-failure",
+      idempotencyKey: "key-after-sweep-failure",
+    });
+    await opened.service.pumpOnce();
+    expect(await pending).toEqual({ status: "ok", repeat: false });
+    expect((await base.db.pool.query(
+      "SELECT marks FROM kit_state WHERE world_id = $1 AND holder_id = $2",
+      [base.worldId, actor.id],
+    )).rows[0]).toEqual({ marks: 2 });
+  });
+});
