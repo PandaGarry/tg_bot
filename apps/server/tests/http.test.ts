@@ -57,16 +57,9 @@ describe("порт мира", () => {
     await rm(join(tmpdir(), "tdl-secret.txt"), { force: true });
   });
 
-  it("здоровье мира отвечает счётчиками прохода", async () => {
+  it("публичная проверка здоровья не раскрывает операционную телеметрию", async () => {
     const response = await fetch(`http://127.0.0.1:${booted.port}/api/health`);
-    const body = (await response.json()) as {
-      ok: boolean;
-      ready: boolean;
-      net: { connections: number; slowClients: number };
-      calendarNow: number;
-      worldNow: number;
-      stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number; dropped: number };
-    };
+    const body = (await response.json()) as Record<string, unknown>;
     expect(response.status).toBe(200);
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
@@ -75,22 +68,43 @@ describe("порт мира", () => {
     expect(response.headers.get("content-security-policy")).toContain("object-src 'none'");
     expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(response.headers.get("cache-control")).toBe("no-store");
-    // API остаётся same-origin: сервер не включает permissive CORS.
     expect(response.headers.get("access-control-allow-origin")).toBeNull();
+    expect(body).toEqual({ ok: true, ready: true });
+    for (const field of ["world", "net", "calendarNow", "worldNow", "modules", "stats"]) {
+      expect(body).not.toHaveProperty(field);
+    }
+  });
+
+  it("подробная диагностика здоровья доступна только оператору", async () => {
+    const url = `http://127.0.0.1:${booted.port}/api/ops/health`;
+    expect((await fetch(url)).status).toBe(403);
+    expect((await fetch(url, { headers: { "x-admin-token": "wrong-token-000000000" } })).status).toBe(403);
+    const response = await fetch(url, { headers: { "x-admin-token": "operator-token-0123456789" } });
+    const body = (await response.json()) as {
+      ok: boolean;
+      world: string;
+      ready: boolean;
+      net: { connections: number; slowClients: number };
+      calendarNow: number;
+      worldNow: number;
+      modules: { id: string; state: string }[];
+      stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number; dropped: number };
+    };
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(body.ok).toBe(true);
     expect(body.ready).toBe(true);
+    expect(body.world).toBe(booted.worldId);
     expect(body.stats.epoch).toBeGreaterThan(0);
     expect(body.stats.pending).toBe(0);
     expect(body.stats.dropped).toBe(0);
-    // Смотр сети: у мира в этот миг соединений нет, медленных не было.
     expect(body.net).toEqual({ connections: 0, slowClients: 0 });
     expect(body.stats.failures).toBe(0);
     expect(body.stats.lastDeadlineMs).toBeGreaterThanOrEqual(0);
-    // Двое часов видны снаружи: календарь — настоящий, ход мира — свой.
     expect(Math.abs(body.calendarNow - Date.now())).toBeLessThan(5_000);
     expect(Math.abs(body.worldNow - Date.now())).toBeLessThan(60_000);
+    expect(booted.records.some((record) => record.event === "admin.denied")).toBe(true);
   });
-
   it("страница, файл сборки и адрес без файла", async () => {
     const page = await fetch(`http://127.0.0.1:${booted.port}/`);
     expect(page.status).toBe(200);
@@ -159,8 +173,8 @@ describe("порт мира", () => {
     });
     expect(missing.status).toBe(404);
 
-    // Состояния видны и в здоровье мира.
-    const health = (await (await fetch(`http://127.0.0.1:${booted.port}/api/health`)).json()) as {
+    // Операционные состояния доступны только через защищённую диагностику.
+    const health = (await (await fetch(`http://127.0.0.1:${booted.port}/api/ops/health`, { headers: token })).json()) as {
       modules: { id: string; state: string }[];
       stats: { unitsEnabled: number };
     };
