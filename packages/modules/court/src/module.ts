@@ -203,6 +203,20 @@ function payOps(cost: Cost): StockOp[] {
   }));
 }
 
+const COURT_ERRORS = {
+  unavailable: "court.error.unavailable",
+  insufficient: "court.error.insufficient",
+  limit: "court.error.limit",
+  outOfBounds: "court.error.out_of_bounds",
+  occupied: "court.error.occupied",
+  notFound: "court.error.not_found",
+  invalid: "court.error.invalid",
+} as const;
+
+function reject(key: string): EffectList {
+  return [{ kind: "error", key }];
+}
+
 function gridOf(state: unknown): CourtGrid {
   return stateOf(state).grid ?? defaultGrid();
 }
@@ -372,15 +386,15 @@ const court = defineModule({
           const grid = gridOf(ctx.state);
           const level = stateOf(ctx.state).townhallLevel;
           const cost = placementCost(input.type, level, grid.buildings);
-          if (!cost) return [];
-          if (!canAfford(ctx.stock, cost)) return [];
-          if (grid.buildings.length >= MAX_BUILDINGS) return [];
+          if (!cost) return reject(COURT_ERRORS.unavailable);
+          if (!canAfford(ctx.stock, cost)) return reject(COURT_ERRORS.insufficient);
+          if (grid.buildings.length >= MAX_BUILDINGS) return reject(COURT_ERRORS.limit);
           const size = sizeOf(input.type, DECOR_SIZES);
-          if (!fitsGrid(input.x, input.z, size, grid.size)) return [];
+          if (!fitsGrid(input.x, input.z, size, grid.size)) return reject(COURT_ERRORS.outOfBounds);
           const busy = footprintOf(grid.buildings);
           const roads = roadKeys(grid.roads);
           for (const key of cellsOf(input.x, input.z, size)) {
-            if (busy.has(key) || roads.has(key)) return [];
+            if (busy.has(key) || roads.has(key)) return reject(COURT_ERRORS.occupied);
           }
           const next: CourtGrid = {
             ...grid,
@@ -413,9 +427,9 @@ const court = defineModule({
           const index = grid.buildings.findIndex(
             (b) => b.type === input.type && b.x === input.fromX && b.z === input.fromZ,
           );
-          if (index < 0) return [];
+          if (index < 0) return reject(COURT_ERRORS.notFound);
           const size = sizeOf(input.type, DECOR_SIZES);
-          if (!fitsGrid(input.toX, input.toZ, size, grid.size)) return [];
+          if (!fitsGrid(input.toX, input.toZ, size, grid.size)) return reject(COURT_ERRORS.outOfBounds);
           const others = grid.buildings.filter((_, i) => i !== index);
           const busy = footprintOf(others);
           const roads = roadKeys(grid.roads);
@@ -443,7 +457,7 @@ const court = defineModule({
         handle: (ctx, input): EffectList => {
           const holderId = ctx.actor?.id ?? "world";
           // Сносится только декор: здания и Цитадель не убираются
-          if (!DECOR[input.type]) return [];
+          if (!DECOR[input.type]) return reject(COURT_ERRORS.invalid);
           const grid = gridOf(ctx.state);
           const index = grid.buildings.findIndex(
             (b) => b.type === input.type && b.x === input.x && b.z === input.z,
@@ -483,9 +497,9 @@ const court = defineModule({
             const rest = grid.roads.filter(
               (road) => !(road.x === input.moveFrom!.x && road.z === input.moveFrom!.z),
             );
-            if (rest.length === grid.roads.length) return [];
-            if (!fitsGrid(input.x, input.z, { w: 1, h: 1 }, grid.size)) return [];
-            if (roadKeys(rest).has(key) || footprintOf(grid.buildings).has(key)) return [];
+            if (rest.length === grid.roads.length) return reject(COURT_ERRORS.notFound);
+            if (!fitsGrid(input.x, input.z, { w: 1, h: 1 }, grid.size)) return reject(COURT_ERRORS.outOfBounds);
+            if (roadKeys(rest).has(key) || footprintOf(grid.buildings).has(key)) return reject(COURT_ERRORS.occupied);
             roads = [...rest, { x: input.x, z: input.z }];
           } else if (input.remove) {
             const rest = grid.roads.filter((road) => !(road.x === input.x && road.z === input.z));
@@ -493,9 +507,9 @@ const court = defineModule({
             roads = rest;
           } else {
             if (!fitsGrid(input.x, input.z, { w: 1, h: 1 }, grid.size)) return [];
-            if (roadKeys(grid.roads).has(key)) return [];
+            if (roadKeys(grid.roads).has(key)) return reject(COURT_ERRORS.occupied);
             // дорога не растёт под постройки
-            if (footprintOf(grid.buildings).has(key)) return [];
+            if (footprintOf(grid.buildings).has(key)) return reject(COURT_ERRORS.occupied);
             roads = [...grid.roads, { x: input.x, z: input.z }];
           }
           const next: CourtGrid = { ...grid, roads };
@@ -518,7 +532,7 @@ const court = defineModule({
           const level = stateOf(ctx.state).townhallLevel;
           const target = level + 1;
           const cost = levelCost(CITADEL, target);
-          if (!cost || target > (buildingById(CITADEL)?.maxLevel ?? 0)) return [];
+          if (!cost || target > (buildingById(CITADEL)?.maxLevel ?? 0)) return reject(COURT_ERRORS.unavailable);
           if (!canAfford(ctx.stock, cost)) return [];
           const grid = gridOf(ctx.state);
           // сетка растёт по полосам Цитадели и не уменьшается
