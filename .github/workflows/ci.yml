@@ -14,7 +14,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: tdl-ci-${{ github.workflow }}-${{ github.ref }}
+  # Push и pull_request для одной ветки используют одну группу.
+  group: tdl-ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,17 +45,17 @@ jobs:
       - name: Получить исходный код
         uses: actions/checkout@v4
 
-      - name: Установить Node.js 24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
       - name: Установить pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 12.6.0
           run_install: false
+
+      - name: Установить Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
 
       - name: Установить зависимости по lockfile
         run: pnpm install --frozen-lockfile
