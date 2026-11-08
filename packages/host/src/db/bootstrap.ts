@@ -46,10 +46,14 @@ async function withMigrationLock<T>(db: Db, action: () => Promise<T>): Promise<T
   }
 }
 
-export async function applyKernelMigrations(db: Db, journal: Journal): Promise<void> {
+async function applyKernelMigrationsUnlocked(db: Db, journal: Journal): Promise<void> {
   const folder = resolveMigrationsDir();
-  await withMigrationLock(db, () => migrate(db.orm, { migrationsFolder: folder }));
+  await migrate(db.orm, { migrationsFolder: folder });
   journal.write({ channel: "app", event: "kernel.migrated", detail: { folder } });
+}
+
+export async function applyKernelMigrations(db: Db, journal: Journal): Promise<void> {
+  await withMigrationLock(db, () => applyKernelMigrationsUnlocked(db, journal));
 }
 
 /** Строка мира заводится один раз. Зерно, размер и зоны мира дальше не меняются. */
@@ -115,14 +119,13 @@ export async function syncModuleStates(
  * до открытия мира. Общий advisory lock берётся ДО чтения версии: два
  * процесса больше не могут одновременно применить одну и ту же ступень.
  */
-export async function applyModuleMigrations(
+async function applyModuleMigrationsUnlocked(
   db: Db,
   registry: { modules: readonly ModuleDefinition[] },
   worldId: string,
   journal: Journal,
 ): Promise<void> {
-  await withMigrationLock(db, async () => {
-    for (const def of registry.modules) {
+  for (const def of registry.modules) {
       const migrations = [...(def.server?.migrations ?? [])].sort((a, b) => a.to - b.to);
       // Версия читается уже под lock, а не до него: ожидающий процесс увидит
       // результат транзакции предыдущего процесса и пропустит применённую ступень.
@@ -160,6 +163,35 @@ export async function applyModuleMigrations(
       } finally {
         client.release();
       }
-    }
+  }
+}
+
+export async function applyModuleMigrations(
+  db: Db,
+  registry: { modules: readonly ModuleDefinition[] },
+  worldId: string,
+  journal: Journal,
+): Promise<void> {
+  await withMigrationLock(db, () => applyModuleMigrationsUnlocked(db, registry, worldId, journal));
+}
+
+/**
+ * Полный startup bootstrap под одним database-wide lock:
+ * kernel migrations → world row → module state sync → module migrations.
+ * Отдельные публичные функции выше остаются для узких тестов и операций,
+ * но production boot должен использовать только эту точку входа.
+ */
+export async function bootstrapWorld(
+  db: Db,
+  config: HostConfig,
+  registry: { modules: readonly ModuleDefinition[] },
+  journal: Journal,
+): Promise<WorldRow> {
+  return withMigrationLock(db, async () => {
+    await applyKernelMigrationsUnlocked(db, journal);
+    const world = await ensureWorld(db, config, journal);
+    await syncModuleStates(db, registry, world.id);
+    await applyModuleMigrationsUnlocked(db, registry, world.id, journal);
+    return world;
   });
 }
