@@ -44,16 +44,16 @@ if [[ ! "$target_db" =~ ^tdl_restore_[A-Za-z0-9_]+$ ]]; then
   exit 1
 fi
 
-pg_restore --list "$TDL_BACKUP_FILE" >/dev/null
+pg_restore --no-password --list "$TDL_BACKUP_FILE" >/dev/null
 
-table_count="$(psql "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
+table_count="$(psql --no-password "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
   "SELECT count(*) FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema')")"
 if [[ "$table_count" != "0" ]]; then
   printf 'restore target is not empty; refusing to overwrite existing objects\n' >&2
   exit 1
 fi
 
-pg_restore --exit-on-error --single-transaction --no-owner --no-acl \
+pg_restore --no-password --exit-on-error --single-transaction --no-owner --no-acl \
   --dbname="$TDL_RESTORE_DATABASE_URL" "$TDL_BACKUP_FILE"
 
 schema_ok="$(psql "$TDL_RESTORE_DATABASE_URL" -X -v ON_ERROR_STOP=1 -Atqc \
