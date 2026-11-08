@@ -310,13 +310,7 @@ export async function createHttpServer(options: HttpOptions): Promise<HttpHandle
    */
   async function handleSchedule(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
     // Расписание и внутренние состояния единиц предназначены оператору, не игроку.
-    const token = options.adminToken ?? "";
-    const given = req.headers["x-admin-token"];
-    const authorized =
-      token.length > 0 &&
-      typeof given === "string" &&
-      given.length === token.length &&
-      timingSafeEqual(Buffer.from(given), Buffer.from(token));
+    const authorized = hasValidAdminToken(req.headers["x-admin-token"], options.adminToken ?? "");
     if (!authorized) {
       options.journal.write({
         channel: "security",
