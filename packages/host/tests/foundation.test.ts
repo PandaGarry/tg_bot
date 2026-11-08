@@ -151,7 +151,7 @@ describe("повтор команды", () => {
     const actor = world.actor();
     const before = await stockOf(world, actor.id);
 
-    const rejected = await runCommand(world, actor, "court.place", { type: "wall", x: 10, z: 0 });
+    const rejected = await runCommand(world, actor, "court.road", { x: 10, z: 0 });
 
     expect(rejected.status).toBe("error");
     expect(rejected.key).toBe("court.error.out_of_bounds");
