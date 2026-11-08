@@ -302,3 +302,8 @@ CI run #203 завершился **PASS** на кодовом HEAD `611c2ada2889
 
 
 AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Проверены `apps/client/src/net.ts`, `apps/client/src/ui/World.tsx`, `apps/client/src/store.ts` — client callsite отсутствует; HTTP tests покрывают 403/200 и `no-store`. Ожидается CI на новом HEAD.
+
+
+## 13. AUD-035 — production deployment reference (09.11.2026)
+
+Создан `docs/ops/production-deployment.md`: provider-neutral пример Nginx TLS + WebSocket proxy на loopback Node, systemd service, production env, exact HTTPS `ALLOWED_ORIGINS`, точный `TRUSTED_PROXY_IPS`, secrets, smoke checklist и rollback ограничения. Это документация-шаблон, а не deployment. Нужны выбранный provider/domain, действующий сертификат, реальные proxy peer IP и DB endpoint. AUD-035 остаётся частично открытым до реальной проверки на целевом хостинге.

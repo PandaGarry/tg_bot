@@ -193,3 +193,10 @@
 ### AUD-042 follow-up: `/api/schedule` operator-only
 
 Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. CI на новом HEAD ожидает завершения; до PASS изменение не считается закрытым.
+
+
+## 10. AUD-035 — production deployment reference runbook
+
+Создан `docs/ops/production-deployment.md` с reference topology Nginx TLS → loopback Node → managed PostgreSQL, примером Nginx WebSocket proxy и systemd unit, production env requirements, exact origin/proxy trust rules, deploy/smoke/rollback checklist.
+
+**Статус:** documentation prepared; production validation not performed. Неизвестны целевой provider, domain/certificate, реальный адрес непосредственного proxy peer, PostgreSQL endpoint и firewall policy. AUD-035 не закрывается документом: нужен deployment на выбранном host, WSS Origin checks, прямой доступ к Node закрыт, health endpoints проверены, restart/shutdown и DB connectivity подтверждены.

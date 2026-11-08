@@ -93,7 +93,7 @@ bash tools/db/restore-drill.sh
 - требует явное подтверждение;
 - проверяет, что target database отличается от source и имя начинается с `tdl_restore_`;
 - проверяет SHA-256 и TOC dump;
-- отказывается продолжать, если в target уже есть пользовательские таблицы;
+- отказывается продолжать, если в target уже есть relation objects или пользовательские схемы;
 - выполняет restore одной транзакцией без owner/ACL;
 - проверяет наличие `public.worlds` и `public.module_states`, а также наличие хотя бы одного мира.
 

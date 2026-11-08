@@ -128,3 +128,10 @@
 - `GET /api/schedule` теперь требует корректный `x-admin-token`, неверный/отсутствующий ключ даёт 403 и пишет `admin.denied`; успешный ответ получает `cache-control: no-store`.
 - `apps/server/tests/http.test.ts` проверяет отказ без токена, отказ с неверным токеном, доступ с правильным токеном, покрытие расписания и fallback параметра.
 - CI для изменения ожидает завершения; AUD-042 считаем закрытым только после PASS на новом HEAD.
+
+
+## AUD-035 — reference runbook production deployment (09.11.2026)
+
+- Добавлен `docs/ops/production-deployment.md`: пример топологии Nginx TLS → loopback Node → managed PostgreSQL, точные требования `ALLOWED_ORIGINS` и `TRUSTED_PROXY_IPS`, Nginx WebSocket forwarding, systemd unit, secrets и smoke/rollback checklist.
+- Это шаблон для обсуждения/переноса на целевую платформу, не фактическая настройка сервера. Домен, сертификаты, firewall, реальные proxy peer IP, DB provider и provider backup guarantees пока не подтверждены.
+- **AUD-035 остаётся частично открытым** до выполнения checklist на выбранном production host и подтверждения WSS/TLS/restart/DB connectivity.
