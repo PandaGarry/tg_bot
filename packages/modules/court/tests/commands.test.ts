@@ -165,6 +165,53 @@ describe("court.move", () => {
     })).toEqual([{ kind: "error", key: "court.error.not_found" }]);
   });
 
+  it("перемещает постройку и синхронизирует сохранённую сетку с patch", () => {
+    const st = state(1, [
+      { type: "citadel", x: 5, z: 5 },
+      { type: "sawmill", x: 2, z: 2 },
+    ]);
+    const effects = cmd("court.move")(ctxOf(st, {}), {
+      type: "sawmill",
+      fromX: 2,
+      fromZ: 2,
+      toX: 1,
+      toZ: 1,
+    });
+    const grid = gridOf(effects)!;
+    expect(grid.buildings).toContainEqual({ type: "sawmill", x: 1, z: 1 });
+    expect(grid.buildings).not.toContainEqual({ type: "sawmill", x: 2, z: 2 });
+    const saved = effects.find((effect) => (effect as { kind?: string }).kind === "rows.upsert") as
+      | { value: { grid: unknown } }
+      | undefined;
+    expect(saved?.value.grid).toEqual(grid);
+  });
+
+  it("отклоняет перенос за пределы сетки и на дорогу", () => {
+    const st = state(1, [
+      { type: "citadel", x: 5, z: 5 },
+      { type: "sawmill", x: 2, z: 2 },
+    ]);
+    expect(cmd("court.move")(ctxOf(st, {}), {
+      type: "sawmill",
+      fromX: 2,
+      fromZ: 2,
+      toX: 20,
+      toZ: 20,
+    })).toEqual([{ kind: "error", key: "court.error.out_of_bounds" }]);
+
+    const withRoad = {
+      ...st,
+      grid: { ...st.grid, roads: [{ x: 1, z: 1 }] },
+    };
+    expect(cmd("court.move")(ctxOf(withRoad, {}), {
+      type: "sawmill",
+      fromX: 2,
+      fromZ: 2,
+      toX: 1,
+      toZ: 1,
+    })).toEqual([{ kind: "error", key: "court.error.occupied" }]);
+  });
+
   it("возвращает ошибку, если целевая клетка занята", () => {
     const st = state(1, [
       { type: "citadel", x: 5, z: 5 },
