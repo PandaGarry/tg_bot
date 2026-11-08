@@ -13,6 +13,7 @@ function productionEnv(): NodeJS.ProcessEnv {
     NODE_ENV: "production",
     ACCESS_MODE: "public",
     ALLOWED_ORIGINS: "https://game.example.com",
+    TRUSTED_PROXY_IPS: "127.0.0.1",
   };
 }
 
