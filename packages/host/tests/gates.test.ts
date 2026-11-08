@@ -379,4 +379,40 @@ describe("лорд", () => {
     const lords = await world.db.pool.query("SELECT lord_id FROM lords WHERE account_id = $1", [entered.value.accountId]);
     expect(lords.rowCount).toBe(1);
   });
+
+  it("конкурентное создание и чужой world_id не создают лишнего лорда", async () => {
+    const world = await stand();
+    const name = login_();
+    await register(world.gates, account(name));
+    const entered = await login(world.gates, { login: name, password, protocolVersion: PROTOCOL_VERSION });
+    if (!entered.ok) throw new Error("вход не прошёл");
+
+    const base = {
+      accountId: entered.value.accountId,
+      worldId: world.config.WORLD_ID,
+      portrait: "portrait-1",
+      bannerSign: "skull",
+      bannerColor: "bone",
+      type: "bone",
+    };
+    const foreign = await createLord(world.gates, {
+      ...base,
+      worldId: "another-world",
+      name: `Чужой ${randomUUID().slice(0, 6)}`,
+    });
+    expect(foreign).toEqual({ ok: false, key: KERNEL_KEYS.session });
+
+    const [first, second] = await Promise.all([
+      createLord(world.gates, { ...base, name: `Первый ${randomUUID().slice(0, 6)}` }),
+      createLord(world.gates, { ...base, name: `Второй ${randomUUID().slice(0, 6)}` }),
+    ]);
+    if (!first.ok || !second.ok) throw new Error("конкурентное создание лорда не прошло");
+    expect(second.value.lordId).toBe(first.value.lordId);
+
+    const lords = await world.db.pool.query(
+      "SELECT lord_id FROM lords WHERE world_id = $1 AND account_id = $2",
+      [world.config.WORLD_ID, entered.value.accountId],
+    );
+    expect(lords.rowCount).toBe(1);
+  });
 });
