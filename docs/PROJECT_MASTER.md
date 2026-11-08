@@ -40,9 +40,11 @@
 
 Повторная проверка GitHub 08.11.2026:
 - default branch `main`: `8a46482422a2127db73597dea65b3f07464fd9dc`;
-- текущий кодовый HEAD рабочей ветки: `042f0cfae410f66d17e635b18c03f62e98898540`; полный CI run #131 завершился PASS.
+- последний полностью проверенный кодовый HEAD: `042f0cfae410f66d17e635b18c03f62e98898540`; текущий branch HEAD: `633ed3ce3dd65b3980041c3a68c4b3042e1782b2`. Для нового HEAD workflow #136 получил `action_required` от GitHub Actions bot; jobs не запускались.
 - PR #9 остаётся открытым и не слит в `main`; все изменения аудита продолжаются только в рабочей ветке `arena/8885a9e3-tg-bot`.
-- GitHub Actions run #131 на HEAD `042f0cf` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `bash -n` для backup/restore scripts, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 264 теста в 31 файле. Dependency audit не обнаружил известных уязвимостей.
+
+- После run #131 GitHub Actions bot добавил commit `633ed3c` с обновлённым `pnpm-lock.yaml` и Drizzle baseline `0005_schema_snapshot_sync`. Lockfile соответствует overrides из `pnpm-workspace.yaml` (включая Vitest 5.0.3) и использовался при install/test/build/audit run #131. Snapshot 0005 вручную сверён с migrations 0001–0004; SQL содержит только `SELECT 1`. Повторный run #136 требует approval (`action_required`), jobs не выполнялись; до approval не считать commit `633ed3c` отдельно CI-подтверждённым.
+- GitHub Actions run #131 на HEAD `042f0cf` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `bash -n` для backup/restore scripts, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 264 теста в 31 файле. CI обновляет lockfile до установки зависимостей, поэтому refreshed lockfile из commit `633ed3c` был использован этим прогоном. Dependency audit не обнаружил известных уязвимостей.
 - на `ed19b71` typecheck падал из-за двух аргументов размера дорожной плиты; исправление находится в `2c110a8`;
 - на `2c110a8` typecheck прошёл, но один старый тест неверно ожидал logout без подтверждения сервера; тест обновлён на `85c0505`, а сетевой тест подтверждает удаление токена после серверного ответа;
 - HEAD `316c2f8` добавил защиту от сдвига производственного срока при повторном входе и два теста; последующий HEAD `13e59a7` добавил уточнение теста расписания;
