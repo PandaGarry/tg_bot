@@ -380,6 +380,12 @@ export class SocketHub implements ViewSink {
       this.send(state, zServerError.parse({ t: "error", key: session.key }));
       return;
     }
+    // Дополнительная защита на сетевой границе: сессия и actor обязаны
+    // принадлежать именно этому миру, даже если источник resume изменится.
+    if (session.value.worldId !== this.worldId || (session.value.actor && session.value.actor.worldId !== this.worldId)) {
+      this.send(state, zServerError.parse({ t: "error", key: KERNEL_KEYS.session }));
+      return;
+    }
     state.accountId = session.value.accountId;
     state.token = token;
     state.actor = session.value.actor;
