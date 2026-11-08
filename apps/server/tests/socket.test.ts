@@ -395,6 +395,55 @@ describe("напор на сокет", () => {
   });
 });
 
+describe("доверенный reverse proxy", () => {
+  let booted: BootedServer;
+
+  beforeAll(async () => {
+    booted = await bootServer({
+      config: testConfig({ TRUSTED_PROXY_IPS: "127.0.0.1,127.0.0.2" }),
+      serveClient: false,
+    });
+  }, 60_000);
+
+  afterAll(async () => {
+    await booted.stop("test");
+  });
+
+  it("доверяет X-Forwarded-For только от proxy и берёт первый недоверенный hop справа", async () => {
+    const url = `ws://127.0.0.1:${booted.port}/socket`;
+    const first = await Client.open(url, { "X-Forwarded-For": "198.51.100.10, 127.0.0.2" });
+    const second = await Client.open(url, {
+      "X-Forwarded-For": "203.0.113.99, 198.51.100.10, 127.0.0.2",
+    });
+    const attempt = (login: string) => ({
+      t: "auth.login",
+      protocolVersion: PROTOCOL_VERSION,
+      login,
+      password: "secret-12345",
+      lang: "ru",
+    });
+
+    try {
+      for (let index = 0; index < 5; index += 1) {
+        first.send(attempt(`proxy-missing-${index}`));
+        const reply = await first.next<{ t: "error"; key: string }>((message) => message.t === "error");
+        expect(reply.key).toBe(KERNEL_KEYS.login);
+      }
+      first.send(attempt("proxy-blocked"));
+      const blocked = await first.next<{ t: "error"; key: string }>((message) => message.t === "error");
+      expect(blocked.key).toBe(KERNEL_KEYS.rate);
+
+      // Левый forged prefix не меняет client IP: второй сокет остаётся в том же bucket.
+      second.send(attempt("proxy-spoofed-prefix"));
+      const spoofed = await second.next<{ t: "error"; key: string }>((message) => message.t === "error");
+      expect(spoofed.key).toBe(KERNEL_KEYS.rate);
+    } finally {
+      first.close();
+      second.close();
+    }
+  });
+});
+
 describe("защита ворот от перебора", () => {
   let booted: BootedServer;
 
