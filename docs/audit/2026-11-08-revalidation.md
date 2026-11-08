@@ -215,3 +215,20 @@
 **Build evidence:** CI #218 production build: initial `index` chunk 470.71 KB minified / 136.09 KB gzip против baseline 735.16 KB / 213.81 KB gzip (примерно -36%); отдельные chunks `application` 5.56 KB и `courtScene` 17.76 KB. Typecheck, 272 теста / 31 файл, production build и полный workflow — PASS.
 
 **Статус:** partial fix. Требуются реальные измерения на iOS/Android WebView: first-load, memory, GPU/FPS, redraw cost и время загрузки lazy chunks. Bundle reduction не доказывает оптимальную производительность сцены.
+
+
+## 7. AUD-042 — публичная и операторская диагностика (09.11.2026)
+
+**Результат повторной проверки исходников рабочей ветки:** реализация найдена в коде и тестах; техническое закрытие ожидает полного CI на актуальном HEAD.
+
+| Поверхность | Проверенный контракт | Доказательство |
+|---|---|---|
+| `GET /api/health` | Публичный ответ только `{ ok: true, ready: boolean }`; без world ID, сети, календаря, модулей и статистики; `no-store` | `apps/server/src/http.ts`; HTTP-тест сравнивает весь JSON и запрещённые поля |
+| `GET /api/ops/health` | Подробная телеметрия только с корректным `x-admin-token`; без токена/с неверным токеном — 403 | `apps/server/src/http.ts`; `apps/server/tests/http.test.ts` проверяет оба отказа и успешный ответ |
+| `/api/kernel/rejections`, `/api/modules`, `/api/schedule` | Операторские endpoints закрыты токеном; расписание не является публичным API | HTTP-тесты проверяют отказ без токена и доступ с токеном |
+| Клиентская диагностика | `Diagnostics` показывает локальные диагностические данные и опрашивает только минимальный health endpoint; компонент монтируется только под `import.meta.env.DEV` | `apps/client/src/ui/World.tsx`, `apps/client/src/ui/Diagnostics.tsx` |
+| Нагрузочный инструмент | `tools/load/index.ts` обращается к `/api/ops/health`; передаёт `ADMIN_TOKEN` как `x-admin-token`. Без токена нагрузочный прогон продолжает работу без серверной телеметрии | `tools/load/index.ts` |
+
+**CI:** run #218 прошёл на родительском HEAD `acbaa2b`. Текущий HEAD `f41198c89e42abc6ea9f7043f612e6580c22fb97` проверяется run #219 (на момент записи — in progress). Не приписывать run #218 проверку более позднего HEAD.
+
+**Остаток:** после PASS run #219 и CI документационного коммита проверить, что защита остаётся без регрессий. Операторский токен должен задаваться через секреты окружения, быть длинным/случайным и ротироваться; фактическая конфигурация production относится к AUD-035. Служебные ручки не должны попадать в публичную документацию API.
