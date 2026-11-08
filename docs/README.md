@@ -23,7 +23,8 @@
 | Исследования жанра | `docs/balance/research/` | Справка по конкурентам: серверы, ядро, глубокий разбор, Rise of Kingdoms (не решения) |
 | Календарь | `docs/design/calendar.md` | Часы мира, окна дня, недели, праздники, поры года (раздел 5 решён 25.09) |
 | Эксплуатация | `docs/ops.md` | Отказ модуля, журнал, сохранение и рестарт, защита, админ-панель, боты (решено) |
-| Backup и восстановление | `docs/ops/backup-restore.md` | PostgreSQL custom dump, checksum, CI restore drill; P0 открыт до production-like проверки |\n| Production deployment | `docs/ops/production-deployment.md` | TLS, Nginx WebSocket proxy, systemd, trusted proxy IP и production smoke checklist; reference runbook, не подтверждённый deployment |
+| Backup и восстановление | `docs/ops/backup-restore.md` | PostgreSQL custom dump, checksum, CI restore drill; P0 открыт до production-like проверки |
+| Production deployment | `docs/ops/production-deployment.md` | TLS, Nginx WebSocket proxy, systemd, trusted proxy IP и production smoke checklist; reference runbook, не подтверждённый deployment |
 | Виды модулей и единицы | `docs/design/modules.md` | Виды `core`/`timed`/`seasonal`, единицы, расписание, защита (решено 25.09; плотность событий открыта) |
 | Модули | `docs/modules.md` | Как писать модуль: порядок работы и контракт (решено) |
 | Проектирование | `docs/design/` | Рабочие ТЗ по системам: HUD, здания, сцена двора и т.д. |
