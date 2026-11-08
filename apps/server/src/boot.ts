@@ -8,16 +8,13 @@
 import { randomUUID } from "node:crypto";
 import type { Server } from "node:http";
 import {
-  applyKernelMigrations,
-  applyModuleMigrations,
+  bootstrapWorld,
   createDb,
   createJournal,
-  ensureWorld,
   loadConfig,
   loadEnvFile,
   loadRegistry,
   lordProfile,
-  syncModuleStates,
   WorldService,
   type Db,
   type GatesOptions,
@@ -80,12 +77,14 @@ export async function bootServer(options: BootOptions = {}): Promise<BootedServe
     detail: { process: processId, node: process.version, protocolVersion: PROTOCOL_VERSION, envFile },
   });
 
-  const db = createDb(config.DATABASE_URL);
-  await applyKernelMigrations(db, journal);
   const registry = loadRegistry(options.extraModules ?? []);
-  const world = await ensureWorld(db, config, journal);
-  await syncModuleStates(db, registry, world.id);
-  await applyModuleMigrations(db, registry, world.id, journal);
+  const db = createDb(config.DATABASE_URL);
+  // Startup migrations, world initialization and module migrations share one
+  // database-wide advisory lock. A failed bootstrap must not leave the pool open.
+  const world = await bootstrapWorld(db, config, registry, journal).catch(async (error: unknown) => {
+    await db.close().catch(() => undefined);
+    throw error;
+  });
 
   const gates: GatesOptions = { db, config, journal };
   const hub = new SocketHub({
