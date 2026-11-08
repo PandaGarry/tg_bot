@@ -104,6 +104,12 @@ describe("изоляция миграций миров", () => {
       id: "migration-bootstrap-race",
       version: 1,
       kind: "core",
+      content: {
+        strings: {
+          ru: { "migration-bootstrap-race.name": "Проверка миграций" },
+          en: { "migration-bootstrap-race.name": "Migration probe" },
+        },
+      },
       server: {
         migrations: [
           {
@@ -147,4 +153,4 @@ describe("изоляция миграций миров", () => {
       await world.close();
     }
   });
- });
+});
