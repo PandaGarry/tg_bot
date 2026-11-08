@@ -498,6 +498,7 @@ const court = defineModule({
               (road) => !(road.x === input.moveFrom!.x && road.z === input.moveFrom!.z),
             );
             if (rest.length === grid.roads.length) return [];
+            if (!fitsGrid(input.x, input.z, 1, grid.size)) return [];
             if (roadKeys(rest).has(key) || footprintOf(grid.buildings).has(key)) return [];
             roads = [...rest, { x: input.x, z: input.z }];
           } else if (input.remove) {
@@ -505,6 +506,7 @@ const court = defineModule({
             if (rest.length === grid.roads.length) return [];
             roads = rest;
           } else {
+            if (!fitsGrid(input.x, input.z, 1, grid.size)) return [];
             if (roadKeys(grid.roads).has(key)) return [];
             // дорога не растёт под постройки
             if (footprintOf(grid.buildings).has(key)) return [];
