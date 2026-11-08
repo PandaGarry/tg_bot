@@ -2,7 +2,7 @@
 
 > Статус: аудит начат, реализация поэтапная. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 > Визуальная цель: оригинальная undead-fantasy стратегия коммерческого качества. Viking Rise — только жанровый ориентир; чужие ассеты и точные UI-решения не копировать.
-> Связанные документы: `PROJECT_MASTER.md` (Фаза 3A), `STATUS.md`, `DECISIONS.md`, `hud-court.md`, `court-scene.md`, `buildings.md`.
+> Связанные документы: `PROJECT_MASTER.md` (Фаза 3A), `STATUS.md`, `DECISIONS.md`, `hud-court.md`, `court-scene.md`, `buildings.md`. Оригинальная визуальная библия: [`art-direction.md`](art-direction.md).
 
 ## 1. Текущая активная архитектура UI
 
