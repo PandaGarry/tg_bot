@@ -1,21 +1,21 @@
 # Состояние проекта
 
-> Обновлено: 08.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; кодовый HEAD `69268de26de7153eaecacd9860c6dcd6bac46869` прошёл полный CI run #124.
+> Обновлено: 08.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; кодовый HEAD `042f0cfae410f66d17e635b18c03f62e98898540` прошёл полный CI run #131.
 
-> Документы аудита и мастер-план синхронизированы после run #124. PR #9 остаётся открытым и не слит.
+> Документы аудита и мастер-план синхронизированы после run #131. PR #9 остаётся открытым и не слит.
 
 ## Повторная проверка актуальной ветки — 08.11.2026
 
-- Актуальный кодовый HEAD: `69268de`; полный CI run #124 — **PASS**: typecheck, 264 теста в 31 файле, checks, `bash -n` backup/restore scripts, production build, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate`. Известных уязвимостей в текущем lockfile не обнаружено.
+- Актуальный кодовый HEAD: `042f0cf`; полный CI run #131 — **PASS**: typecheck, 264 теста в 31 файле, checks, `bash -n` backup/restore scripts, production build, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate`. Известных уязвимостей в текущем lockfile не обнаружено.
 - PR #9: открыт, не слит; 378 изменённых файлов (14 048 добавлений, 10 721 удаление) на момент синхронизации. Никаких изменений в `main` не внесено.
 - AUD-003: сервер теперь переписывает stock-патч фактическим балансом из БД после clamp/gather; отдельный regression test на clamp ещё требуется.
 - AUD-006: login/register ограничены IP-buckets; регрессионный тест подтверждает общий лимит между двумя сокетами. Команды пока ограничены на соединение; actor/account-level лимит и доверенная proxy-конфигурация остаются открытыми.
 - AUD-022: транзакционный advisory lock + уникальный индекс PostgreSQL `(world_id, account_id)`; конкурентная регрессия и восстановление привязки сессии проходят CI.
-- AUD-030: полный startup bootstrap выполняется под одним PostgreSQL advisory lock; конкурентный интеграционный тест проходит CI #101/#124. Mixed-version rolling deploy остаётся отдельной проверкой перед production.
+- AUD-030: полный startup bootstrap выполняется под одним PostgreSQL advisory lock; конкурентный интеграционный тест проходит CI #101/#124/#131. Mixed-version rolling deploy остаётся отдельной проверкой перед production.
 - AUD-033: область идемпотентности теперь включает мир и игрока; повтор с чужим commandId не затирает первоначальный outcome. Регрессии проходят CI.
-- P0 AUD-034/035 и P1 AUD-002/004 остаются открытыми: фактический backup/restore drill (runbook и безопасные скрипты подготовлены, но не запускались на целевой БД), остаток production hardening, утверждённая экономика и производство по зданиям. Для AUD-035 уже реализован и протестирован HTTPS Origin allowlist на WebSocket; AUD-030 закрыт по результатам CI #101/#124. Backup/restore scripts проходят синтаксическую проверку CI #124, но фактический restore drill не выполнялся.
+- P0 AUD-034/035 и P1 AUD-002/004 остаются открытыми: фактический backup/restore drill (runbook и безопасные скрипты подготовлены, но не запускались на целевой БД), остаток production hardening, утверждённая экономика и производство по зданиям. Для AUD-035 реализованы HTTPS Origin allowlist на WebSocket и базовые HTTP security headers; проверки проходят CI #101/#124/#131. Остаток: CSP/frame policy, диагностические маршруты и TLS/proxy deployment. AUD-030 закрыт. Backup/restore scripts проходят синтаксическую проверку CI #124/#131, но фактический restore drill не выполнялся.
 - Графика: PixiJS main chunk 735.16 КБ / 213.81 КБ gzip; ленивой загрузки и инкрементальной перерисовки пока нет.
-- Dependency audit в CI #101/#124: 0 известных уязвимостей на порогах High и Moderate; AUD-039 закрыт для текущего lockfile.
+- Dependency audit в CI #101/#124/#131: 0 известных уязвимостей на порогах High и Moderate; AUD-039 закрыт для текущего lockfile.
 
 ## Аудит 08.11.2026 — в работе
 
