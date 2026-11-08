@@ -1,12 +1,13 @@
 # Состояние проекта
 
-> Обновлено: 08.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; кодовый HEAD `042f0cfae410f66d17e635b18c03f62e98898540` прошёл полный CI run #131.
+> Обновлено: 08.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`; последний полностью проверенный HEAD `042f0cfae410f66d17e635b18c03f62e98898540` прошёл полный CI run #131. Текущий branch HEAD `633ed3ce3dd65b3980041c3a68c4b3042e1782b2` включает generated lockfile/Drizzle baseline; workflow #136 имеет `action_required`, jobs не запускались.
 
 > Документы аудита и мастер-план синхронизированы после run #131. PR #9 остаётся открытым и не слит.
 
 ## Повторная проверка актуальной ветки — 08.11.2026
 
 - Актуальный кодовый HEAD: `042f0cf`; полный CI run #131 — **PASS**: typecheck, 264 теста в 31 файле, checks, `bash -n` backup/restore scripts, production build, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate`. Известных уязвимостей в текущем lockfile не обнаружено.
+- Текущий branch HEAD: `633ed3c` — GitHub Actions bot обновил `pnpm-lock.yaml` и добавил Drizzle snapshot baseline `0005_schema_snapshot_sync`. Lockfile соответствует overrides из `pnpm-workspace.yaml` и был обновлён в CI до установки зависимостей run #131; snapshot вручную сверён с migrations 0001–0004, SQL содержит только `SELECT 1`. Повторный workflow #136 требует approval (`action_required`), поэтому этот commit пока не имеет отдельного завершённого CI.
 - PR #9: открыт, не слит; 378 изменённых файлов (14 048 добавлений, 10 721 удаление) на момент синхронизации. Никаких изменений в `main` не внесено.
 - AUD-003: сервер теперь переписывает stock-патч фактическим балансом из БД после clamp/gather; отдельный regression test на clamp ещё требуется.
 - AUD-006: login/register ограничены IP-buckets; регрессионный тест подтверждает общий лимит между двумя сокетами. Команды пока ограничены на соединение; actor/account-level лимит и доверенная proxy-конфигурация остаются открытыми.
