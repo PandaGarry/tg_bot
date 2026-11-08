@@ -32,8 +32,6 @@ interface SocketState {
   token: string | null;
   viewport: { x: number; y: number; w: number; h: number } | null;
   lang: "ru" | "en";
-  tokens: number;
-  lastRefill: number;
   alive: boolean;
   /** Адрес TCP-пира; X-Forwarded-For не доверяем без proxy allowlist. */
   remoteAddress: string;
@@ -49,12 +47,14 @@ const AUTH_BUCKET_CAPACITY = { login: 5, register: 10 } as const;
 const AUTH_BUCKET_REFILL_MS = 60_000;
 const AUTH_BUCKET_TTL_MS = 10 * 60_000;
 const AUTH_BUCKET_MAX_KEYS = 10_000;
+const COMMAND_BUCKET_TTL_MS = 60_000;
+const COMMAND_BUCKET_MAX_KEYS = 10_000;
 
 export interface HubOptions {
   gates: GatesOptions;
   journal: Journal;
   worldId: string;
-  /** Команд в секунду на соединение. Тестовый мир поднимает флаг для прогона. */
+  /** Команд в секунду на аккаунт в пределах этого мира. */
   commandRate?: number;
   /** Предел буфера отправки. Тест задаёт ноль и проверяет отключение медленного клиента. */
   sendBufferBytes?: number;
@@ -87,6 +87,8 @@ export class SocketHub implements ViewSink {
   private readonly states = new Set<SocketState>();
   /** Общий IP bucket: открытие новых сокетов не обнуляет лимит перебора пароля. */
   private readonly authBuckets = new Map<string, AuthBucket>();
+  /** Командный бюджет общий для всех сокетов одного аккаунта в этом мире. */
+  private readonly commandBuckets = new Map<string, AuthBucket>();
   private service: WorldService | null = null;
   private wss: WebSocketServer | null = null;
   private upgradeServer: Server | null = null;
@@ -141,6 +143,7 @@ export class SocketHub implements ViewSink {
     this.heartbeat = setInterval(() => {
       this.checkAlive();
       this.pruneAuthBuckets(Date.now());
+      this.pruneCommandBuckets(Date.now());
     }, 30_000);
     this.journal.write({ channel: "app", worldId: this.worldId, event: "net.ready" });
   }
@@ -257,8 +260,6 @@ export class SocketHub implements ViewSink {
       token: null,
       viewport: null,
       lang: "ru",
-      tokens: this.commandRate,
-      lastRefill: Date.now(),
       alive: true,
       remoteAddress: request.socket.remoteAddress ?? "unknown",
     };
@@ -527,14 +528,33 @@ export class SocketHub implements ViewSink {
     }
   }
 
-  private takeToken(state: SocketState): boolean {
-    const now = Date.now();
-    if (now - state.lastRefill > 1000) {
-      state.tokens = this.commandRate;
-      state.lastRefill = now;
+  private pruneCommandBuckets(now: number): void {
+    for (const [accountId, bucket] of this.commandBuckets) {
+      if (now - bucket.lastSeen > COMMAND_BUCKET_TTL_MS) this.commandBuckets.delete(accountId);
     }
-    if (state.tokens <= 0) return false;
-    state.tokens -= 1;
+  }
+
+  /** Общий token bucket аккаунта: открытие новых сокетов не обнуляет лимит команд. */
+  private takeToken(state: SocketState): boolean {
+    const accountId = state.accountId;
+    if (!accountId) return false;
+
+    const now = Date.now();
+    let bucket = this.commandBuckets.get(accountId);
+    if (!bucket) {
+      this.pruneCommandBuckets(now);
+      // При исчерпании карты новых аккаунтов отсекаем, не раздувая память бесконечно.
+      if (this.commandBuckets.size >= COMMAND_BUCKET_MAX_KEYS) return false;
+      bucket = { tokens: this.commandRate, lastRefill: now, lastSeen: now };
+      this.commandBuckets.set(accountId, bucket);
+    }
+
+    const elapsed = Math.max(0, now - bucket.lastRefill);
+    bucket.tokens = Math.min(this.commandRate, bucket.tokens + (elapsed * this.commandRate) / 1000);
+    bucket.lastRefill = now;
+    bucket.lastSeen = now;
+    if (bucket.tokens < 1) return false;
+    bucket.tokens -= 1;
     return true;
   }
 
