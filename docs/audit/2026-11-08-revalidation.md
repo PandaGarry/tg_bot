@@ -119,7 +119,7 @@
 |---|---|---|
 | TDL-DB-007 | **Snapshot baseline проверен; CI #146/#160 PASS** | Commit `633ed3c` добавил `0005_schema_snapshot_sync.sql` (`SELECT 1` без DDL), `0005_snapshot.json` и запись journal `idx: 5` после `0004_world_invariants`. Snapshot включает уже существующие объекты из migrations 0001–0004: `unit_states`, `unit_health`, `module_states.until_ms/reason`, `deadlines.unit_id`, `lords_account_world_idx`, `accounts_email_key_idx` и defaults email. `pnpm-lock.yaml` добавляет overrides из `pnpm-workspace.yaml` и обновляет Vitest 5.0.1 → 5.0.3. Drizzle snapshot check прошёл в CI #146. |
 | TDL-AUD-030 | **Закрыто для полного startup bootstrap; CI #86/#101/#124/#131/#146 PASS** | `bootstrapWorld` удерживает единый database-wide advisory lock на всех четырёх стадиях запуска. Тест `полный bootstrap сериализуется одним замком от ядра до миграций модулей` запускает два bootstrap одновременно и проверяет однократное применение миграции. Mixed-version rolling deploy остаётся отдельной проверкой совместимости схемы и кода. |
-| TDL-AUD-035 | **Частично закрыто; CI #101/#124/#131/#146/#160/#189 PASS** | `ALLOWED_ORIGINS` обязателен в production; WebSocket Origin allowlist, базовые HTTP security headers, CSP `base-uri/object-src/frame-ancestors`, `X-Frame-Options` и защита подробной health-диагностики реализованы и покрыты тестами. Осталось подтвердить TLS/reverse-proxy deployment на целевой площадке; публичный `/api/schedule` требует отдельного contract review. |
+| TDL-AUD-035 | **Частично закрыто; CI #101/#124/#131/#146/#160/#189 PASS** | `ALLOWED_ORIGINS` обязателен в production; WebSocket Origin allowlist, базовые HTTP security headers, CSP `base-uri/object-src/frame-ancestors`, `X-Frame-Options` и защита подробной health-диагностики реализованы и покрыты тестами. Осталось подтвердить TLS/reverse-proxy deployment на целевой площадке; `/api/schedule` переведён под операторскую авторизацию; остаётся проверить production TLS/reverse proxy. |
 | TDL-TEST-001 | **Исправлена нестабильность теста; CI #101 PASS** | Тест истечения unit override больше не ждёт 60 мс в реальном времени: он задаёт истёкший срок через публичную операцию. Проверка стала детерминированной и не зависит от задержки CI. |
 | TDL-AUD-033 | **Исправлено + CI #75 PASS** | PK `commands` теперь `(world_id, actor_id, idempotency_key)`; SELECT/INSERT/UPDATE scoped по actor; rejected-key conflict использует `DO NOTHING`, поэтому конфликтующий commandId не перезаписывает ранее успешный outcome. Есть тесты межигрового ключа и сохранения исходного результата. |
 | TDL-AUD-036 | **Открыто, P1 производительность** | PixiJS импортируется статически в `main.tsx` и инициализируется до авторизации. Production main chunk — 735.16 КБ minified / 213.81 КБ gzip; требуется dynamic import после входа в мир и повторный замер. |
@@ -158,7 +158,7 @@
 - подробный `/api/ops/health` защищён `x-admin-token`, отказ пишет `admin.denied`, ответы `no-store`;
 - `Diagnostics` доступен только при `import.meta.env.DEV` и больше не ожидает приватные поля;
 - `tools/load` читает `/api/ops/health` с `ADMIN_TOKEN`, сохраняя возможность прогнать latency/throughput без телеметрии, если токен не передан;
-- `/api/schedule` оставлен без изменений, поскольку его контракт отдельно используется клиентом; его экспозиция требует самостоятельной проверки.
+- проверены client callsites (`net.ts`, `World.tsx`, `store.ts`): `/api/schedule` не используется клиентом; ручка требует `x-admin-token`, неверный/пустой токен даёт 403 и журналирует `admin.denied`, успешный ответ — `no-store`.
 
 **Регрессии:** `apps/server/tests/http.test.ts` проверяет точный публичный payload и отсутствие полей `world/net/calendarNow/worldNow/modules/stats`; защищённый endpoint проверяется без токена, с неверным и корректным токеном, включая `no-store` и детальные счётчики.
 
@@ -188,3 +188,8 @@
 **Фактический CI результат:** custom dump — 30 402 bytes; SHA-256 `322d56a0ee2cbc780ffcff8e0ddb4ede51cd4b75d6f72f1241f41c1c570a1d0e`; restore — 1 second; source/restored row-count vector — `1:12:0:0:0:0:0` (worlds, module_states, accounts, lords, stock, deadlines, reports); TDL после восстановления повторно запустился с `ready=true`. CI backup timer округлился до 0 seconds.
 
 **Статус:** CI-механика backup/restore подтверждена; **AUD-034 остаётся P0/open частично**, потому что disposable CI не является production-like backup drill. До закрытия нужны provider-managed backups/PITR, encrypted off-host copy, retention, восстановление актуальной production-like копии, проверка доступа/ролей и фиксация реальных production RPO/RTO.
+
+
+### AUD-042 follow-up: `/api/schedule` operator-only
+
+Проверка клиентских callsites не выявила потребителя `/api/schedule`; документация определяет ручку как операторский просмотр календарного плана. Endpoint теперь защищён `x-admin-token`, логирует отказ и устанавливает `cache-control: no-store`. Regression test покрывает 403 без/с неверным токеном и 200 с правильным токеном. CI на новом HEAD ожидает завершения; до PASS изменение не считается закрытым.
