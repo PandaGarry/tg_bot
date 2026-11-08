@@ -5,6 +5,7 @@
  */
 
 import { randomUUID } from "node:crypto";
+import WebSocket from "ws";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadConfig, type HostConfig } from "@tdl/host";
 import { KERNEL_KEYS, PROTOCOL_VERSION } from "@tdl/protocol";
@@ -28,6 +29,7 @@ function testConfig(overrides: Record<string, string> = {}): HostConfig {
     PORT: "0",
     HOST: "127.0.0.1",
     NODE_ENV: "test",
+    ALLOWED_ORIGINS: "https://game.example.com",
     ...overrides,
   });
 }
@@ -41,6 +43,26 @@ describe("сокет и ворота", () => {
 
   afterAll(async () => {
     await booted.stop("test");
+  });
+
+  it("отклоняет WebSocket без разрешённого Origin до авторизации", async () => {
+    const status = (headers?: Record<string, string>): Promise<number> =>
+      new Promise((resolve, reject) => {
+        const url = `ws://127.0.0.1:${booted.port}/socket`;
+        const socket = headers ? new WebSocket(url, { headers }) : new WebSocket(url);
+        socket.once("unexpected-response", (_request, response) => {
+          resolve(response.statusCode);
+          socket.terminate();
+        });
+        socket.once("open", () => {
+          socket.close();
+          reject(new Error("соединение с запрещённым Origin неожиданно открылось"));
+        });
+        socket.once("error", reject);
+      });
+
+    expect(await status({ Origin: "https://evil.example" })).toBe(403);
+    expect(await status()).toBe(403);
   });
 
   it("регистрация пускает в мир, создание лорда даёт снимок", async () => {
