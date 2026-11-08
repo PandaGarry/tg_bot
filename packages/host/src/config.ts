@@ -141,7 +141,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
     throw new Error(`${hint}\n${String(error)}`);
   }
   assertProductionConfig(parsed, env);
-  const trustedProxyIps = parsed.TRUSTED_PROXY_IPS.split(",").map((ip) => ip.trim()).filter(Boolean);
+  const trustedProxyIps = parsed.TRUSTED_PROXY_IPS.split(",").map((ip) => {
+    const normalized = ip.trim().toLowerCase();
+    return normalized.startsWith("::ffff:") ? normalized.slice(7) : normalized;
+  }).filter(Boolean);
   if (trustedProxyIps.some((ip) => isIP(ip) === 0)) {
     throw new Error("TRUSTED_PROXY_IPS must contain exact IPv4/IPv6 addresses; CIDR ranges are not supported");
   }
