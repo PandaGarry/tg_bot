@@ -482,6 +482,17 @@ export class WorldService {
     idempotencyKey: string;
   }): Promise<CommandOutcome> {
     if (this.stopped) return Promise.resolve({ status: "error", key: KERNEL_KEYS.stale });
+    if (input.actor.worldId !== this.worldId) {
+      this.journal.write({
+        channel: "security",
+        worldId: this.worldId,
+        actorId: input.actor.id,
+        requestId: input.requestId,
+        event: "command.cross_world",
+        detail: { actorWorldId: input.actor.worldId },
+      });
+      return Promise.resolve({ status: "error", key: KERNEL_KEYS.session });
+    }
     if (this.queue.length >= QUEUE_LIMIT) {
       // Очередь не растёт без предела: лучше отказ, чем память и задержка всем.
       this.overflowed += 1;
