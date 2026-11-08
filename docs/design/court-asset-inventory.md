@@ -101,4 +101,4 @@
 - [ ] Измерены размеры файлов, texture memory и frame-time.
 - [ ] Проверены лицензии и происхождение всех исходников.
 
-**Текущий статус:** inventory зафиксирован; новый финальный art pack не создан. Следующий этап — terrain/Citadel vertical slice, но до него требуется проверить реальную визуальную привязку и мобильный walkthrough.
+**Текущий статус:** inventory зафиксирован; новый финальный art pack не создан. Полный список production-ассетов и backlog по всем зданиям см. в [art-asset-inventory.md](art-asset-inventory.md). Следующий этап — terrain/Citadel vertical slice, но до него требуется проверить реальную визуальную привязку и мобильный walkthrough.

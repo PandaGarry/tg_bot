@@ -20,7 +20,7 @@
 | wall | Стена | 3×3 | Missing | Modular straight/corner/gate/tower kit; five stages |
 | warehouse | Склад | 3×3 | Prototype fallback `c-03` | Original five-stage storage art |
 | infirmary | Лазарет | 3×3 | Prototype fallback `c-02` | Original five-stage healing art |
-| academy | Академия | 3×3 | Prototype fallback `c-01` | Original five-stage research art |
+| academy | Академия | 3×3 | No mapping; legacy `c-01` (“Паутина”) is not semantically confirmed | Original five-stage research art |
 | clan-hall | Зал клана | 3×3 | Missing | Five-stage clan hall |
 | tavern | Таверна | 2×2 | Missing | Single-level tavern |
 | watchtower | Надзорная вышка | 2×2 | Missing | Five-stage scout tower |
@@ -38,7 +38,7 @@
 
 
 
-**Coverage:** 9/19 buildings have a temporary prototype sprite in runtime; 10/19 are explicitly listed in `BUILDING_ART_BACKLOG`. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
+**Coverage:** 8/19 buildings have a semantically confirmed temporary prototype sprite in runtime; 11/19 are explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
 
 ## 3. Other asset groups
 
@@ -80,7 +80,7 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 ## 6. Current technical status
 
 - Prototype sprite source: `docs/game/ui/court/sprites/`.
-- Runtime fallback copies: `apps/client/public/court/sprites/`.
+- Runtime fallback copies: `apps/client/public/court/sprites/` (8 confirmed mappings; unconfirmed `c-01` copies removed).
 - Shared mapping: `apps/client/src/game/court/spriteCatalog.ts`.
 - Pixi loads only visible/selected mapped types; React build cards reuse the same fallback images without importing Pixi.
 - Historical day/night pairs remain fallback material. Runtime currently uses day images only; evening treatment is blocked on the authoritative time contract and future light-mask implementation.

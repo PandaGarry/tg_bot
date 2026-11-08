@@ -6,7 +6,6 @@ import { buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteB
 import { BUILDING_ART_BACKLOG, BUILDING_SPRITES, buildingSpriteUrl } from "../src/game/court/spriteCatalog.js";
 import { buildings } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
-import { buildings } from "@tdl/content-buildings/catalog";
 
 describe("court building geometry", () => {
   it("matches the authoritative footprint for every catalog building", () => {

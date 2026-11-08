@@ -33,6 +33,7 @@ export function buildingSpriteUrl(type: string): string | undefined {
  * Эти IDs намеренно не имеют prototype PNG: не подменять их случайными иконками.
  */
 export const BUILDING_ART_BACKLOG = [
+  { id: "academy", priority: "P1", kit: "research academy; five stages; original semantics must be defined independently of legacy web sprite" },
   { id: "wall", priority: "P0", kit: "straight, corner, gate, tower; 5 silhouette stages" },
   { id: "clan-hall", priority: "P1", kit: "clan assembly hall; 5 stages" },
   { id: "tavern", priority: "P2", kit: "single-level tavern" },
