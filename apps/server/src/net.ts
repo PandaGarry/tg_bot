@@ -4,6 +4,7 @@
  */
 
 import type { IncomingMessage, Server } from "node:http";
+import type { Duplex } from "node:stream";
 import { WebSocketServer, type WebSocket } from "ws";
 import {
   KERNEL_KEYS,
@@ -57,6 +58,8 @@ export interface HubOptions {
   commandRate?: number;
   /** Предел буфера отправки. Тест задаёт ноль и проверяет отключение медленного клиента. */
   sendBufferBytes?: number;
+  /** Exact browser origins allowed to open production WebSocket sessions. */
+  allowedOrigins?: readonly string[];
 }
 
 export function containsTile(
@@ -78,6 +81,7 @@ export class SocketHub implements ViewSink {
   private readonly worldId: string;
   private readonly commandRate: number;
   private readonly sendBufferBytes: number;
+  private readonly allowedOrigins: ReadonlySet<string>;
   /** Медленные клиенты: их отключают, чтобы память мира не росла. */
   private slowClients = 0;
   private readonly states = new Set<SocketState>();
@@ -85,6 +89,8 @@ export class SocketHub implements ViewSink {
   private readonly authBuckets = new Map<string, AuthBucket>();
   private service: WorldService | null = null;
   private wss: WebSocketServer | null = null;
+  private upgradeServer: Server | null = null;
+  private upgradeHandler: ((request: IncomingMessage, socket: Duplex, head: Buffer) => void) | null = null;
   private heartbeat: NodeJS.Timeout | null = null;
 
   constructor(options: HubOptions) {
@@ -93,6 +99,7 @@ export class SocketHub implements ViewSink {
     this.worldId = options.worldId;
     this.commandRate = options.commandRate ?? LIMITS.commandsPerSecond;
     this.sendBufferBytes = options.sendBufferBytes ?? LIMITS.sendBufferBytes;
+    this.allowedOrigins = new Set(options.allowedOrigins ?? []);
   }
 
   setService(service: WorldService): void {
@@ -100,9 +107,37 @@ export class SocketHub implements ViewSink {
   }
 
   attach(server: Server): void {
-    const wss = new WebSocketServer({ server, maxPayload: LIMITS.maxMessageBytes });
+    const wss = new WebSocketServer({ noServer: true, maxPayload: LIMITS.maxMessageBytes });
     this.wss = wss;
     wss.on("connection", (socket, request) => this.onConnection(socket, request));
+
+    // В production принимаем только игровой endpoint и точный allowlist Origin.
+    // В dev/test пустой allowlist сохраняет прежнее поведение локальных клиентов.
+    const onUpgrade = (request: IncomingMessage, socket: Duplex, head: Buffer): void => {
+      const pathname = (request.url ?? "/").split("?", 1)[0];
+      if (this.allowedOrigins.size > 0 && pathname !== "/socket") {
+        socket.end("HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
+        return;
+      }
+      const origin = request.headers.origin;
+      if (this.allowedOrigins.size > 0 && (!origin || !this.allowedOrigins.has(origin))) {
+        this.journal.write({
+          channel: "security",
+          worldId: this.worldId,
+          event: "net.origin.denied",
+          detail: { origin: origin ? "not-allowed" : "missing" },
+        });
+        socket.end("HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
+        return;
+      }
+      wss.handleUpgrade(request, socket, head, (websocket) => {
+        wss.emit("connection", websocket, request);
+      });
+    };
+    this.upgradeServer = server;
+    this.upgradeHandler = onUpgrade;
+    server.on("upgrade", onUpgrade);
+
     this.heartbeat = setInterval(() => {
       this.checkAlive();
       this.pruneAuthBuckets(Date.now());
@@ -113,6 +148,9 @@ export class SocketHub implements ViewSink {
   async close(): Promise<void> {
     if (this.heartbeat) clearInterval(this.heartbeat);
     this.heartbeat = null;
+    if (this.upgradeServer && this.upgradeHandler) this.upgradeServer.off("upgrade", this.upgradeHandler);
+    this.upgradeServer = null;
+    this.upgradeHandler = null;
     for (const state of this.states) state.socket.close(1001, "server shutdown");
     this.states.clear();
     await new Promise<void>((resolve) => (this.wss ? this.wss.close(() => resolve()) : resolve()));
