@@ -64,6 +64,11 @@ function formatAmount(value: number): string {
   return String(Math.round(value));
 }
 
+function formatStock(stock: Record<string, number>, id: string): string {
+  if (!Object.prototype.hasOwnProperty.call(stock, id)) return "—";
+  return formatAmount(Number(stock[id]));
+}
+
 export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenProfile, pageMode = false }: CourtChromeProps) {
   const [mode, setMode] = useState<Mode>("actions");
   const [chatOpen, setChatOpen] = useState(false);
@@ -117,12 +122,12 @@ export function CourtChrome({ view, lang, route, onRouteChange, onBuild, onOpenP
           {RESOURCES.map((r) => (
             <div key={r.id} className="ch-res__item" title={r.name}>
               <span className="ch-res__icon"><img src={r.icon} alt="" /></span>
-              <b>{formatAmount(Number(stock[r.id] ?? 0))}</b>
+              <b>{formatStock(stock, r.id)}</b>
             </div>
           ))}
           <div className="ch-res__item ch-res__item--gold" title={GOLD.name}>
             <span className="ch-res__icon"><img src={GOLD.icon} alt="" /></span>
-            <b>{formatAmount(Number(stock[GOLD.id] ?? 0))}</b>
+            <b>{formatStock(stock, GOLD.id)}</b>
           </div>
         </div>
       </header>
