@@ -267,10 +267,16 @@ describe("порт мира", () => {
     expect(await unknown.json()).toEqual({ ok: false, error: "нет такого пути" });
   });
 
-  it("отказы ядра видны служебной ручкой", async () => {
-    const response = await fetch(`http://127.0.0.1:${booted.port}/api/kernel/rejections`);
+  it("отказы ядра доступны только оператору", async () => {
+    const url = `http://127.0.0.1:${booted.port}/api/kernel/rejections`;
+    const denied = await fetch(url);
+    expect(denied.status).toBe(403);
+    expect(denied.headers.get("cache-control")).toBe("no-store");
+
+    const response = await fetch(url, { headers: { "x-admin-token": "operator-token-0123456789" } });
     const body = (await response.json()) as { rows: unknown[] };
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(Array.isArray(body.rows)).toBe(true);
   });
 });
