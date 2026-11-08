@@ -113,7 +113,7 @@ describe("сокет и ворота", () => {
     const first = await newLord(booted, `lord_${randomUUID().slice(0, 8)}`, taken);
     first.close();
 
-    const second = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
+    const second = await Client.open(`ws://127.0.0.1:${booted.port}/socket`, { "X-Forwarded-For": "203.0.113.99" });
     const auth = second.next((message) => message.t === "auth");
     const secondLogin = `lord_${randomUUID().slice(0, 8)}`;
     second.send({
