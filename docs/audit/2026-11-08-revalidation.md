@@ -56,7 +56,7 @@
 
 ## 4. Следующий порядок работ
 
-1. Закрыть P0: advisory lock для kernel+module migrations (AUD-030), уникальность lord per account/world (AUD-022), fail-closed production config (AUD-035), backup/restore (AUD-034).
+1. Закрыть оставшиеся P0: backup/restore drill (AUD-034) и остаток production hardening (AUD-035: security headers, diagnostic-route review, TLS/reverse-proxy deployment validation). AUD-030 (полный startup migration lock) и AUD-022 (уникальность lord per account/world) закрыты и подтверждены CI.
 2. Исправить склад/production только после сверки с утверждённой экономикой (AUD-002/003/004).
 3. Ввести rate limits для auth/register и команд, исправить idempotency scope (AUD-006/033).
 4. Восстановить историю отчётов при входе (AUD-032) и проверить конкурирующие команды/гонки.
