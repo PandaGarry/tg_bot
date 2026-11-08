@@ -238,9 +238,15 @@ describe("порт мира", () => {
     expect(onBody.units.find((unit) => unit.key === "_kit.gadget")?.state).toBe("enabled");
   });
 
-  it("расписание мира открыто и покрывает запрошенные дни", async () => {
-    const response = await fetch(`http://127.0.0.1:${booted.port}/api/schedule?days=14`);
+  it("расписание мира доступно только оператору и покрывает запрошенные дни", async () => {
+    const url = `http://127.0.0.1:${booted.port}/api/schedule?days=14`;
+    expect((await fetch(url)).status).toBe(403);
+    expect((await fetch(url, { headers: { "x-admin-token": "wrong-token-0123456789" } })).status).toBe(403);
+
+    const headers = { "x-admin-token": "operator-token-0123456789" };
+    const response = await fetch(url, { headers });
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     const body = (await response.json()) as {
       from: number;
       to: number;
@@ -256,11 +262,14 @@ describe("порт мира", () => {
       expect(window.start).toBeLessThan(horizon);
       expect(window.key).toBe(`${window.unitId}:${window.start}`);
     }
-    // Поры года видны и в расписании: ровно одна включена в любой миг.
+    // Поры года видны оператору: ровно одна включена в любой миг.
     expect(body.units.filter((unit) => unit.state === "enabled").length).toBeGreaterThan(0);
 
     // Мусорный параметр не роняет ручку: берётся разумный срок.
-    const fallback = (await (await fetch(`http://127.0.0.1:${booted.port}/api/schedule?days=абв`)).json()) as { days: number };
+    const fallback = (await (await fetch(
+      `http://127.0.0.1:${booted.port}/api/schedule?days=абв`,
+      { headers },
+    )).json()) as { days: number };
     expect(fallback.days).toBe(30);
   });
 
