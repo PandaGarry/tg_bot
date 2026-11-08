@@ -299,7 +299,11 @@ describe("напор на сокет", () => {
   let booted: BootedServer;
 
   beforeAll(async () => {
-    booted = await bootServer({ config: testConfig(), serveClient: false });
+    booted = await bootServer({
+      config: testConfig(),
+      serveClient: false,
+      adminToken: "socket-test-operator-token-0123456789",
+    });
   }, 60_000);
 
   afterAll(async () => {
