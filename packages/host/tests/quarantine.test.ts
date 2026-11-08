@@ -157,7 +157,8 @@ describe("карантин и лечение единиц", () => {
   });
 
   it("срок единицы ждёт возврата, а не пропадает", async () => {
-    const world = await quickWorld({ backoff: [120, 240, 480] });
+    // Карантин должен пережить ожидание просроченного срока в CI.
+    const world = await quickWorld({ backoff: [5_000, 5_000, 5_000] });
     try {
       const actor = world.actor();
       // Окно должно быть заметно длиннее трёх DB-backed команд: 30 ms
@@ -172,6 +173,7 @@ describe("карантин и лечение единиц", () => {
       expect(world.service.unitStateOf(GADGET)!.reason).toBe("quarantine");
 
       await new Promise((done) => setTimeout(done, 1_050));
+      expect(world.service.quarantineFor("_kit", "gadget")).not.toBeNull();
       await world.service.pumpOnce();
       expect(world.records.some((record) => record.event === "deadline.postponed")).toBe(true);
       const stillThere = await deadlinesOf(world, "_kit");
