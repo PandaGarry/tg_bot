@@ -282,6 +282,8 @@ describe("двор", () => {
   it("не показывает вымышленные силу, VIP, доходы, квесты и сообщения", () => {
     render(<World view={view()} lang="ru" serverNow={1} />);
 
+    // В fixture stock пустой: отсутствие серверного значения не должно превращаться в ноль.
+    expect(screen.getAllByText("—")).toHaveLength(6);
     expect(screen.queryByText(/Сила/)).toBeNull();
     expect(screen.queryByText(/VIP/)).toBeNull();
     expect(screen.queryByText(/Королевский писарь|Лорд Варн|Гамлет/)).toBeNull();
