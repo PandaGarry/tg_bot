@@ -56,12 +56,17 @@ describe("сокет и ворота", () => {
     const token = tokenOf(client);
     // Токен до выхода работает: это та же сессия, что открылась при регистрации.
     const alive = await openWithToken(booted, token);
-    alive.close();
 
     const out = client.next((message) => message.t === "out");
     client.send({ t: "auth.logout", protocolVersion: PROTOCOL_VERSION, token });
     const answer = await out;
     expect(answer.t === "out" && answer.ok).toBe(true);
+
+    // Все уже открытые соединения с тем же токеном тоже теряют авторизацию.
+    const staleCommand = alive.next((message) => message.t === "error");
+    alive.send(commandMessage("_probe.poke", { steps: 1 }));
+    const stale = await staleCommand;
+    expect(stale.t === "error" && stale.key).toBe(KERNEL_KEYS.session);
 
     // После выхода токен мёртв: сервер не пускает по нему ни в сокете, ни в мире.
     const again = await Client.open(`ws://127.0.0.1:${booted.port}/socket`);
@@ -69,6 +74,7 @@ describe("сокет и ворота", () => {
     const refused = await again.next<{ t: "error"; key: string }>((message) => message.t === "error");
     expect(refused.key).toBe(KERNEL_KEYS.session);
     again.close();
+    alive.close();
     client.close();
   });
 
