@@ -290,3 +290,10 @@ CI, observability, политика хранения, индексы БД, ин�
 - `/api/schedule` оставлен публичным до отдельной проверки клиентского контракта; его не следует закрывать в рамках AUD-042 автоматически.
 
 Коммиты: `3ed5116` (HTTP), `658c5e0` (регрессии), `0116740` (клиентская диагностика), `7b1010e` (DEV guard), `46a8525` (load tool). CI #184 на HEAD `46a8525` запущен; закрытие finding — только после полного PASS и проверки документации.
+
+
+## 12. AUD-034 — end-to-end PostgreSQL restore drill (09.11.2026)
+
+В рабочую ветку добавлен автоматический CI drill `tools/db/ci-restore-drill.sh`: собранный TDL стартует с production-конфигурацией на временной PostgreSQL 18, создаёт штатную схему/мир, затем `backup.sh` снимает custom dump. `restore-drill.sh` проверяет checksum/TOC, восстанавливает в отдельную пустую БД, сверяет row counts семи основных таблиц и после этого приложение повторно стартует на восстановленной БД. CI использует PostgreSQL 18 client; backup script не допускает pg_dump major ниже server major.
+
+**Приёмка:** CI PASS подтверждает только механический end-to-end сценарий на disposable базе. AUD-034 останется открытым до проверки реального production provider backup, encrypted off-host copy, retention/PITR, восстановления актуальной production-like копии и фиксации фактических production RPO/RTO. CI timings не выдаются за production RPO/RTO. Текущий run на новом workflow ожидает завершения.
