@@ -40,15 +40,15 @@
 
 Повторная проверка GitHub 08.11.2026:
 - default branch `main`: `8a46482422a2127db73597dea65b3f07464fd9dc`;
-- текущий кодовый HEAD рабочей ветки: `76f50e36c24a34c47fd2e1fdd6db62d498321b53`; полный CI run #101 завершился PASS.
+- текущий кодовый HEAD рабочей ветки: `69268de26de7153eaecacd9860c6dcd6bac46869`; полный CI run #124 завершился PASS.
 - PR #9 остаётся открытым и не слит в `main`; все изменения аудита продолжаются только в рабочей ветке `arena/8885a9e3-tg-bot`.
-- GitHub Actions run #101 на HEAD `76f50e3` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 263 теста в 31 файле. Dependency audit не обнаружил известных уязвимостей.
+- GitHub Actions run #124 на HEAD `69268de` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `bash -n` для backup/restore scripts, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 264 теста в 31 файле. Dependency audit не обнаружил известных уязвимостей.
 - на `ed19b71` typecheck падал из-за двух аргументов размера дорожной плиты; исправление находится в `2c110a8`;
 - на `2c110a8` typecheck прошёл, но один старый тест неверно ожидал logout без подтверждения сервера; тест обновлён на `85c0505`, а сетевой тест подтверждает удаление токена после серверного ответа;
 - HEAD `316c2f8` добавил защиту от сдвига производственного срока при повторном входе и два теста; последующий HEAD `13e59a7` добавил уточнение теста расписания;
 - статические находки и актуальные статусы перечислены в `audit/2026-11-08-revalidation.md`.
 
-**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие оставшихся P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `76f50e3` подтверждает текущие проверки кода, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
+**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие оставшихся P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `69268de` подтверждает текущие проверки кода, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
 
 ---
 
@@ -110,11 +110,11 @@
 - **AUD-001** — миграция сбрасывала дворы всех миров; исправлена через transaction-local `tdl.world_id`, интеграционный тест двух миров проходит CI. Перед боевой БД всё равно сверить, не был ли прежний сброс уже выполнен и нужна ли реставрация из backup.
 - **AUD-029** — исправлено: вся подготовка pump находится под `try/finally`; регрессионный тест синтетического отказа sweep и восстановления следующего прохода проходит CI.
 - **AUD-031** — исправлена проверка мира в `resume/logout`, при привязке сессии к лорду, WebSocket `enterWorld` и `submitCommand`; тесты межмирового токена и чужого actor проходят CI. Отдельно проверять все новые модули при их добавлении.
-- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, тесты проходят CI #101. Осталось проверить security headers, диагностические маршруты и фактический TLS/proxy production deployment.
+- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, тесты проходят CI #101/#124. Осталось проверить security headers, диагностические маршруты и фактический TLS/proxy production deployment.
 - **AUD-005** — `/api/kernel/rejections` закрыт операторским токеном; HTTP-регрессия 403 без токена / 200 с токеном проходит CI.
 - **AUD-018** — logout очищает все активные сокеты с тем же bearer token; серверный регрессионный тест проходит полный CI.
 - **AUD-022** — исправлено в приложении и БД: `createLord` сериализует создание через транзакционный advisory lock; уникальный индекс `(world_id, account_id)` защищает инвариант на уровне PostgreSQL. Конкурентный тест проходит CI run #86.
-- **AUD-030** — исправлено в коде: production boot использует `bootstrapWorld`, удерживающий один PostgreSQL advisory lock на последовательности kernel migrations → ensure world → sync module states → module migrations. Конкурентный интеграционный тест проходит CI #86/#101. Совместимость смешанных версий при rolling deploy остаётся отдельной проверкой перед production.
+- **AUD-030** — исправлено в коде: production boot использует `bootstrapWorld`, удерживающий один PostgreSQL advisory lock на последовательности kernel migrations → ensure world → sync module states → module migrations. Конкурентный интеграционный тест проходит CI #86/#101/#124. Совместимость смешанных версий при rolling deploy остаётся отдельной проверкой перед production.
 - **AUD-034** — подготовлены `tools/db/backup.sh`, `tools/db/restore-drill.sh` и `ops/backup-restore.md`; фактический backup/restore drill на целевой БД не выполнен, нужны провайдер, изолированная БД и запись RPO/RTO.
 
 ### P1 — экономика, команды, сессии, сохранность прогресса
@@ -145,7 +145,7 @@
 - **AUD-036** — PixiJS загружается до авторизации; главный JS chunk 735.16 КБ (213.81 КБ gzip). Нужны lazy import после входа в мир и повторный замер initial bundle.
 - **AUD-037** — `CourtScene` полностью перерисовывает сетку/здания при обновлении; перейти к diff/reconciliation и render-on-demand после профилирования.
 - **AUD-038** — часть невалидных команд двора возвращает пустой список effects, то есть успешный no-op; нужны явные локализованные причины отказа.
-- **AUD-039** — закрыто на текущем lockfile: `pnpm audit --audit-level high` и `--audit-level moderate` в CI #86/#101 завершились без известных уязвимостей.
+- **AUD-039** — закрыто на текущем lockfile: `pnpm audit --audit-level high` и `--audit-level moderate` в CI #86/#101/#124 завершились без известных уязвимостей.
   
 Каждую находку при закрытии переводить в один из статусов: `подтверждена тестом`, `исправлена`, `проверена регрессией`, `отложена решением`, `ложное срабатывание`. Нельзя удалять находку без объяснения.
 
@@ -267,7 +267,7 @@ CI, observability, политика хранения, индексы БД, ин�
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
-**Текущий статус:** HEAD `76f50e3` прошёл полный CI run #101: 263 теста / 31 файл, typecheck, checks, production build и оба порога dependency audit; известных уязвимостей не обнаружено. AUD-030 закрыт; AUD-035 частично закрыт (production WebSocket Origin allowlist). Открыты backup/restore drill (AUD-034), остаток production hardening (AUD-035) и P1 по экономике, сетям и графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
+**Текущий статус:** HEAD `69268de` прошёл полный CI run #124: 264 теста / 31 файл, typecheck, checks, `bash -n` backup/restore, production build и оба порога dependency audit; известных уязвимостей не обнаружено. AUD-030 закрыт; AUD-035 частично закрыт (production WebSocket Origin allowlist). Открыты backup/restore drill (AUD-034), остаток production hardening (AUD-035) и P1 по экономике, сетям и графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
 
 
 ## 10. Повторная проверка и актуальные статусы
