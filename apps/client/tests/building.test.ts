@@ -60,6 +60,11 @@ describe("court art catalog coverage", () => {
 });
 
 describe("court building sprite assets", () => {
+  it("does not assign the legacy research-web sprite to the Academy", () => {
+    expect(BUILDING_SPRITES.academy).toBeUndefined();
+    expect(buildingSpriteUrl("academy")).toBeUndefined();
+  });
+
   it("ships valid day/night PNG pairs with anchors inside the day sprite", () => {
     const dimensions = (file: string) => {
       const candidates = [
