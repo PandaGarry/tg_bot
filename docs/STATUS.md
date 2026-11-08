@@ -2,11 +2,11 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #218 на HEAD `acbaa2b3bfe24da0485eb04411d6e50b222a0312` — PASS. HEAD `f41198c89e42abc6ea9f7043f612e6580c22fb97` сейчас проверяется run #219; до завершения не считать его CI-проверенным. PR #9 открыт и не слит.
+> Последний подтверждённый полный CI: run #223 на HEAD `647403c835328a80dcebbe6738ca1583d385f127` — PASS. Ветка после него продолжена проверкой production proxy allowlist; CI нового HEAD ожидается. PR #9 открыт и не слит.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
-- Актуальный проверенный HEAD: `acbaa2b`; полный CI run #218 — **PASS**: typecheck, 272 теста в 31 файле, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Известных уязвимостей в текущем lockfile не обнаружено.
+- Подтверждённый кодовый HEAD `647403c`; CI run #223 — **PASS**: typecheck, тесты, checks, bash syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, оба dependency audit и Drizzle snapshot check. Новый change-set требует повторного CI. Известных уязвимостей в текущем lockfile не обнаружено.
 - Commit `633ed3c` обновил `pnpm-lock.yaml` по overrides из `pnpm-workspace.yaml` и добавил Drizzle baseline `0005_schema_snapshot_sync`. Snapshot вручную сверён с migrations 0001–0004, SQL содержит только `SELECT 1`; последующий CI #146 на HEAD `b4c1c51` подтвердил lockfile, snapshot check и полный набор проверок. Старый workflow #136 (`action_required`) superseded run #146.
 - PR #9: открыт, не слит; 378 изменённых файлов (14 048 добавлений, 10 721 удаление) на момент синхронизации. Никаких изменений в `main` не внесено.
 - AUD-003: закрыт — серверный stock patch соответствует фактическому балансу после clamp/gather; regression test проверяет БД, patch и sim fact (CI #160/#175).
@@ -142,3 +142,10 @@
 - Убраны статические импорты `gameApp` и `mountCourtScene` из `main.tsx`; приложение и сцена импортируются динамически только после валидной авторизации и появления `view.me` (экран создания лорда Pixi не загружает).
 - CI #218 production build: initial `index` chunk 470.71 KB minified / 136.09 KB gzip против предыдущих 735.16 KB / 213.81 KB — снижение примерно на 36%. `application` (5.56 KB) и `courtScene` (17.76 KB) вынесены в отдельные chunks.
 - **AUD-036 частично закрыт:** initial bundle уменьшен и WebGL не стартует до входа в мир. Нужны измерения на реальных iOS/Android WebView: first-load, memory, GPU/FPS, scene redraw и lazy chunk latency.
+
+
+## AUD-035 — production proxy boundary follow-up (09.11.2026)
+
+Статическая проверка production runbook выявила опасную конфигурационную неоднозначность: при пустом `TRUSTED_PROXY_IPS` сервер игнорирует `X-Forwarded-For`. В документированной схеме TLS завершается на reverse proxy, поэтому все игроки могли бы выглядеть для Node как один IP; login/register IP buckets становились бы общей квотой для всех пользователей и позволяли бы взаимно блокировать вход.
+
+Исправлено: production `loadConfig` теперь требует непустой `TRUSTED_PROXY_IPS`; exact IPv4/IPv6 validation и запрет CIDR/дубликатов сохранены. Добавлен config regression test для отсутствующего/пустого списка и корректного loopback peer. Production runbook и `.env.example` уточнены: указать адреса непосредственных TCP peers, фактически наблюдаемых Node. Это не закрывает AUD-035: реальные peer IP, TLS, firewall, WSS, рестарт и graceful shutdown должны быть проверены на выбранном хостинге.
