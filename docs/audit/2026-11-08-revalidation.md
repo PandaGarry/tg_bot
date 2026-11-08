@@ -232,3 +232,21 @@
 **CI:** run #218 прошёл на родительском HEAD `acbaa2b`. Текущий HEAD `f41198c89e42abc6ea9f7043f612e6580c22fb97` проверяется run #219 (на момент записи — in progress). Не приписывать run #218 проверку более позднего HEAD.
 
 **Остаток:** после PASS run #219 и CI документационного коммита проверить, что защита остаётся без регрессий. Операторский токен должен задаваться через секреты окружения, быть длинным/случайным и ротироваться; фактическая конфигурация production относится к AUD-035. Служебные ручки не должны попадать в публичную документацию API.
+
+
+## 8. AUD-035 — production reverse-proxy allowlist hardening (09.11.2026)
+
+### Finding
+
+Production deployment reference terminates TLS at Nginx and forwards traffic to Node. With an empty `TRUSTED_PROXY_IPS`, the server deliberately ignores `X-Forwarded-For`; in this topology all browser requests would be attributed to the proxy's TCP peer address. Login/register IP token buckets would then be shared by all players, creating a trivial cross-user denial-of-service condition and removing per-client IP discrimination.
+
+### Change
+
+- Production config now rejects missing/blank `TRUSTED_PROXY_IPS`.
+- Existing exact IPv4/IPv6 parsing, IPv4-mapped IPv6 normalization, duplicate rejection and CIDR rejection remain in force.
+- Config tests cover missing, blank and valid exact peer allowlist values.
+- `.env.example` and `docs/ops/production-deployment.md` state that values must be the actual immediate TCP peer addresses observed by Node, not the public game-domain address.
+
+### Acceptance boundary
+
+This closes the configuration ambiguity in code, not deployment acceptance. AUD-035 remains partially open until the selected host's actual peer addresses, TLS certificate/redirect, firewall exposure, WSS Origin handling, DB TLS/network policy, restart and graceful shutdown are verified in a deployment drill.
