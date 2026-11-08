@@ -40,15 +40,15 @@
 
 Повторная проверка GitHub 08.11.2026:
 - default branch `main`: `8a46482422a2127db73597dea65b3f07464fd9dc`;
-- текущий кодовый HEAD рабочей ветки: `69268de26de7153eaecacd9860c6dcd6bac46869`; полный CI run #124 завершился PASS.
+- текущий кодовый HEAD рабочей ветки: `042f0cfae410f66d17e635b18c03f62e98898540`; полный CI run #131 завершился PASS.
 - PR #9 остаётся открытым и не слит в `main`; все изменения аудита продолжаются только в рабочей ветке `arena/8885a9e3-tg-bot`.
-- GitHub Actions run #124 на HEAD `69268de` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `bash -n` для backup/restore scripts, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 264 теста в 31 файле. Dependency audit не обнаружил известных уязвимостей.
+- GitHub Actions run #131 на HEAD `042f0cf` завершился **success**: `pnpm typecheck`, `pnpm test`, `pnpm check`, `bash -n` для backup/restore scripts, `pnpm build`, `pnpm audit --audit-level high` и `pnpm audit --audit-level moderate` — все этапы зелёные; 264 теста в 31 файле. Dependency audit не обнаружил известных уязвимостей.
 - на `ed19b71` typecheck падал из-за двух аргументов размера дорожной плиты; исправление находится в `2c110a8`;
 - на `2c110a8` typecheck прошёл, но один старый тест неверно ожидал logout без подтверждения сервера; тест обновлён на `85c0505`, а сетевой тест подтверждает удаление токена после серверного ответа;
 - HEAD `316c2f8` добавил защиту от сдвига производственного срока при повторном входе и два теста; последующий HEAD `13e59a7` добавил уточнение теста расписания;
 - статические находки и актуальные статусы перечислены в `audit/2026-11-08-revalidation.md`.
 
-**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие оставшихся P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `69268de` подтверждает текущие проверки кода, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
+**Следствие:** PR #9 пока не сливать: необходимы полный diff review, закрытие оставшихся P0/P1 находок и приёмка клиентского интерфейса. CI PASS на `042f0cf` подтверждает текущие проверки кода, но не заменяет аудит безопасности, проверку восстановления и production-приёмку.
 
 ---
 
@@ -110,7 +110,7 @@
 - **AUD-001** — миграция сбрасывала дворы всех миров; исправлена через transaction-local `tdl.world_id`, интеграционный тест двух миров проходит CI. Перед боевой БД всё равно сверить, не был ли прежний сброс уже выполнен и нужна ли реставрация из backup.
 - **AUD-029** — исправлено: вся подготовка pump находится под `try/finally`; регрессионный тест синтетического отказа sweep и восстановления следующего прохода проходит CI.
 - **AUD-031** — исправлена проверка мира в `resume/logout`, при привязке сессии к лорду, WebSocket `enterWorld` и `submitCommand`; тесты межмирового токена и чужого actor проходят CI. Отдельно проверять все новые модули при их добавлении.
-- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, тесты проходят CI #101/#124. Осталось проверить security headers, диагностические маршруты и фактический TLS/proxy production deployment.
+- **AUD-035** — частично закрыто: production требует явный HTTPS `ALLOWED_ORIGINS`; `/socket` отклоняет отсутствующий и неразрешённый Origin до авторизации, Origin policy и базовые HTTP security headers проходят CI #101/#124/#131. Осталось проверить CSP/frame policy, диагностические маршруты и фактический TLS/proxy production deployment.
 - **AUD-005** — `/api/kernel/rejections` закрыт операторским токеном; HTTP-регрессия 403 без токена / 200 с токеном проходит CI.
 - **AUD-018** — logout очищает все активные сокеты с тем же bearer token; серверный регрессионный тест проходит полный CI.
 - **AUD-022** — исправлено в приложении и БД: `createLord` сериализует создание через транзакционный advisory lock; уникальный индекс `(world_id, account_id)` защищает инвариант на уровне PostgreSQL. Конкурентный тест проходит CI run #86.
@@ -261,13 +261,13 @@ CI, observability, политика хранения, индексы БД, ин�
 ## 8. Текущий ближайший рабочий спринт
 
 1. [ ] Сверить актуальный HEAD рабочей ветки с PR #9 и `main`; не перезаписывать новые коммиты и не менять `main`.
-2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: security headers, diagnostic-route review, TLS/proxy deployment validation). Production WebSocket Origin allowlist реализован и подтверждён CI #101/#124. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
+2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: CSP/frame policy, diagnostic-route review, TLS/proxy deployment validation). Production WebSocket Origin allowlist и базовые HTTP security headers реализованы и подтверждены CI #101/#124/#131. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
 3. [x] Получить воспроизводимый CI baseline: typecheck/test/check/build прошли на `13e59a7`; 247 тестов / 29 файлов.
 4. [ ] Продолжить P1: экономика/склад и тест на clamp patch (AUD-002/003/004), actor/account command rate limiting (AUD-006), история отчётов (AUD-032), явные отказы команд двора (AUD-038).
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
 6. [ ] Синхронизировать `STATUS.md`, `roadmap.md`, `DECISIONS.md` и ссылки документации с этим мастер-планом.
 
-**Текущий статус:** HEAD `69268de` прошёл полный CI run #124: 264 теста / 31 файл, typecheck, checks, `bash -n` backup/restore, production build и оба порога dependency audit; известных уязвимостей не обнаружено. AUD-030 закрыт; AUD-035 частично закрыт (production WebSocket Origin allowlist). Открыты backup/restore drill (AUD-034), остаток production hardening (AUD-035) и P1 по экономике, сетям и графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
+**Текущий статус:** HEAD `042f0cf` прошёл полный CI run #131: 264 теста / 31 файл, typecheck, checks, `bash -n` backup/restore, production build и оба порога dependency audit; известных уязвимостей не обнаружено. AUD-030 закрыт; AUD-035 частично закрыт (production WebSocket Origin allowlist и базовые HTTP security headers). Открыты backup/restore drill (AUD-034), остаток production hardening (AUD-035) и P1 по экономике, сетям и графике. PR #9 открыт и не слит в `main`. Детальные подтверждения — в `audit/2026-11-08-revalidation.md`.
 
 
 ## 10. Повторная проверка и актуальные статусы
