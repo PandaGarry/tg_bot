@@ -434,7 +434,7 @@ const court = defineModule({
           const busy = footprintOf(others);
           const roads = roadKeys(grid.roads);
           for (const key of cellsOf(input.toX, input.toZ, size)) {
-            if (busy.has(key) || roads.has(key)) return [];
+            if (busy.has(key) || roads.has(key)) return reject(COURT_ERRORS.occupied);
           }
           const next: CourtGrid = {
             ...grid,
@@ -462,7 +462,7 @@ const court = defineModule({
           const index = grid.buildings.findIndex(
             (b) => b.type === input.type && b.x === input.x && b.z === input.z,
           );
-          if (index < 0) return [];
+          if (index < 0) return reject(COURT_ERRORS.notFound);
           const next: CourtGrid = {
             ...grid,
             buildings: grid.buildings.filter((_, i) => i !== index),
@@ -503,10 +503,10 @@ const court = defineModule({
             roads = [...rest, { x: input.x, z: input.z }];
           } else if (input.remove) {
             const rest = grid.roads.filter((road) => !(road.x === input.x && road.z === input.z));
-            if (rest.length === grid.roads.length) return [];
+            if (rest.length === grid.roads.length) return reject(COURT_ERRORS.notFound);
             roads = rest;
           } else {
-            if (!fitsGrid(input.x, input.z, { w: 1, h: 1 }, grid.size)) return [];
+            if (!fitsGrid(input.x, input.z, { w: 1, h: 1 }, grid.size)) return reject(COURT_ERRORS.outOfBounds);
             if (roadKeys(grid.roads).has(key)) return reject(COURT_ERRORS.occupied);
             // дорога не растёт под постройки
             if (footprintOf(grid.buildings).has(key)) return reject(COURT_ERRORS.occupied);
@@ -533,7 +533,7 @@ const court = defineModule({
           const target = level + 1;
           const cost = levelCost(CITADEL, target);
           if (!cost || target > (buildingById(CITADEL)?.maxLevel ?? 0)) return reject(COURT_ERRORS.unavailable);
-          if (!canAfford(ctx.stock, cost)) return [];
+          if (!canAfford(ctx.stock, cost)) return reject(COURT_ERRORS.insufficient);
           const grid = gridOf(ctx.state);
           // сетка растёт по полосам Цитадели и не уменьшается
           const next: CourtGrid = { ...grid, size: gridSizeAt(target, grid.size) };
