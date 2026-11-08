@@ -170,7 +170,7 @@ await page.screenshot({ path: join(outDir, "game-court-day.jpg"), type: "jpeg", 
 console.log("сохранён game-court-day.jpg");
 
 // Панель строительства открывается через актуальное быстрое действие ConceptHud.
-await page.click('.concept-quick__item[data-action="build"]');
+await page.click('.ch-action[aria-label="Строительство"]');
 await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
 await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
