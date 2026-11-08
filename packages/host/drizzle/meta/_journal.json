@@ -36,6 +36,13 @@
       "when": 1794168054052,
       "tag": "0004_world_invariants",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794170288637,
+      "tag": "0005_schema_snapshot_sync",
+      "breakpoints": true
     }
   ]
 }
