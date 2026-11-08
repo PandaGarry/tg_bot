@@ -71,6 +71,9 @@ describe("порт мира", () => {
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(response.headers.get("permissions-policy")).toBe("camera=(), microphone=(), geolocation=()");
+    expect(response.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
+    expect(response.headers.get("content-security-policy")).toContain("object-src 'none'");
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(response.headers.get("cache-control")).toBe("no-store");
     // API остаётся same-origin: сервер не включает permissive CORS.
     expect(response.headers.get("access-control-allow-origin")).toBeNull();
@@ -93,6 +96,7 @@ describe("порт мира", () => {
     expect(page.status).toBe(200);
     expect(page.headers.get("x-content-type-options")).toBe("nosniff");
     expect(page.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(page.headers.get("x-frame-options")).toBe("DENY");
     expect(page.headers.get("content-type")).toContain("text/html");
     expect(page.headers.get("cache-control")).toBe("no-cache");
     expect(await page.text()).toContain("мир");
