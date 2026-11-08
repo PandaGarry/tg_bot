@@ -20,6 +20,7 @@ export const BUILDING_SPRITES: Readonly<Record<string, BuildingSpriteDefinition>
   warehouse: { file: "c-03", width: 464, height: 543, patch: 459, tipX: 232, tipY: 539 },
   barracks: { file: "b-03", width: 613, height: 505, patch: 608, tipX: 306, tipY: 501 },
   infirmary: { file: "c-02", width: 514, height: 496, patch: 509, tipX: 257, tipY: 492 },
+  academy: { file: "c-01", width: 458, height: 610, patch: 453, tipX: 229, tipY: 606 },
 };
 
 export function buildingSpriteUrl(type: string): string | undefined {
