@@ -296,14 +296,15 @@ describe("переключатели единиц мира", () => {
       // Проверяем активный день, а не весь 120-дневный горизонт: после
       // окончания короткой примерки будущие дни снова подчиняются календарю.
       const now = world.service.calendarNow();
-      const daily = new Set(
-        world.service
-          .schedulePlan()
-          .filter((window) => window.moduleId === "day-window" && window.start <= now && now < window.stop)
-          .map((window) => window.unitId),
-      );
-      expect(daily.has("wall-day")).toBe(true);
-      expect(daily.has("build-day")).toBe(false);
+      const daily = world.service
+        .schedulePlan()
+        .filter((window) => window.moduleId === "day-window" && window.start <= now && now < window.stop)
+        .map((window) => window.unitId);
+      // В daily-полосе выбирается ровно одно окно: зимой допустимы марш
+      // (без сезонного ограничения) и стража; весенне-летняя стройка запрещена.
+      expect(daily).toHaveLength(1);
+      expect(["march-day", "wall-day"]).toContain(daily[0]);
+      expect(daily).not.toContain("build-day");
       // В журнал о примерке сказано один раз, а не на каждом проходе.
       expect(world.records.filter((record) => record.event === "schedule.rehearsal")).toHaveLength(1);
       // Примерка одна за раз: прежняя воля оператора снята и не копится в базе.
