@@ -25,7 +25,6 @@
 .ch-profile__level { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 22px; height: 14px; padding: 0 5px; border-radius: 7px; background: #15181f; border: 1px solid #c9a35a; color: #f0d98a; font-size: 9px; font-weight: 700; line-height: 12px; text-align: center; }
 .ch-profile__info { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding-top: 2px; }
 .ch-profile__info > b { max-width: 96px; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; }
-/* Заглушки показываем приглушённо, чтобы было видно, что это временные значения */
 
 /* Ресурсы: компактные иконка и подтверждённый серверный остаток */
 .ch-res { flex: 1; min-width: 0; display: flex; align-items: flex-start; justify-content: flex-end; gap: 2px; padding-top: 2px; }
@@ -50,6 +49,9 @@
 .ch-quests--empty { min-height: 30px; flex-direction: row; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: rgba(10,12,16,.55); color: #aaa497; font-size: 9px; line-height: 1.25; }
 .ch-quests--empty img { width: 16px; height: 16px; flex: none; opacity: .7; }
 .ch-empty { max-width: 46px; padding: 5px 3px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; color: #aaa497; font-size: 8px; line-height: 1.2; text-align: center; }
+.ch-quests--empty { min-height: 30px; flex-direction: row; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; background: rgba(10,12,16,.55); color: #aaa497; font-size: 9px; line-height: 1.25; }
+.ch-quests--empty img { width: 16px; height: 16px; flex: none; opacity: .7; }
+.ch-empty { max-width: 46px; padding: 5px 3px; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; color: #aaa497; font-size: 8px; line-height: 1.2; text-align: center; }
 .ch-quests li.is-active button { color: #f2eee4; }
 
 /* Свёрнутый чат: нейтральный статус до подключения серверного чата */
@@ -67,10 +69,10 @@
 .ch-chat__settings { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 6px; background: #1d2129; color: #9a968a; font-size: 14px; line-height: 1; }
 .ch-chat__close { width: 26px; height: 26px; padding: 0; border: 0; background: transparent; font-size: 18px; line-height: 1; color: #9a968a; }
 .ch-chat__empty { flex: 1; display: grid; place-items: center; margin: 0; padding: 14px; color: #9a968a; font-size: 11px; line-height: 1.4; text-align: center; }
+.ch-chat__empty { flex: 1; display: grid; place-items: center; margin: 0; padding: 14px; color: #9a968a; font-size: 11px; line-height: 1.4; text-align: center; }
 
 /* В чате пока нет локальной имитации отправки сообщений */
 
-/* Панель эмодзи: под полем ввода, с категориями и прокруткой */
 
 /* Нижнее меню: тонкое и узкое */
 .ch-bottom { position: absolute; left: var(--left); right: var(--right); bottom: var(--bottom); height: 38px; display: flex; align-items: center; gap: 4px; pointer-events: none; }
