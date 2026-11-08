@@ -278,7 +278,7 @@ describe("переключатели единиц мира", () => {
 
       // Оператор примеряет зиму: включаем единицу поры на срок для подготовки.
       await world.service.setUnitState("season-winter", "winter", "enabled", {
-        until: world.service.calendarNow() + 60_000,
+        until: world.service.calendarNow() + 10 * 60_000,
         reason: "подготовка к зиме",
       });
 
