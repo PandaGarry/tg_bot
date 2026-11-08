@@ -6,7 +6,7 @@ import { setupResize } from "./resize.js";
  * Canvas живёт в контейнере (#pixi-root) и лежит под React-HUD (#hud-root).
  *
  * preference: "webgl" — 2D-спрайт-сцене WebGPU ничего не даёт, а WebGL
- * предсказуемее в мобильных webview и Replit-превью (см. doc 27, риски).
+ * предсказуемее в мобильных webview (см. doc 27, риски).
  */
 class GameApp {
   private app: Application | null = null;
