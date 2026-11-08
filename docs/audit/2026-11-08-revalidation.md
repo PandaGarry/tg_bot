@@ -250,3 +250,24 @@ Production deployment reference terminates TLS at Nginx and forwards traffic to 
 ### Acceptance boundary
 
 This closes the configuration ambiguity in code, not deployment acceptance. AUD-035 remains partially open until the selected host's actual peer addresses, TLS certificate/redirect, firewall exposure, WSS Origin handling, DB TLS/network policy, restart and graceful shutdown are verified in a deployment drill.
+
+
+## 12. CI #227/#228 — production proxy config regression and verified correction (09.11.2026)
+
+**Контекст:** после изменения AUD-035 production config стал требовать непустой `TRUSTED_PROXY_IPS`. Первый полный CI после этого изменения (#227, run `42529868521`) остановился в `tools/db/ci-restore-drill.sh`: временный production-mode сервер в disposable CI окружении не получал обязательную переменную. Это была неполнота CI fixture, а не ошибка production runtime logic.
+
+**Исправление:** CI restore drill задаёт `TRUSTED_PROXY_IPS=127.0.0.1` для собственного локального reverse-proxy stand-in. Это тестовая loopback-конфигурация; её нельзя переносить в production, где должны быть указаны фактические immediate TCP peer IP reverse proxy.
+
+**Подтверждение:** GitHub Actions run [#228](https://github.com/PandaGarry/tg_bot/actions/runs/42530034410) завершился **PASS** на HEAD `446c21054b84323566cc51a333f0929f2e6f5251`. Все 16 шагов job завершились успешно: typecheck, тесты, package/i18n/schedule checks, shell syntax, PostgreSQL 18 client, production build, end-to-end backup/restore drill, High/Moderate dependency audits и Drizzle snapshot check.
+
+**Граница:** CI #228 подтверждает код и автоматизированный disposable drill. Он не закрывает AUD-034 production backup/PITR acceptance, AUD-035 реальный TLS/proxy deployment или измерения UI на физических устройствах.
+
+## 13. UI/graphics — приоритетный следующий поток
+
+**Текущее подтверждённое состояние:** PixiJS сцена уже загружается динамически после авторизации и создания лорда. CI #223 показал initial bundle 470.71 KB / 136.09 KB gzip вместо baseline 735.16 KB / 213.81 KB gzip (примерно −36%). Это улучшение загрузки, не доказательство FPS/GPU оптимальности.
+
+**Открытый объём:** текущая сцена остаётся техническим прототипом с векторными заглушками; отсутствует полный оригинальный sprite/atlas pipeline и финальный art pass. HUD и экраны требуют сквозной визуальной инвентаризации, анимационных состояний, адаптивной приёмки и устранения placeholder элементов.
+
+**План:** следовать Фазе 3A в `PROJECT_MASTER.md`: инвентаризация экранов/состояний → единая undead design system → HUD и навигация → оригинальные ассеты/атласы → изометрическая сцена/эффекты → viewport/device acceptance → performance budgets на реальных устройствах. Не копировать ассеты или точные UI решения Viking Rise.
+
+**Статус AUD-036:** partial; lazy-load реализован, real-device measurements open. **Статус AUD-037:** open; incremental redraw/render-on-demand нельзя считать закрытым до профилирования и теста корректности diff updates.
