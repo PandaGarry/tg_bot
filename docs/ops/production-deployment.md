@@ -4,26 +4,26 @@
 
 ## 1. Схема и границы доверия
 
-\`\`\`text
+```text
 Browser -- HTTPS/WSS :443 --> Nginx -- HTTP/WS loopback --> TDL :3000
                                       |
                                       +--> PostgreSQL provider (TLS)
-\`\`\`
+```
 
-- Публично доступны только 80/443 на Nginx. Node слушает \`127.0.0.1:3000\`; порт 3000 не публикуется наружу.
-- TLS завершается на Nginx. Nginx обязан сохранять \`Host\`, \`Origin\`, WebSocket Upgrade и передавать XFF цепочку.
+- Публично доступны только 80/443 на Nginx. Node слушает `127.0.0.1:3000`; порт 3000 не публикуется наружу.
+- TLS завершается на Nginx. Nginx обязан сохранять `Host`, `Origin`, WebSocket Upgrade и передавать XFF цепочку.
 - PostgreSQL не должен принимать соединения из публичного интернета; разрешить только адрес/сеть приложения и требовать TLS при удалённом подключении.
-- \`ALLOWED_ORIGINS\` — точный HTTPS origin браузера, без пути и завершающего слэша.
-- \`TRUSTED_PROXY_IPS\` — адреса непосредственных TCP peers, которые Node действительно видит. Для Nginx на том же host с upstream \`127.0.0.1\` это обычно \`127.0.0.1\`; добавляй \`::1\` только если Node реально принимает соединение от IPv6 loopback. Не указывай диапазоны: конфиг принимает только точные IP.
-- Не доверяй XFF от произвольных адресов. Парсер TDL использует XFF только если непосредственный peer есть в \`TRUSTED_PROXY_IPS\`, затем проходит цепочку справа налево через доверенные hops.
+- `ALLOWED_ORIGINS` — точный HTTPS origin браузера, без пути и завершающего слэша.
+- `TRUSTED_PROXY_IPS` — адреса непосредственных TCP peers, которые Node действительно видит. Для Nginx на том же host с upstream `127.0.0.1` это обычно `127.0.0.1`; добавляй `::1` только если Node реально принимает соединение от IPv6 loopback. Не указывай диапазоны: конфиг принимает только точные IP.
+- Не доверяй XFF от произвольных адресов. Парсер TDL использует XFF только если непосредственный peer есть в `TRUSTED_PROXY_IPS`, затем проходит цепочку справа налево через доверенные hops.
 
 ## 2. Production environment
 
-Создай отдельного системного пользователя и root-owned env file вне репозитория, например \`/etc/tdl/tdl.env\` с правами \`0600\`. Не помещай секреты в Git, unit file, URL публичных ссылок или клиентскую сборку.
+Создай отдельного системного пользователя и root-owned env file вне репозитория, например `/etc/tdl/tdl.env` с правами `0600`. Не помещай секреты в Git, unit file, URL публичных ссылок или клиентскую сборку.
 
 Обязательные значения:
 
-\`\`\`dotenv
+```dotenv
 NODE_ENV=production
 HOST=127.0.0.1
 PORT=3000
@@ -45,17 +45,17 @@ ADMIN_LOGINS=
 REGISTRATION_OPEN=0
 PG_POOL_MAX=2
 COMMAND_RATE=20
-\`\`\`
+```
 
-Сгенерируй два разных секрета, например двумя отдельными вызовами \`openssl rand -base64 48\`. Не используй демонстрационные значения выше. Если Nginx/Node находятся на разных узлах, замени \`TRUSTED_PROXY_IPS\` точными адресами proxy peers, наблюдаемыми Node. Если proxy не нужен, не добавляй выдуманные адреса: XFF останется недоверенным, и IP rate limiting будет опираться на TCP peer.
+Сгенерируй два разных секрета, например двумя отдельными вызовами `openssl rand -base64 48`. Не используй демонстрационные значения выше. Если Nginx/Node находятся на разных узлах, замени `TRUSTED_PROXY_IPS` точными адресами proxy peers, наблюдаемыми Node. Если proxy не нужен, не добавляй выдуманные адреса: XFF останется недоверенным, и IP rate limiting будет опираться на TCP peer.
 
-Перед открытием регистрации проверь DNS, сертификат, firewall, DB connectivity, резервные копии и operator access. Для первого запуска оставь \`REGISTRATION_OPEN=0\`.
+Перед открытием регистрации проверь DNS, сертификат, firewall, DB connectivity, резервные копии и operator access. Для первого запуска оставь `REGISTRATION_OPEN=0`.
 
 ## 3. Nginx reference config
 
-Файл \`/etc/nginx/conf.d/tdl.conf\`. Замени домен и пути сертификатов. \`map\` должен находиться в контексте \`http\`, как в стандартном \`conf.d\` include.
+Файл `/etc/nginx/conf.d/tdl.conf`. Замени домен и пути сертификатов. `map` должен находиться в контексте `http`, как в стандартном `conf.d` include.
 
-\`\`\`nginx
+```nginx
 map $http_upgrade $tdl_connection_upgrade {
     default upgrade;
     ''      close;
@@ -105,15 +105,15 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
-\`\`\`
+```
 
-Если установлен Nginx старой версии, которая не понимает \`http2 on;\`, используй поддерживаемую этой версией форму \`listen 443 ssl http2;\`. Не включай HSTS до проверки корректного HTTPS для всего домена и поддоменов.
+Если установлен Nginx старой версии, которая не понимает `http2 on;`, используй поддерживаемую этой версией форму `listen 443 ssl http2;`. Не включай HSTS до проверки корректного HTTPS для всего домена и поддоменов.
 
 ## 4. systemd service reference
 
-Пример \`/etc/systemd/system/tdl.service\`:
+Пример `/etc/systemd/system/tdl.service`:
 
-\`\`\`ini
+```ini
 [Unit]
 Description=The Dead Lords game server
 After=network-online.target
@@ -138,26 +138,26 @@ ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
-\`\`\`
+```
 
-Путь к Node 24 уточни командой \`command -v node\`; \`ExecStart\` должен указывать на него. Деплой выполняй в \`/opt/tdl\` от отдельного пользователя/CI, а runtime-пользователю оставь чтение артефакта и env. Проверить совместимость systemd sandboxing с выбранным хостом до включения в production.
+Путь к Node 24 уточни командой `command -v node`; `ExecStart` должен указывать на него. Деплой выполняй в `/opt/tdl` от отдельного пользователя/CI, а runtime-пользователю оставь чтение артефакта и env. Проверить совместимость systemd sandboxing с выбранным хостом до включения в production.
 
 ## 5. Deploy и smoke checklist
 
-1. Установить Node.js 24 и pnpm версии из \`package.json\`.
-2. Получить код на утверждённый release commit; выполнить \`pnpm install --frozen-lockfile\`.
-3. Выполнить \`pnpm typecheck\`, \`pnpm test\`, \`pnpm check\`, \`pnpm build\`.
+1. Установить Node.js 24 и pnpm версии из `package.json`.
+2. Получить код на утверждённый release commit; выполнить `pnpm install --frozen-lockfile`.
+3. Выполнить `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`.
 4. Проверить, что production DB backup снят и restore-процедура доступна.
-5. Проверить env file permissions, уникальные secrets, \`WORLD_ID\`, точный \`ALLOWED_ORIGINS\` и \`TRUSTED_PROXY_IPS\`.
-6. Проверить \`sudo nginx -t\`, затем перезагрузить Nginx и включить systemd unit.
-7. Проверить локально \`curl -fsS http://127.0.0.1:3000/api/health\`: ожидается только \`ok\` и \`ready\`.
-8. Проверить публично HTTPS, сертификат и редирект с HTTP; \`GET /api/ops/health\` и \`GET /api/schedule\` без токена должны возвращать 403.
-9. Проверить WebSocket на \`wss://game.example.com/socket\` с \`Origin: https://game.example.com\`; запрос без Origin и с чужим Origin должен быть отклонён.
+5. Проверить env file permissions, уникальные secrets, `WORLD_ID`, точный `ALLOWED_ORIGINS` и `TRUSTED_PROXY_IPS`.
+6. Проверить `sudo nginx -t`, затем перезагрузить Nginx и включить systemd unit.
+7. Проверить локально `curl -fsS http://127.0.0.1:3000/api/health`: ожидается только `ok` и `ready`.
+8. Проверить публично HTTPS, сертификат и редирект с HTTP; `GET /api/ops/health` и `GET /api/schedule` без токена должны возвращать 403.
+9. Проверить WebSocket на `wss://game.example.com/socket` с `Origin: https://game.example.com`; запрос без Origin и с чужим Origin должен быть отклонён.
 10. Проверить логи старта/миграций, DB pool saturation, рестарт и graceful shutdown. Только после этого открывать регистрацию отдельным изменением.
 
 ## 6. Rollback и ограничения
 
-- Перед миграциями — backup. Не выполнять автоматический \`pg_restore --clean\` поверх рабочей базы.
+- Перед миграциями — backup. Не выполнять автоматический `pg_restore --clean` поверх рабочей базы.
 - Откат приложения не означает откат схемы. Для schema rollback нужна отдельная проверенная миграция или восстановление в новую изолированную БД.
 - Следить за сроком TLS сертификата, доступностью DB, диском, памятью, рестартами, соединениями и сроком резервных копий.
 - Этот шаблон не доказывает, что выбранный хостинг/провайдер действительно выдаёт указанные proxy IP, TLS и backup guarantees. Зафиксировать реальные параметры после выбора платформы и выполнить deployment drill на ней.
