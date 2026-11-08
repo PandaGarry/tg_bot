@@ -102,7 +102,7 @@
             }
           ],
           "isUnique": true,
-          "where": "\"email_key\" <> ''",
+          "where": "\"accounts\".\"email_key\" <> ''",
           "concurrently": false,
           "method": "btree",
           "with": {}
