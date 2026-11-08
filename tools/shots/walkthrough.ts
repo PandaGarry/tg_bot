@@ -116,189 +116,110 @@ const btnState = await page.evaluate(() => {
 console.log("  кнопка «Занять двор»:", JSON.stringify(btnState));
 await clickButton("Занять двор");
 
-// двор: ждём HUD-блок лорда; canvas появляется, только если поднялся WebGL
-await page.waitForSelector(".hud-lord", { timeout: 30_000 });
-// замер верхней строки: карточка лорда и ресурсы не должны пересекаться
+// Двор: проверяем актуальный HUD, а не селекторы предыдущего поколения.
+await page.waitForSelector(".ch-profile", { timeout: 30_000 });
+await page.waitForSelector(".ch-res", { timeout: 10_000 });
 await sleep(1200);
-const layout = (await page.evaluate(`(() => {
-  const rect = function (sel) {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
-  };
-  return JSON.stringify({
-    top: rect(".hud-top"),
-    lord: rect(".hud-lord"),
-    res: rect(".hud-res"),
-    firstChip: rect(".hud-res .chip"),
-    lastChip: rect(".hud-res .chip:last-child"),
+
+async function measureTop(label: string): Promise<string> {
+  const result = await page.evaluate(() => {
+    const rect = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const box = element.getBoundingClientRect();
+      return {
+        x: Math.round(box.x),
+        y: Math.round(box.y),
+        width: Math.round(box.width),
+        height: Math.round(box.height),
+        right: Math.round(box.right),
+        bottom: Math.round(box.bottom),
+      };
+    };
+    const profile = rect(".ch-profile");
+    const resources = rect(".ch-res");
+    const overlap = profile && resources
+      ? profile.x < resources.right && profile.right > resources.x &&
+        profile.y < resources.bottom && profile.bottom > resources.y
+      : null;
+    return {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      documentWidth: document.documentElement.scrollWidth,
+      horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
+      profile,
+      resources,
+      firstResource: rect(".ch-res__item:first-child"),
+      lastResource: rect(".ch-res__item:last-child"),
+      profileResourceOverlap: overlap,
+    };
   });
-})()`)) as string;
-console.log("  замер:", layout);
+  const json = JSON.stringify(result);
+  console.log(`  ${label}: ${json}`);
+  return json;
+}
+
 let webgl = true;
 try {
   await page.waitForSelector("canvas", { timeout: 15_000 });
 } catch {
   webgl = false;
 }
-console.log(webgl ? "  двор: WebGL поднят, снимаю 3D" : "  двор: WebGL нет, запасной кадр");
-await sleep(5000);
+console.log(webgl ? "  двор: canvas доступен, снимаю сцену" : "  двор: canvas не найден, снимаю fallback");
+await sleep(2500);
 await page.screenshot({ path: join(outDir, "game-court-day.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-day.jpg");
 
-// --- этап C3: панель, подтверждение постановки, перенос, дорога ---
-await page.click(".hud-rb");
-await page.waitForSelector(".hud-build", { timeout: 10_000 });
-await sleep(600);
+// Панель строительства открывается через актуальное быстрое действие ConceptHud.
+await page.click('.concept-quick__item[data-action="build"]');
+await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
+await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-build.jpg");
-await page.evaluate(() => {
-  const card = [...document.querySelectorAll(".bcard")].find((b) => b.textContent?.includes("Жилой дом"));
-  (card as HTMLElement | undefined)?.click();
-});
-await page.waitForSelector(".place-bar", { timeout: 10_000 });
-await sleep(400);
-// клетка слева-выше Ратуши: свободная, вне дороги
-await page.mouse.click(450, 430);
-await sleep(500);
-await page.screenshot({ path: join(outDir, "game-court-confirm.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-confirm.jpg");
-await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
-  (button as HTMLElement | undefined)?.click();
-});
-await sleep(1500);
-await page.screenshot({ path: join(outDir, "game-court-placed.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-placed.jpg");
 
-// перенос долгим нажатием: дом стоит в клетке под (450, 430)
-await page.mouse.move(450, 430);
-await page.mouse.down();
-await sleep(800);
-await page.mouse.up();
-await sleep(400);
-await page.screenshot({ path: join(outDir, "game-court-pickup.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-pickup.jpg");
-await page.mouse.click(450, 300);
-await sleep(400);
+// Проверяем вкладку декора и карточку мощения; постановку не подтверждаем,
+// чтобы скриншотный сценарий не изменял состояние тестового королевства.
 await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
-  (button as HTMLElement | undefined)?.click();
+  const tab = [...document.querySelectorAll(".concept-build-tabs button")]
+    .find((button) => /двор|decor/i.test(button.textContent ?? ""));
+  (tab as HTMLButtonElement | undefined)?.click();
 });
-await sleep(900);
-await page.screenshot({ path: join(outDir, "game-court-moved.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-moved.jpg");
+await sleep(350);
+await page.screenshot({ path: join(outDir, "game-court-decor.jpg"), type: "jpeg", quality: 88 });
+console.log("сохранён game-court-decor.jpg");
 
-// гравийная дорога: вкладка «Украшения» → карточка дороги → тап по клетке
-await page.click(".hud-rb");
-await page.waitForSelector(".hud-build", { timeout: 10_000 });
-await sleep(400);
-await page.evaluate(() => {
-  const tab = [...document.querySelectorAll(".btabs button")].find((b) => b.textContent?.includes("Украшения"));
-  (tab as HTMLElement | undefined)?.click();
-});
+// Закрываем панель штатным контролом, не трогая игровой мир.
+await page.click(".concept-build-panel .concept-panel-close");
 await sleep(300);
-await page.evaluate(() => {
-  const road = [...document.querySelectorAll(".th-up.road")][0];
-  (road as HTMLElement | undefined)?.click();
-});
-await page.waitForSelector(".place-bar", { timeout: 10_000 });
-await sleep(300);
-await page.mouse.click(350, 350);
-await sleep(700);
-await page.mouse.click(350, 460);
-await sleep(700);
-await page.screenshot({ path: join(outDir, "game-court-road.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-road.jpg");
-await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Готово"));
-  (button as HTMLElement | undefined)?.click();
-});
-await sleep(300);
+await measureTop("desktop HUD");
 
-// дорога перемещается: долгое нажатие на плиту у ворот, тап по новой клетке, «Подтвердить»
-await page.mouse.move(1036, 152);
-await page.mouse.down();
-await sleep(800);
-await page.mouse.up();
-await sleep(400);
-await page.mouse.click(1036, 89);
-await sleep(400);
-await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
-  (button as HTMLElement | undefined)?.click();
-});
-await sleep(900);
-await page.screenshot({ path: join(outDir, "game-court-road-move.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-road-move.jpg");
-
-// перенос Ратуши долгим нажатием: нажатие на тело башни, тап по клетке (9,9), «Подтвердить»
-await page.mouse.move(688, 390);
-await page.mouse.down();
-await sleep(800);
-await page.mouse.up();
-await sleep(400);
-await page.screenshot({ path: join(outDir, "game-court-pickup-hall.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-pickup-hall.jpg");
-// клетка (4,9): мир (-2.75, 2.75), проекция (516, 376) при камере dist 24
-await page.mouse.click(516, 376);
-await sleep(400);
-await page.screenshot({ path: join(outDir, "game-court-hall-target.jpg"), type: "jpeg", quality: 88 });
-await page.evaluate(() => {
-  const button = [...document.querySelectorAll(".place-bar button")].find((b) => b.textContent?.includes("Подтвердить"));
-  (button as HTMLElement | undefined)?.click();
-});
-await sleep(1300);
-await page.screenshot({ path: join(outDir, "game-court-hall-moved.jpg"), type: "jpeg", quality: 88 });
-console.log("сохранён game-court-hall-moved.jpg");
-
-// замер верхней строки ИМЕННО во дворе и ИМЕННО на телефонной ширине (иначе не ловится)
+// Портретный кадр на целевом мобильном размере.
 await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
-await sleep(1200);
-const courtLayout = (await page.evaluate(`(() => {
-  const rect = function (sel) {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
-  };
-  return JSON.stringify({
-    top: rect(".hud-top"),
-    lord: rect(".hud-lord"),
-    res: rect(".hud-res"),
-    firstChip: rect(".hud-res .chip"),
-    lastChip: rect(".hud-res .chip:last-child"),
-  });
-})()`)) as string;
-console.log("  замер-двор:", courtLayout);
-
-// портретный кадр: как на телефоне заказчика
-await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
-await sleep(2500);
+await sleep(1000);
+const courtLayout = await measureTop("mobile 390 HUD");
 await page.screenshot({ path: join(outDir, "game-court-portrait.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-portrait.jpg");
 
-// узкий экран 320: сетка ресурсов обязана уместиться и не задеть профиль
+// Узкий экран: сохраняем метрики для визуального контроля переполнения.
 await page.setViewport({ width: 320, height: 690, deviceScaleFactor: 1 });
-await sleep(1200);
-const narrowLayout = (await page.evaluate(`(() => {
-  const rect = function (sel) {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height), right: Math.round(r.right) };
-  };
-  return JSON.stringify({
-    top: rect(".hud-top"),
-    lord: rect(".hud-lord"),
-    res: rect(".hud-res"),
-    firstChip: rect(".hud-res .chip"),
-    lastChip: rect(".hud-res .chip:last-child"),
-  });
-})()`)) as string;
-console.log("  замер-узкий:", narrowLayout);
+await sleep(900);
+const narrowLayout = await measureTop("narrow 320 HUD");
 await page.screenshot({ path: join(outDir, "game-court-narrow.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-narrow.jpg");
+
+// Жёсткая проверка геометрии: критические HUD-узлы должны существовать;
+// горизонтальное переполнение фиксируется как ошибка, а не теряется в логе.
+const layouts = [JSON.parse(courtLayout), JSON.parse(narrowLayout)] as {
+  profile: unknown;
+  resources: unknown;
+  horizontalOverflow: boolean;
+}[];
+for (const layout of layouts) {
+  if (!layout.profile || !layout.resources) {
+    throw new Error("HUD layout incomplete: profile or resource board is missing");
+  }
+  if (layout.horizontalOverflow) {
+    throw new Error("HUD causes horizontal document overflow at a target mobile viewport");
+  }
+}
 
 await browser.close();
