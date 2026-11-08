@@ -7,9 +7,9 @@
 ## 1. Текущая активная архитектура UI
 
 - Точка входа: `apps/client/src/main.tsx`; после входа в мир монтируется `World`.
-- Активный HUD: `apps/client/src/ui/World.tsx` → `ConceptHud.tsx`.
+- Активный HUD: `apps/client/src/ui/World.tsx` → `ConceptHud.tsx` → `CourtChrome.tsx` плюс панели/навигация из `ConceptHud`.
 - Активный набор mockup: только `forge` (`mockups.ts`).
-- Визуальные токены и стили активного mockup: `mockups.css`, общие правила — `styles.css`.
+- Визуальные токены и стили активного mockup: `mockups.css`; оболочка двора — `court-chrome.css`; общие правила — `styles.css`.
 - Иконки активного HUD: `ConceptIcon.tsx` (векторные SVG-компоненты).
 - Сцена двора: PixiJS `CourtScene`, геометрия в `game/court/*`; React HUD общается со сценой через bridge.
 - Pixi загружается после авторизации и создания лорда (AUD-036 partial).
@@ -100,9 +100,9 @@
 
 ## 5. Текущая очередь
 
-1. [x] Определён активный путь `World → ConceptHud`; установлен legacy-статус `Hud` и `CourtChrome`.
-2. [x] Удалены неиспользуемые импорты `CourtChrome` и `court-chrome.css` из активного `ConceptHud`; legacy файлы пока не удалены.
-3. [ ] Подтвердить CI для удаления legacy imports.
+1. [x] Определён активный путь `World → ConceptHud → CourtChrome`; `Hud.tsx` — неактивное legacy-поколение.
+2. [x] Удалены фиктивные игровые числа, локальные seed-сообщения, fake events/quests/income/unread counts из активного `CourtChrome`; добавлены честные empty states.
+3. [x] Добавлен regression test, запрещающий возврат демонстрационных силы/VIP/чат-сообщений; CI pending.
 4. [ ] Завершить инвентаризацию JSX и CSS активного HUD, всех экранов и интерактивных состояний.
 5. [ ] Сформировать точную карту ассетов и план оригинального art production.
 6. [ ] Начать переработку HUD с верхней ресурсной панели и нижней навигации после фиксации дизайн-токенов.
