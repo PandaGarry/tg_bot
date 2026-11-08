@@ -72,6 +72,20 @@ describe("production configuration", () => {
     expect(valid.allowedOrigins).toEqual(["https://game.example.com"]);
   });
 
+  it("requires explicit trusted proxy peers in production", () => {
+    const missing = productionEnv();
+    delete missing.TRUSTED_PROXY_IPS;
+    expect(() => loadConfig(missing)).toThrow(/TRUSTED_PROXY_IPS/);
+
+    const empty = productionEnv();
+    empty.TRUSTED_PROXY_IPS = " , ";
+    expect(() => loadConfig(empty)).toThrow(/TRUSTED_PROXY_IPS/);
+
+    const valid = productionEnv();
+    valid.TRUSTED_PROXY_IPS = "127.0.0.1";
+    expect(loadConfig(valid).trustedProxyIps).toEqual(["127.0.0.1"]);
+  });
+
   it("accepts only exact trusted proxy IPs, not CIDR or duplicate entries", () => {
     const valid = productionEnv();
     valid.TRUSTED_PROXY_IPS = "127.0.0.1, ::1";
