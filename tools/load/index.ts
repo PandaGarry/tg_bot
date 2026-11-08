@@ -224,8 +224,17 @@ function percentile(values: number[], share: number): number {
 
 async function main(): Promise<void> {
   const options = parseOptions(process.argv.slice(2));
-  const healthUrl = options.url.replace(/^ws/, "http").replace(/\/socket$/, "/api/health");
-  const before = await fetch(healthUrl).then((response) => response.json()).catch(() => null);
+  const healthUrl = options.url.replace(/^ws/, "http").replace(/\/socket$/, "/api/ops/health");
+  // Подробная телеметрия закрыта операторским токеном. Без него сам нагрузочный
+  // прогон остаётся полезным, но серверные счётчики будут помечены как недоступные.
+  const healthHeaders = process.env.ADMIN_TOKEN ? { "x-admin-token": process.env.ADMIN_TOKEN } : undefined;
+  const readHealth = async () => {
+    if (!healthHeaders) return null;
+    return fetch(healthUrl, { headers: healthHeaders })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .catch(() => null);
+  };
+  const before = await readHealth();
 
   const startedAt = Date.now();
   const sessions: Session[] = [];
@@ -281,7 +290,7 @@ async function main(): Promise<void> {
 
   // Лаг сроков и состояние мира читаем у порта, а не из базы: замер честнее.
   await new Promise((resolve) => setTimeout(resolve, 300));
-  const after = await fetch(healthUrl).then((response) => response.json()).catch(() => null);
+  const after = await readHealth();
 
   const unanswered = sent - collected.length;
   const summary = {
