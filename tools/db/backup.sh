@@ -47,7 +47,7 @@ server_major="${server_version%%.*}"
 dump_version="$(pg_dump --version | awk '{print $3}')"
 dump_major="${dump_version%%.*}"
 if [[ ! "$server_major" =~ ^[0-9]+$ || ! "$dump_major" =~ ^[0-9]+$ || "$dump_major" -lt "$server_major" ]]; then
-  printf 'pg_dump major version %s must be at least the PostgreSQL server major version %s\\n' \
+  printf 'pg_dump major version %s must be at least the PostgreSQL server major version %s\n' \
     "$dump_major" "$server_major" >&2
   exit 1
 fi
