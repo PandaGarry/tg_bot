@@ -3,8 +3,6 @@ import type { Locale, WorldViewBase } from "@tdl/protocol";
 import { translator } from "../i18n/index.js";
 import { BUILD_CATALOG, CITADEL_COSTS, CITADEL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
 import { ConceptIcon, type ConceptIconName } from "./ConceptIcon.js";
-import { CourtChrome } from "./CourtChrome.js";
-import "./court-chrome.css";
 import type { UiMockupId } from "./mockups.js";
 
 export type ConceptRoute = "court" | "reports" | "map" | "chronicle" | "sheet";
