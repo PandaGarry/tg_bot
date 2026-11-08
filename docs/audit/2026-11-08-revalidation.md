@@ -281,4 +281,8 @@ This closes the configuration ambiguity in code, not deployment acceptance. AUD-
 
 Сцена `CourtScene` сейчас строит землю/дороги через Pixi `Graphics`; `building.ts` использует геометрические примитивы и палитру. Это placeholder/prototype art, не финальные игровые ассеты. `ConceptIcon.tsx` — набор SVG-пиктограмм, не production illustration set. Подробный checklist, pipeline и критерии приёмки внесены в `docs/design/ui-overhaul.md`.
 
-**Статусы:** UI/ART overhaul — open; cleanup фиктивных HUD-данных — implemented, CI pending; AUD-036 lazy-load — partial; AUD-037 incremental redraw — open. Не заявлять визуальную или производительную готовность до art pass, screenshot/device acceptance и измерений.
+Старый `tools/shots/walkthrough.ts` искал селекторы предыдущего поколения (`.hud-lord`, `.hud-build`, `.bcard`, `.place-bar`) и потому не соответствовал активному UI. Сценарий переписан под `.ch-profile`, `.ch-res`, `.ch-action[aria-label="Строительство"]`, `.concept-build-panel` и актуальные вкладки; он снимает кадры двора/строительства/декора на desktop, 390px и 320px, проверяет наличие ключевых HUD-узлов и переполнение верхней строки. Размещение зданий в screenshot smoke flow больше не подтверждается, чтобы сценарий не мутировал тестовый мир.
+
+В `ConceptHud.tsx` обнаружены концептуальные JSX-элементы/компоненты (`ProfileCard`, `ResourceBoard`, `nav`, `quick`), которые не участвуют в текущем return path; текущую фактическую оболочку обеспечивает `CourtChrome`. Не считать их частью активного интерфейса до отдельного включения/удаления.
+
+**Статусы:** UI/ART overhaul — open; cleanup фиктивных HUD-данных — implemented, CI pending; screenshot walkthrough migration — implemented, CI pending; AUD-036 lazy-load — partial; AUD-037 incremental redraw — open. Не заявлять визуальную или производительную готовность до art pass, screenshot/device acceptance и измерений.
