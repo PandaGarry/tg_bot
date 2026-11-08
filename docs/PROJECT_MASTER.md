@@ -261,7 +261,7 @@ CI, observability, политика хранения, индексы БД, ин�
 ## 8. Текущий ближайший рабочий спринт
 
 1. [ ] Сверить актуальный HEAD рабочей ветки с PR #9 и `main`; не перезаписывать новые коммиты и не менять `main`.
-2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: security headers, diagnostic-route review, TLS/proxy deployment validation). Production WebSocket Origin allowlist реализован и подтверждён CI #101. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
+2. [ ] Закрыть оставшиеся P0: фактический backup/restore drill по подготовленному runbook (AUD-034) и остаток production hardening (AUD-035: security headers, diagnostic-route review, TLS/proxy deployment validation). Production WebSocket Origin allowlist реализован и подтверждён CI #101/#124. Полный migration bootstrap lock (AUD-030) реализован и протестирован; rolling-deploy compatibility остаётся отдельным релизным пунктом.
 3. [x] Получить воспроизводимый CI baseline: typecheck/test/check/build прошли на `13e59a7`; 247 тестов / 29 файлов.
 4. [ ] Продолжить P1: экономика/склад и тест на clamp patch (AUD-002/003/004), actor/account command rate limiting (AUD-006), история отчётов (AUD-032), явные отказы команд двора (AUD-038).
 5. [x] Добавить CI с PostgreSQL 18 и обязательными typecheck/test/check/build; добавить dependency audit и обновить actions до Node 24.
