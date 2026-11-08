@@ -24,7 +24,11 @@ function ctxOf(st: unknown, stock: Record<string, number>) {
 }
 
 /** Патч с сеткой из эффектов команды (первый patch актёра). */
-function gridOf(effects: unknown[]): { size: number; buildings: { type: string; x: number; z: number }[] } | null {
+function gridOf(effects: unknown[]): {
+  size: number;
+  buildings: { type: string; x: number; z: number }[];
+  roads: { x: number; z: number }[];
+} | null {
   for (const e of effects as { kind?: string; ops?: { path: string; value: unknown }[] }[]) {
     if (e.kind !== "patch") continue;
     const op = e.ops?.find((o) => o.path === "modules.court.grid");
