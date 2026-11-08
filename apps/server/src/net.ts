@@ -304,11 +304,19 @@ export class SocketHub implements ViewSink {
         // больше не видит, а старый токен не пустят ни в мире, ни в сокете.
         const out = await logout(this.gates, { token: data.token });
         if (data.token === state.token) {
-          state.token = null;
-          state.accountId = null;
-          state.actor = null;
+          // Один bearer-токен может быть открыт в нескольких вкладках/устройствах.
+          // Отзыв должен очистить все сокеты, иначе старое соединение продолжит играть.
+          const serverNow = this.service?.now() ?? 0;
+          for (const connected of this.states) {
+            if (connected.token !== data.token) continue;
+            connected.token = null;
+            connected.accountId = null;
+            connected.actor = null;
+            this.send(connected, zServerOut.parse({ t: "out", serverNow, ok: out.ok }));
+          }
+        } else {
+          this.send(state, zServerOut.parse({ t: "out", serverNow: this.service?.now() ?? 0, ok: out.ok }));
         }
-        this.send(state, zServerOut.parse({ t: "out", serverNow: this.service?.now() ?? 0, ok: out.ok }));
         return;
       }
 
