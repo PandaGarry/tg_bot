@@ -13,8 +13,6 @@ import { Loading } from "./ui/Loading.js";
 import { World } from "./ui/World.js";
 import { initializeUiMockup } from "./ui/mockups.js";
 import { statusKey } from "./i18n/index.js";
-import { gameApp } from "./game/core/application.js";
-import { mountCourtScene } from "./game/court/courtScene.js";
 
 // Восстанавливает только локальный CSS-вариант, чтобы его было видно на экранах входа и создания лорда.
 initializeUiMockup();
@@ -25,6 +23,30 @@ initializeUiMockup();
  */
 type Phase = "preview" | "loading" | "gate";
 
+// Pixi и изометрическая сцена загружаются только после входа в мир.
+// На экранах превью/входа/создания лорда WebGL не нужен и не должен попадать
+// в критический initial bundle. Bridge сохраняет последние state/mode события
+// до позднего монтирования сцены.
+let gameScenePromise: Promise<void> | null = null;
+
+function initializeGameScene(): Promise<void> {
+  if (gameScenePromise) return gameScenePromise;
+  gameScenePromise = (async () => {
+    const [{ gameApp }, { mountCourtScene }] = await Promise.all([
+      import("./game/core/application.js"),
+      import("./game/court/courtScene.js"),
+    ]);
+    const root = document.getElementById("pixi-root");
+    if (!root) throw new Error("Pixi root element is missing");
+    await gameApp.init(root);
+    if (gameApp.instance) mountCourtScene(gameApp.instance);
+  })().catch((error: unknown) => {
+    gameScenePromise = null;
+    throw error;
+  });
+  return gameScenePromise;
+}
+
 function App() {
   const state = useStore();
   const [phase, setPhase] = useState<Phase>(() => (introSeen() ? "loading" : "preview"));
@@ -34,6 +56,11 @@ function App() {
   useEffect(() => {
     connect();
   }, []);
+
+  useEffect(() => {
+    if (!state.auth || state.auth.needsLord || !state.view?.me) return;
+    void initializeGameScene().catch((error: unknown) => console.error("[Pixi] Initialization failed", error));
+  }, [state.auth?.needsLord, state.view?.me?.id]);
 
   if (phase === "preview") {
     return <Preview lang={state.lang} onDone={() => setPhase("loading")} />;
@@ -67,15 +94,6 @@ function App() {
     return <World view={view} lang={state.lang} serverNow={state.view?.world.now ?? state.clockOffset + Date.now()} />;
   }
 }
-
-// Сначала сцена: canvas занимает #pixi-root. HUD (React) монтируется в
-// #hud-root поверх. Инициализация Pixi не блокирует рендер HUD.
-void gameApp
-  .init(document.getElementById("pixi-root") as HTMLElement)
-  .then(() => {
-    if (gameApp.instance) mountCourtScene(gameApp.instance);
-  })
-  .catch((error: unknown) => console.error("[Pixi] Initialization failed", error));
 
 createRoot(document.getElementById("hud-root") as HTMLElement).render(
   <StrictMode>
