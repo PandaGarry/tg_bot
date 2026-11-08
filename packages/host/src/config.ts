@@ -3,6 +3,7 @@
  */
 
 import { existsSync } from "node:fs";
+import { isIP } from "node:net";
 import { dirname, join } from "node:path";
 import { z } from "zod";
 
@@ -38,6 +39,8 @@ export const configSchema = z.object({
   ADMIN_LOGINS: z.string().default(""),
   /** Exact browser origins allowed to open production WebSocket sessions. */
   ALLOWED_ORIGINS: z.string().default(""),
+  /** Exact IPs of reverse proxies allowed to supply X-Forwarded-For; CIDR is intentionally unsupported. */
+  TRUSTED_PROXY_IPS: z.string().default(""),
 });
 
 /**
@@ -73,6 +76,8 @@ export type HostConfig = z.infer<typeof configSchema> & {
   adminLogins: readonly string[];
   /** Exact origins allowed to open WebSocket sessions; empty only outside production. */
   allowedOrigins: readonly string[];
+  /** Exact trusted proxy IPs; empty means ignore X-Forwarded-For. */
+  trustedProxyIps: readonly string[];
   /** Мир открыт всем или только служебным аккаунтам. */
   accessPublic: boolean;
   isProduction: boolean;
@@ -136,6 +141,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
     throw new Error(`${hint}\n${String(error)}`);
   }
   assertProductionConfig(parsed, env);
+  const trustedProxyIps = parsed.TRUSTED_PROXY_IPS.split(",").map((ip) => ip.trim()).filter(Boolean);
+  if (trustedProxyIps.some((ip) => isIP(ip) === 0)) {
+    throw new Error("TRUSTED_PROXY_IPS must contain exact IPv4/IPv6 addresses; CIDR ranges are not supported");
+  }
+  if (new Set(trustedProxyIps).size !== trustedProxyIps.length) {
+    throw new Error("TRUSTED_PROXY_IPS must not contain duplicates");
+  }
   return {
     ...parsed,
     registrationOpen: parsed.REGISTRATION_OPEN === "1",
@@ -144,6 +156,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HostConfig {
       .map((login) => login.trim().toLowerCase())
       .filter((login) => login.length > 0),
     allowedOrigins: parsed.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
+    trustedProxyIps,
     accessPublic: parsed.ACCESS_MODE === "public",
     commandRate: parsed.COMMAND_RATE,
     isProduction: parsed.NODE_ENV === "production",
