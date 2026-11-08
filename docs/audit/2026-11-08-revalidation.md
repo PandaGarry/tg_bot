@@ -71,4 +71,4 @@
 | TDL-AUD-031 | `resume/logout` фильтруются по `world_id`; создание лорда обновляет только сессии текущего мира; WebSocket и `submitCommand` проверяют принадлежность мира | `packages/host/tests/gates.test.ts` и `writer.test.ts`: межмировой токен и чужой actor отклоняются |
 | TDL-AUD-007 | Повторный `court.enter` не переносит существующий production deadline | `packages/modules/court/tests/commands.test.ts`: повторный вход не сдвигает срок |
 
-**Ограничение:** эти статусы означают «исправлено в рабочей ветке и подтверждено CI», а не «выпущено в production». PR #9 не слит, Replit worktree не сверен, production DB не мигрировалась.
+**Ограничение:** эти статусы означают «исправлено в рабочей ветке и подтверждено CI», а не «выпущено в production». PR #9 не слит; production DB не мигрировалась.
