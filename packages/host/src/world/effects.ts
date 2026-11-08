@@ -231,10 +231,15 @@ async function pushReport(
 }
 
 /** Склад: ресурсы целые, минус невозможен, предел обрезает. */
+function stockBalanceKey(holderId: string, resource: ResourceId): string {
+  return JSON.stringify([holderId, resource]);
+}
+
 async function applyStock(
   params: ApplyParams,
   deltas: readonly { holderId: string; resource: ResourceId; delta: number }[],
   result: ApplyResult,
+  stockBalances: Map<string, number>,
 ): Promise<void> {
   for (const delta of deltas) {
     if (delta.delta === 0) continue;
@@ -255,12 +260,14 @@ async function applyStock(
       });
     }
     const limit = await params.limitOf(delta.holderId, delta.resource);
+    let finalAmount = amount;
     if (limit !== null && amount > limit) {
       const kept = normalizeLimit(limit);
       await params.client.query(
         `UPDATE stock SET amount = $4 WHERE world_id = $1 AND holder_id = $2 AND resource_id = $3`,
         [params.worldId, delta.holderId, delta.resource, kept],
       );
+      finalAmount = kept;
       result.clamped.push({ holderId: delta.holderId, resource: delta.resource, kept, limit });
       noteSim(params, "stock.clamped", {
         actorId: delta.holderId,
@@ -268,6 +275,9 @@ async function applyStock(
         computed: { kept, limit },
       });
     }
+    // Запоминаем фактический баланс в этой же транзакции, чтобы патч не делал
+    // дополнительный SELECT на каждую обычную stock-команду.
+    stockBalances.set(stockBalanceKey(delta.holderId, delta.resource), finalAmount);
   }
 }
 
@@ -278,6 +288,8 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
   }
 
   const result: ApplyResult = { patches: [], reports: [], clamped: [], disabledModules: [] };
+  const stockBalances = new Map<string, number>();
+  const pendingPatches: AppliedPatch[] = [];
 
   // Склад одним куском: один ресурс — одна строка.
   const stockEffects = effects.filter((effect) => effect.kind === "stock");
@@ -291,6 +303,7 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
         delta: effect.delta,
       })),
       result,
+      stockBalances,
     );
   }
 
@@ -383,7 +396,7 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
           });
         }
         if (computed > 0) {
-          await applyStock(params, [{ holderId, resource, delta: computed }], result);
+          await applyStock(params, [{ holderId, resource, delta: computed }], result, stockBalances);
           await pushReport(params, result, {
             id: holderId,
             kind: "gather",
@@ -498,33 +511,7 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
           noteSim(params, "patch.invalid", { claimed: effect.route.kind });
           break;
         }
-
-        // Stock всегда приходит из БД: модуль не может отправить клиенту
-        // исходную дельту, если ядро обрезало её по пределу склада.
-        const stockResources = parsed.data.ops
-          .filter((op) => op.path.startsWith("stock."))
-          .map((op) => op.path.slice("stock.".length));
-        let ops = parsed.data.ops;
-        if (stockResources.length > 0) {
-          if (parsed.data.route.kind !== "actor") {
-            noteSim(params, "patch.stock.route", { claimed: parsed.data.route.kind });
-            throw new CommandRejected(KERNEL_KEYS.generic, { channel: "sim" });
-          }
-          const holderId = parsed.data.route.id ?? params.actor?.id ?? "world";
-          const resources = [...new Set(stockResources)];
-          const rows = await params.client.query(
-            `SELECT resource_id, amount FROM stock
-             WHERE world_id = $1 AND holder_id = $2 AND resource_id = ANY($3::text[])`,
-            [params.worldId, holderId, resources],
-          );
-          const actual = new Map(rows.rows.map((row) => [String(row.resource_id), Number(row.amount)]));
-          ops = parsed.data.ops.map((op) => {
-            if (!op.path.startsWith("stock.")) return op;
-            const resource = op.path.slice("stock.".length);
-            return { op: "set", path: op.path, value: actual.get(resource) ?? 0 };
-          });
-        }
-        result.patches.push({ ...parsed.data, ops } as AppliedPatch);
+        pendingPatches.push(parsed.data as AppliedPatch);
         break;
       }
 
@@ -566,6 +553,46 @@ export async function applyEffects(params: ApplyParams, effects: readonly Effect
       case "error":
         break;
     }
+  }
+
+  // Патчи собираются после всех эффектов: gather.claim тоже мог изменить склад.
+  // Для обычного stock-патча баланс уже известен из applyStock; SELECT нужен только
+  // если модуль попытался изменить клиентский stock без соответствующего stock-эффекта.
+  for (const patch of pendingPatches) {
+    const stockResources = patch.ops
+      .filter((op) => op.path.startsWith("stock."))
+      .map((op) => op.path.slice("stock.".length));
+    if (stockResources.length === 0) {
+      result.patches.push(patch);
+      continue;
+    }
+    if (patch.route.kind !== "actor") {
+      noteSim(params, "patch.stock.route", { claimed: patch.route.kind });
+      throw new CommandRejected(KERNEL_KEYS.generic, { channel: "sim" });
+    }
+    const holderId = patch.route.id ?? params.actor?.id ?? "world";
+    const resources = [...new Set(stockResources)];
+    const missing = resources.filter((resource) => !stockBalances.has(stockBalanceKey(holderId, resource as ResourceId)));
+    if (missing.length > 0) {
+      const rows = await params.client.query(
+        `SELECT resource_id, amount FROM stock
+         WHERE world_id = $1 AND holder_id = $2 AND resource_id = ANY($3::text[])`,
+        [params.worldId, holderId, missing],
+      );
+      for (const row of rows.rows) {
+        stockBalances.set(stockBalanceKey(holderId, String(row.resource_id) as ResourceId), Number(row.amount));
+      }
+      for (const resource of missing) {
+        const key = stockBalanceKey(holderId, resource as ResourceId);
+        if (!stockBalances.has(key)) stockBalances.set(key, 0);
+      }
+    }
+    const ops = patch.ops.map((op) => {
+      if (!op.path.startsWith("stock.")) return op;
+      const resource = op.path.slice("stock.".length) as ResourceId;
+      return { op: "set", path: op.path, value: stockBalances.get(stockBalanceKey(holderId, resource)) ?? 0 };
+    });
+    result.patches.push({ ...patch, ops });
   }
 
   // Строки расхождений ложатся той же транзакцией, что и изменение мира.
