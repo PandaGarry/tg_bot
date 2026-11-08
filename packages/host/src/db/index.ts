@@ -17,18 +17,23 @@ export interface Db {
 
 /**
  * Размер пула. По умолчанию 10, но мирам на одном узле его задают окружением:
- * у базы свой предел соединений, и сто миров по десять в него не влезут.
+ * у базы свой предел соединений. Минимум 2: миграционный advisory lock держит
+ * отдельное соединение, пока сам мигратор работает через пул.
  */
 export function poolMaxFromEnv(env: NodeJS.ProcessEnv = process.env): number {
   const value = Number(env.PG_POOL_MAX ?? "");
   if (!Number.isFinite(value) || value < 1) return 10;
-  return Math.min(50, Math.floor(value));
+  return Math.min(50, Math.max(2, Math.floor(value)));
 }
 
 export function createDb(connectionString: string, options: { max?: number } = {}): Db {
+  const max = options.max ?? poolMaxFromEnv();
+  if (!Number.isInteger(max) || max < 2 || max > 50) {
+    throw new RangeError("PG pool max must be an integer between 2 and 50");
+  }
   const pool = new Pool({
     connectionString,
-    max: options.max ?? poolMaxFromEnv(),
+    max,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
     application_name: "tdl-host",
