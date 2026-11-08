@@ -306,7 +306,11 @@ export class WorldService {
     this.world = options.world;
     this.worldId = options.world.id;
     this.calendar = options.calendar ?? { now: () => Date.now() };
-    this.clockValue = new WorldClock({ offsetMs: options.world.clockOffsetMs, lastWorldAtMs: options.now?.() ?? Date.now() });
+    this.clockValue = new WorldClock({
+      offsetMs: options.world.clockOffsetMs,
+      lastWorldAtMs: options.now?.() ?? Date.now(),
+      ...(options.now ? { nowReal: options.now } : {}),
+    });
   }
 
   /** Подъём мира: право писателя, простой, модули, наступившие сроки. */
@@ -1461,7 +1465,7 @@ export class WorldService {
     }
     // Сбой базы не должен превращаться в поток записей: пауза растёт, журнал не частит.
     this.stepFailures += 1;
-    this.quietUntilMs = Date.now() + this.backoffMs();
+    this.quietUntilMs = this.now() + this.backoffMs();
     if (this.stepFailures === 1 || this.stepFailures % 20 === 0) {
       this.journal.write({
         channel: "app",
@@ -1776,7 +1780,7 @@ export class WorldService {
   }
 
   private async pump(): Promise<void> {
-    if (this.stopped || this.pumping || Date.now() < this.quietUntilMs) return;
+    if (this.stopped || this.pumping || this.now() < this.quietUntilMs) return;
     this.pumping = true;
     const startedAt = performance.now();
     try {

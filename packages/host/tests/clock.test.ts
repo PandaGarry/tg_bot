@@ -12,10 +12,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestWorld, deadlinesOf, drain, reopenTestWorld, dueCount } from "./harness.js";
 import { kitModule } from "./kit.js";
+import { WorldClock } from "../src/world/clock.js";
 
 const DAY = 86_400_000;
 
 describe("часы мира и календарь", () => {
+  it("поддерживает управляемый источник времени и не идёт назад", () => {
+    let current = 1_000;
+    const clock = new WorldClock({ offsetMs: 0, lastWorldAtMs: 1_000, nowReal: () => current });
+    expect(clock.now()).toBe(1_000);
+    current = 2_000;
+    expect(clock.now()).toBe(2_000);
+    current = 1_500;
+    expect(clock.now()).toBe(2_000);
+  });
   it("плохой пульс не откатывает и не замораживает ход мира", async () => {
     const world = await createTestWorld();
     try {

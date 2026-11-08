@@ -18,19 +18,23 @@ export interface ClockInit {
   offsetMs: number;
   /** Последнее известное мировое время. */
   lastWorldAtMs: number;
+  /** Источник времени для детерминированных тестов; в production — Date.now. */
+  nowReal?: () => number;
 }
 
 export class WorldClock implements Clock {
   private offsetMs: number;
   private lastWorldAtMs: number;
+  private readonly nowSource: () => number;
 
   constructor(init: ClockInit) {
     this.offsetMs = init.offsetMs;
     this.lastWorldAtMs = init.lastWorldAtMs;
+    this.nowSource = init.nowReal ?? Date.now;
   }
 
   nowReal(): number {
-    return Date.now();
+    return this.nowSource();
   }
 
   /** Мировое время шага. Никогда не идёт назад. */

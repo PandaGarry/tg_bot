@@ -177,7 +177,9 @@ describe("карантин и лечение единиц", () => {
 
       // Часы заморожены на время DB-backed команд: просрочиваем срок только
       // после карантина, не полагаясь на скорость CI и wall-clock sleep.
-      advanceMs = 31;
+      // Проходим и срок, и короткую паузу писателя; карантин живёт по календарю 5 секунд.
+      advanceMs = 500;
+      expect(world.service.now()).toBe(baseNow + advanceMs);
       expect(world.service.quarantineFor("_kit", "gadget")).not.toBeNull();
       await world.service.pumpOnce();
       expect(world.records.some((record) => record.event === "deadline.postponed")).toBe(true);
