@@ -59,9 +59,6 @@ jobs:
       - name: Установить зависимости по lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Проверить уязвимости зависимостей
-        run: pnpm audit --audit-level high
-
       - name: Проверить типы
         run: pnpm typecheck
 
@@ -73,3 +70,6 @@ jobs:
 
       - name: Собрать production
         run: pnpm build
+
+      - name: Проверить уязвимости зависимостей
+        run: pnpm audit --audit-level high
