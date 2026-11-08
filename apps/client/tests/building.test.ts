@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cwd } from "node:process";
 import { describe, expect, it } from "vitest";
-import { BUILDING_SPRITES, buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteBounds, isInsideBuildingSpriteHitArea, createBuilding } from "../src/game/court/building.js";
+import { buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteBounds, isInsideBuildingSpriteHitArea, createBuilding } from "../src/game/court/building.js";
+import { BUILDING_SPRITES, buildingSpriteUrl } from "../src/game/court/spriteCatalog.js";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
 
 describe("court building geometry", () => {
@@ -61,6 +62,7 @@ describe("court building sprite assets", () => {
     };
 
     for (const [type, asset] of Object.entries(BUILDING_SPRITES)) {
+      expect(buildingSpriteUrl(type)).toBe(`/court/sprites/${asset.file}.png`);
       const day = dimensions(`${asset.file}.png`);
       const nightFile = asset.file.replace(/-([0-9]+)$/, "-night-$1");
       const night = dimensions(`${nightFile}.png`);

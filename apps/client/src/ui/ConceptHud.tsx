@@ -4,7 +4,7 @@ import { translator } from "../i18n/index.js";
 import { BUILD_CATALOG, CITADEL_COSTS, CITADEL_MAX_LEVEL, type BuildTab } from "./BuildPanel.js";
 import { ConceptIcon, type ConceptIconName } from "./ConceptIcon.js";
 import { CourtChrome } from "./CourtChrome.js";
-import { BUILDING_SPRITES, buildingSpriteUrl } from "../game/court/spriteCatalog.js";
+import { buildingSpriteUrl } from "../game/court/spriteCatalog.js";
 import "./court-chrome.css";
 import type { UiMockupId } from "./mockups.js";
 
