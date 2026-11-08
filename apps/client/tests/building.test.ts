@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { cwd } from "node:process";
 import { describe, expect, it } from "vitest";
 import { BUILDING_SPRITES, buildingCenter, buildingDepth, buildingFootprintBounds, createBuilding } from "../src/game/court/building.js";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
@@ -35,7 +37,13 @@ describe("court building geometry", () => {
 describe("court building sprite assets", () => {
   it("ships valid day/night PNG pairs with anchors inside the day sprite", () => {
     const dimensions = (file: string) => {
-      const bytes = readFileSync(new URL(`../public/court/sprites/${file}`, import.meta.url));
+      const candidates = [
+        join(cwd(), "public", "court", "sprites", file),
+        join(cwd(), "apps", "client", "public", "court", "sprites", file),
+      ];
+      const path = candidates.find(existsSync);
+      if (!path) throw new Error(`Missing court sprite asset: ${file}`);
+      const bytes = readFileSync(path);
       expect(Array.from(bytes.subarray(0, 8))).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
@@ -43,7 +51,7 @@ describe("court building sprite assets", () => {
 
     for (const [type, asset] of Object.entries(BUILDING_SPRITES)) {
       const day = dimensions(`${asset.file}.png`);
-      const nightFile = asset.file.replace(/-(\\d+)$/, "-night-$1");
+      const nightFile = asset.file.replace(/-([0-9]+)$/, "-night-$1");
       const night = dimensions(`${nightFile}.png`);
 
       expect(day, type).toEqual({ width: asset.width, height: asset.height });
