@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { dayStartOf } from "@tdl/kernel";
 import { KERNEL_KEYS } from "@tdl/protocol";
 import { kitModule } from "./kit.js";
 import { createTestWorld, runCommand, type TestWorld } from "./harness.js";
@@ -297,12 +298,13 @@ describe("переключатели единиц мира", () => {
 
       // Содержимое повседневных окон берётся по примеряемой поре: зимние окна
       // выпадают, летние — нет. Иначе примерка была бы видна в панели, но не в мире.
-      // Проверяем активный день, а не весь 120-дневный горизонт: после
-      // окончания короткой примерки будущие дни снова подчиняются календарю.
+      // Проверяем окно, назначенное на текущие сутки. Событие предыдущего
+      // дня может продолжаться после полуночи и не должно меняться задним числом.
       const now = world.service.calendarNow();
+      const dayStart = dayStartOf(now, Number(process.env.TDL_TZ_OFFSET_MIN ?? 180));
       const daily = world.service
         .schedulePlan()
-        .filter((window) => window.moduleId === "day-window" && window.start <= now && now < window.stop)
+        .filter((window) => window.moduleId === "day-window" && window.start >= dayStart && window.start < dayStart + 86_400_000)
         .map((window) => window.unitId);
       // В daily-полосе выбирается ровно одно окно: зимой допустимы марш
       // (без сезонного ограничения) и стража; весенне-летняя стройка запрещена.
