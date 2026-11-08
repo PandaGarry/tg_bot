@@ -68,6 +68,12 @@ describe("порт мира", () => {
       stats: { epoch: number; pending: number; failures: number; lastDeadlineMs: number; dropped: number };
     };
     expect(response.status).toBe(200);
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+    expect(response.headers.get("permissions-policy")).toBe("camera=(), microphone=(), geolocation=()");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    // API остаётся same-origin: сервер не включает permissive CORS.
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
     expect(body.ok).toBe(true);
     expect(body.ready).toBe(true);
     expect(body.stats.epoch).toBeGreaterThan(0);
@@ -85,6 +91,8 @@ describe("порт мира", () => {
   it("страница, файл сборки и адрес без файла", async () => {
     const page = await fetch(`http://127.0.0.1:${booted.port}/`);
     expect(page.status).toBe(200);
+    expect(page.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(page.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(page.headers.get("content-type")).toContain("text/html");
     expect(page.headers.get("cache-control")).toBe("no-cache");
     expect(await page.text()).toContain("мир");
