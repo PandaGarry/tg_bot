@@ -27,3 +27,24 @@ export function buildingSpriteUrl(type: string): string | undefined {
   const asset = BUILDING_SPRITES[type];
   return asset ? `/court/sprites/${asset.file}.png` : undefined;
 }
+
+
+/**
+ * Полный остаток production-art по утверждённому каталогу зданий.
+ * Эти IDs намеренно не имеют prototype PNG: не подменять их случайными иконками.
+ */
+export const BUILDING_ART_BACKLOG = [
+  { id: "wall", priority: "P0", kit: "straight, corner, gate, tower; 5 silhouette stages" },
+  { id: "clan-hall", priority: "P1", kit: "clan assembly hall; 5 stages" },
+  { id: "tavern", priority: "P2", kit: "single-level tavern" },
+  { id: "watchtower", priority: "P0", kit: "scout tower; 5 stages" },
+  { id: "forge", priority: "P1", kit: "blacksmith forge; 5 stages" },
+  { id: "trade-post", priority: "P1", kit: "caravan exchange post; 5 stages" },
+  { id: "range", priority: "P1", kit: "ranged troop training; 5 stages" },
+  { id: "stable", priority: "P1", kit: "cavalry stable; 5 stages" },
+  { id: "siege-yard", priority: "P1", kit: "siege workshop; 5 stages" },
+  { id: "mine", priority: "P1", kit: "ore mine; 5 stages" },
+] as const;
+
+/** Декор двора пока рисуется fallback-примитивами; каждому ID нужен production asset. */
+export const COURT_DECOR_ART_BACKLOG = ["lantern", "bench", "well", "flag", "road"] as const;

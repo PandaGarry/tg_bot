@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { cwd } from "node:process";
 import { describe, expect, it } from "vitest";
 import { buildingCenter, buildingDepth, buildingFootprintBounds, buildingSpriteBounds, isInsideBuildingSpriteHitArea, createBuilding } from "../src/game/court/building.js";
-import { BUILDING_SPRITES, buildingSpriteUrl } from "../src/game/court/spriteCatalog.js";
+import { BUILDING_ART_BACKLOG, BUILDING_SPRITES, buildingSpriteUrl } from "../src/game/court/spriteCatalog.js";
+import { buildings } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, worldToScreen } from "../src/game/court/isometric.js";
 
 describe("court building geometry", () => {
@@ -43,6 +44,18 @@ describe("court sprite hit area", () => {
     const visibleUpperBody = { x: bounds!.left + bounds!.width / 2, y: bounds!.top + bounds!.height * 0.2 };
     expect(isInsideBuildingSpriteHitArea(bounds!, visibleUpperBody)).toBe(true);
     expect(isInsideBuildingSpriteHitArea(bounds!, { x: bounds!.left + 1, y: visibleUpperBody.y })).toBe(false);
+  });
+});
+
+describe("court art catalog coverage", () => {
+  it("accounts for every domain building as a prototype fallback or explicit production backlog item", () => {
+    const domainIds = buildings.map((building) => building.id).sort();
+    const accountedIds = [
+      ...Object.keys(BUILDING_SPRITES),
+      ...BUILDING_ART_BACKLOG.map((item) => item.id),
+    ];
+    expect(new Set(accountedIds).size).toBe(accountedIds.length);
+    expect([...accountedIds].sort()).toEqual(domainIds);
   });
 });
 
