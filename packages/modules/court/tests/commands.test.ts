@@ -68,6 +68,27 @@ describe("court.place", () => {
   });
 });
 
+describe("court.road", () => {
+  it("не размещает дорогу за границей сетки и разрешает валидную клетку", () => {
+    const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: -1, z: 0 })).toEqual([]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: 10, z: 0 })).toEqual([]);
+    const effects = cmd("court.road")(ctxOf(st, {}), { x: 0, z: 0 });
+    expect(gridOf(effects)?.roads).toContainEqual({ x: 0, z: 0 });
+  });
+
+  it("не размещает дорогу под зданием и не переносит за край", () => {
+    const st = state(1, [{ type: "citadel", x: 5, z: 5 }]);
+    expect(cmd("court.road")(ctxOf(st, {}), { x: 5, z: 5 })).toEqual([]);
+    const withRoad = { ...st, grid: { ...st.grid, roads: [{ x: 0, z: 0 }] } };
+    expect(cmd("court.road")(ctxOf(withRoad, {}), {
+      x: 10,
+      z: 0,
+      moveFrom: { x: 0, z: 0 },
+    })).toEqual([]);
+  });
+});
+
 describe("court.upgrade (Цитадель)", () => {
   it("уровень 1 → 2 списывает 310 дерева и не меняет сетку на полосе 10×10", () => {
     const effects = cmd("court.upgrade")(ctxOf(state(1, [{ type: "citadel", x: 5, z: 5 }]), { wood: 1000 }), {});
