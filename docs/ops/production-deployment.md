@@ -14,7 +14,7 @@ Browser -- HTTPS/WSS :443 --> Nginx -- HTTP/WS loopback --> TDL :3000
 - TLS завершается на Nginx. Nginx обязан сохранять `Host`, `Origin`, WebSocket Upgrade и передавать XFF цепочку.
 - PostgreSQL не должен принимать соединения из публичного интернета; разрешить только адрес/сеть приложения и требовать TLS при удалённом подключении.
 - `ALLOWED_ORIGINS` — точный HTTPS origin браузера, без пути и завершающего слэша.
-- `TRUSTED_PROXY_IPS` — адреса непосредственных TCP peers, которые Node действительно видит. Для Nginx на том же host с upstream `127.0.0.1` это обычно `127.0.0.1`; добавляй `::1` только если Node реально принимает соединение от IPv6 loopback. Не указывай диапазоны: конфиг принимает только точные IP.
+- `TRUSTED_PROXY_IPS` — обязательный production allowlist адресов непосредственных TCP peers, которые Node действительно видит. Production startup теперь откажет при пустом значении: иначе все игроки за одним proxy делили бы один IP bucket, а IP rate limiting терял смысл. Для Nginx на том же host с upstream `127.0.0.1` это обычно `127.0.0.1`; добавляй `::1` только если Node реально принимает соединение от IPv6 loopback. Не указывай диапазоны: конфиг принимает только точные IP.
 - Не доверяй XFF от произвольных адресов. Парсер TDL использует XFF только если непосредственный peer есть в `TRUSTED_PROXY_IPS`, затем проходит цепочку справа налево через доверенные hops.
 
 ## 2. Production environment
@@ -148,7 +148,7 @@ WantedBy=multi-user.target
 2. Получить код на утверждённый release commit; выполнить `pnpm install --frozen-lockfile`.
 3. Выполнить `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`.
 4. Проверить, что production DB backup снят и restore-процедура доступна.
-5. Проверить env file permissions, уникальные secrets, `WORLD_ID`, точный `ALLOWED_ORIGINS` и `TRUSTED_PROXY_IPS`.
+5. Проверить env file permissions, уникальные secrets, `WORLD_ID`, точный `ALLOWED_ORIGINS` и непустой `TRUSTED_PROXY_IPS`, сверенный с реальным TCP peer Node (не с публичным IP сайта).
 6. Проверить `sudo nginx -t`, затем перезагрузить Nginx и включить systemd unit.
 7. Проверить локально `curl -fsS http://127.0.0.1:3000/api/health`: ожидается только `ok` и `ready`.
 8. Проверить публично HTTPS, сертификат и редирект с HTTP; `GET /api/ops/health` и `GET /api/schedule` без токена должны возвращать 403.
