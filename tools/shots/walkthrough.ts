@@ -227,7 +227,7 @@ async function clickCourtCell(x: number, z: number): Promise<void> {
   await sleep(650);
 }
 
-async function placeBuilding(id: "farm" | "sawmill", x: number, z: number): Promise<void> {
+async function placeBuilding(id: "pen" | "sawmill", x: number, z: number): Promise<void> {
   await page.click('.ch-action[aria-label="Строительство"]');
   await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
   await page.click(`[data-building-id="${id}"]`);
@@ -237,13 +237,13 @@ async function placeBuilding(id: "farm" | "sawmill", x: number, z: number): Prom
 }
 
 // Стартовая Цитадель занимает центральные клетки; два свободных края подходят
-// под реальные пятна 2×2 фермы и лесопилки и не пересекают стартовую дорогу.
-await placeBuilding("farm", 1, 1);
+// под реальные пятна 2×2 загона и лесопилки и не пересекают стартовую дорогу.
+await placeBuilding("pen", 1, 1);
 await placeBuilding("sawmill", 8, 1);
 await page.waitForFunction(() => !document.querySelector(".concept-placement"), { timeout: 5_000 });
 await sleep(700);
 await page.screenshot({ path: join(outDir, "game-court-buildings.jpg"), type: "jpeg", quality: 90 });
-console.log("сохранён game-court-buildings.jpg — Цитадель + Ферма + Лесопилка");
+console.log("сохранён game-court-buildings.jpg — Цитадель + Загон + Лесопилка");
 await measureTop("desktop HUD");
 
 // Портретный кадр на целевом мобильном размере.
