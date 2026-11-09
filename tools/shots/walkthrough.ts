@@ -123,21 +123,40 @@ await sleep(1200);
 
 async function measureTop(label: string): Promise<string> {
   const result = await page.evaluate(() => {
-    const rect = (selector: string) => {
-      const element = document.querySelector(selector);
-      if (!element) return null;
-      const box = element.getBoundingClientRect();
-      return {
-        x: Math.round(box.x),
-        y: Math.round(box.y),
-        width: Math.round(box.width),
-        height: Math.round(box.height),
-        right: Math.round(box.right),
-        bottom: Math.round(box.bottom),
-      };
-    };
-    const profile = rect(".ch-profile");
-    const resources = rect(".ch-res");
+    const profileNode = document.querySelector(".ch-profile");
+    const profileBox = profileNode?.getBoundingClientRect();
+    const profile = profileBox ? {
+      x: Math.round(profileBox.x),
+      y: Math.round(profileBox.y),
+      width: Math.round(profileBox.width),
+      height: Math.round(profileBox.height),
+      right: Math.round(profileBox.right),
+      bottom: Math.round(profileBox.bottom),
+    } : null;
+    const resourcesNode = document.querySelector(".ch-res");
+    const resourcesBox = resourcesNode?.getBoundingClientRect();
+    const resources = resourcesBox ? {
+      x: Math.round(resourcesBox.x),
+      y: Math.round(resourcesBox.y),
+      width: Math.round(resourcesBox.width),
+      height: Math.round(resourcesBox.height),
+      right: Math.round(resourcesBox.right),
+      bottom: Math.round(resourcesBox.bottom),
+    } : null;
+    const firstNode = document.querySelector(".ch-res__item:first-child");
+    const firstBox = firstNode?.getBoundingClientRect();
+    const firstResource = firstBox ? {
+      x: Math.round(firstBox.x), y: Math.round(firstBox.y),
+      width: Math.round(firstBox.width), height: Math.round(firstBox.height),
+      right: Math.round(firstBox.right), bottom: Math.round(firstBox.bottom),
+    } : null;
+    const lastNode = document.querySelector(".ch-res__item:last-child");
+    const lastBox = lastNode?.getBoundingClientRect();
+    const lastResource = lastBox ? {
+      x: Math.round(lastBox.x), y: Math.round(lastBox.y),
+      width: Math.round(lastBox.width), height: Math.round(lastBox.height),
+      right: Math.round(lastBox.right), bottom: Math.round(lastBox.bottom),
+    } : null;
     const overlap = profile && resources
       ? profile.x < resources.right && profile.right > resources.x &&
         profile.y < resources.bottom && profile.bottom > resources.y
@@ -150,8 +169,8 @@ async function measureTop(label: string): Promise<string> {
       horizontalOverflow: top ? top.scrollWidth > top.clientWidth + 1 : true,
       profile,
       resources,
-      firstResource: rect(".ch-res__item:first-child"),
-      lastResource: rect(".ch-res__item:last-child"),
+      firstResource,
+      lastResource,
       profileResourceOverlap: overlap,
     };
   });
