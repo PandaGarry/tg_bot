@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #334 (`42588672207`) — **PASS** для PR #9 с изменениями на HEAD `2731f2379abd044e3f0c77876676d0e1830c911b`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits (включая High/Moderate) и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #338 (`42589464225`) — **PASS** на HEAD `203578f2773d0d4417498d230fe693f2e69a57a4`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits (включая High/Moderate) и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -291,3 +291,20 @@
 **CI:** run #333 (`42588442217`) сначала выявил ошибку в тестовой заглушке: mock `preloadBuildingSprites` возвращал `undefined` вместо Promise; typecheck прошёл, но тест упал. Заглушка исправлена. Run #334 (`42588672207`) — **полный PASS**: typecheck, весь набор тестов (65 client tests), package/check suite, production build, Chromium UI walkthrough/screenshots, PostgreSQL backup/restore drill, dependency audits и Drizzle snapshots.
 
 **Граница:** подтверждено отсутствие повторного вызова `drawGhost()` при неизменных входах. Это не измерение FPS/GPU memory; фактический выигрыш кадра требует профилирования на физических устройствах.
+
+
+## AUD-053 — точечное обновление зданий и канонические сигнатуры (09.11.2026)
+
+**Finding:** изменение уровня Цитадели очищало и пересоздавало весь список building display nodes, хотя townhall level влияет только на геометрию Цитадели. Кроме того, подписи дорог/зданий зависели от порядка массивов, поэтому эквивалентный серверный снимок с другим порядком мог инициировать лишнюю отрисовку.
+
+**Исправление:**
+- полный rebuild зданий оставлен только при изменении размера поля, поскольку тогда меняется проекция;
+- при изменении `townhallLevel` удаляется и пересоздаётся только узел `citadel:*`; остальные здания сохраняют свои Pixi-ноды;
+- подписи дорог и зданий теперь строятся по отсортированным наборам, не реагируя на перестановку элементов;
+- регрессионный тест проверяет, что перестановка зданий/дорог не вызывает повторного создания зданий и redraw дорог, а повышение уровня Цитадели создаёт только её узел.
+
+**Коммиты:** `0a286d4` (точечная замена узла Цитадели и канонические подписи), `203578f` (регрессионные тесты).
+
+**CI:** run #338 (`42589464225`) — **полный PASS** на HEAD `203578f2773d0d4417498d230fe693f2e69a57a4`: typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walkthrough/screenshots, backup/restore drill, dependency audits и Drizzle snapshots.
+
+**Граница:** подтверждено сохранение display nodes и пропуск лишнего redraw на уровне unit/regression tests. Измерение FPS/GPU memory на физических устройствах не выполнялось.
