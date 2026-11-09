@@ -123,7 +123,7 @@ await sleep(1200);
 
 async function measureTop(label: string): Promise<string> {
   const result = await page.evaluate(() => {
-    function rect(selector: string) {
+    const rect = (selector: string) => {
       const element = document.querySelector(selector);
       if (!element) return null;
       const box = element.getBoundingClientRect();
@@ -135,7 +135,7 @@ async function measureTop(label: string): Promise<string> {
         right: Math.round(box.right),
         bottom: Math.round(box.bottom),
       };
-    }
+    };
     const profile = rect(".ch-profile");
     const resources = rect(".ch-res");
     const overlap = profile && resources
@@ -250,7 +250,7 @@ async function placeBuilding(id: "pen" | "sawmill", x: number, z: number): Promi
 await placeBuilding("pen", 1, 1);
 await placeBuilding("sawmill", 8, 1);
 await page.waitForFunction(() => !document.querySelector(".concept-placement"), { timeout: 5_000 });
-await sleep(700);
+await sleep(1800);
 await page.screenshot({ path: join(outDir, "game-court-buildings.jpg"), type: "jpeg", quality: 90 });
 console.log("сохранён game-court-buildings.jpg — Цитадель + Загон + Лесопилка");
 await measureTop("desktop HUD");
