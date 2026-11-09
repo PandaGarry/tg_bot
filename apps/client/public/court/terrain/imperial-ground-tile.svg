@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="42" viewBox="0 0 72 42">
+<defs>
+ <linearGradient id="soil" x1="0" y1="0" x2="0.85" y2="1"><stop stop-color="#59604c"/><stop offset=".42" stop-color="#343b32"/><stop offset="1" stop-color="#20272a"/></linearGradient>
+ <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9a967b" stop-opacity=".42"/><stop offset=".5" stop-color="#111820" stop-opacity=".04"/><stop offset="1" stop-color="#0b1117" stop-opacity=".48"/></linearGradient>
+ <pattern id="grain" width="13" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".7" fill="#c1b99b" opacity=".28"/><circle cx="9" cy="6" r=".8" fill="#0b1115" opacity=".55"/><path d="M4 8l2-1" stroke="#a5a084" stroke-width=".5" opacity=".25"/></pattern>
+ <clipPath id="diamond"><path d="M36 1 71 21 36 41 1 21Z"/></clipPath>
+</defs>
+<path d="M36 1 71 21 36 41 1 21Z" fill="url(#soil)" stroke="#161d20" stroke-width="1.5"/>
+<g clip-path="url(#diamond)">
+ <path d="M-3 16 30 0 44 3 13 23Z" fill="#879078" opacity=".13"/>
+ <path d="M26 42 51 17 77 24 52 47Z" fill="#0c1419" opacity=".2"/>
+ <path d="M0 21 36 1 72 21 36 41Z" fill="url(#grain)"/>
+ <path d="M13 19l7-3 3 2-6 4M47 28l5-3 4 2-4 3M31 11l4 2-2 3" fill="none" stroke="#b0aa8c" stroke-width=".65" opacity=".36"/>
+ <path d="M18 9l-2 4 4 2-1 3M55 13l-4 3 2 4" fill="none" stroke="#11181b" stroke-width="1.1" opacity=".55"/>
+ <path d="M3 21 36 40 69 21" fill="none" stroke="#9b9a7b" stroke-width=".7" opacity=".24"/>
+ <path d="M36 1 71 21 36 41 1 21Z" fill="url(#edge)"/>
+ <g fill="#b6ad8d" opacity=".24"><circle cx="24" cy="20" r="1.1"/><circle cx="42" cy="13" r=".8"/><circle cx="49" cy="30" r=".9"/><circle cx="17" cy="29" r=".7"/></g>
+</g>
+</svg>
