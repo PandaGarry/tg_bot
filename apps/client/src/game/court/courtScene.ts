@@ -51,6 +51,8 @@ export class CourtScene {
       (point) => this.handleTap(point),
       (point) => this.handleHover(point),
     );
+    // Сцена стартует скрытой; не держим pointermove/wheel listeners до входа во двор.
+    this.input.setEnabled(false);
     this.onResizeBound = () => this.resize();
     window.addEventListener("resize", this.onResizeBound);
     window.addEventListener("orientationchange", this.onResizeBound);
@@ -88,6 +90,7 @@ export class CourtScene {
   private updateMode(mode: CourtSceneMode): void {
     this.mode = mode;
     this.root.visible = mode.active;
+    this.input.setEnabled(mode.active);
     this.drawPreview();
     const activeType = mode.placing ?? mode.pending?.type;
     if (activeType) this.preloadBuildingTypes([activeType]);
