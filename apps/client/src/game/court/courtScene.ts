@@ -29,6 +29,9 @@ export class CourtScene {
   private mode: CourtSceneMode = INITIAL_MODE;
   private hover: { x: number; z: number } | null = null;
   private destroyed = false;
+  private renderedGridSize = -1;
+  private renderedRoadsSignature = "";
+  private renderedBuildingsSignature = "";
 
   constructor(private readonly app: Application) {
     this.root.label = "court-scene";
@@ -97,7 +100,8 @@ export class CourtScene {
   private preloadBuildingTypes(types: readonly string[]): void {
     if (types.length === 0) return;
     void preloadBuildingSprites(types).then(() => {
-      if (!this.destroyed) this.redraw();
+      // Повторно собираем только слой зданий: грунт и дороги от загрузки PNG не меняются.
+      if (!this.destroyed) this.renderBuildings(true);
     });
   }
 
@@ -109,15 +113,43 @@ export class CourtScene {
     };
   }
 
+  /**
+   * Сервер присылает state:update и при изменении ресурсов. Не перерисовываем
+   * 1 600 тайлов и все здания, если сам двор не изменился.
+   */
   private redraw(): void {
-    drawTileMap(this.ground, this.grid.size);
-    drawRoads(this.roads, this.grid.roads, this.grid.size);
+    if (this.renderedGridSize !== this.grid.size) {
+      drawTileMap(this.ground, this.grid.size);
+      this.renderedGridSize = this.grid.size;
+      // Размер сетки влияет на вертикальное центрирование всех слоёв.
+      this.renderedRoadsSignature = "";
+      this.renderedBuildingsSignature = "";
+    }
+
+    const roadsSignature = this.grid.roads.map(({ x, z }) => `${x},${z}`).join(";");
+    if (roadsSignature !== this.renderedRoadsSignature) {
+      drawRoads(this.roads, this.grid.roads, this.grid.size);
+      this.renderedRoadsSignature = roadsSignature;
+    }
+
+    const buildingsSignature = `${this.townhallLevel}|${this.grid.buildings
+      .map(({ type, x, z }) => `${type},${x},${z}`)
+      .join(";")}`;
+    if (buildingsSignature !== this.renderedBuildingsSignature) {
+      this.renderBuildings(true);
+      this.renderedBuildingsSignature = buildingsSignature;
+    }
+
+    this.drawPreview();
+  }
+
+  private renderBuildings(force = false): void {
+    if (!force && this.renderedBuildingsSignature !== "") return;
     this.clearBuildings();
     for (const building of this.grid.buildings) {
       const sprite = createBuilding(building, this.grid.size, this.townhallLevel);
       this.buildings.addChild(sprite);
     }
-    this.drawPreview();
   }
 
   private clearBuildings(): void {
