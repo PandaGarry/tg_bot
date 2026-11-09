@@ -125,4 +125,20 @@ describe("Pixi application lifecycle", () => {
     expect(gameApp.ready).toBe(true);
     expect(fakeApp.destroy).toHaveBeenCalledOnce();
   });
+
+  it("clears failed initialization and permits retry even when init throws synchronously", async () => {
+    const { gameApp } = await import("../src/game/core/application.js");
+    const container = { appendChild: vi.fn() };
+    fakeApp.init.mockImplementationOnce(() => {
+      throw new Error("renderer initialization failed");
+    });
+
+    await expect(gameApp.init(container as unknown as HTMLElement))
+      .rejects.toThrow("renderer initialization failed");
+    expect(fakeApp.destroy).toHaveBeenCalledOnce();
+
+    await gameApp.init(container as unknown as HTMLElement);
+    expect(container.appendChild).toHaveBeenCalledOnce();
+    expect(gameApp.ready).toBe(true);
+  });
 });
