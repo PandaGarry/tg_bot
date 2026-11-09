@@ -19,6 +19,11 @@ export interface IsoCell {
   z: number;
 }
 
+/** Сравнивает nullable-клетки без создания временных объектов. */
+export function sameCell(a: IsoCell | null, b: IsoCell | null): boolean {
+  return a === b || (a !== null && b !== null && a.x === b.x && a.z === b.z);
+}
+
 /** Клеточные координаты → изометрическая плоскость до центрирования доски. */
 export function worldToScreen(x: number, z: number): IsoPoint {
   return {
