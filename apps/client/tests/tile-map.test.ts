@@ -54,7 +54,7 @@ describe("tile map chunks", () => {
         for (let x = range.xStart; x < range.xEnd; x += 1) coverage[z * 40 + x] += 1;
       }
     }
-    expect(ranges).toHaveLength(9);
+    expect(ranges).toHaveLength(25);
     expect(coverage.every((count) => count === 1)).toBe(true);
     expect(ranges.some((range) => range.xEnd === 40 && range.zEnd === 40)).toBe(true);
   });
@@ -68,21 +68,21 @@ describe("tile map chunks", () => {
   it("caches bounded chunks at no more than 2x resolution", () => {
     const ground = new Container();
     drawTileMap(ground, 40, 3);
-    expect(ground.children).toHaveLength(10); // 9 chunks + the thin outer border
-    const chunks = ground.children.slice(0, 9);
+    expect(ground.children).toHaveLength(26); // 25 chunks + the thin outer border
+    const chunks = ground.children.slice(0, 25);
     expect(chunks.every((chunk) => chunk.isCachedAsTexture)).toBe(true);
     // Геометрия второго ряда/столбца остаётся локальной, а смещение живёт на Container.
     const secondChunk = chunks[1] as Container & { position: { x: number; y: number }; children: Array<{ polygons: number[][] }> };
     expect(secondChunk.position.x).not.toBe(0);
-    expect(secondChunk.children[0]!.polygons[0]!.every((value) => Math.abs(value) < 16 * 72)).toBe(true);
-    expect(chunks.every((chunk) => (chunk as Container & { cacheOptions: { resolution: number } }).cacheOptions.resolution === 2)).toBe(true);
-    expect(ground.children[9]!.isCachedAsTexture).toBe(false);
+    expect(secondChunk.children[0]!.polygons[0]!.every((value) => Math.abs(value) < 8 * 72)).toBe(true);
+    expect(chunks.every((chunk) => (chunk as Container & { cacheOptions: { resolution: number } }).cacheOptions.resolution === 1.5)).toBe(true);
+    expect(ground.children[25]!.isCachedAsTexture).toBe(false);
   });
 
   it("disables cached textures before destroying chunks", () => {
     const ground = new Container();
     drawTileMap(ground, 17, 2);
-    const chunks = ground.children.slice(0, 4);
+    const chunks = ground.children.slice(0, 9);
     destroyTileMap(ground);
     expect(ground.children).toHaveLength(0);
     expect(chunks.every((chunk) => !chunk.isCachedAsTexture && (chunk as Container & { destroyed: boolean }).destroyed)).toBe(true);
