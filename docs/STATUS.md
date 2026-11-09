@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #316 (`42584665945`) — **PASS** на HEAD `94d36dada90d10c64b2d305fba56d61dcdd0f104`. Подтверждены typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #327 (`42587273618`) — **PASS** на HEAD `b7e8168d86d17d2ba7bb5fe6a330fa325dbefd24`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits (включая High/Moderate) и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -263,3 +263,14 @@
 **Коммит:** `94d36da` (регрессионный тест).
 
 **Статус: тест и кодовая защита подтверждены CI #316 PASS** на HEAD `94d36dada90d10c64b2d305fba56d61dcdd0f104`. Полный workflow завершился успешно. Исправление не заявляет измеренного улучшения FPS/GPU/CPU; оно подтверждает безопасное завершение асинхронной загрузки при teardown. Повторный mount/unmount на физических iOS/Android устройствах остаётся runtime smoke test.
+
+
+## Клиентская оптимизация двора — AUD-051 (09.11.2026)
+
+- **Статус: кодовая часть подтверждена CI #327 (PASS)** на HEAD `b7e8168d86d17d2ba7bb5fe6a330fa325dbefd24`; полный workflow завершил успешно typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk, screenshots, backup/restore drill, dependency audits и Drizzle snapshots.
+- Статичная изометрическая сетка вынесена из одного большого `Graphics` в чанки размером не более 8×8 клеток. Для поля 40×40 создаются 25 чанков; неполные краевые чанки покрывают остаток без пропусков и дубликатов.
+- Каждый чанк рисуется в локальных координатах и смещается собственным `Container`. Это не даёт геометрии дальних чанков захватывать пустую область от начала всей доски и раздувать текстуру.
+- Кеш PixiJS создаётся через `cacheAsTexture({ resolution, antialias: true })`; разрешение ограничено диапазоном 1–1.5×, даже если renderer сообщает большее значение. Контур поля остаётся отдельной лёгкой графикой.
+- При перестроении грунта старые cached textures сначала отключаются, затем чанки уничтожаются. Сетка перестраивается только при изменении размера поля.
+- Регрессионные тесты проверяют полное покрытие сетки, некорректные размеры, число чанков, локальные координаты, предел разрешения кеша и очистку.
+- **Не подтверждено:** реальный выигрыш FPS, GPU memory и время кадра на физических устройствах. Для этого нужны профилирование и smoke test на целевых мобильных устройствах; не считать данные метрики измеренными.
