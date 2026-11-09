@@ -28,7 +28,9 @@ class GameApp {
 
     const generation = this.initGeneration;
     const app = new Application();
-    const pending = (async (): Promise<void> => {
+    // defer app.init() to a microtask so initPromise is assigned before
+    // any synchronous throw can enter the finally block below.
+    const pending = Promise.resolve().then(async (): Promise<void> => {
       try {
         await app.init({
           preference: "webgl",
@@ -57,7 +59,7 @@ class GameApp {
       } finally {
         if (this.initPromise === pending) this.initPromise = null;
       }
-    })();
+    });
     this.initPromise = pending;
     return pending;
   }
