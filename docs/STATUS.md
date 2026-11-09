@@ -333,6 +333,7 @@
 - Создан оригинальный standalone SVG Цитадели, стадия I: apps/client/public/court/sprites/citadel-imperial-stage-01.svg. Размер 512×512, прозрачный фон, основание рассчитано под footprint 4×4, patch 286 px, pivot (256, 500). Это первый production-direction asset; не весь визуальный vertical slice.
 - spriteCatalog.ts расширен явным выбором PNG/SVG. building.ts теперь получает URL через общий каталог и загружает текстуру через PIXI.Assets; исторические PNG fallback для остальных зданий сохранены.
 - Добавлен apps/client/tests/sprite-catalog.test.ts: проверяет metadata/URL Цитадели и обратную совместимость legacy PNG.
-- docs/design/art-asset-inventory.md обновлён: оригинальный арт 1/19; ещё 7/19 имеют только временные подтверждённые спрайты; 11/19 без runtime sprite.
-- Открыто: in-scene screenshots desktop/390/320; terrain/roads texture kit; wall kit; стадии II–V Цитадели и здания-компаньоны; физические FPS/GPU memory измерения. Не заявлять достижение целевого качества до визуальной проверки в реальной сцене.
+- Добавлен apps/client/public/court/terrain/imperial-ground-tile.svg: бесшовный ромбовидный текстурный тайл 72×42; CourtScene асинхронно загружает его через общий PIXI.Assets cache и передаёт в Graphics fill для чанков, сохраняя векторный fallback при ошибке.
+- Regression test проверяет, что supplied texture применяется к клеткам. docs/design/art-asset-inventory.md обновлён: оригинальный арт 1/19; ещё 7/19 имеют только временные подтверждённые спрайты; 11/19 без runtime sprite.
+- Открыто: in-scene screenshots desktop/390/320 и проверка UV/швов; дополнительные варианты грунта/дорог и wall kit; стадии II–V Цитадели и здания-компаньоны; физические FPS/GPU memory измерения. Не заявлять достижение целевого качества до визуальной проверки в реальной сцене.
 - Изменения выполняются в arena/8885a9e3-tg-bot; main, сервер и протокол не менялись.
