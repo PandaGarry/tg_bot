@@ -196,7 +196,7 @@ await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
 await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-build.jpg");
-const missingArtwork = await page.$eval(".concept-building-card", (cards) =>
+const missingArtwork = await page.$$eval(".concept-building-card", (cards) =>
   cards.filter((card) => {
     const art = card.querySelector(".concept-building-art");
     const image = art?.querySelector("img") as HTMLImageElement | null;
