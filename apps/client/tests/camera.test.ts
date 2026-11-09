@@ -30,4 +30,30 @@ describe("court camera", () => {
     expect(root.x).toBeLessThan(390 + root.scale.x * 14 * 71.4 / 2);
     expect(root.y).toBeGreaterThan(-root.scale.y * 14 * 41.4 / 2);
   });
+
+  it("preserves the user's pan offset relative to the viewport after resize", () => {
+    const root = new Container();
+    const camera = new CourtCamera(root);
+    camera.resize(390, 844, 14);
+    camera.zoomAt({ x: 195, y: 464.2 }, 2.2);
+    camera.panBy(-40, 0);
+
+    const offsetFromCenter = root.x - 195;
+    camera.resize(430, 900, 14);
+
+    expect(root.x - 215).toBeCloseTo(offsetFromCenter, 6);
+    expect(camera.currentZoom).toBe(2.2);
+  });
+
+  it("resets framing when the board size changes", () => {
+    const root = new Container();
+    const camera = new CourtCamera(root);
+    camera.resize(390, 844, 14);
+    camera.zoomAt({ x: 195, y: 464.2 }, 2.2);
+    camera.resize(390, 844, 20);
+
+    expect(camera.currentZoom).toBe(1);
+    expect(root.x).toBe(195);
+    expect(root.y).toBeCloseTo(464.2, 6);
+  });
 });
