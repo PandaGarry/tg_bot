@@ -30,7 +30,7 @@ export class CourtScene {
   private hover: { x: number; z: number } | null = null;
   private destroyed = false;
   private renderedGridSize = -1;
-  private renderedRoadsSignature = "";
+  private renderedRoadsSignature: string | null = null;
   private renderedBuildingsSignature = "";
 
   constructor(private readonly app: Application) {
@@ -101,7 +101,7 @@ export class CourtScene {
     if (types.length === 0) return;
     void preloadBuildingSprites(types).then(() => {
       // Повторно собираем только слой зданий: грунт и дороги от загрузки PNG не меняются.
-      if (!this.destroyed) this.renderBuildings(true);
+      if (!this.destroyed) this.renderBuildings();
     });
   }
 
@@ -143,8 +143,7 @@ export class CourtScene {
     this.drawPreview();
   }
 
-  private renderBuildings(force = false): void {
-    if (!force && this.renderedBuildingsSignature !== "") return;
+  private renderBuildings(): void {
     this.clearBuildings();
     for (const building of this.grid.buildings) {
       const sprite = createBuilding(building, this.grid.size, this.townhallLevel);
