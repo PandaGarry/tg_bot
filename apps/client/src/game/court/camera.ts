@@ -28,6 +28,8 @@ export class CourtCamera {
   resize(screenWidth: number, screenHeight: number, size: number): void {
     if (screenWidth <= 0 || screenHeight <= 0 || size <= 0) return;
     const sizeChanged = this.size !== size;
+    const previousCenterX = this.centerX;
+    const previousCenterY = this.centerY;
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
     this.viewportWidth = Math.min(screenWidth, COURT_VIEW_MAX_WIDTH);
@@ -45,6 +47,13 @@ export class CourtCamera {
     if (!this.interacted || sizeChanged) {
       this.zoom = 1;
       this.root.position.set(this.centerX, this.centerY);
+    } else {
+      // Сохраняем пользовательское смещение относительно центра viewport.
+      // Без этого поворот устройства оставлял камеру на старых экранных координатах.
+      this.root.position.set(
+        this.root.x + this.centerX - previousCenterX,
+        this.root.y + this.centerY - previousCenterY,
+      );
     }
     this.applyScale();
     this.clampPosition();
