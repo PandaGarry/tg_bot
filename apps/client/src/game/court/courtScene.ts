@@ -1,4 +1,4 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, type Texture } from "pixi.js";
 import { bridge } from "../bridge.js";
 import { loadTexture } from "../core/assets.js";
 import type { StateUpdate } from "../bridge.js";
