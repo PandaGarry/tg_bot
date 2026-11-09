@@ -19,6 +19,7 @@ export class CourtScene {
   private readonly roads = new Graphics();
   private readonly buildings = new Container();
   private readonly buildingNodes = new Map<string, Container>();
+  private readonly loadedSpriteTypes = new Set<string>();
   private hitTestBuildings: CourtBuilding[] = [];
   private readonly preview = new Graphics();
   private readonly camera: CourtCamera;
@@ -109,8 +110,13 @@ export class CourtScene {
   private preloadBuildingTypes(types: readonly string[]): void {
     if (types.length === 0) return;
     void preloadBuildingSprites(types).then((loadedTypes) => {
-      // Пересобираем узлы только после первой фактической загрузки PNG.
-      if (!this.destroyed && loadedTypes.length > 0) this.renderBuildings(loadedTypes);
+      if (this.destroyed || loadedTypes.length === 0) return;
+      // Несколько state:update могут ждать один общий PIXI.Assets promise.
+      // Перестраиваем тип только при первом уведомлении о готовом PNG.
+      const newlyLoaded = loadedTypes.filter((type) => !this.loadedSpriteTypes.has(type));
+      if (newlyLoaded.length === 0) return;
+      for (const type of newlyLoaded) this.loadedSpriteTypes.add(type);
+      this.renderBuildings(newlyLoaded);
     });
   }
 
