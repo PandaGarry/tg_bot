@@ -74,3 +74,9 @@ class Bridge {
 }
 
 export const bridge = new Bridge();
+
+
+/** Скрывает двор и отключает ввод, когда React-владелец мира размонтируется. */
+export function deactivateCourtScene(): void {
+  bridge.emit("scene:mode", { active: false, placing: null, roadTool: false, pending: null });
+}
