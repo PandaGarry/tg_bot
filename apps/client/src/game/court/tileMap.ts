@@ -1,8 +1,16 @@
-import { Graphics } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { cellDiamond, cellCenter, TILE_HEIGHT, TILE_WIDTH } from "./isometric.js";
 import type { CourtGrid, CourtRoad } from "./types.js";
 
 const SOIL = [0x33402c, 0x37452f, 0x394831, 0x35432e] as const;
+export const TILE_CHUNK_SIZE = 16;
+
+export interface TileChunkRange {
+  xStart: number;
+  xEnd: number;
+  zStart: number;
+  zEnd: number;
+}
 
 function flat(points: { x: number; y: number }[]): number[] {
   return points.flatMap(({ x, y }) => [x, y]);
@@ -19,32 +27,79 @@ function drawDiamond(
   graphics.poly(flat(points), true).fill({ color, alpha }).stroke({ color: stroke, width, alpha });
 }
 
-/** Рисует диметрический грунт и настоящую сетку клеток двора. */
-export function drawTileMap(graphics: Graphics, size: number): void {
-  graphics.clear();
-  for (let z = 0; z < size; z += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const variation = (x * 7 + z * 11 + (x * z) % 5) % SOIL.length;
-      drawDiamond(graphics, cellDiamond(x, z, size), SOIL[variation]!, 0x536247, 0.8);
-
-      // Тонкая светлая кромка даёт клеткам объём, не споря с будущими спрайтами.
-      const center = cellCenter(x, z, size);
-      graphics
-        .moveTo(center.x - TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
-        .lineTo(center.x, center.y - TILE_HEIGHT * 0.5)
-        .lineTo(center.x + TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
-        .stroke({ color: 0x71805a, width: 0.55, alpha: 0.25 });
+/** Делит поле на ограниченные по размеру чанки без пропусков и пересечений клеток. */
+export function getTileChunkRanges(size: number, chunkSize = TILE_CHUNK_SIZE): TileChunkRange[] {
+  if (!Number.isInteger(size) || size < 1 || !Number.isInteger(chunkSize) || chunkSize < 1) return [];
+  const chunks: TileChunkRange[] = [];
+  for (let zStart = 0; zStart < size; zStart += chunkSize) {
+    for (let xStart = 0; xStart < size; xStart += chunkSize) {
+      chunks.push({
+        xStart,
+        xEnd: Math.min(xStart + chunkSize, size),
+        zStart,
+        zEnd: Math.min(zStart + chunkSize, size),
+      });
     }
   }
+  return chunks;
+}
 
-  const border = [
+/** Отключает кеши чанков и освобождает их render textures перед уничтожением сцены. */
+export function destroyTileMap(container: Container): void {
+  for (const child of container.removeChildren()) {
+    if (child.isCachedAsTexture) child.cacheAsTexture(false);
+    child.destroy({ children: true });
+  }
+}
+
+/**
+ * Рисует грунт отдельными статичными чанками. Кеш каждого чанка ограничен 16×16
+ * клетками; resolution ограничен 2, чтобы не создавать чрезмерные GPU-текстуры
+ * на устройствах с высоким devicePixelRatio.
+ */
+export function drawTileMap(container: Container, size: number, rendererResolution = 1): void {
+  destroyTileMap(container);
+  const resolution = Number.isFinite(rendererResolution)
+    ? Math.min(2, Math.max(1, rendererResolution))
+    : 1;
+
+  for (const range of getTileChunkRanges(size)) {
+    const chunk = new Container();
+    chunk.label = `ground-chunk-${range.xStart}-${range.zStart}`;
+    const graphics = new Graphics();
+
+    for (let z = range.zStart; z < range.zEnd; z += 1) {
+      for (let x = range.xStart; x < range.xEnd; x += 1) {
+        const variation = (x * 7 + z * 11 + (x * z) % 5) % SOIL.length;
+        drawDiamond(graphics, cellDiamond(x, z, size), SOIL[variation]!, 0x536247, 0.8);
+
+        // Тонкая светлая кромка даёт клеткам объём, не споря с будущими спрайтами.
+        const center = cellCenter(x, z, size);
+        graphics
+          .moveTo(center.x - TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
+          .lineTo(center.x, center.y - TILE_HEIGHT * 0.5)
+          .lineTo(center.x + TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
+          .stroke({ color: 0x71805a, width: 0.55, alpha: 0.25 });
+      }
+    }
+
+    chunk.addChild(graphics);
+    chunk.cacheAsTexture({ resolution, antialias: true });
+    container.addChild(chunk);
+  }
+
+  // Контур поля остаётся отдельным лёгким слоем: его размер зависит от всего поля,
+  // поэтому не раздуваем ради него один из ограниченных текстурных чанков.
+  const border = new Graphics();
+  const corners = [
     cellDiamond(0, 0, size)[0]!,
     cellDiamond(size - 1, 0, size)[1]!,
     cellDiamond(size - 1, size - 1, size)[2]!,
     cellDiamond(0, size - 1, size)[3]!,
   ];
-  graphics.poly(flat(border), true).stroke({ color: 0x9b8054, width: 3, alpha: 0.95 });
-  graphics.poly(flat(border), true).stroke({ color: 0xd1b77f, width: 0.9, alpha: 0.72 });
+  border.poly(flat(corners), true).stroke({ color: 0x9b8054, width: 3, alpha: 0.95 });
+  border.poly(flat(corners), true).stroke({ color: 0xd1b77f, width: 0.9, alpha: 0.72 });
+  container.addChild(border);
 }
 
 /** Каменные/утоптанные плиты на клетках, данные приходят только от сервера. */
