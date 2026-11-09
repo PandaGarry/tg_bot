@@ -4,6 +4,7 @@
  */
 export interface BuildingSpriteDefinition {
   file: string;
+  extension?: "png" | "svg";
   width: number;
   height: number;
   patch: number;
@@ -12,7 +13,7 @@ export interface BuildingSpriteDefinition {
 }
 
 export const BUILDING_SPRITES: Readonly<Record<string, BuildingSpriteDefinition>> = {
-  citadel: { file: "a-01", width: 591, height: 567, patch: 585, tipX: 295, tipY: 563 },
+  citadel: { file: "citadel-imperial-stage-01", extension: "svg", width: 512, height: 512, patch: 286, tipX: 256, tipY: 500 },
   sawmill: { file: "d-01", width: 605, height: 517, patch: 600, tipX: 302, tipY: 513 },
   quarry: { file: "a-03", width: 394, height: 325, patch: 388, tipX: 197, tipY: 321 },
   farm: { file: "b-01", width: 593, height: 371, patch: 588, tipX: 296, tipY: 367 },
@@ -24,7 +25,7 @@ export const BUILDING_SPRITES: Readonly<Record<string, BuildingSpriteDefinition>
 
 export function buildingSpriteUrl(type: string): string | undefined {
   const asset = BUILDING_SPRITES[type];
-  return asset ? `/court/sprites/${asset.file}.png` : undefined;
+  return asset ? `/court/sprites/${asset.file}.${asset.extension ?? "png"}` : undefined;
 }
 
 
