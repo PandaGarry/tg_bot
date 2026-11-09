@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<defs><linearGradient id="stone" x2="0" y2="1"><stop stop-color="#7d898e"/><stop offset=".48" stop-color="#3b454d"/><stop offset="1" stop-color="#171f27"/></linearGradient><linearGradient id="roof" x2="0" y2="1"><stop stop-color="#626b70"/><stop offset="1" stop-color="#161e28"/></linearGradient><linearGradient id="gold"><stop stop-color="#d9bd7d"/><stop offset="1" stop-color="#60472e"/></linearGradient></defs>
+<ellipse cx="256" cy="449" rx="175" ry="25" fill="#030609" opacity=".5"/>
+<path d="m70 354 186-98 186 98-186 98Z" fill="#10171e" stroke="#080d12" stroke-width="8"/>
+<path d="m70 321 186 98 186-98v33l-186 98-186-98Z" fill="#26313a"/>
+<path d="m104 180 152-80 152 80v176l-152 80-152-80Z" fill="url(#stone)" stroke="#111820" stroke-width="8"/>
+<path d="m104 180 152 80 152-80-152-80Z" fill="#89918e" opacity=".3"/>
+<path d="m104 180 152 80v176l-152-80Z" fill="#48535a"/><path d="m256 260 152-80v176l-152 80Z" fill="#252f38"/>
+<path d="m82 171 174-92 174 92-174 92Z" fill="url(#roof)" stroke="#101820" stroke-width="8"/>
+<path d="m82 171 174 92 174-92" fill="none" stroke="#a9a99a" stroke-width="5" opacity=".6"/>
+<path d="M150 155v-54l106-56 106 56v54l-106 56Z" fill="#313c45" stroke="#121a22" stroke-width="7"/>
+<path d="m150 101 106-56 106 56-106 56Z" fill="#707a7b" stroke="#202a32" stroke-width="6"/>
+<path d="M185 107v-35l71-37 71 37v35l-71 38Z" fill="#1c252e" stroke="#b49a67" stroke-width="4"/>
+<path d="M256 35V9" stroke="#c1a16b" stroke-width="5"/><path d="m256 10 30 12-30 12Z" fill="#762735" stroke="#301b20" stroke-width="3"/>
+<path d="m146 263 35 18v70l-35-18Z" fill="#111920" stroke="#b89a63" stroke-width="4"/><path d="m331 281 35-18v70l-35 18Z" fill="#111920" stroke="#b89a63" stroke-width="4"/>
+<g fill="#d0a65e"><circle cx="164" cy="304" r="5"/><circle cx="348" cy="304" r="5"/></g>
+<path d="M256 263v155" stroke="#111820" stroke-width="5" opacity=".8"/>
+<path d="m110 352 146 77 146-77" fill="none" stroke="#c2a36c" stroke-width="5" opacity=".65"/>
+<g fill="#5d6870" stroke="#151e25" stroke-width="4"><path d="m113 190 29 15v116l-29-15Z"/><path d="m370 205 29-15v116l-29 15Z"/></g>
+</svg>
