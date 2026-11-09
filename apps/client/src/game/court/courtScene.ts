@@ -6,7 +6,7 @@ import { buildingDepth, createBuilding, hitBuilding, preloadBuildingSprites } fr
 import { drawGhost } from "./ghost.js";
 import { CourtInput } from "./input.js";
 import { sameCell, screenToCell } from "./isometric.js";
-import { drawRoads, drawTileMap } from "./tileMap.js";
+import { destroyTileMap, drawRoads, drawTileMap } from "./tileMap.js";
 import { DEFAULT_COURT_SIZE, type CourtBuilding, type CourtGrid, type CourtSceneMode, type CourtState } from "./types.js";
 
 const EMPTY_GRID: CourtGrid = { size: DEFAULT_COURT_SIZE, buildings: [], roads: [] };
@@ -15,7 +15,7 @@ const INITIAL_MODE: CourtSceneMode = { active: false, placing: null, roadTool: f
 /** PixiJS-сцена двора: отдельна от React, обновляется и отдаёт ввод только через bridge. */
 export class CourtScene {
   private readonly root = new Container();
-  private readonly ground = new Graphics();
+  private readonly ground = new Container();
   private readonly roads = new Graphics();
   private readonly buildings = new Container();
   private readonly buildingNodes = new Map<string, Container>();
@@ -68,6 +68,7 @@ export class CourtScene {
   destroy(): void {
     this.destroyed = true;
     this.input.destroy();
+    destroyTileMap(this.ground);
     this.unsubscribeState();
     this.unsubscribeMode();
     window.removeEventListener("resize", this.onResizeBound);
@@ -125,7 +126,7 @@ export class CourtScene {
    */
   private redraw(): void {
     if (this.renderedGridSize !== this.grid.size) {
-      drawTileMap(this.ground, this.grid.size);
+      drawTileMap(this.ground, this.grid.size, this.app.renderer?.resolution ?? 1);
       this.renderedGridSize = this.grid.size;
       // Размер сетки влияет на вертикальное центрирование всех слоёв.
       this.renderedRoadsSignature = null;
