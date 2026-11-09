@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, type Texture } from "pixi.js";
 import { cellDiamond, cellCenter, worldToScreen, TILE_HEIGHT, TILE_WIDTH } from "./isometric.js";
 import type { CourtGrid, CourtRoad } from "./types.js";
 
@@ -23,8 +23,9 @@ function drawDiamond(
   stroke: number,
   width: number,
   alpha = 1,
+  texture?: Texture,
 ): void {
-  graphics.poly(flat(points), true).fill({ color, alpha }).stroke({ color: stroke, width, alpha });
+  graphics.poly(flat(points), true).fill(texture ? { texture } : { color, alpha }).stroke({ color: stroke, width, alpha });
 }
 
 /** Делит поле на ограниченные по размеру чанки без пропусков и пересечений клеток. */
@@ -57,7 +58,7 @@ export function destroyTileMap(container: Container): void {
  * клетками; resolution ограничен 1.5, чтобы не создавать чрезмерные GPU-текстуры
  * на устройствах с высоким devicePixelRatio.
  */
-export function drawTileMap(container: Container, size: number, rendererResolution = 1): void {
+export function drawTileMap(container: Container, size: number, rendererResolution = 1, groundTexture?: Texture): void {
   destroyTileMap(container);
   const resolution = Number.isFinite(rendererResolution)
     ? Math.min(1.5, Math.max(1, rendererResolution))
@@ -77,7 +78,7 @@ export function drawTileMap(container: Container, size: number, rendererResoluti
       for (let x = range.xStart; x < range.xEnd; x += 1) {
         const variation = (x * 7 + z * 11 + (x * z) % 5) % SOIL.length;
         const diamond = cellDiamond(x, z, size).map(({ x: px, y }) => ({ x: px - origin.x, y: y - originY }));
-        drawDiamond(graphics, diamond, SOIL[variation]!, 0x536247, 0.8);
+        drawDiamond(graphics, diamond, SOIL[variation]!, 0x536247, 0.8, 1, groundTexture);
 
         // Тонкая светлая кромка даёт клеткам объём, не споря с будущими спрайтами.
         const worldCenter = cellCenter(x, z, size);
