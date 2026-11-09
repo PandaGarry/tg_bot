@@ -5,7 +5,7 @@ import { CourtCamera } from "./camera.js";
 import { buildingDepth, createBuilding, hitBuilding, preloadBuildingSprites } from "./building.js";
 import { drawGhost } from "./ghost.js";
 import { CourtInput } from "./input.js";
-import { screenToCell } from "./isometric.js";
+import { sameCell, screenToCell } from "./isometric.js";
 import { drawRoads, drawTileMap } from "./tileMap.js";
 import { DEFAULT_COURT_SIZE, type CourtBuilding, type CourtGrid, type CourtSceneMode, type CourtState } from "./types.js";
 
@@ -200,7 +200,9 @@ export class CourtScene {
 
   private handleHover(point: { x: number; y: number }): void {
     const local = this.camera.toLocal(point);
-    this.hover = screenToCell(local.x, local.y, this.grid.size);
+    const nextHover = screenToCell(local.x, local.y, this.grid.size);
+    if (sameCell(this.hover, nextHover)) return;
+    this.hover = nextHover;
     this.drawPreview();
   }
 
