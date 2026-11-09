@@ -10,6 +10,8 @@ import { setupResize } from "./resize.js";
  */
 class GameApp {
   private app: Application | null = null;
+  private initPromise: Promise<void> | null = null;
+  private initGeneration = 0;
   private unsubscribeResize: (() => void) | null = null;
 
   get ready(): boolean {
@@ -20,25 +22,49 @@ class GameApp {
     return this.app;
   }
 
-  async init(container: HTMLElement): Promise<void> {
-    if (this.app) return;
+  init(container: HTMLElement): Promise<void> {
+    if (this.app) return Promise.resolve();
+    if (this.initPromise) return this.initPromise;
+
+    const generation = this.initGeneration;
     const app = new Application();
-    await app.init({
-      preference: "webgl",
-      resizeTo: container,
-      backgroundAlpha: 0,
-      antialias: true,
-      autoDensity: true,
-      // На ретины выше 2x пиксели просто тратим: спрайты не становятся детальнее.
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
-    });
-    container.appendChild(app.canvas);
-    this.unsubscribeResize = setupResize(app);
-    this.app = app;
-    console.info("[Pixi] Initialized");
+    const pending = (async (): Promise<void> => {
+      try {
+        await app.init({
+          preference: "webgl",
+          resizeTo: container,
+          backgroundAlpha: 0,
+          antialias: true,
+          autoDensity: true,
+          // На ретинах выше 2x пиксели просто тратим: спрайты не становятся детальнее.
+          resolution: Math.min(window.devicePixelRatio || 1, 2),
+        });
+
+        // destroy() мог быть вызван, пока Pixi выполнял асинхронную инициализацию.
+        if (generation !== this.initGeneration) {
+          app.destroy(true, { children: true, texture: false, textureSource: false });
+          return;
+        }
+
+        container.appendChild(app.canvas);
+        this.unsubscribeResize = setupResize(app);
+        this.app = app;
+        console.info("[Pixi] Initialized");
+      } catch (error) {
+        // Освобождаем частично созданный renderer и разрешаем безопасный retry.
+        app.destroy(true, { children: true, texture: false, textureSource: false });
+        throw error;
+      } finally {
+        if (this.initPromise === pending) this.initPromise = null;
+      }
+    })();
+    this.initPromise = pending;
+    return pending;
   }
 
   destroy(): void {
+    // Инвалидируем ещё не завершившуюся init(), чтобы она не смонтировала canvas позже.
+    this.initGeneration++;
     if (!this.app) return;
     this.unsubscribeResize?.();
     this.unsubscribeResize = null;
