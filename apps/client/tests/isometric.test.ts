@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boardBounds, cellCenter, getDepth, screenToCell, screenToWorld, TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "../src/game/court/isometric.js";
+import { boardBounds, cellCenter, getDepth, sameCell, screenToCell, screenToWorld, TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "../src/game/court/isometric.js";
 
 describe("court isometric projection", () => {
   it("projects world coordinates and reverses them without drift", () => {
@@ -21,6 +21,14 @@ describe("court isometric projection", () => {
         expect(screenToCell(center.x, center.y, size)).toEqual({ x, z });
       }
     }
+  });
+
+  it("detects hover cell changes, including entering and leaving the board", () => {
+    expect(sameCell({ x: 2, z: 3 }, { x: 2, z: 3 })).toBe(true);
+    expect(sameCell({ x: 2, z: 3 }, { x: 3, z: 3 })).toBe(false);
+    expect(sameCell(null, null)).toBe(true);
+    expect(sameCell(null, { x: 0, z: 0 })).toBe(false);
+    expect(sameCell({ x: 0, z: 0 }, null)).toBe(false);
   });
 
   it("keeps the declared 1.72:1 tile ratio and board dimensions", () => {
