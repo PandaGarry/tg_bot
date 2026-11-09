@@ -18,7 +18,7 @@ import { PrototypeButton } from "./PrototypeButton.js";
 import { applyUiMockup, UI_HUD, type UiMockupId } from "./mockups.js";
 import "../mockups.css";
 import { Diagnostics } from "./Diagnostics.js";
-import { bridge } from "../game/bridge.js";
+import { bridge, deactivateCourtScene } from "../game/bridge.js";
 import type { CourtGrid, CourtPendingPlacement, CourtSceneMode, CourtState } from "../shared/court.js";
 
 // Кнопка «Прототип раскладки» скрыта; компонент сохранён для следующих тестов.
@@ -68,6 +68,10 @@ export function World({ view, lang, serverNow }: { view: WorldViewBase; lang: Lo
     const mode: CourtSceneMode = { active: route === "court", placing, roadTool, pending };
     bridge.emit("scene:mode", mode);
   }, [route, placing, roadTool, pending]);
+
+  // Если мир размонтируется (например, logout или потеря сессии), не оставляем
+  // сцену двора видимой и интерактивной под экраном входа.
+  useEffect(() => () => deactivateCourtScene(), []);
 
   useEffect(() => {
     const onTileClick = ({ x, z }: { x: number; z: number }): void => {
