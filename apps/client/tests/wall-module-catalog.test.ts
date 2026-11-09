@@ -31,7 +31,7 @@ describe("imperial wall module catalog", () => {
       const path = candidates.find(existsSync);
       if (!path) throw new Error(`Missing wall module asset: ${file}`);
       const source = readFileSync(path, "utf8");
-      const dimensions = source.match(/<svg[^>]*width="(\\d+)"[^>]*height="(\\d+)"/);
+      const dimensions = source.match(/<svg[^>]*width="(\d+)"[^>]*height="(\d+)"/);
       expect(dimensions, id).not.toBeNull();
       expect({ width: Number(dimensions?.[1]), height: Number(dimensions?.[2]) }, id)
         .toEqual({ width: module.width, height: module.height });
