@@ -1,5 +1,6 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, type Texture } from "pixi.js";
 import { bridge } from "../bridge.js";
+import { loadTexture } from "../core/assets.js";
 import { loadTexture } from "../core/assets.js";
 import type { StateUpdate } from "../bridge.js";
 import { CourtCamera } from "./camera.js";
@@ -12,6 +13,8 @@ import { DEFAULT_COURT_SIZE, type CourtBuilding, type CourtGrid, type CourtScene
 
 const EMPTY_GRID: CourtGrid = { size: DEFAULT_COURT_SIZE, buildings: [], roads: [] };
 const INITIAL_MODE: CourtSceneMode = { active: false, placing: null, roadTool: false, pending: null };
+const GROUND_TEXTURE_KEY = "court-ground:imperial";
+const GROUND_TEXTURE_URL = "/court/sprites/terrain-imperial-seamless.svg";
 
 /** PixiJS-сцена двора: отдельна от React, обновляется и отдаёт ввод только через bridge. */
 export class CourtScene {
@@ -21,6 +24,7 @@ export class CourtScene {
   private readonly buildings = new Container();
   private readonly buildingNodes = new Map<string, Container>();
   private readonly loadedSpriteTypes = new Set<string>();
+  private groundTexture: Texture | undefined;
   private hitTestBuildings: CourtBuilding[] = [];
   private readonly preview = new Graphics();
   private readonly camera: CourtCamera;
@@ -67,6 +71,7 @@ export class CourtScene {
 
     this.resize();
     this.redraw();
+    this.preloadGroundTexture();
     this.preloadGroundTexture();
   }
 
@@ -121,6 +126,18 @@ export class CourtScene {
       });
   }
 
+  /** Подгружает бесшовный грунт через общий PIXI.Assets cache; векторный грунт остаётся fallback. */
+  private preloadGroundTexture(): void {
+    void loadTexture(GROUND_TEXTURE_KEY, GROUND_TEXTURE_URL).then((texture) => {
+      if (this.destroyed) return;
+      this.groundTexture = texture;
+      drawTileMap(this.ground, this.grid.size, this.app.renderer?.resolution ?? 1, texture);
+      this.renderedGridSize = this.grid.size;
+    }).catch((error: unknown) => {
+      console.warn("[Pixi] Не удалось загрузить текстуру грунта; используется векторный fallback", error);
+    });
+  }
+
   /** Подгружает арт только для видимых/выбранных типов, не блокируя первый кадр. */
   private preloadBuildingTypes(types: readonly string[]): void {
     if (types.length === 0) return;
@@ -149,7 +166,7 @@ export class CourtScene {
    */
   private redraw(): void {
     if (this.renderedGridSize !== this.grid.size) {
-      drawTileMap(this.ground, this.grid.size, this.app.renderer?.resolution ?? 1);
+      drawTileMap(this.ground, this.grid.size, this.app.renderer?.resolution ?? 1, this.groundTexture);
       this.renderedGridSize = this.grid.size;
       // Размер сетки влияет на вертикальное центрирование всех слоёв.
       this.renderedRoadsSignature = null;
