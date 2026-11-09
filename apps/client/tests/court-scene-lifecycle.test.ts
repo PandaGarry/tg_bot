@@ -65,6 +65,7 @@ vi.mock("../src/game/court/building.js", () => ({
 
 vi.mock("../src/game/court/ghost.js", () => ({ drawGhost: () => undefined }));
 vi.mock("../src/game/court/tileMap.js", () => ({
+  destroyTileMap: () => undefined,
   drawRoads: () => undefined,
   drawTileMap: () => undefined,
 }));
