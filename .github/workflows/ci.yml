@@ -83,6 +83,57 @@ jobs:
       - name: Собрать production
         run: pnpm build
 
+      - name: Запустить живой мир и проверить UI в Chromium
+        env:
+          DATABASE_URL: postgres://tdl:tdl@127.0.0.1:5432/postgres
+          SESSION_SECRET: ci-visual-session-secret-2026-only
+          PORT: "3000"
+          HOST: 127.0.0.1
+          WORLD_ID: visual-ci
+          WORLD_NAME: "TDL Visual Acceptance"
+          REGISTRATION_OPEN: "1"
+          ACCESS_MODE: public
+          NODE_ENV: development
+          ALLOWED_ORIGINS: http://127.0.0.1:3000
+          TRUSTED_PROXY_IPS: 127.0.0.1
+        run: |
+          set -euo pipefail
+          pnpm dev > /tmp/tdl-visual-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/api/health | grep -q '"ready":true'; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat /tmp/tdl-visual-server.log
+              exit 1
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != "1" ]]; then
+            cat /tmp/tdl-visual-server.log
+            echo "::error::Visual test server did not become ready"
+            exit 1
+          fi
+          pnpm walk 3000
+          test -s docs/game/ui/client/game-court-day.jpg
+          test -s docs/game/ui/client/game-court-build.jpg
+          test -s docs/game/ui/client/game-court-decor.jpg
+          test -s docs/game/ui/client/game-court-portrait.jpg
+          test -s docs/game/ui/client/game-court-narrow.jpg
+
+      - name: Сохранить реальные скриншоты игры
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: tdl-live-game-screenshots
+          path: docs/game/ui/client/game-court-*.jpg
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Выполнить настоящий PostgreSQL backup/restore drill
         run: bash tools/db/ci-restore-drill.sh
 
