@@ -102,9 +102,9 @@ export class CourtScene {
   /** Подгружает арт только для видимых/выбранных типов, не блокируя первый кадр. */
   private preloadBuildingTypes(types: readonly string[]): void {
     if (types.length === 0) return;
-    void preloadBuildingSprites(types).then(() => {
-      // Повторно собираем только слой зданий: грунт и дороги от загрузки PNG не меняются.
-      if (!this.destroyed) this.renderBuildings(types);
+    void preloadBuildingSprites(types).then((loadedTypes) => {
+      // Пересобираем узлы только после первой фактической загрузки PNG.
+      if (!this.destroyed && loadedTypes.length > 0) this.renderBuildings(loadedTypes);
     });
   }
 

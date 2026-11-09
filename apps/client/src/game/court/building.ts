@@ -21,19 +21,22 @@ const DECOR_FOOTPRINTS: Record<string, Footprint> = {
 const buildingTextureKey = (type: string) => `court-building:${type}`;
 
 /** Загружает только нужные типы; отсутствующие/неподтверждённые остаются на vector fallback. */
-export async function preloadBuildingSprites(types: readonly string[]): Promise<void> {
+export async function preloadBuildingSprites(types: readonly string[]): Promise<string[]> {
   const requested = [...new Set(types)].filter((type) => Object.prototype.hasOwnProperty.call(BUILDING_SPRITES, type));
-  await Promise.all(
-    requested.map(async (type) => {
+  const loaded = await Promise.all(
+    requested.map(async (type): Promise<string | null> => {
       const definition = BUILDING_SPRITES[type];
-      if (!definition) return;
+      if (!definition || getTexture(buildingTextureKey(type))) return null;
       try {
         await loadTexture(buildingTextureKey(type), `/court/sprites/${definition.file}.png`);
+        return type;
       } catch (error) {
         console.warn(`[Pixi] Не удалось загрузить спрайт здания ${type}; используется fallback`, error);
+        return null;
       }
     }),
   );
+  return loaded.filter((type): type is string => type !== null);
 }
 const PALETTE: Record<string, { roof: number; light: number; dark: number; trim: number }> = {
   citadel: { roof: 0x9c5435, light: 0xe4d2a9, dark: 0x70513a, trim: 0xf0c866 },
