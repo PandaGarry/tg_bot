@@ -79,6 +79,7 @@ describe("court scene lifecycle", () => {
   beforeEach(() => {
     vi.resetModules();
     preload.mockReset();
+    preload.mockResolvedValue([]);
     createBuilding.mockReset();
     drawGhost.mockReset();
     createBuilding.mockImplementation(() => new (class {
