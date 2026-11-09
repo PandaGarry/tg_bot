@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bridge } from "../src/game/bridge.js";
+import { bridge, deactivateCourtScene } from "../src/game/bridge.js";
 
 describe("bridge — связь Pixi и HUD", () => {
   it("событие доходит до подписчика с полезной нагрузкой", () => {
@@ -32,6 +32,15 @@ describe("bridge — связь Pixi и HUD", () => {
     const seen: typeof payload[] = [];
     const off = bridge.on("state:update", (state) => seen.push(state));
     expect(seen).toEqual([payload]);
+    off();
+  });
+  
+  it("сбрасывает режим двора при размонтировании владельца мира", () => {
+    const seen: unknown[] = [];
+    const off = bridge.on("scene:mode", (mode) => seen.push(mode));
+    seen.length = 0;
+    deactivateCourtScene();
+    expect(seen).toEqual([{ active: false, placing: null, roadTool: false, pending: null }]);
     off();
   });
 });
