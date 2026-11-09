@@ -46,6 +46,10 @@ vi.mock("pixi.js", () => {
   return { Container, Graphics };
 });
 
+vi.mock("../src/game/core/assets.js", () => ({
+  loadTexture: vi.fn().mockRejectedValue(new Error("asset unavailable in lifecycle test")),
+}));
+
 vi.mock("../src/game/court/camera.js", () => ({
   CourtCamera: class {
     resize() {}
