@@ -32,8 +32,9 @@ vi.mock("pixi.js", () => {
   }
   class Graphics extends Container {
     polygons: number[][] = [];
+    fills: unknown[] = [];
     poly(points: number[]) { this.polygons.push(points); return this; }
-    fill() { return this; }
+    fill(style?: unknown) { this.fills.push(style); return this; }
     stroke() { return this; }
     moveTo() { return this; }
     lineTo() { return this; }
@@ -77,6 +78,15 @@ describe("tile map chunks", () => {
     expect(secondChunk.children[0]!.polygons[0]!.every((value) => Math.abs(value) < 8 * 72)).toBe(true);
     expect(chunks.every((chunk) => (chunk as Container & { cacheOptions: { resolution: number } }).cacheOptions.resolution === 1.5)).toBe(true);
     expect(ground.children[25]!.isCachedAsTexture).toBe(false);
+  });
+
+
+  it("uses the supplied imperial ground texture for cached tile faces", () => {
+    const ground = new Container();
+    const texture = { label: "imperial-ground" };
+    drawTileMap(ground, 1, 1, texture as never);
+    const chunk = ground.children[0] as Container & { children: Array<{ fills: unknown[] }> };
+    expect(chunk.children[0]!.fills[0]).toEqual({ texture });
   });
 
   it("disables cached textures before destroying chunks", () => {
