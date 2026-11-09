@@ -6,7 +6,7 @@ vi.mock("pixi.js", () => {
   class Container {
     children: Container[] = [];
     label = "";
-    position = { x: 0, y: 0, set: (x: number, y: number) => { this.position.x = x; this.position.y = y; } };
+    position = { x: 0, y: 0, set(x: number, y: number) { this.x = x; this.y = y; } };
     cached = false;
     cacheOptions: unknown;
     destroyed = false;
