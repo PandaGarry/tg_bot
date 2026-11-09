@@ -35,6 +35,7 @@ export class CourtScene {
   private renderedBuildingsSignature = "";
   private renderedBuildingGridSize = -1;
   private renderedTownhallLevel = -1;
+  private renderedPreviewSignature: string | null = null;
 
   constructor(private readonly app: Application) {
     this.root.label = "court-scene";
@@ -233,6 +234,28 @@ export class CourtScene {
   }
 
   private drawPreview(): void {
+    // Resource-only state:update не меняет геометрию призрака. Сверяем только
+    // входы drawGhost, чтобы не очищать и не строить Graphics повторно.
+    const buildings = this.grid.buildings
+      .map(({ type, x, z }) => `${type}:${x}:${z}`)
+      .sort()
+      .join(";");
+    const roads = this.grid.roads
+      .map(({ x, z }) => `${x}:${z}`)
+      .sort()
+      .join(";");
+    const pending = this.mode.pending;
+    const signature = [
+      this.grid.size,
+      buildings,
+      roads,
+      this.mode.placing ?? "",
+      this.mode.roadTool ? "1" : "0",
+      pending ? `${pending.type}:${pending.x}:${pending.z}:${pending.from?.x ?? ""}:${pending.from?.z ?? ""}` : "",
+      this.hover ? `${this.hover.x}:${this.hover.z}` : "",
+    ].join("|");
+    if (signature === this.renderedPreviewSignature) return;
+    this.renderedPreviewSignature = signature;
     drawGhost(this.preview, this.grid, this.grid.size, this.mode, this.hover);
   }
 }
