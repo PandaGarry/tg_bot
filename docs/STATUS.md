@@ -325,3 +325,14 @@
 **CI:** run #345 (`42590460020`) выявил только хрупкое ожидание точного числа вызовов comparator в тесте; типы и camera tests прошли. Тест исправлен. Run #346 (`42590719402`) — **полный PASS** на HEAD `e61096b4c02f7c4240d62c7cc039a7ec8dc78294`: typecheck, PostgreSQL tests, client tests (69 total), package/check suite, production build, Chromium UI walkthrough/screenshots, backup/restore drill, dependency audits и Drizzle snapshots.
 
 **Граница:** исправление camera framing и снижение повторной сортировки подтверждены регрессионными тестами. Фактический touch latency/FPS не измерялся на физических устройствах.
+
+
+## Визуальный рефакторинг — первый интегрированный ассет (09.11.2026)
+
+- Владелец выбрал направление C — «Империя мёртвых»; спецификация закреплена в docs/design/art-direction.md и журнале docs/DECISIONS.md. CI #352 на документационном HEAD b2518b2 завершился PASS.
+- Создан оригинальный standalone SVG Цитадели, стадия I: apps/client/public/court/sprites/citadel-imperial-stage-01.svg. Размер 512×512, прозрачный фон, основание рассчитано под footprint 4×4, patch 286 px, pivot (256, 500). Это первый production-direction asset; не весь визуальный vertical slice.
+- spriteCatalog.ts расширен явным выбором PNG/SVG. building.ts теперь получает URL через общий каталог и загружает текстуру через PIXI.Assets; исторические PNG fallback для остальных зданий сохранены.
+- Добавлен apps/client/tests/sprite-catalog.test.ts: проверяет metadata/URL Цитадели и обратную совместимость legacy PNG.
+- docs/design/art-asset-inventory.md обновлён: оригинальный арт 1/19; ещё 7/19 имеют только временные подтверждённые спрайты; 11/19 без runtime sprite.
+- Открыто: in-scene screenshots desktop/390/320; terrain/roads texture kit; wall kit; стадии II–V Цитадели и здания-компаньоны; физические FPS/GPU memory измерения. Не заявлять достижение целевого качества до визуальной проверки в реальной сцене.
+- Изменения выполняются в arena/8885a9e3-tg-bot; main, сервер и протокол не менялись.
