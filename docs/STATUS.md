@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #314 (`42583847614`) — **PASS** на HEAD `8789bb0c3d762ac8aa8b3ee236f9bbb23469d3b6`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #316 (`42584665945`) — **PASS** на HEAD `94d36dada90d10c64b2d305fba56d61dcdd0f104`. Подтверждены typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -250,3 +250,16 @@
 **Коммиты:** `dcc8986` (helper bridge), `61b5dc7` (cleanup в World), `8789bb0` (регрессионный тест).
 
 **Статус: кодовая часть закрыта CI #314 PASS** на HEAD `8789bb0`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Реальный logout/login smoke test на iOS/Android остаётся частью проверки на устройствах.
+
+## AUD-050 — позднее завершение загрузки спрайтов после destroy сцены (09.11.2026)
+
+**Finding:** загрузка спрайтов зданий асинхронна и может завершиться после уничтожения `CourtScene`. Без проверки жизненного цикла callback мог бы попытаться перестроить display tree уже размонтированной сцены.
+
+**Изменение и регрессия в рабочей ветке:**
+- добавлен тест `apps/client/tests/court-scene-lifecycle.test.ts`;
+- тест запускает отложенный preload, обновляет состояние сцены, вызывает `destroy()`, завершает preload и проверяет, что поздний callback не создаёт новые узлы;
+- отдельно проверяется, что после уничтожения сцена не реагирует на последующие `state:update` события bridge.
+
+**Коммит:** `94d36da` (регрессионный тест).
+
+**Статус: тест и кодовая защита подтверждены CI #316 PASS** на HEAD `94d36dada90d10c64b2d305fba56d61dcdd0f104`. Полный workflow завершился успешно. Исправление не заявляет измеренного улучшения FPS/GPU/CPU; оно подтверждает безопасное завершение асинхронной загрузки при teardown. Повторный mount/unmount на физических iOS/Android устройствах остаётся runtime smoke test.
