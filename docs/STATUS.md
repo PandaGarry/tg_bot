@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #311 (`42583360574`) — **PASS** на HEAD `479611f58ed52ce5086542a0ff60660bf670b4f1`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #314 (`42583847614`) — **PASS** на HEAD `8789bb0c3d762ac8aa8b3ee236f9bbb23469d3b6`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -236,3 +236,17 @@
 **Коммиты:** `81c1239` (исправление), `479611f` (регрессионный тест).
 
 **Статус: кодовая часть закрыта CI #311 PASS** на HEAD `479611f`. Все основные этапы workflow завершились успешно, включая typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Измерения FPS/GPU/CPU не проводились; подтверждена корректность teardown pointer capture, а не количественный прирост производительности.
+
+
+## AUD-049 — выключение двора при размонтировании World (09.11.2026)
+
+**Finding:** `World` публиковал активный `scene:mode`, но при размонтировании React-компонента не отправлял нейтральный режим. При logout или потере авторизации Pixi-сцена могла остаться видимой/интерактивной под экраном входа, потому что `CourtScene` живёт отдельно и сохраняет последнее состояние bridge.
+
+**Исправление в рабочей ветке:**
+- в `bridge.ts` добавлен `deactivateCourtScene()`, отправляющий неактивный режим (`active: false`, без размещения, инструмента дорог и pending-действия);
+- `World` вызывает его в cleanup отдельного `useEffect`, поэтому teardown владельца экрана отключает сцену и её pointer listeners;
+- добавлен регрессионный тест bridge на сброс режима при teardown.
+
+**Коммиты:** `dcc8986` (helper bridge), `61b5dc7` (cleanup в World), `8789bb0` (регрессионный тест).
+
+**Статус: кодовая часть закрыта CI #314 PASS** на HEAD `8789bb0`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Реальный logout/login smoke test на iOS/Android остаётся частью проверки на устройствах.
