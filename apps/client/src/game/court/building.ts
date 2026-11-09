@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite } from "pixi.js";
 import { getTexture, loadTexture } from "../core/assets.js";
-import { BUILDING_SPRITES } from "./spriteCatalog.js";
+import { BUILDING_SPRITES, buildingSpriteUrl } from "./spriteCatalog.js";
 import { buildingById } from "@tdl/content-buildings/catalog";
 import { TILE_HEIGHT, TILE_WIDTH, worldToScreen } from "./isometric.js";
 import type { CourtBuilding } from "./types.js";
@@ -28,7 +28,9 @@ export async function preloadBuildingSprites(types: readonly string[]): Promise<
       const definition = BUILDING_SPRITES[type];
       if (!definition || getTexture(buildingTextureKey(type))) return null;
       try {
-        await loadTexture(buildingTextureKey(type), `/court/sprites/${definition.file}.png`);
+        const url = buildingSpriteUrl(type);
+        if (!url) return null;
+        await loadTexture(buildingTextureKey(type), url);
         return type;
       } catch (error) {
         console.warn(`[Pixi] Не удалось загрузить спрайт здания ${type}; используется fallback`, error);
