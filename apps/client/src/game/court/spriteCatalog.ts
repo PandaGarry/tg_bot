@@ -14,9 +14,9 @@ export interface BuildingSpriteDefinition {
 
 export const BUILDING_SPRITES: Readonly<Record<string, BuildingSpriteDefinition>> = {
   citadel: { file: "citadel-imperial-stage-01", extension: "svg", width: 512, height: 512, patch: 286, tipX: 256, tipY: 500 },
-  sawmill: { file: "d-01", width: 605, height: 517, patch: 600, tipX: 302, tipY: 513 },
+  sawmill: { file: "sawmill-imperial-stage-01", extension: "svg", width: 512, height: 448, patch: 300, tipX: 256, tipY: 427 },
   quarry: { file: "a-03", width: 394, height: 325, patch: 388, tipX: 197, tipY: 321 },
-  farm: { file: "b-01", width: 593, height: 371, patch: 588, tipX: 296, tipY: 367 },
+  farm: { file: "farm-imperial-stage-01", extension: "svg", width: 512, height: 448, patch: 300, tipX: 256, tipY: 427 },
   pen: { file: "b-02", width: 517, height: 361, patch: 512, tipX: 310, tipY: 357 },
   warehouse: { file: "c-03", width: 464, height: 543, patch: 459, tipX: 232, tipY: 539 },
   barracks: { file: "b-03", width: 613, height: 505, patch: 608, tipX: 306, tipY: 501 },
