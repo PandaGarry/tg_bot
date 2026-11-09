@@ -139,7 +139,7 @@ export class CourtScene {
       .map(({ type, x, z }) => `${type},${x},${z}`)
       .join(";")}`;
     if (buildingsSignature !== this.renderedBuildingsSignature) {
-      this.renderBuildings(true);
+      this.renderBuildings();
       this.renderedBuildingsSignature = buildingsSignature;
     }
 
