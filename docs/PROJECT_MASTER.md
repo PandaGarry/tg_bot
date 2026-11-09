@@ -350,3 +350,10 @@ AUD-042 schedule follow-up: `GET /api/schedule` теперь operator-only. Пр
 **CI evidence:** run #327 (`42587273618`) — PASS на HEAD `b7e8168d86d17d2ba7bb5fe6a330fa325dbefd24`; все 18 основных шагов workflow завершились успешно, включая typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk/screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Документация статуса внесена отдельным commit после этого run; для документационного HEAD требуется свой полный CI.
 
 **Остаток:** не заявлять измеренный прирост FPS или снижение GPU memory. Нужны физические устройства, профилирование GPU/CPU, frame time и texture memory; также проверить повторный вход/выход из двора на iOS Safari и Android Chrome/WebView. AUD-051 — кодовая часть закрыта; device/performance acceptance остаётся открытой задачей AUD-036/037 и общей UI acceptance.
+
+
+## 16. AUD-052 — устранение повторной отрисовки preview (09.11.2026)
+
+`CourtScene.drawPreview()` теперь сравнивает сигнатуру фактических входов `drawGhost`: grid size, состав зданий/дорог, placing/roadTool, pending placement и hover. Списки объектов сортируются перед сравнением, чтобы порядок элементов не создавал ложного изменения. При resource-only `state:update`, resize или эквивалентном снимке повторная отрисовка пропускается; при реальном изменении геометрии preview перестраивается. Регрессионный тест покрывает ресурсное обновление и изменение здания.
+
+**CI:** run #334 (`42588672207`) — PASS, включая typecheck, tests, checks, production build, Chromium walkthrough/screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Run #333 выявил только некорректную Promise-заглушку в новом тесте; исправление вошло в run #334. AUD-052 кодовая часть закрыта. Не приписывать этому изменению измеренный FPS/GPU memory gain без профилирования.
