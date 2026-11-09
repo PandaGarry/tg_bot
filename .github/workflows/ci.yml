@@ -120,6 +120,7 @@ jobs:
           fi
           pnpm walk 3000
           test -s docs/game/ui/client/game-court-day.jpg
+          test -s docs/game/ui/client/game-court-buildings.jpg
           test -s docs/game/ui/client/game-court-build.jpg
           test -s docs/game/ui/client/game-court-decor.jpg
           test -s docs/game/ui/client/game-court-portrait.jpg

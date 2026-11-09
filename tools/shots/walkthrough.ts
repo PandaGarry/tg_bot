@@ -191,9 +191,62 @@ await sleep(350);
 await page.screenshot({ path: join(outDir, "game-court-decor.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-decor.jpg");
 
-// Закрываем панель штатным контролом, не трогая игровой мир.
+// Закрываем панель и наполняем одноразовый CI-мир реальными серверными зданиями.
+// Это не мок состояния: каждое здание проходит обычный court.place → patch → Pixi redraw.
 await page.click(".concept-build-panel .concept-panel-close");
 await sleep(300);
+
+async function clickCourtCell(x: number, z: number): Promise<void> {
+  const point = await page.evaluate(({ x: cellX, z: cellZ }) => {
+    const canvas = document.querySelector("#pixi-root canvas") as HTMLCanvasElement | null;
+    if (!canvas) throw new Error("Pixi canvas missing before building placement");
+    const rect = canvas.getBoundingClientRect();
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const size = 10; // стартовая серверная сетка двора, проверяется после court.enter
+    const viewportWidth = Math.min(width, 820);
+    const centerX = width / 2;
+    const centerY = height * (height < 440 ? 0.52 : 0.55);
+    const availableWidth = Math.max(140, viewportWidth - 36);
+    const availableHeight = Math.max(130, height - 238);
+    const fitScale = Math.min(availableWidth / (size * 71.4), availableHeight / (size * 41.4)) * 0.96;
+    const localX = centerX + ((cellX - cellZ) * 35.7) * fitScale;
+    const localY = centerY + (((cellX + cellZ + 1) * 20.7 - (size * 41.4) / 2)) * fitScale;
+    return {
+      x: rect.left + (localX / width) * rect.width,
+      y: rect.top + (localY / height) * rect.height,
+    };
+  }, { x, z });
+  await page.mouse.click(point.x, point.y);
+  await page.waitForFunction(
+    () => [...document.querySelectorAll(".concept-placement button")]
+      .some((button) => button.textContent?.trim() === "Поставить"),
+    { timeout: 10_000 },
+  );
+  await clickButton("Поставить");
+  await sleep(650);
+}
+
+async function placeBuilding(id: "farm" | "sawmill", x: number, z: number): Promise<void> {
+  await page.click('.ch-action[aria-label="Строительство"]');
+  await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
+  await page.click(`[data-building-id="${id}"]`);
+  await page.waitForSelector(".concept-placement", { timeout: 5_000 });
+  await clickCourtCell(x, z);
+  console.log(`  размещено через серверную команду: ${id} @ ${x},${z}`);
+}
+
+// Стартовая Цитадель занимает центральные клетки; два свободных края подходят
+// под реальные пятна 2×2 фермы и лесопилки и не пересекают стартовую дорогу.
+await placeBuilding("farm", 1, 1);
+await placeBuilding("sawmill", 8, 1);
+await page.waitForFunction(() => {
+  const canvas = document.querySelector("#pixi-root canvas");
+  return Boolean(canvas) && document.body.textContent?.includes("Ферма");
+}, { timeout: 10_000 });
+await sleep(700);
+await page.screenshot({ path: join(outDir, "game-court-buildings.jpg"), type: "jpeg", quality: 90 });
+console.log("сохранён game-court-buildings.jpg — Цитадель + Ферма + Лесопилка");
 await measureTop("desktop HUD");
 
 // Портретный кадр на целевом мобильном размере.
