@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { preload, createBuilding, drawGhost, drawRoads } = vi.hoisted(() => ({
+const { preload, createBuilding, drawGhost, drawRoads, buildingDepth, hitBuilding } = vi.hoisted(() => ({
   preload: vi.fn(),
   createBuilding: vi.fn(),
   drawGhost: vi.fn(),
   drawRoads: vi.fn(),
+  buildingDepth: vi.fn((building: { x: number; z: number }) => building.x + building.z),
+  hitBuilding: vi.fn(() => false),
 }));
 
 vi.mock("pixi.js", () => {
@@ -59,9 +61,9 @@ vi.mock("../src/game/court/input.js", () => ({
 }));
 
 vi.mock("../src/game/court/building.js", () => ({
-  buildingDepth: () => 1,
+  buildingDepth,
   createBuilding,
-  hitBuilding: () => false,
+  hitBuilding,
   preloadBuildingSprites: preload,
 }));
 
@@ -84,6 +86,9 @@ describe("court scene lifecycle", () => {
     createBuilding.mockReset();
     drawGhost.mockReset();
     drawRoads.mockReset();
+    buildingDepth.mockClear();
+    hitBuilding.mockReset();
+    hitBuilding.mockReturnValue(false);
     createBuilding.mockImplementation(() => new (class {
       destroy() {}
     })());
@@ -222,6 +227,54 @@ describe("court scene lifecycle", () => {
     expect(createBuilding).toHaveBeenCalledTimes(3);
     expect(createBuilding.mock.calls[2]![0].type).toBe("citadel");
     expect(drawRoads).toHaveBeenCalledTimes(roadDrawCount);
+    scene.destroy();
+  });
+
+  it("sorts hit-test candidates only when the building set changes", async () => {
+    const { bridge } = await import("../src/game/bridge.js");
+    const { CourtScene } = await import("../src/game/court/courtScene.js");
+    const stage = { addChild: vi.fn(), removeChild: vi.fn() };
+    const canvas = { parentElement: { clientWidth: 390, clientHeight: 844 } };
+    const app = { stage, canvas, screen: { width: 390, height: 844 } };
+    const scene = new CourtScene(app as never);
+
+    bridge.emit("state:update", {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [
+            { type: "cottage", x: 1, z: 1 },
+            { type: "citadel", x: 8, z: 8 },
+          ],
+          roads: [],
+        },
+      },
+    });
+    expect(buildingDepth).toHaveBeenCalledTimes(2);
+    const handleTap = (scene as unknown as { handleTap(point: { x: number; y: number }): void }).handleTap.bind(scene);
+    handleTap({ x: 195, y: 420 });
+    expect(hitBuilding.mock.calls.map(([building]) => [building.x, building.z])).toEqual([[8, 8], [1, 1]]);
+
+    buildingDepth.mockClear();
+    hitBuilding.mockClear();
+    handleTap({ x: 195, y: 420 });
+    expect(buildingDepth).not.toHaveBeenCalled();
+    expect(hitBuilding).toHaveBeenCalledTimes(2);
+
+    bridge.emit("state:update", {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [
+            { type: "cottage", x: 1, z: 1 },
+            { type: "citadel", x: 8, z: 8 },
+            { type: "farm", x: 4, z: 4 },
+          ],
+          roads: [],
+        },
+      },
+    });
+    expect(buildingDepth).toHaveBeenCalledTimes(3);
     scene.destroy();
   });
 });
