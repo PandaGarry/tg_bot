@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #298 (`42581162148`) — **PASS** на HEAD `da5b87b81403fec3eef115e89434099d8885669d`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Более поздние коммиты после `da5b87b` ожидают отдельного CI. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #301 (`42581709162`) — **PASS** на HEAD `e426c878254fcc3c022c867032ab145d9e95d98a`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Коммиты после этого HEAD ожидают отдельного CI. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -207,3 +207,18 @@
 **Коммиты:** `ab9d95a` (сравнение клеток), `e735d23` (интеграция), `604ad28` (тесты).
 
 **Статус:** implementation committed; ожидает полного CI на текущем HEAD. Количественный FPS/GPU/CPU профайлинг не выполнялся; подтверждается устранение повторных вызовов preview на неизменной клетке, а не конкретный прирост производительности.
+
+## AUD-047 — конкурентная инициализация и отмена Pixi mount (09.11.2026)
+
+**Finding:** `GameApp.init()` проверял только готовый `this.app`, который устанавливается после асинхронного `Application.init()`. Два быстрых вызова до завершения первого могли создать два Pixi Application и два canvas. Вызов `destroy()` в это же окно не отменял незавершённую инициализацию, поэтому canvas мог появиться уже после размонтирования.
+
+**Исправление в рабочей ветке:**
+- `initPromise` объединяет конкурентные вызовы в одну инициализацию;
+- generation token инвалидирует незавершённую инициализацию при `destroy()`;
+- поздно завершившийся Pixi renderer уничтожается без добавления canvas;
+- при ошибке инициализации частично созданный renderer освобождается, повторная попытка не блокируется;
+- добавлены регрессионные тесты на общий Promise, единственный mount и destroy во время pending init.
+
+**Коммиты:** `4a36fb6` (исправление), `21fd28c` (регрессионные тесты).
+
+**Статус:** implementation и tests committed; ожидается полный CI на новом HEAD. До PASS не закрывать AUD-047.
