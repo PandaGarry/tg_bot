@@ -278,4 +278,34 @@ describe("court scene lifecycle", () => {
     expect(buildingDepth.mock.calls.length).toBeGreaterThan(sortCallsBeforeBuildingChange);
     scene.destroy();
   });
+
+  it("rebuilds a building type only once when concurrent preload requests resolve together", async () => {
+    preload.mockResolvedValue(["cottage"]);
+    const { bridge } = await import("../src/game/bridge.js");
+    const { CourtScene } = await import("../src/game/court/courtScene.js");
+    const stage = { addChild: vi.fn(), removeChild: vi.fn() };
+    const canvas = { parentElement: { clientWidth: 390, clientHeight: 844 } };
+    const app = { stage, canvas, screen: { width: 390, height: 844 } };
+    const scene = new CourtScene(app as never);
+    const state = {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [{ type: "cottage", x: 3, z: 4 }],
+          roads: [],
+        },
+      },
+    };
+
+    bridge.emit("state:update", state);
+    bridge.emit("state:update", state);
+    expect(preload).toHaveBeenCalledTimes(2);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // One initial vector node plus one rebuild after the PNG becomes available.
+    // A duplicate completion for the same in-flight asset must not rebuild it again.
+    expect(createBuilding).toHaveBeenCalledTimes(2);
+    scene.destroy();
+  });
 });
