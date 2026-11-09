@@ -19,6 +19,7 @@ export class CourtScene {
   private readonly roads = new Graphics();
   private readonly buildings = new Container();
   private readonly buildingNodes = new Map<string, Container>();
+  private hitTestBuildings: CourtBuilding[] = [];
   private readonly preview = new Graphics();
   private readonly camera: CourtCamera;
   private readonly input: CourtInput;
@@ -146,6 +147,7 @@ export class CourtScene {
       .join(";")}`;
     if (buildingsSignature !== this.renderedBuildingsSignature) {
       this.renderBuildings();
+      this.hitTestBuildings = [...this.grid.buildings].sort((a, b) => buildingDepth(b) - buildingDepth(a));
       this.renderedBuildingsSignature = buildingsSignature;
     }
 
@@ -226,8 +228,7 @@ export class CourtScene {
     }
 
     // Здание проверяем раньше клетки: крыша может выступать за плоскость сетки.
-    const building = [...this.grid.buildings]
-      .sort((a, b) => buildingDepth(b) - buildingDepth(a))
+    const building = this.hitTestBuildings
       .find((candidate) => hitBuilding(candidate, local, this.grid.size));
     if (building) {
       bridge.emit("building:click", {
