@@ -125,7 +125,7 @@ export class CourtScene {
       drawTileMap(this.ground, this.grid.size);
       this.renderedGridSize = this.grid.size;
       // Размер сетки влияет на вертикальное центрирование всех слоёв.
-      this.renderedRoadsSignature = "";
+      this.renderedRoadsSignature = null;
       this.renderedBuildingsSignature = "";
     }
 
