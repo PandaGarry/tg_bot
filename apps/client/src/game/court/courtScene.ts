@@ -104,7 +104,7 @@ export class CourtScene {
     if (types.length === 0) return;
     void preloadBuildingSprites(types).then(() => {
       // Повторно собираем только слой зданий: грунт и дороги от загрузки PNG не меняются.
-      if (!this.destroyed) this.renderBuildings();
+      if (!this.destroyed) this.renderBuildings(types);
     });
   }
 
@@ -147,7 +147,7 @@ export class CourtScene {
   }
 
   /** Обновляет только добавленные/удалённые здания; неизменные Pixi-ноды сохраняются. */
-  private renderBuildings(): void {
+  private renderBuildings(rebuildTypes: readonly string[] = []): void {
     if (
       this.renderedBuildingGridSize !== this.grid.size
       || this.renderedTownhallLevel !== this.townhallLevel
@@ -155,6 +155,16 @@ export class CourtScene {
       this.clearBuildings();
       this.renderedBuildingGridSize = this.grid.size;
       this.renderedTownhallLevel = this.townhallLevel;
+    }
+
+    // После асинхронной загрузки PNG пересоздаём только соответствующие типы.
+    if (rebuildTypes.length > 0) {
+      for (const [key, node] of this.buildingNodes) {
+        if (!rebuildTypes.some((type) => key.startsWith(`${type}:`))) continue;
+        this.buildings.removeChild(node);
+        node.destroy({ children: true });
+        this.buildingNodes.delete(key);
+      }
     }
 
     const desired = new Map(
