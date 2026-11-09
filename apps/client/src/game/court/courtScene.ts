@@ -18,6 +18,7 @@ export class CourtScene {
   private readonly ground = new Graphics();
   private readonly roads = new Graphics();
   private readonly buildings = new Container();
+  private readonly buildingNodes = new Map<string, Container>();
   private readonly preview = new Graphics();
   private readonly camera: CourtCamera;
   private readonly input: CourtInput;
@@ -32,6 +33,8 @@ export class CourtScene {
   private renderedGridSize = -1;
   private renderedRoadsSignature: string | null = null;
   private renderedBuildingsSignature = "";
+  private renderedBuildingGridSize = -1;
+  private renderedTownhallLevel = -1;
 
   constructor(private readonly app: Application) {
     this.root.label = "court-scene";
@@ -143,16 +146,43 @@ export class CourtScene {
     this.drawPreview();
   }
 
+  /** Обновляет только добавленные/удалённые здания; неизменные Pixi-ноды сохраняются. */
   private renderBuildings(): void {
-    this.clearBuildings();
-    for (const building of this.grid.buildings) {
-      const sprite = createBuilding(building, this.grid.size, this.townhallLevel);
-      this.buildings.addChild(sprite);
+    if (
+      this.renderedBuildingGridSize !== this.grid.size
+      || this.renderedTownhallLevel !== this.townhallLevel
+    ) {
+      this.clearBuildings();
+      this.renderedBuildingGridSize = this.grid.size;
+      this.renderedTownhallLevel = this.townhallLevel;
     }
+
+    const desired = new Map(
+      this.grid.buildings.map((building) => [
+        `${building.type}:${building.x}:${building.z}`,
+        building,
+      ]),
+    );
+
+    for (const [key, node] of this.buildingNodes) {
+      if (desired.has(key)) continue;
+      this.buildings.removeChild(node);
+      node.destroy({ children: true });
+      this.buildingNodes.delete(key);
+    }
+
+    for (const [key, building] of desired) {
+      if (this.buildingNodes.has(key)) continue;
+      const node = createBuilding(building, this.grid.size, this.townhallLevel);
+      this.buildingNodes.set(key, node);
+      this.buildings.addChild(node);
+    }
+    this.buildings.sortChildren();
   }
 
   private clearBuildings(): void {
     for (const child of this.buildings.removeChildren()) child.destroy({ children: true });
+    this.buildingNodes.clear();
   }
 
   private handleHover(point: { x: number; y: number }): void {
