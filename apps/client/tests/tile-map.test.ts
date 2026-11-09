@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Container } from "pixi.js";
 import { destroyTileMap, drawTileMap, getTileChunkRanges, TILE_CHUNK_SIZE } from "../src/game/court/tileMap.js";
 
@@ -79,6 +79,6 @@ describe("tile map chunks", () => {
     const chunks = ground.children.slice(0, 4);
     destroyTileMap(ground);
     expect(ground.children).toHaveLength(0);
-    expect(chunks.every((chunk) => !chunk.isCachedAsTexture && chunk.destroyed)).toBe(true);
+    expect(chunks.every((chunk) => !chunk.isCachedAsTexture && (chunk as Container & { destroyed: boolean }).destroyed)).toBe(true);
   });
 });
