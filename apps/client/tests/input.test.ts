@@ -40,4 +40,28 @@ describe("court touch input", () => {
     expect(point.y).toBeCloseTo(426, 6);
     input.destroy();
   });
+
+  it("does not process pointer movement while the court is inactive", () => {
+    const canvas = document.createElement("canvas");
+    Object.defineProperties(canvas, {
+      clientWidth: { configurable: true, value: 390 },
+      clientHeight: { configurable: true, value: 844 },
+      getBoundingClientRect: {
+        value: () => ({ left: 0, top: 0, width: 390, height: 844, right: 390, bottom: 844 }) as DOMRect,
+      },
+    });
+    const camera = new CourtCamera(new Container());
+    camera.resize(390, 844, 14);
+    const onHover = vi.fn();
+    const input = new CourtInput(canvas, camera, vi.fn(), onHover);
+
+    input.setEnabled(false);
+    canvas.dispatchEvent(pointerEvent("pointermove", 190, 420));
+    expect(onHover).not.toHaveBeenCalled();
+
+    input.setEnabled(true);
+    canvas.dispatchEvent(pointerEvent("pointermove", 197, 426));
+    expect(onHover).toHaveBeenCalledOnce();
+    input.destroy();
+  });
 });
