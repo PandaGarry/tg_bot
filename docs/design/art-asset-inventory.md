@@ -18,7 +18,7 @@
 |---|---|---:|---|---|
 | citadel | Цитадель | 4×4 | Original imperial SVG stage I (citadel-imperial-stage-01.svg) | Stages II–V; polish against in-scene screenshots; fallback retained for rollback |
 | wall | Стена | 3×3 | Missing | Modular straight/corner/gate/tower kit; five stages |
-| warehouse | Склад | 3×3 | Prototype fallback `c-03` | Original five-stage storage art |
+| warehouse | Склад | 3×3 | Original imperial SVG stage I (`warehouse-imperial-stage-01.svg`) | Stages II–V; in-scene scale/pivot acceptance |
 | infirmary | Лазарет | 3×3 | Prototype fallback `c-02` | Original five-stage healing art |
 | academy | Академия | 3×3 | No mapping; legacy `c-01` (“Паутина”) is not semantically confirmed | Original five-stage research art |
 | clan-hall | Зал клана | 3×3 | Missing | Five-stage clan hall |
@@ -26,7 +26,7 @@
 | watchtower | Надзорная вышка | 2×2 | Missing | Five-stage scout tower |
 | forge | Кузница | 3×3 | Missing | Five-stage forge |
 | trade-post | Торговый пост | 2×2 | Missing | Five-stage caravan/exchange post |
-| barracks | Казарма | 3×3 | Prototype fallback `b-03` | Original five-stage barracks |
+| barracks | Казарма | 3×3 | Original imperial SVG stage I (`barracks-imperial-stage-01.svg`) | Stages II–V; in-scene scale/pivot acceptance |
 | range | Стрельбище | 3×3 | Missing | Five-stage ranged training building |
 | stable | Конюшня | 3×3 | Missing | Five-stage cavalry stable |
 | siege-yard | Осадный двор | 3×3 | Missing | Five-stage siege workshop |
@@ -38,7 +38,7 @@
 
 
 
-**Coverage:** 3/19 buildings have original production-direction assets in runtime (Citadel, Sawmill and Farm stage I); 5/19 additional buildings retain semantically confirmed temporary prototype sprites; 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
+**Coverage:** 5/19 buildings have original production-direction assets in runtime (Citadel, Sawmill, Farm, Warehouse and Barracks stage I); 3/19 additional buildings retain semantically confirmed temporary prototype sprites (Quarry, Pen and Infirmary); 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
 
 ## 3. Other asset groups
 
@@ -134,3 +134,11 @@ Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL 
 - Captured artifact: `tdl-live-game-screenshots` (7 JPEGs: court day/build/buildings/decor/military/narrow/portrait). Visual review confirms the Citadel and terrain load in the live scene; current Citadel is readable but still too graphic/flat relative to the textured ground, while prototype companion buildings visibly clash in style.
 - Added original transparent SVG stage-I assets for Sawmill and Farm and switched their runtime catalog mappings away from legacy prototype PNGs. Both preserve the 2×2 domain footprint and use a shared 512×448 canvas with a bottom anchor and 300 px base patch.
 - This is a second asset slice, not a final art sign-off: both assets still require in-scene pivot/scale review and mobile captures; stages II–V and remaining buildings are open.
+
+
+## 11. Second original building slice — 09.11.2026
+
+- Added original transparent imperial SVG stage-I art for Warehouse and Barracks, each 512×512 with a shared 3×3 footprint base patch (348 px) and bottom pivot (256, 500).
+- Warehouse uses stone plinth, reinforced timber storehouse, slate roof, ironwork and cargo details; Barracks uses a fortified hall, crenellations, weapon racks, burgundy standards and braziers.
+- Runtime catalog now routes both types to SVG through PIXI.Assets; legacy art remains available in repository history for rollback.
+- These are authored stage-I production-direction assets, not yet final art sign-off: validate rendered scale/pivot in the live world and compare material readability at mobile scale. Stages II–V remain open.
