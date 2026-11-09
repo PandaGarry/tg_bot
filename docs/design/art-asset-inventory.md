@@ -16,7 +16,7 @@
 
 | Building ID | Name | Footprint | Current runtime art | Production work |
 |---|---|---:|---|---|
-| citadel | Цитадель | 4×4 | Prototype fallback `a-01` | Hero asset; five stages; unique crown silhouette |
+| citadel | Цитадель | 4×4 | Original imperial SVG stage I (citadel-imperial-stage-01.svg) | Stages II–V; polish against in-scene screenshots; fallback retained for rollback |
 | wall | Стена | 3×3 | Missing | Modular straight/corner/gate/tower kit; five stages |
 | warehouse | Склад | 3×3 | Prototype fallback `c-03` | Original five-stage storage art |
 | infirmary | Лазарет | 3×3 | Prototype fallback `c-02` | Original five-stage healing art |
@@ -38,7 +38,7 @@
 
 
 
-**Coverage:** 8/19 buildings have a semantically confirmed temporary prototype sprite in runtime; 11/19 are explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
+**Coverage:** 1/19 buildings has an original production-direction asset in runtime (Citadel stage I); 7/19 additional buildings retain semantically confirmed temporary prototype sprites; 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
 
 ## 3. Other asset groups
 
@@ -98,3 +98,18 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - `game-court-buildings.jpg`: server-placed Citadel, Pen and Sawmill; two buildings placed with real `court.place` commands in disposable CI world.
 - `game-court-portrait.jpg` and `game-court-narrow.jpg`: 390×844 and 320×690 responsive captures.
 - This is runtime/prototype evidence, not art sign-off: the building PNGs are temporary historical fallbacks, terrain remains Pixi geometry, and physical-device/GPU acceptance remains open.
+
+
+## 8. First implementation — Empire of the Dead vertical slice (09.11.2026)
+
+- [x] Approved visual direction C documented in art-direction.md and DECISIONS.md.
+- [x] Original standalone SVG for Citadel stage I added at apps/client/public/court/sprites/citadel-imperial-stage-01.svg (512×512, transparent background, 4×4 footprint anchor, 286 px base patch, bottom pivot 256×500).
+- [x] Sprite catalog supports explicit PNG/SVG extensions while preserving legacy PNG fallback URLs.
+- [x] Pixi building loader resolves URLs through the shared catalog and continues to load through PIXI.Assets.
+- [x] Regression test covers Citadel asset metadata/URL and legacy fallback compatibility.
+- [ ] In-scene screenshot review at desktop, 390 px and 320 px.
+- [ ] Add original terrain/road texture kit and wall modules.
+- [ ] Produce Citadel stages II–V and the first two companion buildings.
+- [ ] Physical-device texture memory/FPS acceptance.
+
+**Scope note:** this is the first integrated original asset, not completion of the visual slice or a claim that the whole city has reached target fidelity. The terrain remains the existing cached geometry until the texture kit is integrated and verified.
