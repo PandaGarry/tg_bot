@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { preload, createBuilding } = vi.hoisted(() => ({
+const { preload, createBuilding, drawGhost } = vi.hoisted(() => ({
   preload: vi.fn(),
   createBuilding: vi.fn(),
+  drawGhost: vi.fn(),
 }));
 
 vi.mock("pixi.js", () => {
@@ -63,7 +64,7 @@ vi.mock("../src/game/court/building.js", () => ({
   preloadBuildingSprites: preload,
 }));
 
-vi.mock("../src/game/court/ghost.js", () => ({ drawGhost: () => undefined }));
+vi.mock("../src/game/court/ghost.js", () => ({ drawGhost }));
 vi.mock("../src/game/court/tileMap.js", () => ({
   destroyTileMap: () => undefined,
   drawRoads: () => undefined,
@@ -79,6 +80,7 @@ describe("court scene lifecycle", () => {
     vi.resetModules();
     preload.mockReset();
     createBuilding.mockReset();
+    drawGhost.mockReset();
     createBuilding.mockImplementation(() => new (class {
       destroy() {}
     })());
