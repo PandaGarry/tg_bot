@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="448" viewBox="0 0 512 448">
+<defs>
+ <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#748087"/><stop offset=".5" stop-color="#39434b"/><stop offset="1" stop-color="#171f27"/></linearGradient>
+ <linearGradient id="top" x2="0" y2="1"><stop stop-color="#a0a49b"/><stop offset="1" stop-color="#4b555a"/></linearGradient>
+ <linearGradient id="gold"><stop stop-color="#d8bd7d"/><stop offset=".5" stop-color="#87643b"/><stop offset="1" stop-color="#3c3025"/></linearGradient>
+</defs>
+<ellipse cx="258" cy="380" rx="208" ry="25" fill="#030609" opacity=".48"/>
+<!-- Corner bastion: two perpendicular curtain walls joined at a raised stone pier. -->
+<path d="m42 239 112-59 101 54 105-55 112 59-216 114Z" fill="#0d141b" stroke="#080d12" stroke-width="8"/>
+<path d="m42 179 112-59 101 54 105-55 112 59v61l-112-59-105 55-101-54-112 59Z" fill="url(#stone)" stroke="#111820" stroke-width="7"/>
+<path d="m42 179 112-59 101 54v61l-101-54-112 59Z" fill="#48535b"/>
+<path d="m255 174 105-55 112 59v61l-112-59-105 55Z" fill="#27323b"/>
+<path d="m42 179 112-59 101 54 105-55 112 59-216 114Z" fill="url(#top)" stroke="#151d24" stroke-width="6"/>
+<!-- parapet caps -->
+<path d="m42 166 112-59 101 54 105-55 112 59-216 114Z" fill="#7e8989" stroke="#242e35" stroke-width="6"/>
+<path d="m42 166 112-59 101 54v18l-101-54-112 59Z" fill="#a2a69b" opacity=".42"/>
+<path d="m255 161 105-55 112 59v18l-112-59-105 55Z" fill="#a2a69b" opacity=".28"/>
+<!-- central corner tower -->
+<path d="m195 148 60-32 62 33v110l-62 33-60-32Z" fill="url(#stone)" stroke="#101820" stroke-width="7"/>
+<path d="m195 148 60 33v111l-60-32Z" fill="#4b565d"/><path d="m255 181 62-32v110l-62 33Z" fill="#242f38"/>
+<path d="m184 139 71-38 73 39-73 39Z" fill="url(#top)" stroke="#182129" stroke-width="6"/>
+<path d="m184 139 71 39v17l-71-39Z" fill="#89938e"/><path d="m255 178 73-39v17l-73 39Z" fill="#566168"/>
+<path d="m213 143 42-23 44 23-44 24Z" fill="#222c34" stroke="#b99a65" stroke-width="3"/>
+<path d="M255 119V91" stroke="#b9955b" stroke-width="5"/><path d="m255 92 31 12-31 13Z" fill="#792936" stroke="#301b20" stroke-width="3"/>
+<!-- merlons and metal details -->
+<g fill="#59646a" stroke="#1a232a" stroke-width="4">
+<path d="m68 162 20-11v-24l-20 11Z"/><path d="m118 136 20-11v-24l-20 11Z"/>
+<path d="m389 131 20 11v-24l-20-11Z"/><path d="m438 157 20 11v-24l-20-11Z"/>
+</g>
+<g fill="url(#gold)" stroke="#3b2d21" stroke-width="2"><circle cx="52" cy="174" r="6"/><circle cx="461" cy="174" r="6"/><circle cx="255" cy="109" r="6"/></g>
+<path d="m44 180 211 113 211-113" fill="none" stroke="#c5a56b" stroke-width="4" opacity=".7"/>
+<path d="m154 120 101 54 105-55" fill="none" stroke="#d0b47a" stroke-width="4" opacity=".55"/>
+</svg>
