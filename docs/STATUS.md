@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #377 (`42698911502`) — **PASS** на HEAD `e8df1f34565939dd846a7c5d7871dcf092dcfe35`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, запуск живого мира и UI walk в Chromium, 7 игровых screenshots, PostgreSQL backup/restore drill, dependency audits (включая High/Moderate) и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #377 (`42698911502`) — **PASS** на HEAD `e8df1f34565939dd846a7c5d7871dcf092dcfe35`. После него run #380 был отменён, а run `42699659375` завершился **FAIL**: единственная ошибка — устаревшее ожидание PNG лесопилки в `tests/sprite-catalog.test.ts`; аудит зависимостей прошёл. Исправление теста ожидает повторного CI. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026\n\n- CI #377 (`42698911502`) на HEAD `e8df1f3` завершился **PASS**: typecheck, PostgreSQL tests, package/check suite, production build, Chromium live-world UI walk, screenshots (7 JPEG), PostgreSQL 18 backup/restore drill, dependency audits High/Moderate и Drizzle snapshots. Артефакт `tdl-live-game-screenshots` сохранён до 23.11.2026. Визуальный просмотр подтвердил загрузку Цитадели и текстуры грунта; выявлено несоответствие плоской геометричной цитадели и старых прототипных зданий. После CI добавлены оригинальные stage-I SVG Лесопилки и Фермы; эти новые изменения ожидают отдельного полного CI.
 
