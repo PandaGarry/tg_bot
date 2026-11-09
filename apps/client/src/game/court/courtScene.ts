@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from "pixi.js";
 import { bridge } from "../bridge.js";
+import { loadTexture } from "../core/assets.js";
 import type { StateUpdate } from "../bridge.js";
 import { CourtCamera } from "./camera.js";
 import { buildingDepth, createBuilding, hitBuilding, preloadBuildingSprites } from "./building.js";
@@ -66,6 +67,7 @@ export class CourtScene {
 
     this.resize();
     this.redraw();
+    this.preloadGroundTexture();
   }
 
   destroy(): void {
@@ -104,6 +106,19 @@ export class CourtScene {
     const viewport = this.viewportSize();
     this.camera.resize(viewport.width, viewport.height, this.grid.size);
     this.drawPreview();
+  }
+
+  /** Подменяет геометрический fallback текстурным грунтом после асинхронной загрузки. */
+  private preloadGroundTexture(): void {
+    void loadTexture("court-ground:imperial-stone", "/court/terrain/imperial-ground-tile.svg")
+      .then((texture) => {
+        if (this.destroyed) return;
+        drawTileMap(this.ground, this.grid.size, this.app.renderer?.resolution ?? 1, texture);
+        this.renderedGridSize = this.grid.size;
+      })
+      .catch((error: unknown) => {
+        console.warn("[Pixi] Не удалось загрузить текстуру грунта; используется геометрический fallback", error);
+      });
   }
 
   /** Подгружает арт только для видимых/выбранных типов, не блокируя первый кадр. */
