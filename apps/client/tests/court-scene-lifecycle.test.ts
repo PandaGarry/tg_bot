@@ -6,7 +6,7 @@ const { preload, createBuilding, drawGhost, drawRoads, buildingDepth, hitBuildin
   drawGhost: vi.fn(),
   drawRoads: vi.fn(),
   buildingDepth: vi.fn((building: { x: number; z: number }) => building.x + building.z),
-  hitBuilding: vi.fn(() => false),
+  hitBuilding: vi.fn((_building: { x: number; z: number }, _point: { x: number; y: number }, _size: number) => false),
 }));
 
 vi.mock("pixi.js", () => {
