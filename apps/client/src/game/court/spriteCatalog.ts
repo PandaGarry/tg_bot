@@ -18,8 +18,8 @@ export const BUILDING_SPRITES: Readonly<Record<string, BuildingSpriteDefinition>
   quarry: { file: "a-03", width: 394, height: 325, patch: 388, tipX: 197, tipY: 321 },
   farm: { file: "farm-imperial-stage-01", extension: "svg", width: 512, height: 448, patch: 300, tipX: 256, tipY: 427 },
   pen: { file: "b-02", width: 517, height: 361, patch: 512, tipX: 310, tipY: 357 },
-  warehouse: { file: "c-03", width: 464, height: 543, patch: 459, tipX: 232, tipY: 539 },
-  barracks: { file: "b-03", width: 613, height: 505, patch: 608, tipX: 306, tipY: 501 },
+  warehouse: { file: "warehouse-imperial-stage-01", extension: "svg", width: 512, height: 512, patch: 348, tipX: 256, tipY: 500 },
+  barracks: { file: "barracks-imperial-stage-01", extension: "svg", width: 512, height: 512, patch: 348, tipX: 256, tipY: 500 },
   infirmary: { file: "c-02", width: 514, height: 496, patch: 509, tipX: 257, tipY: 492 },
 };
 
