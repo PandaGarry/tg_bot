@@ -102,7 +102,7 @@ describe("court building sprite assets", () => {
         const path = candidates.find(existsSync);
         if (!path) throw new Error(`Missing court SVG asset: ${asset.file}.svg`);
         const source = readFileSync(path, "utf8");
-        const dimensionsMatch = source.match(/<svg[^>]*width="(\\d+)"[^>]*height="(\\d+)"/);
+        const dimensionsMatch = source.match(/<svg[^>]*width="(\d+)"[^>]*height="(\d+)"/);
         if (!dimensionsMatch) throw new Error(`Invalid court SVG dimensions: ${asset.file}.svg`);
         day = { width: Number(dimensionsMatch[1]), height: Number(dimensionsMatch[2]) };
       } else {
