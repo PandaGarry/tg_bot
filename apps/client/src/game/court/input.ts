@@ -67,6 +67,16 @@ export class CourtInput {
     this.canvas.removeEventListener("pointercancel", this.onPointerCancelBound);
     this.canvas.removeEventListener("wheel", this.onWheelBound);
     this.canvas.style.touchAction = this.previousTouchAction;
+    // Скрытие/размонтирование может произойти посреди drag или pinch.
+    // Явно освобождаем capture, иначе браузер продолжит маршрутизировать
+    // pointer events в canvas уже после отключения игрового ввода.
+    for (const pointerId of this.pointers.keys()) {
+      try {
+        if (this.canvas.hasPointerCapture(pointerId)) this.canvas.releasePointerCapture(pointerId);
+      } catch {
+        // Capture мог быть автоматически снят браузером между проверкой и release.
+      }
+    }
     this.pointers.clear();
     this.pinchStart = null;
   }
