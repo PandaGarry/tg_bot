@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs>
+ <linearGradient id="earth" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4a4a43"/><stop offset=".48" stop-color="#343832"/><stop offset="1" stop-color="#242b29"/></linearGradient>
+ <pattern id="grain" width="64" height="64" patternUnits="userSpaceOnUse">
+  <path d="M4 13l9-3 5 4-7 5zM38 7l7 2-2 5-8-1zM23 39l10-4 5 5-8 5zM51 49l7-2 2 5-8 3z" fill="#899080" opacity=".16"/>
+  <path d="M9 52l5-7 3 2-4 8M44 29l6-6 3 3-6 7M29 15l3-4 4 3-3 5" stroke="#161c1a" stroke-width="2" opacity=".42" fill="none"/>
+  <circle cx="19" cy="27" r="1.8" fill="#b0a17d" opacity=".24"/><circle cx="57" cy="12" r="1.2" fill="#b0a17d" opacity=".2"/><circle cx="41" cy="57" r="1.5" fill="#0e1412" opacity=".55"/>
+ </pattern>
+</defs>
+<rect width="256" height="256" fill="url(#earth)"/>
+<rect width="256" height="256" fill="url(#grain)"/>
+<g fill="none" stroke="#111815" stroke-width="2" opacity=".28">
+ <path d="M-8 83l24-7 10 9-4 15M89-8l-6 23 11 10 16-4M172 67l-12 10 5 18 17 8M232 184l-16-5-9 14 4 15M68 204l14-8 8 12-5 17"/>
+</g>
+<g fill="#a69a7a" opacity=".11"><ellipse cx="71" cy="75" rx="21" ry="9"/><ellipse cx="192" cy="143" rx="18" ry="7"/><ellipse cx="126" cy="226" rx="26" ry="8"/></g>
+<g fill="#171e1b" opacity=".24"><circle cx="115" cy="53" r="5"/><circle cx="222" cy="35" r="3"/><circle cx="38" cy="164" r="4"/><circle cx="165" cy="202" r="3"/></g>
+</svg>
