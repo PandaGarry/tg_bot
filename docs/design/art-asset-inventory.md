@@ -44,7 +44,7 @@
 
 | Group | Current state | Required production assets |
 |---|---|---|
-| Terrain | Pixi Graphics geometry | base ground, grass/dirt/stone variants, edge/corner transitions, seasonal overlays |
+| Terrain | Imperial SVG ground tile is integrated through Pixi Graphics texture fill; edge/corner transitions remain geometry | grass/dirt/stone variants, edge/corner transitions, seasonal overlays |
 | Roads | Pixi Graphics geometry | path tiles, junctions, gates and edge blends |
 | Wall/perimeter | no production kit | straight, inner/outer corner, gate, tower, damaged/upgrade states |
 | Decorations | simple vector fallback | lantern, bench, well, flag plus stump, rock, dead tree, fence, snowdrift |
@@ -108,8 +108,9 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - [x] Pixi building loader resolves URLs through the shared catalog and continues to load through PIXI.Assets.
 - [x] Regression test covers Citadel asset metadata/URL and legacy fallback compatibility.
 - [ ] In-scene screenshot review at desktop, 390 px and 320 px.
-- [ ] Add original terrain/road texture kit and wall modules.
+- [x] Add and wire the first original imperial ground tile texture through the shared PIXI.Assets cache, retaining geometry fallback.
+- [ ] Add road/edge/corner texture kit and wall modules.
 - [ ] Produce Citadel stages II–V and the first two companion buildings.
 - [ ] Physical-device texture memory/FPS acceptance.
 
-**Scope note:** this is the first integrated original asset, not completion of the visual slice or a claim that the whole city has reached target fidelity. The terrain remains the existing cached geometry until the texture kit is integrated and verified.
+**Scope note:** this is the first integrated original asset, not completion of the visual slice or a claim that the whole city has reached target fidelity. The first imperial ground tile is integrated asynchronously into cached Pixi chunks; geometry remains the fallback. Seam/UV appearance still requires live screenshot review.
