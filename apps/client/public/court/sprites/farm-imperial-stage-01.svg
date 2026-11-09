@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="448" viewBox="0 0 512 448">
+<defs>
+ <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#77776a"/><stop offset=".5" stop-color="#45483f"/><stop offset="1" stop-color="#242b27"/></linearGradient>
+ <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#98734b"/><stop offset=".55" stop-color="#62452d"/><stop offset="1" stop-color="#30271e"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#6a5140"/><stop offset=".55" stop-color="#352a27"/><stop offset="1" stop-color="#1d2021"/></linearGradient>
+ <linearGradient id="grain" x2="0" y2="1"><stop stop-color="#b8a06a"/><stop offset="1" stop-color="#66713e"/></linearGradient>
+ <pattern id="soil" width="24" height="18" patternUnits="userSpaceOnUse"><path d="M0 8l24-8M0 18l24-8" stroke="#d3b875" stroke-width="2" opacity=".24"/></pattern>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<ellipse cx="256" cy="392" rx="184" ry="22" fill="#080b08" opacity=".6" filter="url(#shadow)"/>
+<!-- farm plot foundation -->
+<path d="M54 325L255 220 458 325 257 431Z" fill="#202824" stroke="#a58b5a" stroke-width="4"/>
+<path d="M73 325L255 231 438 325 257 419Z" fill="url(#stone)" stroke="#171e1b" stroke-width="5"/>
+<path d="M73 325L255 231 438 325 257 419Z" fill="url(#soil)"/>
+<!-- crop terraces -->
+<g stroke="#332c20" stroke-width="4">
+ <path d="M88 321l166-86 164 86-163 86Z" fill="#4c5833"/>
+ <path d="M105 322l149-77 146 77-145 77Z" fill="#64713c"/>
+</g>
+<g stroke="#c3a15f" stroke-width="3" opacity=".85">
+ <path d="M111 322l143-73m-126 91l143-74m-125 92l143-74m-124 91l143-74"/>
+ <path d="M149 344l-1-18m34 36l-1-18m34 36l-1-18m34 36l-1-18m34 0l-1-18m34 0l-1-18m34 0l-1-18"/>
+</g>
+<!-- farmhouse -->
+<path d="M150 281V177L255 121 360 177V282L255 337Z" fill="url(#wood)" stroke="#171c1b" stroke-width="7"/>
+<path d="M150 177L255 121 360 177 255 237Z" fill="#8a6745" stroke="#241e19" stroke-width="5"/>
+<path d="M164 181L255 133 346 181V270L255 319 164 270Z" fill="url(#wood)"/>
+<path d="M164 181L255 133 346 181V270L255 319 164 270Z" fill="url(#soil)" opacity=".3"/>
+<!-- roof -->
+<path d="M125 181L255 88 385 181 359 198 255 125 151 198Z" fill="url(#roof)" stroke="#171b1c" stroke-width="7"/>
+<path d="M125 181L255 88 385 181" fill="none" stroke="#c0a06a" stroke-width="5"/>
+<path d="M145 177l110-77 110 77" fill="none" stroke="#8f8877" stroke-width="2" opacity=".6"/>
+<!-- front beams -->
+<path d="M164 193l91 52 91-52M164 267l91 51 91-51" fill="none" stroke="#c19a61" stroke-width="7"/>
+<!-- door and windows -->
+<path d="M230 323V258Q255 231 280 258V323Z" fill="#211b17" stroke="#b68d55" stroke-width="4"/>
+<path d="M188 214h28v29h-28zM295 214h28v29h-28z" fill="#27383a" stroke="#c6a36a" stroke-width="4"/>
+<path d="M202 214v29m-14-15h28m93-14v29m-14-15h28" stroke="#d7bd86" stroke-width="3"/>
+<!-- granary loft -->
+<path d="M213 147V113l42-28 43 28v36" fill="#58432f" stroke="#1b1d1a" stroke-width="5"/>
+<path d="M205 116l50-35 51 35" fill="none" stroke="#c2a06b" stroke-width="5"/>
+<!-- hay stacks -->
+<g stroke="#44351e" stroke-width="4">
+ <path d="M66 298q4-40 39-48q39 12 39 48Z" fill="#a68b4c"/>
+ <path d="M77 299q4-29 29-36q28 8 29 36Z" fill="#c2a35d"/>
+ <path d="M350 311q5-36 37-43q36 10 37 43Z" fill="#907344"/>
+</g>
+<g stroke="#e0c57d" stroke-width="3" opacity=".75"><path d="M82 278l50 15m-40-30l40 17m230 20l52 16m-39-31l39 16"/></g>
+<!-- grain sacks and barrels -->
+<g><path d="M105 350q-7-20 8-28q17-5 23 12l-4 22Z" fill="#b4a078" stroke="#453a29" stroke-width="3"/><path d="M136 360q-7-20 8-28q17-5 23 12l-4 22Z" fill="#8c7958" stroke="#453a29" stroke-width="3"/></g>
+<g fill="#d0b67d"><circle cx="114" cy="338" r="2"/><circle cx="145" cy="348" r="2"/></g>
+<!-- fence -->
+<path d="M48 348l28-15m-20 31l28-15m292-6l29-15m-20 31l29-15" stroke="#76563a" stroke-width="7"/>
+<g stroke="#c1a06a" stroke-width="4"><path d="M54 337v31m23-44v31m292-3v31m24-43v31"/></g>
+<!-- wheat emblem -->
+<path d="M255 80V57m0 10l-12-10m12 16l13-11" stroke="#c4a15f" stroke-width="3"/>
+<path d="M255 57q-14-10-8-20q12 2 8 20m0 6q14-10 8-20q-12 2-8 20" fill="#b6a15e"/>
+<path d="M72 325L255 230 438 325" fill="none" stroke="#d0b276" stroke-width="3" opacity=".8"/>
+</svg>
