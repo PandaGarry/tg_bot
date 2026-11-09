@@ -3,7 +3,7 @@ import { cellDiamond, cellCenter, worldToScreen, TILE_HEIGHT, TILE_WIDTH } from 
 import type { CourtGrid, CourtRoad } from "./types.js";
 
 const SOIL = [0x33402c, 0x37452f, 0x394831, 0x35432e] as const;
-export const TILE_CHUNK_SIZE = 16;
+export const TILE_CHUNK_SIZE = 8;
 
 export interface TileChunkRange {
   xStart: number;
@@ -53,14 +53,14 @@ export function destroyTileMap(container: Container): void {
 }
 
 /**
- * Рисует грунт отдельными статичными чанками. Кеш каждого чанка ограничен 16×16
- * клетками; resolution ограничен 2, чтобы не создавать чрезмерные GPU-текстуры
+ * Рисует грунт отдельными статичными чанками. Кеш каждого чанка ограничен 8×8
+ * клетками; resolution ограничен 1.5, чтобы не создавать чрезмерные GPU-текстуры
  * на устройствах с высоким devicePixelRatio.
  */
 export function drawTileMap(container: Container, size: number, rendererResolution = 1): void {
   destroyTileMap(container);
   const resolution = Number.isFinite(rendererResolution)
-    ? Math.min(2, Math.max(1, rendererResolution))
+    ? Math.min(1.5, Math.max(1, rendererResolution))
     : 1;
 
   for (const range of getTileChunkRanges(size)) {
