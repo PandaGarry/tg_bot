@@ -368,8 +368,36 @@ function formatAmount(value: number, lang: Locale): string {
   return new Intl.NumberFormat(lang === "ru" ? "ru-RU" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }
 
-function BuildingArtwork({ id, fallback }: { id: string; fallback: ConceptIconName }) {
+const BUILDING_ICON_FALLBACK: Record<string, ConceptIconName> = {
+  citadel: "court",
+  wall: "court",
+  warehouse: "wood",
+  infirmary: "mushrooms",
+  academy: "research",
+  "clan-hall": "clan",
+  tavern: "cottage",
+  watchtower: "court",
+  forge: "metal",
+  "trade-post": "shop",
+  barracks: "barracks",
+  range: "train",
+  stable: "cottage",
+  "siege-yard": "build",
+  sawmill: "sawmill",
+  pen: "farm",
+  quarry: "quarry",
+  mine: "mine",
+  farm: "farm",
+  lantern: "lantern",
+  bench: "bench",
+  well: "well",
+  flag: "flag",
+  road: "road",
+};
+
+function BuildingArtwork({ id }: { id: string }) {
   const src = buildingSpriteUrl(id);
+  const fallback = BUILDING_ICON_FALLBACK[id] ?? "court";
   return src ? <img src={src} alt="" draggable={false} /> : <ConceptIcon name={fallback} />;
 }
 
@@ -413,7 +441,7 @@ function ConceptBuildPanel({
         <button type="button" className="concept-panel-close" aria-label={lang === "ru" ? "Закрыть" : "Close"} onClick={onClose}>×</button>
       </header>
       <button type="button" className="concept-upgrade" onClick={onUpgrade} disabled={!canUpgrade}>
-        <span className="concept-upgrade__icon"><BuildingArtwork id="citadel" fallback="court" /></span>
+        <span className="concept-upgrade__icon"><BuildingArtwork id="citadel" /></span>
         <span className="concept-upgrade__text">
           <b>{t("shell.hud.b.townhall")} · {level}</b>
           <small>{level >= CITADEL_MAX_LEVEL ? copy.maxLevel : `${copy.upgrade} · ${level + 1}`}</small>
@@ -453,7 +481,7 @@ function ConceptBuildPanel({
               disabled={disabled}
               onClick={() => onPlaceStart(item.id)}
             >
-              <span className="concept-building-art"><BuildingArtwork id={item.id} fallback={item.id as ConceptIconName} /></span>
+              <span className="concept-building-art"><BuildingArtwork id={item.id} /></span>
               <span className="concept-building-card__copy">
                 <b>{t(`shell.hud.b.${item.id}`)}</b>
                 <small>{locked ? `${copy.locked} · ${item.th}` : item.cost.map(([id, amount]) => `${resourceAbbreviation(id, lang)} ${amount}`).join(" · ")}</small>

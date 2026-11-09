@@ -123,7 +123,7 @@ await sleep(1200);
 
 async function measureTop(label: string): Promise<string> {
   const result = await page.evaluate(() => {
-    const rect = (selector: string) => {
+    function rect(selector: string) {
       const element = document.querySelector(selector);
       if (!element) return null;
       const box = element.getBoundingClientRect();
@@ -135,21 +135,19 @@ async function measureTop(label: string): Promise<string> {
         right: Math.round(box.right),
         bottom: Math.round(box.bottom),
       };
-    };
+    }
     const profile = rect(".ch-profile");
     const resources = rect(".ch-res");
     const overlap = profile && resources
       ? profile.x < resources.right && profile.right > resources.x &&
         profile.y < resources.bottom && profile.bottom > resources.y
       : null;
+    const top = document.querySelector(".ch-top");
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
-      topBarWidth: document.querySelector(".ch-top")?.clientWidth ?? null,
-      topBarScrollWidth: document.querySelector(".ch-top")?.scrollWidth ?? null,
-      horizontalOverflow: (() => {
-        const top = document.querySelector(".ch-top");
-        return top ? top.scrollWidth > top.clientWidth + 1 : true;
-      })(),
+      topBarWidth: top?.clientWidth ?? null,
+      topBarScrollWidth: top?.scrollWidth ?? null,
+      horizontalOverflow: top ? top.scrollWidth > top.clientWidth + 1 : true,
       profile,
       resources,
       firstResource: rect(".ch-res__item:first-child"),
@@ -179,6 +177,17 @@ await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
 await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-build.jpg");
+const missingArtwork = await page.$eval(".concept-building-card", (cards) =>
+  cards.filter((card) => {
+    const art = card.querySelector(".concept-building-art");
+    const image = art?.querySelector("img") as HTMLImageElement | null;
+    return !art || (!art.querySelector("svg") && !(image?.complete && image.naturalWidth > 0));
+  }).map((card) => card.getAttribute("data-building-id") ?? "unknown"),
+);
+if (missingArtwork.length > 0) {
+  throw new Error(`Building cards without artwork: ${missingArtwork.join(", ")}`);
+}
+console.log("  карточки строительства: у всех зданий есть загруженный спрайт или SVG fallback");
 
 // Проверяем вкладку декора и карточку мощения; постановку не подтверждаем,
 // чтобы скриншотный сценарий не изменял состояние тестового королевства.
