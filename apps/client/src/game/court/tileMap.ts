@@ -1,5 +1,5 @@
 import { Container, Graphics } from "pixi.js";
-import { cellDiamond, cellCenter, TILE_HEIGHT, TILE_WIDTH } from "./isometric.js";
+import { cellDiamond, cellCenter, worldToScreen, TILE_HEIGHT, TILE_WIDTH } from "./isometric.js";
 import type { CourtGrid, CourtRoad } from "./types.js";
 
 const SOIL = [0x33402c, 0x37452f, 0x394831, 0x35432e] as const;
@@ -66,15 +66,21 @@ export function drawTileMap(container: Container, size: number, rendererResoluti
   for (const range of getTileChunkRanges(size)) {
     const chunk = new Container();
     chunk.label = `ground-chunk-${range.xStart}-${range.zStart}`;
+    // Содержимое кеша строим в локальных координатах: иначе дальние чанки
+    // захватят пустое пространство от начала доски и превратятся в большие текстуры.
+    const origin = worldToScreen(range.xStart, range.zStart);
+    chunk.position.set(origin.x, origin.y);
     const graphics = new Graphics();
 
     for (let z = range.zStart; z < range.zEnd; z += 1) {
       for (let x = range.xStart; x < range.xEnd; x += 1) {
         const variation = (x * 7 + z * 11 + (x * z) % 5) % SOIL.length;
-        drawDiamond(graphics, cellDiamond(x, z, size), SOIL[variation]!, 0x536247, 0.8);
+        const diamond = cellDiamond(x, z, size).map(({ x: px, y }) => ({ x: px - origin.x, y: y - origin.y }));
+        drawDiamond(graphics, diamond, SOIL[variation]!, 0x536247, 0.8);
 
         // Тонкая светлая кромка даёт клеткам объём, не споря с будущими спрайтами.
-        const center = cellCenter(x, z, size);
+        const worldCenter = cellCenter(x, z, size);
+        const center = { x: worldCenter.x - origin.x, y: worldCenter.y - origin.y };
         graphics
           .moveTo(center.x - TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
           .lineTo(center.x, center.y - TILE_HEIGHT * 0.5)
