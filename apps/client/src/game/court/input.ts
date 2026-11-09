@@ -23,6 +23,7 @@ const DRAG_THRESHOLD: Record<string, number> = { mouse: 6, pen: 8, touch: 12 };
 export class CourtInput {
   private readonly pointers = new Map<number, PointerTrack>();
   private pinchStart: PinchStart | null = null;
+  private enabled = false;
   private readonly previousTouchAction: string;
   private readonly onPointerDownBound: (event: PointerEvent) => void;
   private readonly onPointerMoveBound: (event: PointerEvent) => void;
@@ -37,7 +38,6 @@ export class CourtInput {
     private readonly onHover: (point: CameraPoint) => void,
   ) {
     this.previousTouchAction = canvas.style.touchAction;
-    canvas.style.touchAction = "none";
 
     this.onPointerDownBound = (event) => this.onPointerDown(event);
     this.onPointerMoveBound = (event) => this.onPointerMove(event);
@@ -45,14 +45,22 @@ export class CourtInput {
     this.onPointerCancelBound = (event) => this.onPointerCancel(event);
     this.onWheelBound = (event) => this.onWheel(event);
 
-    canvas.addEventListener("pointerdown", this.onPointerDownBound);
-    canvas.addEventListener("pointermove", this.onPointerMoveBound);
-    canvas.addEventListener("pointerup", this.onPointerUpBound);
-    canvas.addEventListener("pointercancel", this.onPointerCancelBound);
-    canvas.addEventListener("wheel", this.onWheelBound, { passive: false });
+    this.setEnabled(true);
   }
 
-  destroy(): void {
+  /** Отключает обработчики, когда двор скрыт другим разделом HUD. */
+  setEnabled(enabled: boolean): void {
+    if (this.enabled === enabled) return;
+    this.enabled = enabled;
+    if (enabled) {
+      this.canvas.style.touchAction = "none";
+      this.canvas.addEventListener("pointerdown", this.onPointerDownBound);
+      this.canvas.addEventListener("pointermove", this.onPointerMoveBound);
+      this.canvas.addEventListener("pointerup", this.onPointerUpBound);
+      this.canvas.addEventListener("pointercancel", this.onPointerCancelBound);
+      this.canvas.addEventListener("wheel", this.onWheelBound, { passive: false });
+      return;
+    }
     this.canvas.removeEventListener("pointerdown", this.onPointerDownBound);
     this.canvas.removeEventListener("pointermove", this.onPointerMoveBound);
     this.canvas.removeEventListener("pointerup", this.onPointerUpBound);
@@ -61,6 +69,10 @@ export class CourtInput {
     this.canvas.style.touchAction = this.previousTouchAction;
     this.pointers.clear();
     this.pinchStart = null;
+  }
+
+  destroy(): void {
+    this.setEnabled(false);
   }
 
   private onPointerDown(event: PointerEvent): void {
