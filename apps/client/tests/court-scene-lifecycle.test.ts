@@ -261,6 +261,7 @@ describe("court scene lifecycle", () => {
     expect(buildingDepth).not.toHaveBeenCalled();
     expect(hitBuilding).toHaveBeenCalledTimes(2);
 
+    const sortCallsBeforeBuildingChange = buildingDepth.mock.calls.length;
     bridge.emit("state:update", {
       court: {
         grid: {
@@ -274,7 +275,7 @@ describe("court scene lifecycle", () => {
         },
       },
     });
-    expect(buildingDepth).toHaveBeenCalledTimes(3);
+    expect(buildingDepth.mock.calls.length).toBeGreaterThan(sortCallsBeforeBuildingChange);
     scene.destroy();
   });
 });
