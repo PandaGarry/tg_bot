@@ -117,7 +117,7 @@
 - Сценарий проходит регистрацию, создание лорда и `court.enter`; затем размещает Загон и Лесопилку настоящими `court.place` командами и ждёт серверные patch/state ответы. Это не мок локального React/Pixi state.
 - Снимки: `game-court-day.jpg`, `game-court-build.jpg`, `game-court-military.jpg`, `game-court-decor.jpg`, `game-court-buildings.jpg`, `game-court-portrait.jpg` (390×844), `game-court-narrow.jpg` (320×690).
 - Автоматически проверяются активные HUD-узлы, отсутствие горизонтального переполнения верхней строки и наличие загруженного PNG или SVG fallback у карточек вкладок экономики, военных зданий и декора.
-- Артефакт GitHub Actions: `tdl-live-game-screenshots`, run #278, HEAD `28ac69b9fce61154fe6aca930b424d029a92a273`, полный CI PASS. Артефакт хранится 14 дней; скриншоты не коммитятся в репозиторий, поскольку имя тестового лорда/аккаунт динамические.
+- Артефакт GitHub Actions: `tdl-live-game-screenshots`, run #280, HEAD `d18e02cc16ce8f41bb2274dcaedea790f2fb0dab`, полный CI PASS. Артефакт хранится 14 дней; скриншоты не коммитятся в репозиторий, поскольку имя тестового лорда/аккаунт динамические.
 - Ограничение: Chromium headless + SwiftShader подтверждает web runtime/DOM/Pixi и адаптивные viewport, но не физическую производительность GPU, iOS Safari, Android WebView, context-loss recovery или реальные safe areas. Эти проверки остаются открытыми.
 ## Решение по полной визуальной переработке (09.11.2026)
 

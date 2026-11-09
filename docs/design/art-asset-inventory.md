@@ -74,7 +74,7 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - [ ] No visible seams, magenta fringe, cropped shadows or transparent-padding drift.
 - [ ] Pivot and hitbox match the occupied cells and sprite silhouette.
 - [ ] RU/EN HUD overlays remain legible.
-- [x] Headless Chromium desktop/390/320 screenshots captured in CI #278 (artifact `tdl-live-game-screenshots`).
+- [x] Headless Chromium desktop/390/320 screenshots captured in CI #280 (artifact `tdl-live-game-screenshots`).
 - [ ] Real iOS Safari / Android WebView acceptance and GPU performance measurements.
 - [ ] Texture memory, draw calls, frame time and first-load cost measured on target devices.
 

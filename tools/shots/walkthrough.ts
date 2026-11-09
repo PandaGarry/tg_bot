@@ -219,17 +219,10 @@ console.log("сохранён game-court-military.jpg");
 await page.click(".concept-build-tabs button:nth-child(3)");
 await sleep(300);
 await assertCurrentBuildTab("decor");
-// Проверяем вкладку декора и карточку мощения; постановку не подтверждаем,
-// чтобы скриншотный сценарий не изменял состояние тестового королевства.
-await page.evaluate(() => {
-  const tab = [...document.querySelectorAll(".concept-build-tabs button")]
-    .find((button) => /украшения|decor/i.test(button.textContent ?? ""));
-  (tab as HTMLButtonElement | undefined)?.click();
-});
+// Вкладка декора уже выбрана и проверена; размещение выше меняет только disposable CI world.
 await sleep(350);
 await page.screenshot({ path: join(outDir, "game-court-decor.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-decor.jpg");
-
 // Закрываем панель и наполняем одноразовый CI-мир реальными серверными зданиями.
 // Это не мок состояния: каждое здание проходит обычный court.place → patch → Pixi redraw.
 await page.click(".concept-build-panel .concept-panel-close");
