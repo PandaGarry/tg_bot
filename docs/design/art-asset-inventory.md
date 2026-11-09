@@ -74,7 +74,8 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - [ ] No visible seams, magenta fringe, cropped shadows or transparent-padding drift.
 - [ ] Pivot and hitbox match the occupied cells and sprite silhouette.
 - [ ] RU/EN HUD overlays remain legible.
-- [ ] Desktop/390/320 screenshots captured.
+- [x] Headless Chromium desktop/390/320 screenshots captured in CI #278 (artifact `tdl-live-game-screenshots`).
+- [ ] Real iOS Safari / Android WebView acceptance and GPU performance measurements.
 - [ ] Texture memory, draw calls, frame time and first-load cost measured on target devices.
 
 ## 6. Current technical status
@@ -85,3 +86,15 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - Pixi loads only visible/selected mapped types; React build cards reuse the same fallback images without importing Pixi.
 - Historical day/night pairs remain fallback material. Runtime currently uses day images only; evening treatment is blocked on the authoritative time contract and future light-mask implementation.
 - The prototype sprites must be replaced by accepted original art before calling the game visually production-ready.
+
+
+## 7. Live runtime evidence — CI #278
+
+- Run: `https://github.com/PandaGarry/tg_bot/actions/runs/42578126038` — full CI PASS.
+- Artifact: `tdl-live-game-screenshots` (14-day retention).
+- `game-court-day.jpg`: initial server-backed court with Citadel.
+- `game-court-build.jpg`: building panel; automated assertion checks every economy card has a loaded prototype PNG or a non-empty SVG fallback.
+- `game-court-decor.jpg`: decor tab.
+- `game-court-buildings.jpg`: server-placed Citadel, Pen and Sawmill; two buildings placed with real `court.place` commands in disposable CI world.
+- `game-court-portrait.jpg` and `game-court-narrow.jpg`: 390×844 and 320×690 responsive captures.
+- This is runtime/prototype evidence, not art sign-off: the building PNGs are temporary historical fallbacks, terrain remains Pixi geometry, and physical-device/GPU acceptance remains open.
