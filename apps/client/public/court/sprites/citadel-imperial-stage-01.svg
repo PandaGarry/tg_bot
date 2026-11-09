@@ -14,12 +14,12 @@
 <!-- contact shadow -->
 <ellipse cx="256" cy="472" rx="190" ry="30" fill="#05070c" opacity=".7" filter="url(#shadow)"/>
 <!-- foundation, exactly diamond-footprint -->
-<path d="M256 500 398 458 256 416 114 458Z" fill="#11151d" stroke="#b69b69" stroke-width="3"/>
-<path d="M256 491 378 456 256 422 134 456Z" fill="#353943" stroke="#62636a" stroke-width="2"/>
-<path d="M256 491 378 456 378 440 256 475Z" fill="#171b23"/>
-<path d="M256 491 134 456 134 440 256 475Z" fill="#454952"/>
-<path d="M256 475 378 440 256 405 134 440Z" fill="#555963" stroke="#a58a5b" stroke-width="2"/>
-<path d="M256 475 378 440 256 405 134 440Z" fill="url(#blocks)"/>
+<path d="M256 500 398 428 256 356 114 428Z" fill="#11151d" stroke="#b69b69" stroke-width="3"/>
+<path d="M256 490 378 428 256 366 134 428Z" fill="#353943" stroke="#62636a" stroke-width="2"/>
+<path d="M256 490 378 428 378 412 256 474Z" fill="#171b23"/>
+<path d="M256 490 134 428 134 412 256 474Z" fill="#454952"/>
+<path d="M256 474 378 412 256 350 134 412Z" fill="#555963" stroke="#a58a5b" stroke-width="2"/>
+<path d="M256 474 378 412 256 350 134 412Z" fill="url(#blocks)"/>
 <!-- rear wall and side wings -->
 <path d="M142 346 256 379 256 447 142 414Z" fill="url(#stoneL)" stroke="#151922" stroke-width="4"/>
 <path d="M256 379 370 346 370 414 256 447Z" fill="url(#stoneR)" stroke="#11151d" stroke-width="4"/>
