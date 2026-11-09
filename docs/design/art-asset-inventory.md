@@ -93,8 +93,8 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - Run: `https://github.com/PandaGarry/tg_bot/actions/runs/42578126038` — full CI PASS.
 - Artifact: `tdl-live-game-screenshots` (14-day retention).
 - `game-court-day.jpg`: initial server-backed court with Citadel.
-- `game-court-build.jpg`: building panel; automated assertion checks every economy card has a loaded prototype PNG or a non-empty SVG fallback.
-- `game-court-decor.jpg`: decor tab.
+- `game-court-build.jpg` and `game-court-military.jpg`: economy and military building panels; automated assertions check every card has a loaded prototype PNG or a non-empty SVG fallback.
+- `game-court-decor.jpg`: decor panel; its cards are checked by the same artwork assertion.
 - `game-court-buildings.jpg`: server-placed Citadel, Pen and Sawmill; two buildings placed with real `court.place` commands in disposable CI world.
 - `game-court-portrait.jpg` and `game-court-narrow.jpg`: 390×844 and 320×690 responsive captures.
 - This is runtime/prototype evidence, not art sign-off: the building PNGs are temporary historical fallbacks, terrain remains Pixi geometry, and physical-device/GPU acceptance remains open.

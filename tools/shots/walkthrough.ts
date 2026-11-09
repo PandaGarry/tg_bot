@@ -196,18 +196,29 @@ await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
 await sleep(500);
 await page.screenshot({ path: join(outDir, "game-court-build.jpg"), type: "jpeg", quality: 88 });
 console.log("сохранён game-court-build.jpg");
-const missingArtwork = await page.$$eval(".concept-building-card", (cards) =>
-  cards.filter((card) => {
-    const art = card.querySelector(".concept-building-art");
-    const image = art?.querySelector("img") as HTMLImageElement | null;
-    return !art || (!art.querySelector("svg") && !(image?.complete && image.naturalWidth > 0));
-  }).map((card) => card.getAttribute("data-building-id") ?? "unknown"),
-);
-if (missingArtwork.length > 0) {
-  throw new Error(`Building cards without artwork: ${missingArtwork.join(", ")}`);
+async function assertCurrentBuildTab(label: string): Promise<void> {
+  const missing = await page.$$eval(".concept-building-card", (cards) =>
+    cards.filter((card) => {
+      const art = card.querySelector(".concept-building-art");
+      const image = art?.querySelector("img") as HTMLImageElement | null;
+      return !art || (!art.querySelector("svg") && !(image?.complete && image.naturalWidth > 0));
+    }).map((card) => card.getAttribute("data-building-id") ?? "unknown"),
+  );
+  if (missing.length > 0) {
+    throw new Error(`Building cards without artwork on ${label}: ${missing.join(", ")}`);
+  }
+  console.log(`  ${label}: все карточки имеют загруженный PNG или SVG fallback`);
 }
-console.log("  карточки строительства: у всех зданий есть загруженный спрайт или SVG fallback");
 
+await assertCurrentBuildTab("economy");
+await page.click(".concept-build-tabs button:nth-child(2)");
+await sleep(300);
+await assertCurrentBuildTab("military");
+await page.screenshot({ path: join(outDir, "game-court-military.jpg"), type: "jpeg", quality: 88 });
+console.log("сохранён game-court-military.jpg");
+await page.click(".concept-build-tabs button:nth-child(3)");
+await sleep(300);
+await assertCurrentBuildTab("decor");
 // Проверяем вкладку декора и карточку мощения; постановку не подтверждаем,
 // чтобы скриншотный сценарий не изменял состояние тестового королевства.
 await page.evaluate(() => {
