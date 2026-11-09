@@ -69,18 +69,19 @@ export function drawTileMap(container: Container, size: number, rendererResoluti
     // Содержимое кеша строим в локальных координатах: иначе дальние чанки
     // захватят пустое пространство от начала доски и превратятся в большие текстуры.
     const origin = worldToScreen(range.xStart, range.zStart);
-    chunk.position.set(origin.x, origin.y);
+    const originY = origin.y - (size * TILE_HEIGHT) / 2;
+    chunk.position.set(origin.x, originY);
     const graphics = new Graphics();
 
     for (let z = range.zStart; z < range.zEnd; z += 1) {
       for (let x = range.xStart; x < range.xEnd; x += 1) {
         const variation = (x * 7 + z * 11 + (x * z) % 5) % SOIL.length;
-        const diamond = cellDiamond(x, z, size).map(({ x: px, y }) => ({ x: px - origin.x, y: y - origin.y }));
+        const diamond = cellDiamond(x, z, size).map(({ x: px, y }) => ({ x: px - origin.x, y: y - originY }));
         drawDiamond(graphics, diamond, SOIL[variation]!, 0x536247, 0.8);
 
         // Тонкая светлая кромка даёт клеткам объём, не споря с будущими спрайтами.
         const worldCenter = cellCenter(x, z, size);
-        const center = { x: worldCenter.x - origin.x, y: worldCenter.y - origin.y };
+        const center = { x: worldCenter.x - origin.x, y: worldCenter.y - originY };
         graphics
           .moveTo(center.x - TILE_WIDTH * 0.34, center.y - TILE_HEIGHT * 0.34)
           .lineTo(center.x, center.y - TILE_HEIGHT * 0.5)
