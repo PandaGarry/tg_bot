@@ -100,6 +100,17 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 - This is runtime/prototype evidence, not art sign-off: the building PNGs are temporary historical fallbacks, terrain remains Pixi geometry, and physical-device/GPU acceptance remains open.
 
 
+## 9. Imperial perimeter kit — stage I (09.11.2026)
+
+Three original transparent SVG modules have been added as a first perimeter-art set:
+- `wall-imperial-straight-stage-01.svg` — straight defensive segment.
+- `wall-imperial-gate-stage-01.svg` — arched gate module.
+- `wall-imperial-tower-stage-01.svg` — elevated watch/defense tower.
+
+Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL and anchor contracts are covered by `apps/client/tests/wall-module-catalog.test.ts`. The set is intentionally catalogued separately from the building catalog because wall segments are modular perimeter pieces, not placeable economy buildings.
+
+**Not yet runtime-integrated:** scene placement, corner variants, stage II–V, connection snapping, hit areas and desktop/mobile screenshot acceptance remain open. These SVGs are source assets and catalog groundwork, not a completed wall system.
+
 ## 8. First implementation — Empire of the Dead vertical slice (09.11.2026)
 
 - [x] Approved visual direction C documented in art-direction.md and DECISIONS.md.
