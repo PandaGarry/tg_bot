@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { preload, createBuilding, drawGhost } = vi.hoisted(() => ({
+const { preload, createBuilding, drawGhost, drawRoads } = vi.hoisted(() => ({
   preload: vi.fn(),
   createBuilding: vi.fn(),
   drawGhost: vi.fn(),
+  drawRoads: vi.fn(),
 }));
 
 vi.mock("pixi.js", () => {
@@ -67,7 +68,7 @@ vi.mock("../src/game/court/building.js", () => ({
 vi.mock("../src/game/court/ghost.js", () => ({ drawGhost }));
 vi.mock("../src/game/court/tileMap.js", () => ({
   destroyTileMap: () => undefined,
-  drawRoads: () => undefined,
+  drawRoads,
   drawTileMap: () => undefined,
 }));
 vi.mock("../src/game/court/isometric.js", () => ({
@@ -82,6 +83,7 @@ describe("court scene lifecycle", () => {
     preload.mockResolvedValue([]);
     createBuilding.mockReset();
     drawGhost.mockReset();
+    drawRoads.mockReset();
     createBuilding.mockImplementation(() => new (class {
       destroy() {}
     })());
@@ -177,6 +179,49 @@ describe("court scene lifecycle", () => {
       },
     });
     expect(drawGhost).toHaveBeenCalledTimes(callsAfterFirstUpdate + 1);
+    scene.destroy();
+  });
+
+  it("preserves unrelated building nodes and roads when only citadel level or array order changes", async () => {
+    const { bridge } = await import("../src/game/bridge.js");
+    const { CourtScene } = await import("../src/game/court/courtScene.js");
+    const stage = { addChild: vi.fn(), removeChild: vi.fn() };
+    const canvas = { parentElement: { clientWidth: 390, clientHeight: 844 } };
+    const app = { stage, canvas, screen: { width: 390, height: 844 } };
+    const scene = new CourtScene(app as never);
+
+    const buildings = [
+      { type: "cottage", x: 3, z: 4 },
+      { type: "citadel", x: 7, z: 7 },
+    ];
+    const roads = [{ x: 1, z: 1 }, { x: 2, z: 2 }];
+    bridge.emit("state:update", {
+      court: {
+        townhallLevel: 1,
+        grid: { size: 14, buildings, roads },
+      },
+    });
+    expect(createBuilding).toHaveBeenCalledTimes(2);
+    const roadDrawCount = drawRoads.mock.calls.length;
+
+    bridge.emit("state:update", {
+      court: {
+        townhallLevel: 1,
+        grid: { size: 14, buildings: [...buildings].reverse(), roads: [...roads].reverse() },
+      },
+    });
+    expect(createBuilding).toHaveBeenCalledTimes(2);
+    expect(drawRoads).toHaveBeenCalledTimes(roadDrawCount);
+
+    bridge.emit("state:update", {
+      court: {
+        townhallLevel: 2,
+        grid: { size: 14, buildings, roads },
+      },
+    });
+    expect(createBuilding).toHaveBeenCalledTimes(3);
+    expect(createBuilding.mock.calls[2]![0].type).toBe("citadel");
+    expect(drawRoads).toHaveBeenCalledTimes(roadDrawCount);
     scene.destroy();
   });
 });
