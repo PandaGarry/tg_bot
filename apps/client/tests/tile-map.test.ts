@@ -6,6 +6,7 @@ vi.mock("pixi.js", () => {
   class Container {
     children: Container[] = [];
     label = "";
+    position = { x: 0, y: 0, set: (x: number, y: number) => { this.position.x = x; this.position.y = y; } };
     cached = false;
     cacheOptions: unknown;
     destroyed = false;
@@ -30,7 +31,8 @@ vi.mock("pixi.js", () => {
     }
   }
   class Graphics extends Container {
-    poly() { return this; }
+    polygons: number[][] = [];
+    poly(points: number[]) { this.polygons.push(points); return this; }
     fill() { return this; }
     stroke() { return this; }
     moveTo() { return this; }
@@ -69,6 +71,10 @@ describe("tile map chunks", () => {
     expect(ground.children).toHaveLength(10); // 9 chunks + the thin outer border
     const chunks = ground.children.slice(0, 9);
     expect(chunks.every((chunk) => chunk.isCachedAsTexture)).toBe(true);
+    // Геометрия второго ряда/столбца остаётся локальной, а смещение живёт на Container.
+    const secondChunk = chunks[1] as Container & { position: { x: number; y: number }; children: Array<{ polygons: number[][] }> };
+    expect(secondChunk.position.x).not.toBe(0);
+    expect(secondChunk.children[0]!.polygons[0]!.every((value) => Math.abs(value) < 16 * 72)).toBe(true);
     expect(chunks.every((chunk) => (chunk as Container & { cacheOptions: { resolution: number } }).cacheOptions.resolution === 2)).toBe(true);
     expect(ground.children[9]!.isCachedAsTexture).toBe(false);
   });
