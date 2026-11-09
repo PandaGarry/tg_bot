@@ -308,3 +308,20 @@
 **CI:** run #338 (`42589464225`) — **полный PASS** на HEAD `203578f2773d0d4417498d230fe693f2e69a57a4`: typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walkthrough/screenshots, backup/restore drill, dependency audits и Drizzle snapshots.
 
 **Граница:** подтверждено сохранение display nodes и пропуск лишнего redraw на уровне unit/regression tests. Измерение FPS/GPU memory на физических устройствах не выполнялось.
+
+
+## AUD-054 — camera resize и кеширование hit-test порядка зданий (09.11.2026)
+
+**Finding A:** `CourtCamera.resize()` обновлял центр viewport, но после пользовательского pan оставлял `root.position` в прежних абсолютных экранных координатах. При изменении размеров окна/ориентации это меняло относительное положение доски и могло сдвигать выбранную область.
+
+**Исправление A:** сохраняется смещение root относительно старого центра и переносится к новому центру; zoom остаётся прежним. При изменении размера самой доски framing сбрасывается к центру и zoom=1. Добавлены тесты на сохранение pan offset/zoom при resize и reset framing при смене размера сетки.
+
+**Finding B:** `CourtScene.handleTap()` копировал и сортировал весь список зданий при каждом тапе для определения верхнего кандидата. Это лишние allocation и O(n log n) сортировка на интерактивном пути.
+
+**Исправление B:** отсортированный hit-test список строится при изменении канонической сигнатуры зданий и переиспользуется между тапами. При изменении состава зданий порядок обновляется; проверка остаётся от переднего плана к заднему. Регрессионный тест проверяет порядок кандидатов, отсутствие повторной сортировки между тапами и перестроение после изменения набора.
+
+**Коммиты:** `8fc7827` (camera resize), `4899020` (camera tests), `a0eee57` (cached hit-test candidates), `94573ef` (hit-test regression), `37322e9` (mock typing), `e61096b` (sort test made independent of JS sort comparator call count).
+
+**CI:** run #345 (`42590460020`) выявил только хрупкое ожидание точного числа вызовов comparator в тесте; типы и camera tests прошли. Тест исправлен. Run #346 (`42590719402`) — **полный PASS** на HEAD `e61096b4c02f7c4240d62c7cc039a7ec8dc78294`: typecheck, PostgreSQL tests, client tests (69 total), package/check suite, production build, Chromium UI walkthrough/screenshots, backup/restore drill, dependency audits и Drizzle snapshots.
+
+**Граница:** исправление camera framing и снижение повторной сортировки подтверждены регрессионными тестами. Фактический touch latency/FPS не измерялся на физических устройствах.
