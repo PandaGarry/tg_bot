@@ -134,7 +134,7 @@ export class CourtScene {
       this.renderedBuildingsSignature = "";
     }
 
-    const roadsSignature = this.grid.roads.map(({ x, z }) => `${x},${z}`).join(";");
+    const roadsSignature = this.grid.roads.map(({ x, z }) => `${x},${z}`).sort().join(";");
     if (roadsSignature !== this.renderedRoadsSignature) {
       drawRoads(this.roads, this.grid.roads, this.grid.size);
       this.renderedRoadsSignature = roadsSignature;
@@ -142,6 +142,7 @@ export class CourtScene {
 
     const buildingsSignature = `${this.townhallLevel}|${this.grid.buildings
       .map(({ type, x, z }) => `${type},${x},${z}`)
+      .sort()
       .join(";")}`;
     if (buildingsSignature !== this.renderedBuildingsSignature) {
       this.renderBuildings();
@@ -153,12 +154,19 @@ export class CourtScene {
 
   /** Обновляет только добавленные/удалённые здания; неизменные Pixi-ноды сохраняются. */
   private renderBuildings(rebuildTypes: readonly string[] = []): void {
-    if (
-      this.renderedBuildingGridSize !== this.grid.size
-      || this.renderedTownhallLevel !== this.townhallLevel
-    ) {
+    if (this.renderedBuildingGridSize !== this.grid.size) {
+      // При смене размера поля меняется проекция всех узлов — нужен полный rebuild.
       this.clearBuildings();
       this.renderedBuildingGridSize = this.grid.size;
+      this.renderedTownhallLevel = this.townhallLevel;
+    } else if (this.renderedTownhallLevel !== this.townhallLevel) {
+      // Уровень Цитадели влияет только на её геометрию; остальные здания сохраняем.
+      for (const [key, node] of this.buildingNodes) {
+        if (!key.startsWith("citadel:")) continue;
+        this.buildings.removeChild(node);
+        node.destroy({ children: true });
+        this.buildingNodes.delete(key);
+      }
       this.renderedTownhallLevel = this.townhallLevel;
     }
 
