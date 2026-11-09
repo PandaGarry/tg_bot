@@ -18,6 +18,8 @@ describe("TDL production sprite catalog", () => {
   it("uses original imperial SVG assets for the first production building slice", () => {
     expect(buildingSpriteUrl("sawmill")).toBe("/court/sprites/sawmill-imperial-stage-01.svg");
     expect(buildingSpriteUrl("farm")).toBe("/court/sprites/farm-imperial-stage-01.svg");
+    expect(buildingSpriteUrl("warehouse")).toBe("/court/sprites/warehouse-imperial-stage-01.svg");
+    expect(buildingSpriteUrl("barracks")).toBe("/court/sprites/barracks-imperial-stage-01.svg");
     expect(buildingSpriteUrl("academy")).toBeUndefined();
   });
 });
