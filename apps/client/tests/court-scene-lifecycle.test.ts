@@ -132,4 +132,50 @@ describe("court scene lifecycle", () => {
     expect(createBuilding).toHaveBeenCalledTimes(1);
     expect(stage.removeChild).toHaveBeenCalledTimes(1);
   });
+
+  it("skips preview redraw for resource-only or equivalent court state updates", async () => {
+    const { bridge } = await import("../src/game/bridge.js");
+    const { CourtScene } = await import("../src/game/court/courtScene.js");
+    const stage = { addChild: vi.fn(), removeChild: vi.fn() };
+    const canvas = { parentElement: { clientWidth: 390, clientHeight: 844 } };
+    const app = { stage, canvas, screen: { width: 390, height: 844 } };
+    const scene = new CourtScene(app as never);
+
+    const state = {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [{ type: "cottage", x: 3, z: 4 }],
+          roads: [{ x: 2, z: 2 }],
+        },
+      },
+    };
+    bridge.emit("state:update", state);
+    const callsAfterFirstUpdate = drawGhost.mock.calls.length;
+    expect(callsAfterFirstUpdate).toBeGreaterThan(0);
+
+    bridge.emit("state:update", {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [{ type: "cottage", x: 3, z: 4 }],
+          roads: [{ x: 2, z: 2 }],
+        },
+      },
+      resources: { wood: 999 },
+    } as never);
+    expect(drawGhost).toHaveBeenCalledTimes(callsAfterFirstUpdate);
+
+    bridge.emit("state:update", {
+      court: {
+        grid: {
+          size: 14,
+          buildings: [{ type: "cottage", x: 3, z: 4 }, { type: "farm", x: 6, z: 7 }],
+          roads: [{ x: 2, z: 2 }],
+        },
+      },
+    });
+    expect(drawGhost).toHaveBeenCalledTimes(callsAfterFirstUpdate + 1);
+    scene.destroy();
+  });
 });
