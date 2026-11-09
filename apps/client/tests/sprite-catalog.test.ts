@@ -15,8 +15,9 @@ describe("TDL production sprite catalog", () => {
     expect(buildingSpriteUrl("citadel")).toBe("/court/sprites/citadel-imperial-stage-01.svg");
   });
 
-  it("keeps legacy prototype sprite URLs compatible for remaining fallbacks", () => {
-    expect(buildingSpriteUrl("sawmill")).toBe("/court/sprites/d-01.png");
+  it("uses original imperial SVG assets for the first production building slice", () => {
+    expect(buildingSpriteUrl("sawmill")).toBe("/court/sprites/sawmill-imperial-stage-01.svg");
+    expect(buildingSpriteUrl("farm")).toBe("/court/sprites/farm-imperial-stage-01.svg");
     expect(buildingSpriteUrl("academy")).toBeUndefined();
   });
 });
