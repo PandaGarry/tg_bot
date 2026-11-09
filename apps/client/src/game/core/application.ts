@@ -42,7 +42,9 @@ class GameApp {
     if (!this.app) return;
     this.unsubscribeResize?.();
     this.unsubscribeResize = null;
-    this.app.destroy(true, { children: true, texture: true });
+    // Текстуры принадлежат глобальному PIXI.Assets и переживают remount приложения.
+    // Уничтожение Texture здесь оставит Assets и наш кэш со ссылками на мёртвые объекты.
+    this.app.destroy(true, { children: true, texture: false, textureSource: false });
     this.app = null;
   }
 }
