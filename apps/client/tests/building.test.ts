@@ -90,14 +90,30 @@ describe("court building sprite assets", () => {
     };
 
     for (const [type, asset] of Object.entries(BUILDING_SPRITES)) {
-      expect(buildingSpriteUrl(type)).toBe(`/court/sprites/${asset.file}.png`);
-      const day = dimensions(`${asset.file}.png`);
-      const nightFile = asset.file.replace(/-([0-9]+)$/, "-night-$1");
-      const night = dimensions(`${nightFile}.png`);
+      const extension = asset.extension ?? "png";
+      expect(buildingSpriteUrl(type)).toBe(`/court/sprites/${asset.file}.${extension}`);
+
+      let day: { width: number; height: number };
+      if (extension === "svg") {
+        const candidates = [
+          join(cwd(), "public", "court", "sprites", `${asset.file}.svg`),
+          join(cwd(), "apps", "client", "public", "court", "sprites", `${asset.file}.svg`),
+        ];
+        const path = candidates.find(existsSync);
+        if (!path) throw new Error(`Missing court SVG asset: ${asset.file}.svg`);
+        const source = readFileSync(path, "utf8");
+        const dimensionsMatch = source.match(/<svg[^>]*width="(\\d+)"[^>]*height="(\\d+)"/);
+        if (!dimensionsMatch) throw new Error(`Invalid court SVG dimensions: ${asset.file}.svg`);
+        day = { width: Number(dimensionsMatch[1]), height: Number(dimensionsMatch[2]) };
+      } else {
+        day = dimensions(`${asset.file}.png`);
+        const nightFile = asset.file.replace(/-([0-9]+)$/, "-night-$1");
+        const night = dimensions(`${nightFile}.png`);
+        expect(night.width, `${type} night width`).toBeGreaterThan(0);
+        expect(night.height, `${type} night height`).toBeGreaterThan(0);
+      }
 
       expect(day, type).toEqual({ width: asset.width, height: asset.height });
-      expect(night.width, `${type} night width`).toBeGreaterThan(0);
-      expect(night.height, `${type} night height`).toBeGreaterThan(0);
       expect(asset.tipX, `${type} anchor x`).toBeGreaterThanOrEqual(0);
       expect(asset.tipX, `${type} anchor x`).toBeLessThan(day.width);
       expect(asset.tipY, `${type} anchor y`).toBeGreaterThanOrEqual(0);
