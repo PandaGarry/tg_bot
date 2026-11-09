@@ -26,7 +26,7 @@ class GameApp {
     await app.init({
       preference: "webgl",
       resizeTo: container,
-      background: 0x0c0704,
+      backgroundAlpha: 0,
       antialias: true,
       autoDensity: true,
       // На ретины выше 2x пиксели просто тратим: спрайты не становятся детальнее.

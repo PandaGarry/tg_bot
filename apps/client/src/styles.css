@@ -23,6 +23,13 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 58% 44% at 50% 48%, rgba(91, 103, 75, .22), transparent 78%),
+    radial-gradient(ellipse 46% 38% at 18% 78%, rgba(105, 61, 38, .18), transparent 76%),
+    radial-gradient(ellipse 42% 34% at 82% 20%, rgba(49, 78, 75, .17), transparent 78%),
+    radial-gradient(ellipse 95% 85% at 50% 50%, transparent 45%, rgba(3, 7, 11, .82) 100%),
+    linear-gradient(145deg, #17201e 0%, #11191b 42%, #17120f 100%);
 }
 
 #pixi-root canvas {
