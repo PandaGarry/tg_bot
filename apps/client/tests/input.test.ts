@@ -41,6 +41,36 @@ describe("court touch input", () => {
     input.destroy();
   });
 
+  it("releases active pointer capture when the court becomes inactive", () => {
+    const canvas = document.createElement("canvas");
+    Object.defineProperties(canvas, {
+      clientWidth: { configurable: true, value: 390 },
+      clientHeight: { configurable: true, value: 844 },
+      getBoundingClientRect: {
+        value: () => ({ left: 0, top: 0, width: 390, height: 844, right: 390, bottom: 844 }) as DOMRect,
+      },
+    });
+    const hasPointerCapture = vi.fn(() => true);
+    const releasePointerCapture = vi.fn();
+    Object.defineProperties(canvas, {
+      hasPointerCapture: { value: hasPointerCapture },
+      releasePointerCapture: { value: releasePointerCapture },
+    });
+    const camera = new CourtCamera(new Container());
+    camera.resize(390, 844, 14);
+    const onHover = vi.fn();
+    const input = new CourtInput(canvas, camera, vi.fn(), onHover);
+
+    canvas.dispatchEvent(pointerEvent("pointerdown", 190, 420));
+    input.setEnabled(false);
+
+    expect(hasPointerCapture).toHaveBeenCalledWith(1);
+    expect(releasePointerCapture).toHaveBeenCalledWith(1);
+    canvas.dispatchEvent(pointerEvent("pointermove", 197, 426));
+    expect(onHover).not.toHaveBeenCalled();
+    input.destroy();
+  });
+
   it("does not process pointer movement while the court is inactive", () => {
     const canvas = document.createElement("canvas");
     Object.defineProperties(canvas, {
