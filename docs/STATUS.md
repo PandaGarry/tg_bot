@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #301 (`42581709162`) — **PASS** на HEAD `e426c878254fcc3c022c867032ab145d9e95d98a`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Коммиты после этого HEAD ожидают отдельного CI. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #311 (`42583360574`) — **PASS** на HEAD `479611f58ed52ce5086542a0ff60660bf670b4f1`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -206,7 +206,7 @@
 
 **Коммиты:** `ab9d95a` (сравнение клеток), `e735d23` (интеграция), `604ad28` (тесты).
 
-**Статус:** implementation committed; ожидает полного CI на текущем HEAD. Количественный FPS/GPU/CPU профайлинг не выполнялся; подтверждается устранение повторных вызовов preview на неизменной клетке, а не конкретный прирост производительности.
+**Статус: кодовая часть закрыта CI #301 PASS** на HEAD `e426c87`. Количественный FPS/GPU/CPU профайлинг не выполнялся; подтверждается устранение повторных вызовов preview на неизменной клетке, а не конкретный прирост производительности.
 
 ## AUD-047 — конкурентная инициализация и отмена Pixi mount (09.11.2026)
 
@@ -219,6 +219,20 @@
 - при ошибке инициализации частично созданный renderer освобождается, повторная попытка не блокируется;
 - добавлены регрессионные тесты на общий Promise, единственный mount и destroy во время pending init.
 
-**Коммиты:** `4a36fb6` (исправление), `21fd28c` (регрессионные тесты).
+**Коммиты:** `4a36fb6` (первичное исправление), `21fd28c` (регрессионные тесты), `8efea51` (разрешение нового mount после invalidation), `292fafb` (тест повторного mount), `290fea2` и `924ead6` (проверки синхронного исключения/первоначальная корректировка), `d963705` (финальное исправление синхронного вызова `Application.init()`).
 
-**Статус:** implementation и tests committed; ожидается полный CI на новом HEAD. До PASS не закрывать AUD-047.
+**Статус: кодовая часть закрыта CI #309 PASS** на HEAD `d963705`. Проверены конкурентный init, destroy во время pending init, новый mount до завершения старого init, уничтожение устаревшего renderer, очистка после синхронной ошибки и успешный retry. Runtime smoke test на реальном устройстве остаётся открытым.
+
+
+## AUD-048 — освобождение pointer capture при отключении двора (09.11.2026)
+
+**Finding:** при скрытии или размонтировании двора отключение pointer listeners очищало внутренний список указателей, но браузерный pointer capture мог оставаться захваченным до завершения жеста. При отключении сцены посреди drag/pinch события могли продолжать маршрутизироваться в неактивный canvas.
+
+**Исправление в рабочей ветке:**
+- `CourtInput.setEnabled(false)` проверяет каждый активный pointer ID и освобождает capture через `releasePointerCapture()` до очистки состояния;
+- освобождение защищено от исключения браузера, если capture уже потерян;
+- регрессионный тест начинает pointerdown, отключает ввод, проверяет `hasPointerCapture()` и `releasePointerCapture()`, затем убеждается, что pointermove не вызывает hover.
+
+**Коммиты:** `81c1239` (исправление), `479611f` (регрессионный тест).
+
+**Статус: кодовая часть закрыта CI #311 PASS** на HEAD `479611f`. Все основные этапы workflow завершились успешно, включая typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Измерения FPS/GPU/CPU не проводились; подтверждена корректность teardown pointer capture, а не количественный прирост производительности.
