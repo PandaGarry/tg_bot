@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="384" viewBox="0 0 512 384">
+<defs>
+ <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#66717a"/><stop offset=".48" stop-color="#343d46"/><stop offset="1" stop-color="#171e27"/></linearGradient>
+ <linearGradient id="top" x2="0" y2="1"><stop stop-color="#8c9695"/><stop offset="1" stop-color="#3b454c"/></linearGradient>
+ <linearGradient id="metal" x2="1" y2="1"><stop stop-color="#d0ad68"/><stop offset=".5" stop-color="#80603a"/><stop offset="1" stop-color="#342a22"/></linearGradient>
+ <filter id="shadow"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<ellipse cx="256" cy="326" rx="220" ry="28" fill="#05080b" opacity=".48" filter="url(#shadow)"/>
+<path d="M42 238 256 126 470 238 256 350Z" fill="#111820" stroke="#090e13" stroke-width="8"/>
+<path d="M42 177 256 65 470 177 470 238 256 350 42 238Z" fill="url(#stone)" stroke="#111820" stroke-width="8"/>
+<path d="M42 177 256 65 470 177 256 291Z" fill="url(#top)" stroke="#9aa09a" stroke-opacity=".35" stroke-width="5"/>
+<path d="M42 177 256 291 256 350 42 238Z" fill="#303a42"/><path d="M256 291 470 177 470 238 256 350Z" fill="#202a33"/>
+<g fill="#59636a" stroke="#151d24" stroke-width="5">
+<path d="m73 174 45-24 0 82-45 24Z"/><path d="m394 150 45 24v82l-45-24Z"/>
+<path d="m145 137 37-20 0 82-37 20Z"/><path d="m330 117 37 20v82l-37-20Z"/>
+</g>
+<g fill="#202a31" stroke="#9b8a68" stroke-width="3">
+<path d="m105 179 14-8v44l-14 8Z"/><path d="m393 171 14 8v44l-14-8Z"/>
+<path d="m190 134 12-7v43l-12 7Z"/><path d="m310 127 12 7v43l-12-7Z"/>
+</g>
+<path d="m42 177 214 114 214-114" fill="none" stroke="#c2a36c" stroke-width="5" opacity=".7"/>
+<g fill="#aeb0a2" opacity=".42"><path d="m90 208 34 18-4 5-34-18Z"/><path d="m276 294 42-22-3 7-42 22Z"/><path d="m350 210 25-13-2 6-25 13Z"/></g>
+<path d="M45 172 256 61 467 172" fill="none" stroke="#c5b17d" stroke-width="7" stroke-linecap="round"/>
+<g fill="#c59b54" stroke="#3d3023" stroke-width="3"><circle cx="64" cy="181" r="6"/><circle cx="448" cy="181" r="6"/><circle cx="256" cy="70" r="7"/></g>
+<path d="M256 291v59" stroke="#111820" stroke-width="5"/>
+</svg>
