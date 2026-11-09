@@ -9,11 +9,21 @@ export interface WallModuleDefinition {
   patch: number;
   tipX: number;
   tipY: number;
-  role: "straight" | "gate" | "tower";
+  role: "straight" | "corner" | "gate" | "tower";
   stage: 1;
 }
 
 export const IMPERIAL_WALL_MODULES: Readonly<Record<string, WallModuleDefinition>> = {
+  corner: {
+    file: "wall-imperial-corner-stage-01",
+    width: 512,
+    height: 448,
+    patch: 432,
+    tipX: 256,
+    tipY: 407,
+    role: "corner",
+    stage: 1,
+  },
   straight: {
     file: "wall-imperial-straight-stage-01",
     width: 512,
