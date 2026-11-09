@@ -95,4 +95,34 @@ describe("Pixi application lifecycle", () => {
     });
     expect(gameApp.ready).toBe(false);
   });
+
+  it("allows a new mount while an invalidated initialization is still pending", async () => {
+    const { gameApp } = await import("../src/game/core/application.js");
+    let resolveFirst!: () => void;
+    let resolveSecond!: () => void;
+    fakeApp.init
+      .mockImplementationOnce(() => new Promise<void>((resolve) => {
+        resolveFirst = resolve;
+      }))
+      .mockImplementationOnce(() => new Promise<void>((resolve) => {
+        resolveSecond = resolve;
+      }));
+    const oldContainer = { appendChild: vi.fn() };
+    const newContainer = { appendChild: vi.fn() };
+
+    const oldInit = gameApp.init(oldContainer as unknown as HTMLElement);
+    gameApp.destroy();
+    const newInit = gameApp.init(newContainer as unknown as HTMLElement);
+
+    expect(fakeApp.init).toHaveBeenCalledTimes(2);
+    resolveSecond();
+    await newInit;
+    resolveFirst();
+    await oldInit;
+
+    expect(oldContainer.appendChild).not.toHaveBeenCalled();
+    expect(newContainer.appendChild).toHaveBeenCalledOnce();
+    expect(gameApp.ready).toBe(true);
+    expect(fakeApp.destroy).toHaveBeenCalledOnce();
+  });
 });
