@@ -102,8 +102,9 @@ Every final asset needs a stable ID, source/license, stage/state, transparent so
 
 ## 9. Imperial perimeter kit — stage I (09.11.2026)
 
-Three original transparent SVG modules have been added as a first perimeter-art set:
+Four original transparent SVG modules have been added as a first perimeter-art set:
 - `wall-imperial-straight-stage-01.svg` — straight defensive segment.
+- `wall-imperial-corner-stage-01.svg` — joined 90-degree corner.
 - `wall-imperial-gate-stage-01.svg` — arched gate module.
 - `wall-imperial-tower-stage-01.svg` — elevated watch/defense tower.
 
