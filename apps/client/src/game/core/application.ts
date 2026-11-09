@@ -63,8 +63,10 @@ class GameApp {
   }
 
   destroy(): void {
-    // Инвалидируем ещё не завершившуюся init(), чтобы она не смонтировала canvas позже.
+    // Инвалидируем pending init и разрешаем новому mount начать собственную инициализацию.
+    // Старый renderer будет уничтожен, когда его асинхронная init завершится.
     this.initGeneration++;
+    this.initPromise = null;
     if (!this.app) return;
     this.unsubscribeResize?.();
     this.unsubscribeResize = null;
