@@ -38,7 +38,7 @@
 
 
 
-**Coverage:** 1/19 buildings has an original production-direction asset in runtime (Citadel stage I); 7/19 additional buildings retain semantically confirmed temporary prototype sprites; 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
+**Coverage:** 3/19 buildings have original production-direction assets in runtime (Citadel, Sawmill and Farm stage I); 5/19 additional buildings retain semantically confirmed temporary prototype sprites; 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
 
 ## 3. Other asset groups
 
@@ -126,3 +126,11 @@ Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL 
 - [ ] Physical-device texture memory/FPS acceptance.
 
 **Scope note:** this is the first integrated original asset, not completion of the visual slice or a claim that the whole city has reached target fidelity. The first imperial ground tile is integrated asynchronously into cached Pixi chunks; geometry remains the fallback. Seam/UV appearance still requires live screenshot review.
+
+
+## 10. Live review and second asset slice — CI #377 (09.11.2026)
+
+- Full workflow run #377 (`42698911502`) on HEAD `e8df1f34565939dd846a7c5d7871dcf092dcfe35` — **PASS** across typecheck, PostgreSQL tests, package/check suite, production build, Chromium live-world walk, screenshots, PostgreSQL backup/restore, dependency audits and Drizzle snapshots.
+- Captured artifact: `tdl-live-game-screenshots` (7 JPEGs: court day/build/buildings/decor/military/narrow/portrait). Visual review confirms the Citadel and terrain load in the live scene; current Citadel is readable but still too graphic/flat relative to the textured ground, while prototype companion buildings visibly clash in style.
+- Added original transparent SVG stage-I assets for Sawmill and Farm and switched their runtime catalog mappings away from legacy prototype PNGs. Both preserve the 2×2 domain footprint and use a shared 512×448 canvas with a bottom anchor and 300 px base patch.
+- This is a second asset slice, not a final art sign-off: both assets still require in-scene pivot/scale review and mobile captures; stages II–V and remaining buildings are open.
