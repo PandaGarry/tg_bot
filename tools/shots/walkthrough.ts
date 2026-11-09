@@ -240,10 +240,7 @@ async function placeBuilding(id: "farm" | "sawmill", x: number, z: number): Prom
 // под реальные пятна 2×2 фермы и лесопилки и не пересекают стартовую дорогу.
 await placeBuilding("farm", 1, 1);
 await placeBuilding("sawmill", 8, 1);
-await page.waitForFunction(() => {
-  const canvas = document.querySelector("#pixi-root canvas");
-  return Boolean(canvas) && document.body.textContent?.includes("Ферма");
-}, { timeout: 10_000 });
+await page.waitForFunction(() => !document.querySelector(".concept-placement"), { timeout: 5_000 });
 await sleep(700);
 await page.screenshot({ path: join(outDir, "game-court-buildings.jpg"), type: "jpeg", quality: 90 });
 console.log("сохранён game-court-buildings.jpg — Цитадель + Ферма + Лесопилка");
