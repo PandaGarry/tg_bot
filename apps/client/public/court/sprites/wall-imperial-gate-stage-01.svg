@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<defs><linearGradient id="stone" x2="0" y2="1"><stop stop-color="#778087"/><stop offset=".5" stop-color="#343e47"/><stop offset="1" stop-color="#171e26"/></linearGradient><linearGradient id="arch" x2="0" y2="1"><stop stop-color="#202832"/><stop offset="1" stop-color="#080d13"/></linearGradient><linearGradient id="gold"><stop stop-color="#d8bd7b"/><stop offset=".5" stop-color="#80613a"/><stop offset="1" stop-color="#3d3024"/></linearGradient></defs>
+<ellipse cx="256" cy="449" rx="215" ry="27" fill="#030609" opacity=".48"/>
+<path d="m35 236 221-117 221 117-221 118Z" fill="#10171e" stroke="#080d12" stroke-width="8"/>
+<path d="m35 158 221-117 221 117v78L256 353 35 236Z" fill="url(#stone)" stroke="#111820" stroke-width="8"/>
+<path d="m35 158 221 117 221-117-221-117Z" fill="#87918f" opacity=".28"/>
+<path d="M147 215V135q0-109 109-109t109 109v80l-42 23v-99q0-67-67-67t-67 67v99Z" fill="#657078" stroke="#111820" stroke-width="9"/>
+<path d="M186 247V143q0-70 70-70t70 70v104l-70 37Z" fill="url(#arch)" stroke="#c0a16a" stroke-width="7"/>
+<path d="M206 249V147q0-50 50-50t50 50v102l-50 27Z" fill="#070c12"/>
+<path d="M204 244 256 272 308 244" fill="none" stroke="#9c794b" stroke-width="5"/>
+<g fill="#3b4650" stroke="#121a21" stroke-width="5"><path d="m49 154 55-29v102l-55 29Z"/><path d="m408 125 55 29v102l-55-29Z"/></g>
+<g fill="#a98b58" stroke="#352a20" stroke-width="3"><path d="m61 148 42-22v17l-42 22Z"/><path d="m409 126 42 22v17l-42-22Z"/></g>
+<path d="M256 27v-20" stroke="#b9955b" stroke-width="5"/><path d="m256 8 33 13-33 13Z" fill="#7b2632" stroke="#301b20" stroke-width="3"/>
+<path d="M256 354v80" stroke="#121920" stroke-width="6"/>
+<g fill="#c9a45f" stroke="#382b20" stroke-width="3"><circle cx="115" cy="188" r="8"/><circle cx="397" cy="188" r="8"/><circle cx="256" cy="119" r="7"/></g>
+<path d="M164 211 164 139q0-92 92-92t92 92v72" fill="none" stroke="#aeb0a3" stroke-opacity=".55" stroke-width="4"/>
+<path d="m35 158 221 117 221-117" fill="none" stroke="#c4a46b" stroke-width="5" opacity=".65"/>
+</svg>
