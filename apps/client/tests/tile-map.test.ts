@@ -65,7 +65,7 @@ describe("tile map chunks", () => {
     expect(getTileChunkRanges(2.5)).toEqual([]);
   });
 
-  it("caches bounded chunks at no more than 2x resolution", () => {
+  it("caches bounded chunks with a 1.5x resolution cap", () => {
     const ground = new Container();
     drawTileMap(ground, 40, 3);
     expect(ground.children).toHaveLength(26); // 25 chunks + the thin outer border
