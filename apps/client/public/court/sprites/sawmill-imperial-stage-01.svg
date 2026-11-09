@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="448" viewBox="0 0 512 448">
+<defs>
+ <linearGradient id="stone" x2="0.8" y2="1"><stop stop-color="#777b79"/><stop offset=".48" stop-color="#41494a"/><stop offset="1" stop-color="#20292c"/></linearGradient>
+ <linearGradient id="timber" x2="0" y2="1"><stop stop-color="#9b6842"/><stop offset=".5" stop-color="#563927"/><stop offset="1" stop-color="#291f1b"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#55585b"/><stop offset=".55" stop-color="#252a30"/><stop offset="1" stop-color="#141a20"/></linearGradient>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#d8b879"/><stop offset="1" stop-color="#76552f"/></linearGradient>
+ <pattern id="grain" width="22" height="18" patternUnits="userSpaceOnUse"><path d="M2 5l7-2m2 10l8-3M4 17l4-2" stroke="#d1ad78" opacity=".22" stroke-width="1"/><circle cx="17" cy="4" r="1" fill="#e0c99a" opacity=".25"/></pattern>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<ellipse cx="258" cy="392" rx="180" ry="24" fill="#070b0d" opacity=".62" filter="url(#shadow)"/>
+<!-- stone foundation -->
+<path d="M75 331L255 235 439 331 258 427Z" fill="#222a2b" stroke="#a58b5b" stroke-width="4"/>
+<path d="M92 329L255 246 420 329 258 412Z" fill="url(#stone)" stroke="#11191b" stroke-width="5"/>
+<path d="M92 329L255 246 420 329 258 412Z" fill="url(#grain)"/>
+<path d="M105 342l151 79 150-79" fill="none" stroke="#b18b53" stroke-width="4" opacity=".8"/>
+<!-- rear workshop -->
+<path d="M137 287V171L255 106 377 171V290L255 355Z" fill="url(#timber)" stroke="#171c1d" stroke-width="8"/>
+<path d="M137 171L255 106 377 171 255 237Z" fill="#745037" stroke="#241d19" stroke-width="5"/>
+<path d="M150 177L255 119 363 177V279L255 338 150 279Z" fill="url(#timber)"/>
+<path d="M150 177L255 119 363 177V279L255 338 150 279Z" fill="url(#grain)"/>
+<!-- roof -->
+<path d="M112 177L255 79 400 177 377 194 255 119 137 194Z" fill="url(#roof)" stroke="#101619" stroke-width="8"/>
+<path d="M112 177L255 79 400 177" fill="none" stroke="url(#gold)" stroke-width="5"/>
+<path d="M255 82V120M137 181V280M363 181V280" stroke="#c19a5d" stroke-width="7"/>
+<!-- roof slate seams -->
+<path d="M145 165l109-72 109 72M166 177l89-58 91 58" fill="none" stroke="#92918a" stroke-width="2" opacity=".45"/>
+<!-- timber braces and door -->
+<path d="M155 205l93 53m-93 0l93-53m18 53l83-49m-83 49l83 49" stroke="#c09359" stroke-width="8"/>
+<path d="M220 344V252Q255 220 290 252V344Z" fill="#181b1c" stroke="#b58b53" stroke-width="5"/>
+<path d="M230 344V257Q255 235 280 257V344Z" fill="#34251e" stroke="#5b4734" stroke-width="3"/>
+<!-- saw blade and water wheel -->
+<circle cx="361" cy="292" r="54" fill="#2b3333" stroke="#9b8053" stroke-width="8"/>
+<circle cx="361" cy="292" r="39" fill="none" stroke="#b99a65" stroke-width="5"/>
+<circle cx="361" cy="292" r="11" fill="#c7a66a" stroke="#322a20" stroke-width="4"/>
+<g stroke="#b99a65" stroke-width="6"><path d="M361 241v102M310 292h102M325 256l72 72m0-72l-72 72"/></g>
+<path d="M306 292l-17-7 4 16zm110 0l17-7-4 16z" fill="#b99a65"/>
+<!-- log pile -->
+<g stroke="#241a14" stroke-width="5"><path d="M54 348l88-47 20 11-89 49Z" fill="#744b2e"/><path d="M65 369l87-47 19 11-88 48Z" fill="#95653c"/><path d="M79 389l84-46 18 11-86 47Z" fill="#62412b"/></g>
+<g fill="#d1a16a"><ellipse cx="145" cy="312" rx="8" ry="5"/><ellipse cx="153" cy="333" rx="8" ry="5"/><ellipse cx="165" cy="354" rx="8" ry="5"/></g>
+<!-- chimney and furnace glow -->
+<path d="M322 137V71l30-15v98" fill="#343b3c" stroke="#151b1d" stroke-width="6"/>
+<path d="M316 72l22-13 22 9" fill="none" stroke="#c1a16b" stroke-width="5"/>
+<path d="M331 146q-12-20 0-31q13 13 8 31" fill="#e28b42" opacity=".8"/>
+<!-- iron details -->
+<g fill="#d4b77c"><circle cx="157" cy="194" r="4"/><circle cx="353" cy="194" r="4"/><circle cx="255" cy="112" r="5"/></g>
+<path d="M90 330L255 245 420 330" fill="none" stroke="#d0b276" stroke-width="3" opacity=".8"/>
+</svg>
