@@ -2,7 +2,7 @@
 
 > Обновлено: 09.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
 
-> Последний подтверждённый полный CI: run #291 (`42580467188`) — **PASS** на HEAD `4c20c0968472f056381f564d6316f6505dba79cc`. Проверки включали typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Последующие коммиты `c76ba05` и `6209dd8` ожидают отдельного CI. PR #9 открыт и не слит; `main` не изменялся.
+> Последний подтверждённый полный CI: run #294 (`42580825890`) — **PASS** на HEAD `d1c8935bf7f75e4eff83de9a706fba71c9ac805b`. Успешны typecheck, PostgreSQL tests, package/check suite, production build, Chromium UI walk и screenshots, backup/restore drill, dependency audits и Drizzle snapshots. Коммиты после `d1c8935` ожидают отдельного CI. PR #9 открыт и не слит; `main` не изменялся.
 
 ## Повторная проверка актуальной ветки — 09.11.2026
 
@@ -177,4 +177,19 @@
 
 **Коммиты:** `c76ba05` (исправление), `6209dd8` (регрессионный тест).
 
-**Статус:** ожидает CI на новом HEAD. После PASS закрыть кодовую часть AUD-044; повторный вход в мир и повторный mount на реальном устройстве остаются частью runtime smoke test. 
+**Статус: кодовая часть закрыта CI #294 PASS** на HEAD `d1c8935`. Повторный вход в мир и повторный mount на реальном устройстве остаются частью runtime smoke test. 
+
+
+## AUD-045 — отключение pointer input для скрытого двора (09.11.2026)
+
+**Finding:** Pixi CourtScene оставалась смонтированной при переходе на другие разделы HUD. Хотя корневой Container становился невидимым, CourtInput продолжал получать `pointermove` и `wheel`, пересчитывать hover и вызывать отрисовку preview для невидимой сцены. Это лишняя работа на каждом движении указателя/пальца и ненужная обработка жестов вне двора.
+
+**Исправление в рабочей ветке:**
+- `CourtInput.setEnabled()` централизованно подключает/отключает пять pointer/wheel listeners;
+- при отключении очищается состояние pointers/pinch и восстанавливается исходный `touch-action`;
+- CourtScene отключает input до активации режима двора и синхронизирует listeners с `mode.active`;
+- добавлен регрессионный тест: скрытая сцена не обрабатывает pointermove; после повторного включения hover снова работает.
+
+**Коммиты:** `f7b42dd` (управление listeners), `962cf77` (интеграция со сценой), `07ec7bc` (тест).
+
+**Статус:** implementation committed; ожидает полного CI на HEAD `07ec7bc`. Замер FPS/GPU/CPU не выполнялся; это устранение ненужной обработки событий, а не заявление о количественном приросте производительности.
