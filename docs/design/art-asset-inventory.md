@@ -31,14 +31,14 @@
 | stable | Конюшня | 3×3 | Missing | Five-stage cavalry stable |
 | siege-yard | Осадный двор | 3×3 | Missing | Five-stage siege workshop |
 | sawmill | Лесопилка | 2×2 | Prototype fallback `d-01` | Original five-stage sawmill |
-| pen | Загон | 2×2 | Prototype fallback `b-02` | Original five-stage livestock pen |
+| pen | Загон | 2×2 | Original imperial SVG stage I (`pen-imperial-stage-01.svg`) | Stages II–V; validate in-scene silhouette and livestock readability |
 | quarry | Каменоломня | 2×2 | Prototype fallback `a-03` | Original five-stage quarry |
 | mine | Рудник | 2×2 | Missing | Five-stage ore mine |
 | farm | Ферма | 2×2 | Prototype fallback `b-01` | Original five-stage farm |
 
 
 
-**Coverage:** 5/19 buildings have original production-direction assets in runtime (Citadel, Sawmill, Farm, Warehouse and Barracks stage I); 3/19 additional buildings retain semantically confirmed temporary prototype sprites (Quarry, Pen and Infirmary); 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
+**Coverage:** 6/19 buildings have original production-direction assets in runtime (Citadel, Sawmill, Farm, Warehouse, Barracks and Pen stage I); 2/19 additional buildings retain semantically confirmed temporary prototype sprites (Quarry and Infirmary); 11/19 remain explicitly listed in `BUILDING_ART_BACKLOG`. `academy` is deliberately unmapped until its original visual identity is defined. The automated test compares both sets with the authoritative content catalog, so a newly added building cannot silently disappear from the art plan.
 
 ## 3. Other asset groups
 
@@ -158,3 +158,12 @@ Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL 
 - Актуальный live-world workflow #397 (`42868604601`) на HEAD `a0fbb204` завершился **PASS**; все 18 основных шагов workflow, включая Chromium UI, screenshot capture и PostgreSQL backup/restore drill, успешны.
 - Walkthrough теперь выполняет upgrade Цитадели и размещение Склада/Казармы через реальные UI-команды в disposable мире. Артефакт: `tdl-live-game-screenshots`, семь JPEG.
 - Скриншоты подтверждают техническую загрузку объектов и HUD, но не качество финального арта. Видимая разница материалов/детализации между зданиями остаётся блокером визуальной приёмки; этот запуск не закрывает полный арт-пак.
+
+
+## 13. Загон — оригинальный имперский stage I (10.11.2026)
+
+- Добавлен `pen-imperial-stage-01.svg`: прозрачный оригинальный SVG 512×448 с основанием 2×2, опорным пятном 300 px и нижним pivot (256, 427).
+- В композиции: каменный подиум, деревянные секции ограды, хозяйственный корпус, кормушка/сено и читаемые силуэты скота; материалы согласованы с палитрой имперского набора.
+- Runtime mapping переведён с временного `b-02.png` на SVG через общий `PIXI.Assets` loader. Геометрия серверного footprint не менялась.
+- Добавлена регрессия URL и метаданных спрайта.
+- Это закрывает только замену одного прототипа на stage I. Нужны in-scene screenshots, проверка читаемости на мобильном масштабе и стадии II–V.
