@@ -259,23 +259,50 @@ async function clickCourtCell(x: number, z: number): Promise<void> {
   await sleep(650);
 }
 
-async function placeBuilding(id: "pen" | "sawmill", x: number, z: number): Promise<void> {
+async function upgradeCitadel(): Promise<void> {
   await page.click('.ch-action[aria-label="Строительство"]');
   await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
-  await page.click(`[data-building-id="${id}"]`);
+  const upgrade = await page.$(".concept-upgrade");
+  if (!upgrade) throw new Error("Citadel upgrade control is missing");
+  const disabled = await page.$eval(".concept-upgrade", (button) => (button as HTMLButtonElement).disabled);
+  if (disabled) throw new Error("Citadel level 2 upgrade is unexpectedly unaffordable");
+  await upgrade.click();
+  await page.waitForFunction(
+    () => document.querySelector(".concept-profile__copy")?.textContent?.includes("· 2") ?? false,
+    { timeout: 15_000 },
+  );
+  await page.click(".concept-build-panel .concept-panel-close");
+  console.log("  Цитадель улучшена до уровня 2 через court.upgrade");
+}
+
+async function placeBuilding(id: "pen" | "sawmill" | "warehouse" | "barracks", x: number, z: number): Promise<void> {
+  await page.click('.ch-action[aria-label="Строительство"]');
+  await page.waitForSelector(".concept-build-panel", { timeout: 10_000 });
+  if (id === "barracks") {
+    await page.click(".concept-build-tabs button:nth-child(2)");
+    await sleep(200);
+  }
+  const card = await page.$(`[data-building-id="${id}"]`);
+  if (!card) throw new Error(`Building card is missing: ${id}`);
+  const disabled = await page.$eval(`[data-building-id="${id}"]`, (button) => (button as HTMLButtonElement).disabled);
+  if (disabled) throw new Error(`Building is still locked or unaffordable: ${id}`);
+  await card.click();
   await page.waitForSelector(".concept-placement", { timeout: 5_000 });
   await clickCourtCell(x, z);
   console.log(`  размещено через серверную команду: ${id} @ ${x},${z}`);
 }
 
-// Стартовая Цитадель занимает центральные клетки; два свободных края подходят
-// под реальные пятна 2×2 загона и лесопилки и не пересекают стартовую дорогу.
+// На первом уровне проверяем хозяйство; затем открываем уровень 2 и проверяем
+// реальные 3×3 пятна Склада и Казармы на нижнем краю, не затрагивая Цитадель/дорогу.
 await placeBuilding("pen", 1, 1);
 await placeBuilding("sawmill", 8, 1);
+await upgradeCitadel();
+await placeBuilding("warehouse", 1, 8);
+await placeBuilding("barracks", 8, 8);
 await page.waitForFunction(() => !document.querySelector(".concept-placement"), { timeout: 5_000 });
 await sleep(1800);
 await page.screenshot({ path: join(outDir, "game-court-buildings.jpg"), type: "jpeg", quality: 90 });
-console.log("сохранён game-court-buildings.jpg — Цитадель + Загон + Лесопилка");
+console.log("сохранён game-court-buildings.jpg — Цитадель ур. 2 + Загон + Лесопилка + Склад + Казарма");
 await measureTop("desktop HUD");
 
 // Портретный кадр на целевом мобильном размере.
