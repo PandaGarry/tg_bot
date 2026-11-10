@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="448" viewBox="0 0 512 448">
+<defs>
+ <linearGradient id="stone" x2=".8" y2="1"><stop stop-color="#747b7c"/><stop offset=".5" stop-color="#3e474a"/><stop offset="1" stop-color="#1c2529"/></linearGradient>
+ <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#a7794b"/><stop offset=".48" stop-color="#62432d"/><stop offset="1" stop-color="#2a211d"/></linearGradient>
+ <linearGradient id="roof" x2=".2" y2="1"><stop stop-color="#66636a"/><stop offset=".55" stop-color="#302d36"/><stop offset="1" stop-color="#171b24"/></linearGradient>
+ <linearGradient id="wine" x2="1" y2="1"><stop stop-color="#a94755"/><stop offset="1" stop-color="#481923"/></linearGradient>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#e3c98d"/><stop offset="1" stop-color="#77572f"/></linearGradient>
+ <pattern id="grain" width="24" height="18" patternUnits="userSpaceOnUse"><path d="M2 5l8-2m4 11l8-3M4 17l5-2" stroke="#e1bd86" opacity=".2" stroke-width="1.2"/></pattern>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<ellipse cx="256" cy="405" rx="184" ry="23" fill="#05080b" opacity=".68" filter="url(#shadow)"/>
+<!-- raised stone footprint -->
+<path d="M64 329 256 229 448 329 256 429Z" fill="#10171b" stroke="#ad9160" stroke-width="4"/>
+<path d="M82 328 256 247 430 328 256 411Z" fill="url(#stone)" stroke="#11191d" stroke-width="5"/>
+<path d="M82 328 256 247 430 328 256 411Z" fill="url(#grain)"/>
+<path d="M96 338 256 416 416 338" fill="none" stroke="#b49a68" stroke-width="4" opacity=".8"/>
+<!-- rear barn -->
+<path d="M174 252V158L255 112 337 158V254L255 301Z" fill="url(#wood)" stroke="#171b1d" stroke-width="7"/>
+<path d="M174 158 255 112 337 158 255 205Z" fill="#745238" stroke="#241d19" stroke-width="4"/>
+<path d="M188 164 255 126 323 164V245L255 284 188 245Z" fill="url(#grain)"/>
+<path d="M151 163 255 83 360 163 337 180 255 119 174 180Z" fill="url(#roof)" stroke="#11171b" stroke-width="7"/>
+<path d="M151 163 255 83 360 163" fill="none" stroke="url(#gold)" stroke-width="5"/>
+<path d="M173 168 255 112 337 168M255 86V118" fill="none" stroke="#aaa39a" stroke-opacity=".42" stroke-width="2"/>
+<path d="M230 286V218Q255 193 280 218V286Z" fill="#171a1b" stroke="#b18b58" stroke-width="4"/>
+<path d="M238 284V221Q255 207 272 221V284Z" fill="#3b2a20" stroke="#785735" stroke-width="2"/>
+<path d="M255 218V284" stroke="#c09a65" stroke-width="3"/>
+<!-- timber paddock rails, perspective -->
+<g fill="none" stroke="#211a16" stroke-width="12" stroke-linejoin="round">
+ <path d="M62 276 151 321 151 367M62 276 62 324 151 370"/>
+ <path d="M360 321 450 276 450 324 360 370"/>
+</g>
+<g fill="none" stroke="url(#wood)" stroke-width="8" stroke-linejoin="round">
+ <path d="M62 276 151 321 151 367M62 276 62 324 151 370"/>
+ <path d="M360 321 450 276 450 324 360 370"/>
+ <path d="M62 298 151 343M62 321 151 366M360 343 450 298M360 366 450 321"/>
+</g>
+<g fill="url(#gold)" stroke="#2c2119" stroke-width="3">
+ <path d="M55 264l7-5 8 8v62l-8 5-7-8Z"/><path d="M143 309l8-5 8 8v61l-8 5-8-8Z"/>
+ <path d="M442 264l8-5 8 8v62l-8 5-8-8Z"/><path d="M352 309l8-5 8 8v61l-8 5-8-8Z"/>
+</g>
+<!-- feeding trough and hay -->
+<path d="M83 366 133 340 174 361 123 390Z" fill="#34271e" stroke="#b08a55" stroke-width="4"/>
+<path d="M91 365 133 345 164 361 122 382Z" fill="#6a4a2e"/>
+<path d="M103 355l18-12 13 8-18 12m4 5 19-12 12 8-19 12" fill="none" stroke="#d2a66b" stroke-width="3"/>
+<path d="M370 366l27-24 26 13-27 25Z" fill="#9b7745" stroke="#392b1d" stroke-width="3"/>
+<path d="M375 363l23-17m-14 23 24-18m-11 23 22-17" stroke="#dfbd78" stroke-width="3"/>
+<!-- stylized livestock silhouettes -->
+<g stroke="#211b18" stroke-width="4" stroke-linejoin="round">
+ <path d="M188 328q-7-18 6-26l23-2q13 5 12 22l-5 12h-30Z" fill="#d0c1a0"/>
+ <path d="M193 304l-8-12 13 5m21 2 8-11 3 16" fill="#d0c1a0"/>
+ <path d="M195 331v13m25-13v13" fill="none" stroke-width="5"/>
+ <path d="M292 334q-5-16 8-24l22-2q14 7 10 23l-7 11h-27Z" fill="#5a4940"/>
+ <path d="M299 311l-8-10 14 4m19 0 9-9 1 15" fill="#5a4940"/>
+ <path d="M301 340v10m25-10v10" fill="none" stroke-width="5"/>
+</g>
+<g fill="#25201c"><circle cx="202" cy="311" r="2.4"/><circle cx="306" cy="318" r="2.4"/></g>
+<!-- imperial pennant and iron fittings -->
+<path d="M326 116V65" stroke="#30241e" stroke-width="4"/>
+<path d="M329 69 365 81 329 96Z" fill="url(#wine)" stroke="url(#gold)" stroke-width="2"/>
+<path d="M346 78l4 6 7 1-5 5 1 7-7-4-6 4 2-7-5-5 7-1Z" fill="#e2c58c"/>
+<g fill="url(#gold)"><circle cx="184" cy="172" r="4"/><circle cx="326" cy="172" r="4"/><circle cx="255" cy="117" r="4"/></g>
+<path d="M174 158 255 111 337 158" fill="none" stroke="#d4b77b" stroke-width="2" opacity=".8"/>
+</svg>
