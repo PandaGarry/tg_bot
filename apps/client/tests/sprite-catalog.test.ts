@@ -20,6 +20,8 @@ describe("TDL production sprite catalog", () => {
     expect(buildingSpriteUrl("farm")).toBe("/court/sprites/farm-imperial-stage-01.svg");
     expect(buildingSpriteUrl("warehouse")).toBe("/court/sprites/warehouse-imperial-stage-01.svg");
     expect(buildingSpriteUrl("barracks")).toBe("/court/sprites/barracks-imperial-stage-01.svg");
+    expect(buildingSpriteUrl("pen")).toBe("/court/sprites/pen-imperial-stage-01.svg");
+    expect(BUILDING_SPRITES.pen).toMatchObject({ width: 512, height: 448, patch: 300, tipX: 256, tipY: 427 });
     expect(BUILDING_SPRITES.warehouse).toMatchObject({ width: 512, height: 512, patch: 348, tipX: 256, tipY: 500 });
     expect(BUILDING_SPRITES.barracks).toMatchObject({ width: 512, height: 512, patch: 348, tipX: 256, tipY: 500 });
     expect(buildingSpriteUrl("academy")).toBeUndefined();
