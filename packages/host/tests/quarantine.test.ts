@@ -53,7 +53,7 @@ describe("карантин и лечение единиц", () => {
   });
 
   it("вышел отступ — ядро вернуло единицу само, следов в базе нет", async () => {
-    const world = await quickWorld({ backoff: [40, 120, 240] });
+    const world = await quickWorld({ backoff: [600, 1_200, 2_400] });
     try {
       const actor = world.actor();
       for (let attempt = 0; attempt < 3; attempt += 1) await runCommand(world, actor, "_kit.crash");
