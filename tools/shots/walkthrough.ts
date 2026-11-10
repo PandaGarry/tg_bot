@@ -269,8 +269,8 @@ async function upgradeCitadel(): Promise<void> {
   await upgrade.click();
   await page.waitForFunction(
     () => {
-      const label = document.querySelector(".concept-upgrade__text b")?.textContent?.trim() ?? "";
-      return /(?:·|ур\\.)\\s*2$/i.test(label);
+      const label = document.querySelector(".th-up .th-up-text b")?.textContent?.trim() ?? "";
+      return /Ур\\.\\s*2$/i.test(label);
     },
     { timeout: 15_000 },
   );
