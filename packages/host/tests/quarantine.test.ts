@@ -13,7 +13,7 @@ import { createTestWorld, deadlinesOf, runCommand, type TestWorld } from "./harn
 const GADGET = "_kit.gadget";
 
 /** Мир с быстрым лечением: отступы в миллисекундах, сторож строгий. */
-async function quickWorld(options: { slowCommandMs?: number; backoff?: number[]; now?: () => number } = {}): Promise<TestWorld> {
+async function quickWorld(options: { slowCommandMs?: number; backoff?: number[]; now?: () => number; calendar?: { now(): number } } = {}): Promise<TestWorld> {
   return createTestWorld({
     extraModules: [kitModule()],
     quarantineBackoffMs: options.backoff ?? [60, 120, 240],
@@ -21,6 +21,7 @@ async function quickWorld(options: { slowCommandMs?: number; backoff?: number[];
     quarantineStrikes: 3,
     strikeWindowMs: 60_000,
     ...(options.now ? { now: options.now } : {}),
+    ...(options.calendar ? { calendar: options.calendar } : {}),
   });
 }
 
@@ -53,13 +54,18 @@ describe("карантин и лечение единиц", () => {
   });
 
   it("вышел отступ — ядро вернуло единицу само, следов в базе нет", async () => {
-    const world = await quickWorld({ backoff: [600, 1_200, 2_400] });
+    let calendarNow = Date.now();
+    const world = await quickWorld({
+      backoff: [600, 1_200, 2_400],
+      calendar: { now: () => calendarNow },
+    });
     try {
       const actor = world.actor();
       for (let attempt = 0; attempt < 3; attempt += 1) await runCommand(world, actor, "_kit.crash");
       expect(world.service.unitStateOf(GADGET)!.reason).toBe("quarantine");
 
-      await new Promise((done) => setTimeout(done, 80));
+      // Время лечения двигаем явно: тест не зависит от нагрузки CI и скорости PostgreSQL.
+      calendarNow += 700;
       await world.service.pumpOnce();
 
       expect(world.records.some((record) => record.event === "unit.quarantine.release")).toBe(true);
