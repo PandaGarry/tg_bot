@@ -268,7 +268,10 @@ async function upgradeCitadel(): Promise<void> {
   if (disabled) throw new Error("Citadel level 2 upgrade is unexpectedly unaffordable");
   await upgrade.click();
   await page.waitForFunction(
-    () => document.querySelector(".concept-profile__copy")?.textContent?.includes("· 2") ?? false,
+    () => {
+      const label = document.querySelector(".concept-upgrade__text b")?.textContent?.trim() ?? "";
+      return /(?:·|ур\\.)\\s*2$/i.test(label);
+    },
     { timeout: 15_000 },
   );
   await page.click(".concept-build-panel .concept-panel-close");
