@@ -142,3 +142,12 @@ Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL 
 - Warehouse uses stone plinth, reinforced timber storehouse, slate roof, ironwork and cargo details; Barracks uses a fortified hall, crenellations, weapon racks, burgundy standards and braziers.
 - Runtime catalog now routes both types to SVG through PIXI.Assets; legacy art remains available in repository history for rollback.
 - These are authored stage-I production-direction assets, not yet final art sign-off: validate rendered scale/pivot in the live world and compare material readability at mobile scale. Stages II–V remain open.
+
+
+## 12. Расширение live walkthrough для Склада и Казармы — 10.11.2026
+
+- tools/shots/walkthrough.ts расширен: сценарий ставит Склад и Казарму в свободные 3×3 зоны двора после повышения Цитадели; используется штатная панель, а не подмена состояния сцены. Казарма выбирается из военной вкладки.
+- Сценарий также проверяет повышение Цитадели до уровня 2. В первом запуске CI #387 сервер действительно обновил townhallLevel и сформировал court.report.upgraded, однако тест упал на UI-ожидании; значит серверная часть команды подтверждена, но UI-приёмка нет.
+- Повторный CI #388 не дошёл до Chromium из-за падения packages/host/tests/quarantine.test.ts:60; ожидалось quarantine, фактически получено core. Полный прогон и новые скриншоты отсутствуют.
+- До успешного повторного прогона статус интеграции двух новых зданий в live-сцену — **ожидает проверки**. Наличие SVG в каталоге и успешная проверка metadata не доказывают корректную отрисовку размещённых зданий.
+- После зелёного прогона обязательно просмотреть итоговые desktop/mobile screenshots и сверить silhouette, scale, pivot, footprint, depth sorting и контраст материалов. Никакого визуального sign-off по одному факту прохождения CI.
