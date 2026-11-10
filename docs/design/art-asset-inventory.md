@@ -151,3 +151,10 @@ Shared metadata lives in `apps/client/src/game/court/wallModuleCatalog.ts`; URL 
 - Повторный CI #388 не дошёл до Chromium из-за падения packages/host/tests/quarantine.test.ts:60; ожидалось quarantine, фактически получено core. Полный прогон и новые скриншоты отсутствуют.
 - До успешного повторного прогона статус интеграции двух новых зданий в live-сцену — **ожидает проверки**. Наличие SVG в каталоге и успешная проверка metadata не доказывают корректную отрисовку размещённых зданий.
 - После зелёного прогона обязательно просмотреть итоговые desktop/mobile screenshots и сверить silhouette, scale, pivot, footprint, depth sorting и контраст материалов. Никакого визуального sign-off по одному факту прохождения CI.
+
+
+## 12. Walkthrough расширен — CI #397 (10.11.2026)
+
+- Актуальный live-world workflow #397 (`42868604601`) на HEAD `a0fbb204` завершился **PASS**; все 18 основных шагов workflow, включая Chromium UI, screenshot capture и PostgreSQL backup/restore drill, успешны.
+- Walkthrough теперь выполняет upgrade Цитадели и размещение Склада/Казармы через реальные UI-команды в disposable мире. Артефакт: `tdl-live-game-screenshots`, семь JPEG.
+- Скриншоты подтверждают техническую загрузку объектов и HUD, но не качество финального арта. Видимая разница материалов/детализации между зданиями остаётся блокером визуальной приёмки; этот запуск не закрывает полный арт-пак.
