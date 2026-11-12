@@ -1,24 +1,25 @@
 # Очередь задач TDL
 
-> Обновлено: 12.11.2026. Основной состав: ChatGPT + Arena.ai. Внешние консультанты необязательны и не блокируют работу.
+> Обновлено: 12.11.2026 после отчёта TDL-ENV-001. Основной состав: ChatGPT + Arena.ai.
 
 ## Активная очередь
 
 | ID | Статус | Задача | Владелец | Результат | Блокирует |
 |---|---|---|---|---|---|
-| TDL-PIPE-001 | MERGED | Создать общую продуктовую документацию и протокол совместной работы | ChatGPT | Документационный PR #11 принят в main; процесс закреплён PR #12 | дальнейшая синхронизация |
-| TDL-3D-001 | READY | Сравнить web-native 3D и Godot Web; подготовить техническую рекомендацию и benchmark | ChatGPT | Матрица, актуальные первоисточники, анализ текущего runtime-кода PR #9, риски и план одинакового benchmark | выбор технологии для изолированного proof |
-| TDL-ENV-001 | READY | Проверить browser/Node/PostgreSQL среду, запуск TDL и возможности Godot в Arena.ai | Arena.ai | Воспроизводимый environment report, команды, exit codes, фактические desktop/mobile screenshots и ограничения | реалистичный план browser QA/prototype |
-| TDL-VIS-001 | READY | Подготовить визуальный benchmark поселения и asset checklist | ChatGPT; Arena.ai — runtime validation | Visual bible: композиция, силуэты, материалы, свет, масштаб, окружение, UI и критерии приёмки | производство visual vertical slice |
-| TDL-AUD-001 | BLOCKED | Полный аудит текущего интегрированного кода, тестов и систем после review PR #9 | ChatGPT | baseline архитектуры, дефекты P0/P1, тестовая карта, рекомендации по приоритетам | безопасная реализация следующих игровых систем |
+| TDL-PIPE-001 | MERGED | Общая продуктовая документация и протокол совместной работы | ChatGPT | PR #17–#20 интегрировали workflow и уточнение 3D baseline | — |
+| TDL-ENV-001 | COMPLETED | Проверить browser/Node/PostgreSQL среду, запуск TDL и возможности Godot в Arena.ai | Arena.ai | Две базы запущены; smoke, desktop/mobile screenshots, версии, exit codes и ограничения задокументированы в handoff | — |
+| TDL-3D-001 | IN PROGRESS | Сравнить web-native 3D и Godot Web; подготовить техническую рекомендацию и benchmark | ChatGPT | Есть фактические runtime результаты main и PR #9; требуется завершить сравнение архитектур и определить корректный benchmark | TDL-3D-002 |
+| TDL-VIS-001 | READY | Подготовить visual bible и критерии визуальной приёмки | ChatGPT; Arena.ai — runtime validation | Требуется визуальная спецификация Premium stylized realism для undead поселения | TDL-VIS-002 |
+| TDL-PR9-001 | READY | Разобрать PR #9 на переносимые изменения и конфликтующий renderer rewrite | ChatGPT | 427 файлов: классифицировать UI/onboarding, тесты, gameplay, server, PixiJS renderer и удаления R3F | безопасная интеграция полезных изменений |
+| TDL-AUD-001 | BLOCKED | Полный аудит систем и кода после решения по PR #9 | ChatGPT | baseline архитектуры, дефекты P0/P1, тестовая карта, приоритеты | безопасная реализация |
 
 ## Следующая очередь
 
-- TDL-3D-002 — изолированный runtime-прототип одинаковой сцены на выбранных кандидатах; только после TDL-3D-001 и отдельного решения владельца.
-- TDL-VIS-002 — production-ready блок сцены: terrain, дороги, Цитадель и 2–4 здания; после принятия visual benchmark.
-- TDL-UI-001 — аудит и рефакторинг HUD по принятому visual benchmark.
-- TDL-GAME-001 — спецификация и сквозная проверка игрового цикла поселения.
-- TDL-PERF-001 — воспроизводимый performance baseline desktop/mobile.
+- TDL-3D-002 — одинаковый vertical benchmark: terrain, Цитадель, четыре здания, foliage/props, свет, материалы, изометрическая камера, одинаковые assets и viewport. Запуск только после TDL-3D-001 и согласования владельцем.
+- TDL-VIS-002 — production-quality block сцены: terrain, дороги, Цитадель и 2–4 здания; после принятия visual bible.
+- TDL-UI-001 — полный аудит/рефакторинг HUD по принятому visual benchmark.
+- TDL-GAME-001 — сквозная спецификация и проверка игрового цикла поселения.
+- TDL-PERF-001 — воспроизводимый performance baseline на аппаратном GPU и реальных целевых устройствах.
 - TDL-OPS-001 — production deployment, TLS/proxy, backup/RPO/RTO.
 
 ## Правила потока
@@ -29,3 +30,4 @@
 4. Зависимые задачи не стартуют до приёмки входных результатов.
 5. Не сливать PR без review, CI на актуальном HEAD и критериев приёмки.
 6. Не выдавать план, концепт или скриншот макета за работающий результат.
+7. Не принимать renderer/engine migration без одинакового benchmark и отдельного решения владельца.
