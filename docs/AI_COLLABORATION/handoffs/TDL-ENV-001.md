@@ -1,50 +1,99 @@
 # TDL-ENV-001 — проверить рабочую среду Arena.ai и два runtime baseline
 
-- **Статус:** READY
+- **Статус:** COMPLETED
 - **Владелец:** Arena.ai
 - **Координатор:** ChatGPT
-- **Дата обновления:** 12.11.2026
-- **База документации:** актуальный `main` (получить HEAD перед началом).
-- **Runtime baseline A:** актуальный `main` — React + React Three Fiber/Three.js сцена `apps/client/src/court/CourtScene.tsx`.
-- **Runtime baseline B:** актуальный HEAD PR #9, ветка `arena/8885a9e3-tg-bot` — предлагаемая PixiJS-сцена `apps/client/src/game/court/`. PR #9 не слит.
-- **Важно:** PR #9 удаляет существующую R3F/Three.js сцену из main. Это расхождение с утверждённой 12.11 целью full 3D; нужно зафиксировать практические различия, не принимать продуктового решения.
-- **Цель:** подтвердить, какие практические проверки Arena.ai действительно может выполнять для TDL, и сравнить поведение обеих веток.
+- **Дата результата:** 12.11.2026
+- **Рабочая ветка Arena:** `arena/ff89979b-tg-bot` (чистая; проектные файлы не изменялись)
+- **Main SHA:** `eaaa9072a729f69ae19d44a1449c1d94f27c07a1`
+- **PR #9 HEAD:** `45e1014e9fba72ec9bcddefa492ef210d26da808`
+- **PR #9 base:** `bc7c737a4cbf10c97ffa6a26145c45b70a0653fa`
+- **PR #9 CI:** run #437 SUCCESS, [GitHub Actions](https://github.com/PandaGarry/tg_bot/actions/runs/43223155437)
 
-## Scope — только проверка среды
+## Цель и scope
 
-1. Прочитать `AGENTS.md`, `docs/AI_COLLABORATION/AGENT_START_HERE.md`, `docs/AI_COLLABORATION/README.md`, `docs/AI_COLLABORATION/STATUS.md`, `PROJECT_MASTER.md`, `docs/DECISIONS.md` и `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
-2. Получить актуальные main SHA, PR #9 HEAD/base и CI. Не использовать старую копию без обновления.
-3. Установить/проверить наличие Node.js, pnpm, браузера Chromium/Chrome, PostgreSQL и возможность запускать локальный web server.
-4. В изолированных рабочих копиях проверить обе базы:
-   - **A — main:** текущая R3F/Three.js сцена.
-   - **B — PR #9:** PixiJS rewrite.
-   Для каждой зафиксировать commit SHA, успешность установки, typecheck/build и ошибки.
-5. Запустить обе версии штатным способом и пройти один и тот же короткий smoke test: стартовый экран/auth (если требуется тестовый аккаунт), загрузка мира/двора, базовая навигация. Не создавать реальные аккаунты/платежи и не использовать production credentials.
-6. Сделать фактические screenshots из браузера для каждой версии: desktop viewport и узкий mobile viewport. Указать SHA, viewport, браузер и шаг сценария. Если проект не запускается, приложить скрин ошибки/логи и причину.
-7. Проверить Godot отдельно: версия/возможность установки, доступность headless запусков и web export templates. Не менять основной проект, не устанавливать движок в production dependencies и не начинать перенос игры.
+Подтвердить, какие практические проверки Arena.ai действительно может выполнять для TDL, и сравнить main (R3F/Three.js) с PR #9 (PixiJS) на одинаковом smoke-сценарии. Работа выполнена в изолированных копиях `/tmp/tdl-main` и `/tmp/tdl-pr9`; production не затрагивался. Коммиты, push и PR не создавались.
 
-## Запреты
+## 1. Среда Arena.ai
 
-- Не менять код, документацию или зависимости проекта.
-- Не делать commit/push и не создавать PR по этой задаче.
-- Не менять БД вне локальной тестовой среды.
-- Не выдавать макет или скриншот редактора за runtime игры.
-- Проверка Godot — только capability check, не выбор движка.
-- Не сливать ветки и не копировать изменения между main и PR #9.
+| Компонент | Фактический результат |
+|---|---|
+| ОС | Debian 12 bookworm, x86_64; 2 vCPU, 3.8 GiB RAM, без swap |
+| Node.js | v22.22.3 |
+| pnpm | 12.6.0 (установлен глобально через npm) |
+| PostgreSQL | embedded-postgres 18.4.0-beta.17; локальные порты 55432/55433 |
+| Browser | @sparticuz/chromium 153.0.0; HeadlessChrome/153.0.8010.0 |
+| WebGL | WebGL 2.0 через SwiftShader software renderer (CPU) |
+| Godot | Не установлен; CLI/templates не удалось получить из-за egress-фильтра и отсутствующего toolchain |
 
-## Отчёт
+Ограничения Godot: отсутствуют godot/godot4, export templates, clang, scons, cmake, ninja, pkg-config, Xvfb; egress к deb.debian.org и objects.githubusercontent.com блокируется TLS. Готовый экспортированный Godot Web build теоретически можно smoke-test в Chromium, если артефакты доступны через разрешённый источник, но экспорт в текущей Arena-среде не подтверждён.
 
-Вернуть таблицу отдельно для main и PR #9:
+## 2. Сравнение runtime baseline
 
-| Возможность | Доступна? | Версия/команда | Фактический результат | Ограничения |
-|---|---|---|---|---|
+| Проверка | main — R3F/Three.js | PR #9 — PixiJS |
+|---|---|---|
+| Commit | `eaaa9072a729f69ae19d44a1449c1d94f27c07a1` | `45e1014e9fba72ec9bcddefa492ef210d26da808` |
+| Install | `pnpm install --frozen-lockfile`, exit 0 | `pnpm install --frozen-lockfile`, exit 0 |
+| Typecheck | exit 0, 18/18 | exit 0, 19/19 |
+| Check | exit 0, 11 модулей | exit 0, 12 модулей + каталог 19 зданий |
+| Build | exit 0, 3/3 (вкл. court3d) | exit 0, 2/2 (Pixi client/server; court3d отсутствует) |
+| Tests | 181 passed, 2 failed; несмотря на это exit 0 из-за Vitest 5.0.1 runner behavior | 307 passed, 0 failed |
+| Browser smoke | exit 0 | exit 0 |
+| Scene | 3D low-poly snowy courtyard; Town Hall, palisade, gates, fir trees | 2D isometric dark gothic courtyard; Citadel with green crystal |
+| Build interaction | Жилой дом placed at (4,10); power 145 → 185 | Sheep pen placed at (1,1), behind Citadel |
+| Map navigation | Работает, но при уходе со сцены Canvas размонтируется и пишет WebGL Context Lost | Работает без потери WebGL context |
+| Reload session | Не сохраняется; возвращает на login | Сохраняется |
+| Desktop/mobile | 1376×768, 390×844, 320×690; horizontal overflow false | Те же viewport; horizontal overflow false |
 
-Отдельно приложить:
-- main SHA и PR #9 HEAD SHA;
-- команды запуска/проверок и exit codes для каждой базы;
-- фактические screenshots desktop/mobile для каждой базы;
-- ошибки и логи;
-- версия браузера, Node, pnpm, PostgreSQL, Godot;
-- вывод о том, можно ли использовать Arena как среду регулярного browser QA и Godot/Web prototype.
+### Производительность — не использовать как benchmark
 
-Следующий шаг: ChatGPT сопоставляет environment report с техническим сравнением TDL-3D-001 и готовит решение по изолированному benchmark. Владелец утверждает запуск prototype.
+- main: ~3.7 FPS, avg 271.1 ms, p95 583.3 ms.
+- PR #9: ~14.7 FPS, avg 67.92 ms, p95 100 ms.
+
+Оба значения измерены в HeadlessChrome на SwiftShader software CPU renderer. Это не аппаратный GPU и не реальные мобильные устройства; цифры нельзя использовать для выбора движка или прогнозирования production FPS.
+
+## 3. Обнаруженные дефекты
+
+**main**
+- Два падающих host tests: `packages/host/tests/clock.test.ts:71`, `switches.test.ts:303`; зависят от реальной даты 12.11.2026. Vitest 5.0.1 при этом вернул exit 0 — false green.
+- Регистрация: иконки input перекрывают первые символы.
+- Build panel mobile 390px: текст требования Ратуши перекрывает стоимость.
+- При переключении Двор → Карта R3F Canvas размонтируется; в console `THREE.WebGLRenderer: Context Lost.`
+- На desktop 1376×768 сцена занимает 820×768 с чёрными полями.
+
+**PR #9**
+- Login: плашка «Связь есть» перекрывает переключатель языка «РУС».
+- Touch mobile 390×844 и 320×690: плашка переноса Цитадели перекрывает строку летописца.
+- При zoom=1 камера центрирует доску; панорамирование становится заметным после zoom.
+
+## 4. Вывод по пригодности Arena
+
+**Подходит:** регулярный функциональный browser QA, smoke tests, проверка desktop/mobile layout, запуск локального сервера и PostgreSQL, проверка того, что WebGL-сцены рендерятся, сбор реальных Chromium screenshots и логов.
+
+**Не подходит:** достоверное измерение GPU/FPS и тепловой стабильности на телефонах. Для этого нужен аппаратный GPU и реальные целевые устройства либо сопоставимый GPU-enabled CI runner.
+
+**Godot:** текущая среда не подходит для установки/сборки Godot Web. Готовый export можно только тестировать в браузере при наличии артефакта.
+
+## 5. Продуктовый вывод для PR #9
+
+PR #9 имеет существенные преимущества по тестам (307/0 против 181/2), session persistence, onboarding, форме регистрации, созданию лорда и функциональности клиента. Но его PixiJS renderer заменяет 3D-мир на 2D и удаляет `apps/client/src/court/CourtScene.tsx` и `apps/court3d`. Это конфликтует с утверждённым 12.11 направлением Premium stylized realism + полноценный 3D.
+
+**Решение:** не сливать PR #9 as-is. Сохранить полезные изменения после классификации diff и review; renderer rewrite держать отдельно. Не выбирать PixiJS из-за SwiftShader FPS. Продолжить сравнение R3F/Three.js с Babylon.js на одинаковой 3D-сцене и аппаратно-валидном benchmark. Godot Web остаётся условным вариантом до появления доступной сборочной среды.
+
+## 6. Evidence
+
+Arena сохранила артефакты локально:
+
+- `/home/user/tdl-env-001-evidence/main/`
+- `/home/user/tdl-env-001-evidence/pr9/`
+
+В каждой папке — desktop/mobile screenshots, `db.log`, `server.log`, `console.log`, `health.json`, `smoke-report.json`. Сами бинарные изображения не включены в этот документ/репозиторий; их необходимо прикрепить отдельно, если они нужны в GitHub PR или для визуального review.
+
+## 7. Команды и exit codes
+
+Обе базы: `pnpm install --frozen-lockfile` → 0; `pnpm typecheck` → 0; `pnpm check` → 0; `pnpm build` → 0; smoke script → 0.
+
+- main tests: фактически 181 passed / 2 failed; process exit 0 (ложный зелёный статус Vitest 5.0.1).
+- PR #9 tests: 307 passed / 0 failed; exit 0.
+
+Подробный вывод и команды приведены в отчёте Arena.ai от 12.11.2026, на основании которого подготовлена эта запись.
