@@ -71,8 +71,8 @@
 
 ## 8. Ближайшие шаги
 
-1. ChatGPT завершает TDL-3D-001: изучает текущий код PR #9, сравнивает web-native renderer и Godot Web, фиксирует техническую рекомендацию и benchmark.
-2. Arena.ai выполняет TDL-ENV-001: проверяет среду, запуск проекта, браузер, PostgreSQL и возможности Godot; предоставляет фактические скриншоты.
+1. ChatGPT завершает TDL-3D-001: сравнивает существующую R3F/Three.js сцену в main, PixiJS rewrite из PR #9, Babylon.js и Godot Web; фиксирует последствия для продукта и benchmark.
+2. Arena.ai выполняет TDL-ENV-001: проверяет среду, запуск актуального main и PR #9, браузер, PostgreSQL и возможности Godot; предоставляет фактические скриншоты.
 3. ChatGPT готовит TDL-VIS-001: visual bible, asset checklist и измеримые критерии визуальной приёмки.
 4. После отчётов и решения владельца выдаётся TDL-3D-002 на изолированный runtime benchmark.
 5. После принятия технологии и визуального benchmark строится settlement vertical slice.
