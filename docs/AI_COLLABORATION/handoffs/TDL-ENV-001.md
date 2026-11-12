@@ -80,14 +80,21 @@ PR #9 имеет существенные преимущества по тест
 
 **Решение:** не сливать PR #9 as-is. Сохранить полезные изменения после классификации diff и review; renderer rewrite держать отдельно. Не выбирать PixiJS из-за SwiftShader FPS. Продолжить сравнение R3F/Three.js с Babylon.js на одинаковой 3D-сцене и аппаратно-валидном benchmark. Godot Web остаётся условным вариантом до появления доступной сборочной среды.
 
-## 6. Evidence
+## 6. Evidence — опубликовано в GitHub
 
-Arena сохранила артефакты локально:
+После первоначального отчёта Arena добавила фактические материалы отдельным commit `eef31d1ce84efff6a4653e4a87c95ceebf946ce8` в рабочую ветку `arena/ff89979b-tg-bot`. Родитель commit — проверенный `main` SHA `eaaa9072a729f69ae19d44a1449c1d94f27c07a1`; изменения не затрагивают код, документацию, зависимости или `main`.
 
-- `/home/user/tdl-env-001-evidence/main/`
-- `/home/user/tdl-env-001-evidence/pr9/`
+[Открыть всю папку TDL-ENV-001 evidence](https://github.com/PandaGarry/tg_bot/tree/arena/ff89979b-tg-bot/evidence/TDL-ENV-001)
 
-В каждой папке — desktop/mobile screenshots, `db.log`, `server.log`, `console.log`, `health.json`, `smoke-report.json`. Сами бинарные изображения не включены в этот документ/репозиторий; их необходимо прикрепить отдельно, если они нужны в GitHub PR или для визуального review.
+В репозитории находятся 31 PNG screenshot и `health.json` / `smoke-report.json` для обоих baseline. Ключевые кадры:
+- [main — двор desktop](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/main/05-court-desktop.png)
+- [main — двор после постройки desktop](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/main/08-court-built-desktop.png)
+- [PR #9 — двор desktop](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/pr9/05-court-desktop.png)
+- [PR #9 — двор после постройки desktop](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/pr9/08-court-built-desktop.png)
+- [main — mobile touch 390px](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/main/12-mobile-touch-ctx-390.png)
+- [PR #9 — mobile touch 390px](https://github.com/PandaGarry/tg_bot/blob/eef31d1ce84efff6a4653e4a87c95ceebf946ce8/evidence/TDL-ENV-001/pr9/12-mobile-touch-ctx-390.png)
+
+В папках main и pr9 также сохранены остальные desktop/mobile шаги, `health.json` и `smoke-report.json`.
 
 ## 7. Команды и exit codes
 
