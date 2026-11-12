@@ -1,21 +1,21 @@
 # TDL — текущее состояние совместной разработки
 
-> Снимок на 12.11.2026. Факты проверены через GitHub. Этот файл обновляется вместе с принятыми handoff/PR; точный актуальный SHA всегда сверять с открытым PR.
+> Обновлено: 12.11.2026. Текущие факты сверены с GitHub. Сверяйте HEAD и Actions перед каждым новым handoff.
 
 ## GitHub baseline
 
-| Показатель | Проверенное значение |
+| Показатель | Значение |
 |---|---|
 | Репозиторий | `PandaGarry/tg_bot` |
 | Default branch | `main` |
-| HEAD `main` до интеграции документационного PR | `8a46482422a2127db73597dea65b3f07464fd9dc` |
-| Рабочая ветка реализации | `arena/8885a9e3-tg-bot` |
-| HEAD PR #9 на момент снимка | `7223021c6c7bd78fc4edc643259390d7accaadc9` |
-| PR #9 | [Открыт, не слит](https://github.com/PandaGarry/tg_bot/pull/9), 443 файла; большой накопленный diff, требуется полный review |
-| Последний завершённый CI | [run #416](https://github.com/PandaGarry/tg_bot/actions/runs/43219202084), PASS на HEAD `4dba3d1` |
-| CI текущего HEAD PR #9 | [run #419](https://github.com/PandaGarry/tg_bot/actions/runs/43219807826), IN_PROGRESS на HEAD `7223021` |
-| Документационный PR #11 | [Открыт](https://github.com/PandaGarry/tg_bot/pull/11), 16 файлов; только документы/инструкции, без игрового кода |
-| CI в main до PR #11 | Workflow ещё не обнаружен в `.github/workflows/ci.yml` на main; PR #11 — документационный bootstrap, после интеграции необходимо отдельно проверить запуск workflow на main |
+| HEAD main | `3e77cd2a45cb50763b96b77fa258a75bfa2b7472` |
+| Документационный PR #11 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/11), merge commit `3e77cd2`, 16 файлов |
+| Основной кодовый PR #9 | [OPEN](https://github.com/PandaGarry/tg_bot/pull/9), 443 файла, требует независимого review |
+| HEAD PR #9 | `fb4ecae64bb54ba0a854c74134f4511405edbb76` |
+| CI run #420 | [IN_PROGRESS](https://github.com/PandaGarry/tg_bot/actions/runs/43219922568) на HEAD `fb4ecae`; запуск начат до merge PR #11 и использовал прежнюю base SHA |
+| Последний ранее завершённый CI | [run #416 PASS](https://github.com/PandaGarry/tg_bot/actions/runs/43219202084) на HEAD `4dba3d1`; не подтверждает текущий HEAD |
+
+После merge PR #11 проверить, что GitHub Actions запустил CI на PR #9 с новой базой main. Не считать run #420 доказательством проверки merge-base после интеграции PR #11.
 
 ## Утверждённая продуктовая цель
 
@@ -26,23 +26,23 @@
 - Сначала качественный vertical prototype, затем масштабирование.
 - Mobile + browser/PC.
 
-Полная спецификация: `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
+Основная спецификация: `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
+Оперативный план: `PROJECT_MASTER.md`.
 
-## Что важно не перепутать
+## Что реально интегрировано
 
-- 3D — утверждённое продуктовое направление, но **не** выбранный движок и **не** разрешение на массовую миграцию.
-- Текущая рабочая реализация клиента остаётся PixiJS/React; production 3D-прототип не создан и не принят.
-- Нельзя заявлять, что весь интерфейс/каталог зданий заменён, мобильная производительность подтверждена или production deployment проверен.
-- Run #416 PASS относится к SHA `4dba3d1`, а не к последующим commits. Run #419 проверяет текущую на момент снимка ветку PR #9.
-- PR #11 создан как отдельный небольшой путь переноса общей продуктовой спецификации и multi-agent протокола в `main`; PR #9 остаётся отдельным большим PR с кодом.
+- Общая продуктовая спецификация, оперативный план, протокол Cloud/Arena.ai/ChatGPT, очередь и handoff-файлы теперь находятся в `main` после PR #11.
+- Корневой `AGENTS.md` содержит актуальный блок правил; исторические инструкции ниже него нужно читать с учётом этого приоритета.
+- PR #9 с накопленным кодовым diff не слит. Его изменения нельзя считать интегрированными.
+- 3D runtime не выбран и не создан в production-клиенте. Текущая реализация остаётся PixiJS/React.
+- Полный визуальный рефакторинг, каталог зданий, реальная мобильная производительность и production deployment не подтверждены.
 
-## Очередь и блокеры
+## Активные handoff
 
-1. TDL-PIPE-001 — REVIEW: синхронизация документов и проверка ссылок; handoff: `docs/AI_COLLABORATION/handoffs/TDL-PIPE-001.md`.
-2. TDL-ENV-001 — READY: Arena.ai проверяет browser/Node/PostgreSQL/Godot environment без изменений проекта.
-3. TDL-3D-001 — READY: Cloud готовит независимое сравнение 3D-технологий; handoff: `docs/AI_COLLABORATION/handoffs/TDL-3D-001.md`.
-4. TDL-AUD-001 — BLOCKED до интеграции PR #9: полный аудит актуальной базы после merge.
+- Cloud: `docs/AI_COLLABORATION/handoffs/TDL-3D-001.md`.
+- Arena.ai: `docs/AI_COLLABORATION/handoffs/TDL-ENV-001.md`.
+- Очередь: `docs/AI_COLLABORATION/QUEUE.md`.
 
-## Обновление статуса
+## Правило обновления
 
-После каждого merge записывать новый main SHA, PR/commit, CI run и точные проверенные результаты. Не переписывать историю: прошлые snapshots сохранять в журнале. Не считать незлитую ветку частью main.
+После каждого принятого PR записывать merge SHA, актуальные PR HEAD, CI run и результаты фактических проверок. Не переписывать историю прошлых snapshots. Сначала принимать независимый малый PR, затем проверять крупные накопленные изменения.
