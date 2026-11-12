@@ -28,7 +28,7 @@
   Старые документы — `docs/archive/game/`, разбираются по темам (см. `docs/README.md`).
 - Состояние работы: `docs/STATUS.md`. Корневой `STATUS.md` — указатель; старая версия в `docs/archive/root/STATUS.md`.
 - Текущая реализация клиента: PixiJS для сцены, React для HUD; это baseline, не окончательно утверждённая технология целевого 3D-мира. План: [PROJECT_MASTER.md](PROJECT_MASTER.md).
-- Разбор open-source решений и референсы: [docs/design/client-stack.md](docs/design/client-stack.md) §4.
+- Технические варианты 3D и критерии выбора ведутся в [PROJECT_MASTER.md](PROJECT_MASTER.md) и назначенных handoff-задачах.
 
 ## Команды
 
@@ -118,7 +118,7 @@ apps/client/src/
 
 ## Дисциплина этапов (чекпоинты)
 
-Работа идёт по этапам плана [roadmap.md](docs/plan/roadmap.md).
+Работа идёт по этапам [PROJECT_MASTER.md](PROJECT_MASTER.md).
 Каждый этап завершается:
 
 1. Все проверки зелёные: `pnpm typecheck && pnpm test && pnpm check && pnpm build`.
