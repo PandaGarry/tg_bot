@@ -27,10 +27,10 @@
   3. Three.js (`WebGLRenderer.js:1074-1080`) handles the resulting `webglcontextlost` event by logging `THREE.WebGLRenderer: Context Lost.`.
 - **Empirical proof from `TDL-ARCH-003` DOM/console probes (`smoke-report.json`):**
   - During all interactive 3D steps (`desktopCourtLoad`, `leftDragPan`, `rightHoldNoPickup`, `rightDragOrbit`, `leftLongPressPickup`, `farmPlace`, `upgradeLv2`), **0 context-lost events** fired.
-  - Only **after** `desktop:nav-to-map-unmount-court` (`Двор → Карта`, +500 ms timer) did `webglcontextlost` fire on the **already-detached** `<canvas>` (`webglContextDomEventsDesktop[0].inDom === false`).
+  - The report records the console event at `desktop:nav-back-to-court-remount`; the DOM probe records the event on a detached canvas (`webglContextDomEventsDesktop[0].inDom === false`). This proves the event was emitted by an already-unmounted canvas, but the current report does not unambiguously establish whether its delayed callback was observed during the outbound navigation or the return/remount step. The exact step label is therefore retained as reported rather than inferred.
   - On mobile (`390×844` + `320×690`), where the test did not navigate away from `Двор`, `webglContextDomEventsMobile` was `[]` and **0** `Context Lost` logs occurred.
   - Returning `Карта → Двор` (`06b-desktop-returned-from-map.png`) mounted a fresh `<Canvas />` and rendered Lv.2 TownHall + Farm normally.
-- **Assessment:** Benign intentional cleanup by R3F on `<Canvas />` unmount (not a driver/GPU instability defect). Optional future UX improvement (out of scope for TDL-ARCH-003): keep `<Canvas />` mounted or ignore expected unmount cleanup noise.
+- **Assessment:** The detached-canvas event and R3F's documented cleanup path strongly indicate intentional context release on `<Canvas />` unmount, not a live-canvas GPU failure. The report's step-label mismatch is retained as an evidence limitation; if route timing becomes relevant, rerun a focused trace. Optional future UX improvement (out of scope for TDL-ARCH-003): keep `<Canvas />` mounted or ignore expected unmount cleanup noise.
 
 ---
 
