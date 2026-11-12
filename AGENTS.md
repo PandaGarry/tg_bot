@@ -27,7 +27,7 @@
   Журнал решений — `docs/DECISIONS.md`, состояние — `docs/STATUS.md`.
   Старые документы — `docs/archive/game/`, разбираются по темам (см. `docs/README.md`).
 - Состояние работы: `docs/STATUS.md`. Корневой `STATUS.md` — указатель; старая версия в `docs/archive/root/STATUS.md`.
-- Текущая реализация клиента: PixiJS для сцены, React для HUD; это baseline, не окончательно утверждённая технология целевого 3D-мира. План: [PROJECT_MASTER.md](PROJECT_MASTER.md).
+- Текущая реализация в `main`: React + React Three Fiber/Three.js для сцены двора (`apps/client/src/court/CourtScene.tsx`), React HUD. PR #9 предлагает PixiJS rewrite и удаляет эту 3D-сцену; см. актуальный baseline в `docs/AI_COLLABORATION/STATUS.md`.
 - Технические варианты 3D и критерии выбора ведутся в [PROJECT_MASTER.md](PROJECT_MASTER.md) и назначенных handoff-задачах.
 
 ## Команды
@@ -52,9 +52,7 @@ pnpm db:reset             # снести схему базы разработк�
 
 ## Предлагаемая PixiJS-архитектура из PR #9 (не текущий main baseline)
 
-```
-Эта схема описывает архитектуру, предлагаемую PR #9: PixiJS в `game/`, React в `ui/`, bridge между ними. В `main` на момент snapshot сцена двора реализована через React Three Fiber + Three.js в `apps/client/src/court/CourtScene.tsx`. Не считать PixiJS-схему интегрированной в main до merge PR #9.
-```
+Схема ниже описывает архитектуру, предлагаемую PR #9: PixiJS в `game/`, React в `ui/`, bridge между ними. В `main` на момент snapshot сцена двора реализована через React Three Fiber + Three.js в `apps/client/src/court/CourtScene.tsx`. Не считать PixiJS-схему интегрированной в main до merge PR #9.
 
 - **ЕДИНСТВЕННАЯ точка связи** Pixi ↔ React — `src/game/bridge.ts` (EventTarget).
   Никаких прямых вызовов методов между `game/` и `ui/`.
