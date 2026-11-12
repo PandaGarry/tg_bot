@@ -9,7 +9,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
-import { TownHall } from "./buildings/citadel/CitadelLegacy.js";
+import { CitadelRenderer, type CitadelRenderVariant } from "./buildings/citadel/CitadelRenderer.js";
 import { Buildings, Dust } from "./buildings/legacy/LegacyBuildings.js";
 import { ACCENT_COLORS, C } from "./materials/palette.js";
 import { DEFAULT_QUALITY_PROFILE } from "./performance/qualityProfiles.js";
@@ -20,12 +20,13 @@ import { WebglFallback, webglAvailable } from "./scene/WebglFallback.js";
 import { footprintCenterToWorld, type CourtGridLite } from "./scene/gridMath.js";
 
 /** Сетка двора из вида: то, что отдаёт модуль court. */
-export type { CourtGridLite, CourtPending, CourtTool };
+export type { CourtGridLite, CourtPending, CourtTool, CitadelRenderVariant };
 
 export function CourtScene({
   texts,
   grid,
   thLevel = 1,
+  citadelVariant = "citadel",
   tool,
   pending,
   onTarget,
@@ -35,6 +36,7 @@ export function CourtScene({
   texts: { rotate: string; nowebgl: string };
   grid: CourtGridLite | null;
   thLevel?: number;
+  citadelVariant?: CitadelRenderVariant;
   tool: CourtTool;
   pending: CourtPending | null;
   onTarget: (x: number, z: number) => void;
@@ -100,7 +102,7 @@ export function CourtScene({
         <CourtCamera />
         <CourtEnvironment grid={grid} />
         <Buildings grid={resolvedGrid} />
-        <TownHall level={thLevel} grid={resolvedGrid} />
+        <CitadelRenderer level={thLevel} grid={resolvedGrid} variant={citadelVariant} />
         {bursts.map((b) => (
           <Dust key={b.key} x={b.x} z={b.z} onDone={() => setBursts((list) => list.filter((e) => e.key !== b.key))} />
         ))}
