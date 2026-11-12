@@ -1,0 +1,231 @@
+{
+  "task": "TDL-ARCH-001",
+  "pr": 26,
+  "branch": "refactor/tdl-asset-pipeline-foundation",
+  "testedSha": "0a5e465ede6096ecdfc33b4771b0761baf327fab",
+  "origin": "http://127.0.0.1:3000",
+  "testedAt": "2026-11-12T15:28:04.217Z",
+  "browserVersion": "HeadlessChrome/153.0.8010.0",
+  "steps": {
+    "desktopFullLv1": {
+      "ok": true
+    },
+    "farmPlace": {
+      "ok": true,
+      "afterFarmRes": "600 540 370 200 300 100"
+    },
+    "leftLongPressPickup": {
+      "ok": true
+    },
+    "rightHold700msTriggeredPickup": true,
+    "upgradeLv2": {
+      "ok": true,
+      "lvlText": "Ур. 2"
+    },
+    "navigation": {
+      "ok": true
+    }
+  },
+  "webglCapabilities": {
+    "available": true,
+    "isWebGL2": true,
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "shadingLanguage": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+    "vendor": "Google Inc. (Google)",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "maxTextureSize": 8192,
+    "maxCubeMapTextureSize": 16384,
+    "maxCombinedTextureImageUnits": 64,
+    "maxSamples": 4,
+    "maxAnisotropy": 16,
+    "supportedCompression": {
+      "WEBGL_compressed_texture_s3tc": true,
+      "WEBGL_compressed_texture_s3tc_srgb": true,
+      "WEBGL_compressed_texture_etc": true,
+      "WEBGL_compressed_texture_etc1": true,
+      "WEBGL_compressed_texture_astc": true,
+      "EXT_texture_compression_bptc": true,
+      "EXT_texture_compression_rgtc": true,
+      "WEBGL_compressed_texture_pvrtc": false
+    },
+    "renderedCanvasRect": {
+      "x": 278,
+      "y": 0,
+      "width": 820,
+      "height": 768,
+      "top": 0,
+      "right": 1098,
+      "bottom": 768,
+      "left": 278
+    }
+  },
+  "desktopLayout": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 820,
+      "h": 768,
+      "attrW": 820,
+      "attrH": 768
+    },
+    "top": {
+      "x": 292,
+      "y": 10,
+      "w": 792,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "profile": {
+      "x": 292,
+      "y": 10,
+      "w": 172,
+      "h": 65,
+      "right": 464,
+      "bottom": 75
+    },
+    "res": {
+      "x": 961,
+      "y": 10,
+      "w": 123,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "nav": {
+      "x": 536,
+      "y": 684,
+      "w": 304,
+      "h": 74,
+      "right": 840,
+      "bottom": 758
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 682,
+      "attrH": 1477
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 374,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 167,
+      "h": 63,
+      "right": 175,
+      "bottom": 69
+    },
+    "res": {
+      "x": 271,
+      "y": 6,
+      "w": 111,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "nav": {
+      "x": 51,
+      "y": 766,
+      "w": 288,
+      "h": 72,
+      "right": 339,
+      "bottom": 838
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 560,
+      "attrH": 1207
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 304,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 159,
+      "h": 62,
+      "right": 167,
+      "bottom": 68
+    },
+    "res": {
+      "x": 215,
+      "y": 6,
+      "w": 97,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "nav": {
+      "x": 39,
+      "y": 622,
+      "w": 242,
+      "h": 62,
+      "right": 281,
+      "bottom": 684
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "consoleErrors": [
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). "
+  ],
+  "consoleWarningsCount": 0,
+  "consoleLogs": [
+    "[desktop][debug] [vite] connecting...",
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[desktop][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[mobile][debug] [vite] connecting...",
+    "[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[mobile][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  ],
+  "pageErrors": [
+    "[desktop] WebSocket closed without opened.",
+    "[mobile] WebSocket closed without opened."
+  ],
+  "failedRequests": []
+}

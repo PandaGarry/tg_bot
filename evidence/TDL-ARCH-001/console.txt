@@ -1,0 +1,8 @@
+[desktop][debug] [vite] connecting...
+[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+[desktop][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[mobile][debug] [vite] connecting...
+[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=jM-4Y1HsBwYx' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+[mobile][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
