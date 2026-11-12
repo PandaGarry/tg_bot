@@ -259,7 +259,7 @@ function Ground({ grid }: { grid: CourtGridLite | null }) {
       {patches.map((p, i) => (
         <mesh key={i} geometry={p.geom} rotation-x={-Math.PI / 2} rotation-z={p.rot} position={[p.x, 0.14, p.z]} receiveShadow>
           {/* двухтонный снег: пятна чуть различаются оттенком — фактура вместо плоскости */}
-          <meshStandardMaterial color={i % 2 ? C.snowPatch : "#eae1cd"} roughness={1} />
+          <meshStandardMaterial color={i % 2 ? C.snowPatch : "#6b6558"} roughness={1} />
         </mesh>
       ))}
       {/* сугробы-валики у края площадки */}
@@ -910,7 +910,7 @@ function BuildingBody({ type }: { type: string }) {
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <mesh key={`s${i}`} position={[-0.6 + (i % 3) * 0.6, 0.15, -0.62 + Math.floor(i / 3) * 1.05 + (i % 2) * 0.1]}>
               <coneGeometry args={[0.05, 0.16, 5]} />
-              <meshStandardMaterial color="#7fae5a" roughness={1} flatShading />
+              <meshStandardMaterial color="#555c3c" roughness={1} flatShading />
             </mesh>
           ))}
           {/* сарай в углу поля */}
@@ -921,7 +921,7 @@ function BuildingBody({ type }: { type: string }) {
             </mesh>
             <mesh position-y={0.75} rotation-y={Math.PI / 4} castShadow>
               <coneGeometry args={[0.62, 0.34, 4]} />
-              <meshStandardMaterial color={C.flag} roughness={0.9} flatShading />
+              <meshStandardMaterial color="#302b28" roughness={0.9} flatShading />
             </mesh>
             <RoofSnow y={0.95} r={0.28} />
             <mesh position={[0, 0.2, 0.33]}>
@@ -1931,10 +1931,10 @@ export function CourtScene({
       >
         <color attach="background" args={[C.sky]} />
         <fog attach="fog" args={[C.fogFar, 42, 100]} />
-        <hemisphereLight args={["#e8f0fa", "#a08a6c", 0.9]} />
+        <hemisphereLight args={["#c3cbd0", "#302a25", 0.62]} />
         <directionalLight
-          color="#ffd9a0"
-          intensity={2.0}
+          color="#d3c2a1"
+          intensity={1.65}
           position={[16, 22, 8]}
           castShadow
           shadow-mapSize={[2048, 2048]}
