@@ -2,7 +2,7 @@
 
 Браузерная стратегия (жанр RoK), зомби-лорд замка. Коротко: **TDL**.
 
-Документация: [docs/README.md](docs/README.md) — карта, статусы, процесс работы.
+Документация: [docs/README.md](docs/README.md) — карта проекта. Продуктовая цель: [docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md](docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md). Оперативный план: [PROJECT_MASTER.md](PROJECT_MASTER.md). Совместная работа Cloud/Arena/ChatGPT: [docs/AI_COLLABORATION/README.md](docs/AI_COLLABORATION/README.md).
 Состояние: [docs/STATUS.md](docs/STATUS.md). Решения: [docs/DECISIONS.md](docs/DECISIONS.md).
 Старые документы: [docs/archive/game/](docs/archive/game/) (разбираются по темам).
 
