@@ -1,3 +1,5 @@
+> **Актуальность:** подробные записи ниже содержат исторические snapshots и не полностью отражают решения от 12.11.2026. Текущая контрольная точка, актуальные SHA/PR/CI и блокеры: [AI_COLLABORATION/STATUS.md](AI_COLLABORATION/STATUS.md). Утверждённая цель: [TDL_PRODUCT_VISION_AND_ACCEPTANCE.md](TDL_PRODUCT_VISION_AND_ACCEPTANCE.md). Оперативный план: [../PROJECT_MASTER.md](../PROJECT_MASTER.md). Не трактовать исторические упоминания 2D/PixiJS или старые CI runs как отмену нового решения о целевом 3D-мире.
+
 # Состояние проекта
 
 > Обновлено: 10.11.2026. Оперативный план — `PROJECT_MASTER.md`; решения — `DECISIONS.md`; исходный статический аудит — `audit/2026-11-08-initial-review.md`; актуальная перепроверка — `audit/2026-11-08-revalidation.md`. Рабочая ветка: `arena/8885a9e3-tg-bot`.
