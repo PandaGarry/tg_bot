@@ -82,3 +82,13 @@
 - Evidence imported from Arena session branch `arena/ff89979b-tg-bot` into this PR branch as evidence-only commit `6c2f986ed00196579eb00e8c1686bb075fc08ef4`. Source Arena commits: `c3ae8321de3dd21ab6480e58e72c0da6bfcb0dc4`, `17f49483dc92eb5c2a9f05fc84ae154d6e7ab4e9`.
 - Evidence folder: [evidence/TDL-ARCH-003](https://github.com/PandaGarry/tg_bot/tree/refactor/tdl-court-grid-input-impl/evidence/TDL-ARCH-003).
 - PR #28 remains open and draft. Do not merge until base PR #26 relationship and GitHub mergeability are reviewed, and calendar test failures are separately understood.
+
+
+### TDL-ARCH-003 reconciliation note (12.11.2026)
+
+- The earlier ARCH-003 addendum above is the current result; the preceding ARCH-003 bullets in the historical snapshot are superseded. In particular, the old statement that evidence was missing / tests targeted PR #27 is no longer current.
+- Current PR #28 HEAD after evidence import and documentation clarification: see GitHub PR metadata. The application code tested by Arena remains exactly `c10e99a1d51a25eb4a7873b2e6d6e6d4857dc194`; later commits add evidence/docs only.
+- PR #28 currently reports `mergeable=true`, but remains draft and is not merged. PR #26 is also open/draft and remains the base architecture proposal.
+- Evidence review found one wording mismatch in `evidence/TDL-ARCH-003/README.md`: the smoke report labels the console event `desktop:nav-back-to-court-remount`, while the earlier README attributed it definitively to outbound navigation. The README has been corrected to preserve the exact reported step and state the limitation. Root-cause assessment remains R3F cleanup of a detached canvas, not active-scene GPU loss.
+- Runtime screenshot `01-desktop-court-full-lv1.png` visibly shows the existing primitive/snow-courtyard presentation, not the premium gothic visual target. ARCH-003 validates interaction and layout only; it does **not** validate TDL's visual-art acceptance criteria.
+- Next: review PR #26 architecture document and PR #28 code diff as separate gates. Keep both PRs unmerged until review is complete. The next visual milestone must use the accepted architecture and include actual 3D geometry/material work plus Arena runtime screenshots; no concept image may substitute for runtime proof.
