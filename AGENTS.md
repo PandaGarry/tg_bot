@@ -3,7 +3,7 @@
 **Этот блок имеет приоритет над противоречащими ему историческими инструкциями ниже.** Перед работой прочитать `docs/AI_COLLABORATION/README.md`, `docs/AI_COLLABORATION/STATUS.md`, `PROJECT_MASTER.md`, `docs/DECISIONS.md` и `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
 
 - Цель TDL утверждена: Premium stylized realism, полноценный 3D-мир с изометрической камерой, оригинальная undead-fantasy идентичность, mobile + browser/PC. Это целевая спецификация, не заявление о готовой реализации.
-- Текущий PixiJS/React клиент — существующая база. Старые правила Pixi описывают текущую реализацию, но не запрещают исследовательский 3D-прототип. Движок не выбран; массовая миграция запрещена до сравнительного прототипа и отдельного решения владельца.
+- Фактический main baseline: React + React Three Fiber/Three.js сцена в `apps/client/src/court/CourtScene.tsx`; отдельная экспериментальная сцена есть в `apps/court3d/`. PR #9 предлагает заменить её на PixiJS и удаляет текущую R3F/Three.js реализацию. Это противоречие с утверждённой 12.11 целью full 3D должно быть разобрано до merge PR #9. Существующая сцена — прототип, не доказательство готовности production 3D.
 - ChatGPT и Arena.ai работают через GitHub handoff, отдельные ветки и PR. Внешние консультанты необязательны и не блокируют работу. Никаких прямых коммитов в `main`, force-push или параллельного редактирования одних файлов. Полный процесс — `docs/AI_COLLABORATION/README.md`.
 - `main` обновляется только принятыми PR после review и CI. После merge обновить `PROJECT_MASTER.md`, очередь и `docs/AI_COLLABORATION/STATUS.md`.
 - Не заявлять о запуске, FPS, мобильной совместимости, скриншотах или CI без проверяемого доказательства и commit SHA.
@@ -27,7 +27,7 @@
   Журнал решений — `docs/DECISIONS.md`, состояние — `docs/STATUS.md`.
   Старые документы — `docs/archive/game/`, разбираются по темам (см. `docs/README.md`).
 - Состояние работы: `docs/STATUS.md`. Корневой `STATUS.md` — указатель; старая версия в `docs/archive/root/STATUS.md`.
-- Текущая реализация клиента: PixiJS для сцены, React для HUD; это baseline, не окончательно утверждённая технология целевого 3D-мира. План: [PROJECT_MASTER.md](PROJECT_MASTER.md).
+- Текущая реализация в `main`: React + React Three Fiber/Three.js для сцены двора (`apps/client/src/court/CourtScene.tsx`), React HUD. PR #9 предлагает PixiJS rewrite и удаляет эту 3D-сцену; см. актуальный baseline в `docs/AI_COLLABORATION/STATUS.md`.
 - Технические варианты 3D и критерии выбора ведутся в [PROJECT_MASTER.md](PROJECT_MASTER.md) и назначенных handoff-задачах.
 
 ## Команды
@@ -50,17 +50,9 @@ pnpm db:reset             # снести схему базы разработк�
 `tdl_test_<пакет>` и не трогает рабочую (`tdl`). Адрес — `TDL_TEST_DB_URL`
 (имя базы обязано содержать `test`).
 
-## Текущая архитектура клиента (baseline; исторические PixiJS-правила до выбора 3D runtime)
+## Предлагаемая PixiJS-архитектура из PR #9 (не текущий main baseline)
 
-```
-apps/client/src/
-├── game/   — PixiJS. НЕ импортирует React. НЕ использует хуки. Чистый TS.
-├── ui/     — React + Tailwind (World, Hud, панели). НЕ импортирует Pixi.
-├── shell/  — хроника, первый запуск, формы (React).
-├── i18n/   — словарь ru/en (паритет проверяется `pnpm check`).
-├── net.ts  — транспорт @tdl/protocol (WS). Только транспорт.
-└── styles.css / hud.css — глобальные стили и стили HUD.
-```
+Схема ниже описывает архитектуру, предлагаемую PR #9: PixiJS в `game/`, React в `ui/`, bridge между ними. В `main` на момент snapshot сцена двора реализована через React Three Fiber + Three.js в `apps/client/src/court/CourtScene.tsx`. Не считать PixiJS-схему интегрированной в main до merge PR #9.
 
 - **ЕДИНСТВЕННАЯ точка связи** Pixi ↔ React — `src/game/bridge.ts` (EventTarget).
   Никаких прямых вызовов методов между `game/` и `ui/`.
