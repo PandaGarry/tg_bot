@@ -1458,6 +1458,8 @@ function CourtInput({
           setHover(worldToCell(e.point.x, e.point.z, size));
         }}
         onPointerDown={(e) => {
+          // Right/middle mouse buttons are reserved for camera navigation.
+          if (e.nativeEvent.button !== 0) return;
           const cell = worldToCell(e.point.x, e.point.z, size);
           down.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, cell };
           held.current = false;
@@ -1482,6 +1484,7 @@ function CourtInput({
           }, 550);
         }}
         onPointerUp={(e) => {
+          if (e.nativeEvent.button !== 0) return;
           clearTimer();
           const d = down.current;
           down.current = null;
@@ -1626,9 +1629,9 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       ))}
       {/* three vertical towers with layered stone crowns */}
       {[
-        { x: -1.02, z: -1.62, h: 2.15, r: 0.52 },
-        { x: 1.02, z: -1.62, h: 2.45, r: 0.56 },
-        { x: 0, z: -1.78, h: 2.9, r: 0.62 },
+        { x: -1.02, z: -1.05, h: 2.15, r: 0.43 },
+        { x: 1.02, z: -1.05, h: 2.45, r: 0.43 },
+        { x: 0, z: -1.18, h: 2.9, r: 0.48 },
       ].map((tower, i) => (
         <group key={i} position={[tower.x, 0, tower.z]}>
           <mesh position-y={tower.h * 0.5} castShadow receiveShadow>
@@ -1663,7 +1666,7 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
         </mesh>
       ))}
       {/* carved stone socket anchors the necrotic heart to the roof */}
-      <group position={[0, 2.53, 0.22]}>
+      <group position={[0, 2.43, 0.22]}>
         <mesh position-y={0.02} castShadow receiveShadow>
           <boxGeometry args={[0.72, 0.18, 0.72]} />
           <meshStandardMaterial color="#414541" roughness={0.96} />
@@ -1678,13 +1681,13 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
         </mesh>
       </group>
       {/* necrotic heart is physically integrated into its stone socket */}
-      <group position={[0, 3.02, 0.22]}>
+      <group position={[0, 3.12, 0.22]}>
         <mesh castShadow>
           <octahedronGeometry args={[0.38, 1]} />
           <meshStandardMaterial ref={core} color="#71834b" emissive="#7da64b" emissiveIntensity={0.82} roughness={0.22} metalness={0.18} />
         </mesh>
         <mesh rotation-y={Math.PI / 4}>
-          <torusGeometry args={[0.55, 0.045, 8, 24]} />
+          <torusGeometry args={[0.42, 0.035, 8, 24]} />
           <meshStandardMaterial color="#64734a" emissive="#526d35" emissiveIntensity={0.42} metalness={0.4} roughness={0.45} />
         </mesh>
         <pointLight ref={coreLight} color="#91b85a" intensity={1.1} distance={4.5} />
@@ -1960,13 +1963,13 @@ export function CourtScene({
           intensity={1.65}
           position={[16, 22, 8]}
           castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-left={-24}
-          shadow-camera-right={24}
-          shadow-camera-top={24}
-          shadow-camera-bottom={-24}
-          shadow-bias={-0.0004}
-          shadow-normalBias={0.02}
+          shadow-mapSize={[4096, 4096]}
+          shadow-camera-left={-12}
+          shadow-camera-right={12}
+          shadow-camera-top={12}
+          shadow-camera-bottom={-12}
+          shadow-bias={-0.0001}
+          shadow-normalBias={0.035}
         />
         <CameraRig />
         <Ground grid={grid} />
