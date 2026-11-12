@@ -64,17 +64,22 @@
 
 ### Pixel-Diff Analysis (`screenshots/before-*`, `after-*`, `diff-*`)
 
-Differences across all 10 viewport/state captures are strictly sub-0.12% pixels caused by frame-phase drift of continuous `useFrame` clock animations (flying `Birds`, chimney `Smoke` puffs, and `Farm` `Windmill` blade rotation); static terrain, snow patches, palisade, trees, buildings, lighting, shadows, and HUD are pixel-identical:
+Inspection of every `diff-*.png` image and pixel-region bounding box proves **0 changed pixels** across static 3D terrain, 26 snow patches, road tiles, palisade, trees, TownHall/Farm geometry, lighting, shadows, and selection overlays:
 
-| Screenshot | Resolution | Mean Abs Channel Diff (`/255`) | Pixels Diff > 0 (%) | Pixels Diff > 24 (%) |
-| --- | --- | ---: | ---: | ---: |
-| `01-desktop-court-full-lv1.png` | `1376×768` | `0.0303` | `0.0784%` | `0.0220%` |
-| `02-desktop-right-orbit-no-pickup.png` | `1376×768` | `0.0046` | `0.1051%` | `0.0009%` |
-| `03-desktop-left-longpress-pickup.png` | `1376×768` | `0.0332` | `0.1279%` | `0.0301%` |
-| `04-desktop-farm-grid.png` | `1376×768` | `0.0054` | `0.0894%` | `0.0073%` |
-| `05-desktop-farm-placed.png` | `1376×768` | `0.0417` | `0.1819%` | `0.0749%` |
-| `06-desktop-upgrade-lv2.png` | `1376×768` | `0.0516` | `0.1663%` | `0.0594%` |
-| `06b-desktop-returned-from-map.png` | `1376×768` | `0.0881` | `0.1932%` | `0.1030%` |
-| `07-mobile-390-full.png` | `780×1688` | `0.0940` | `0.3979%` | `0.0753%` |
-| `08-mobile-390-touch-pickup.png` | `780×1688` | `0.1011` | `0.3947%` | `0.0855%` |
-| `09-mobile-320-full.png` | `640×1380` | `0.1120` | `0.3858%` | `0.0956%` |
+- **Desktop (`01–06b`, `1376×768`):** `0` changed HUD pixels (`0.000%`); `0.0784%–0.1932%` (`829–2,042 px`) changed strictly inside tight bounding boxes around continuous `useFrame` animations (`TownHall` chimney `Smoke`, right `Gatehouse` `LanternFlame`, `Farm` `Windmill` blades, and flying `Birds` + cast shadow).
+- **Mobile (`07–09`, `390×844` @ 2× DPR = `780×1688`, `320×690` @ 2× DPR = `640×1380`):** Higher total percentage (`0.3858%–0.3979%`) splits cleanly into two non-regression sources:
+  1. **HTML HUD economy tick (`0.0914%–0.1110%`, `980–1,204 px` in top-right HUD):** One server production tick elapsed before mobile capture in the `after` run (`610/252/128/204/306/52` → `620/264/136/208/312/54`, bounding boxes `[606, 26, 745, 154]` on `390×844` and `[492, 26, 613, 144]` on `320×690`).
+  2. **2× DPR portrait-zoom `useFrame` phase (`0.2748%–0.3065%`, `2,427–4,035 px`):** Closer portrait camera projects `TownHall` chimney `Smoke` across more pixels (`x ≈ 340..422`), plus 2–3 px at the far-left edge (`x = 0`) where the `Farm` `Windmill` blade sweeps.
+
+| Screenshot | Resolution | Mean Abs Channel Diff (`/255`) | Total Pixels > 0 (%) | HUD Tick > 0 (%) | Scene Animated > 0 (%) | Static 3D Scene Diff |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `01-desktop-court-full-lv1.png` | `1376×768` | `0.0303` | `0.0784%` | `0.0000%` | `0.0784%` | `0` px (`Smoke`, `Birds`) |
+| `02-desktop-right-orbit-no-pickup.png` | `1376×768` | `0.0046` | `0.1051%` | `0.0000%` | `0.1051%` | `0` px (`Smoke`, `LanternFlame`) |
+| `03-desktop-left-longpress-pickup.png` | `1376×768` | `0.0332` | `0.1279%` | `0.0000%` | `0.1279%` | `0` px (`Smoke`, `LanternFlame`, `Birds`) |
+| `04-desktop-farm-grid.png` | `1376×768` | `0.0054` | `0.0894%` | `0.0000%` | `0.0894%` | `0` px (`Smoke`, `LanternFlame`) |
+| `05-desktop-farm-placed.png` | `1376×768` | `0.0417` | `0.1819%` | `0.0000%` | `0.1819%` | `0` px (`Smoke`, `LanternFlame`, `Windmill`) |
+| `06-desktop-upgrade-lv2.png` | `1376×768` | `0.0516` | `0.1663%` | `0.0000%` | `0.1663%` | `0` px (`Smoke`, `LanternFlame`, `Windmill`, `Birds` shadow) |
+| `06b-desktop-returned-from-map.png` | `1376×768` | `0.0881` | `0.1932%` | `0.0000%` | `0.1932%` | `0` px (`Smoke`, `Windmill`, `Birds`) |
+| `07-mobile-390-full.png` | `780×1688` | `0.0940` | `0.3979%` | `0.0914%` | `0.3065%` | `0` px (`Smoke`, `Windmill` edge + HUD tick) |
+| `08-mobile-390-touch-pickup.png` | `780×1688` | `0.1011` | `0.3947%` | `0.0914%` | `0.3033%` | `0` px (`Smoke`, `Windmill` edge + HUD tick) |
+| `09-mobile-320-full.png` | `640×1380` | `0.1120` | `0.3858%` | `0.1110%` | `0.2748%` | `0` px (`Smoke`, `Windmill` edge + HUD tick) |
