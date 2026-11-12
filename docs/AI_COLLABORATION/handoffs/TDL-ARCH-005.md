@@ -68,3 +68,11 @@ Committed on `arena/ff89979b-tg-bot`:
 - `evidence/TDL-ARCH-005/commands.log`
 - `evidence/TDL-ARCH-005/console.txt`
 - `evidence/TDL-ARCH-005/screenshots/` (`before-*`, `after-*`, and `diff-*` pairs across `1376×768`, `390×844`, and `320×690`)
+
+## 6. Post-integration validation (PR #28 @ `1fd88f7569428fd138daec775184228f36f8b0f2`)
+
+- **Integrated PR #28 HEAD verified:** `1fd88f7569428fd138daec775184228f36f8b0f2` (parent `db711655e870cfcbd1b337dd105a926d3da509fa`), isolated clone validation recorded in `evidence/TDL-ARCH-005-post/`.
+- **Input/grid preservation:** `gridMath.ts` (`2e68bdbed98be0b4ffc19e80801f11ee39045001`), `courtInput.ts` (`0c376fa4ebfac8fb5cfc2b24eab01941247348eb`), their tests, `package.json`, and `pnpm-lock.yaml` have zero diff vs `db711655e870cfcbd1b337dd105a926d3da509fa`.
+- **Checks (0 cached):** `pnpm install --frozen-lockfile`, `pnpm --filter @tdl/client test` (`4/4` files, `34/34`), `pnpm typecheck` (`18/18`), `pnpm check`, `pnpm build` (`3/3`), and `pnpm test` (`@tdl/kernel` `44/44`, `@tdl/client` `34/34`, `@tdl/server` `34/34`; pre-existing `@tdl/host` `88 passed | 2 failed` calendar assertions on `2026-11-12` at `clock.test.ts:71` & `switches.test.ts:303`) all ran cleanly.
+- **Production-preview runtime smoke (`NODE_ENV=production`, headless Chromium + SwiftShader):** `10/10` gates passed (`1376×768`, `390×844`, `320×690`), `0` console/page/request errors, `1` benign `inDom: false` R3F `webglcontextlost` on Court→Map unmount. Ready for next gate (`TDL-ARCH-006`).
+
