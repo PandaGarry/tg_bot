@@ -1,0 +1,5 @@
+=== BEFORE (db711655e870cfcbd1b337dd105a926d3da509fa) ===
+[desktop][desktop:nav-back-to-court-remount][log] THREE.WebGLRenderer: Context Lost.
+
+=== AFTER (Slice B1 extracted) ===
+[desktop][desktop:nav-back-to-court-remount][log] THREE.WebGLRenderer: Context Lost.

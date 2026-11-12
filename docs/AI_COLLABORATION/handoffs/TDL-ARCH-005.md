@@ -1,7 +1,7 @@
 # TDL-ARCH-005 — Slice B1: безопасная декомпозиция CourtScene
 
-> **Статус:** READY FOR ARENA IMPLEMENTATION  
-> **Delivery branch:** `arena/ff89979b-tg-bot` (фиксированная сессионная ветка; не переключать)  
+> **Статус:** DONE (delivered on Arena branch for independent review and selective integration)  
+> **Delivery branch:** `arena/ff89979b-tg-bot` (фиксированная сессионная ветка; не переключалась)  
 > **Implementation source:** PR #28, branch `refactor/tdl-court-grid-input-impl`  
 > **Exact source SHA:** `db711655e870cfcbd1b337dd105a926d3da509fa`  
 > **Parent architecture source:** PR #26 @ `0a5e465ede6096ecdfc33b4771b0761baf327fab`  
@@ -24,64 +24,47 @@ Work from an isolated clone of the exact PR #28 source SHA above. Do not assume 
 - Do not merge PR #26/#28, force-push, or alter their refs.
 - Never describe a headless screenshot as a physical-device GPU result.
 
-## 3. Implementation scope
+## 3. Implementation scope (completed)
 
-Extract from the exact PR #28 source into cohesive modules under `apps/client/src/court/`:
+Extracted from exact source SHA `db711655e870cfcbd1b337dd105a926d3da509fa` into cohesive modules under `apps/client/src/court/` (with `CourtScene.tsx` reduced from `1,909` to `113` lines):
 
-1. `scene/CourtCamera.tsx` — camera rig and camera behavior.
-2. `scene/CourtEnvironment.tsx` — ground, road tiles, gatehouse, palisade, trees, meadow/ambient scene elements. Fix the hardcoded ground offset `+ 6.5` to derive from the existing grid size without changing visible placement. Ensure the 26 `ShapeGeometry` allocations are disposed on unmount (or provide a documented alternative if lifecycle ownership makes a direct cleanup unsafe).
-3. `scene/CourtInteraction.tsx` — grid overlay and interaction wiring using the existing PR #28 `courtInput.ts` / `gridMath.ts`; do not reimplement their logic.
-4. `scene/WebglFallback.tsx` — WebGL availability fallback, retaining the current `court-fallback.jpg` behavior.
-5. `materials/palette.ts` and `materials/MaterialRegistry.ts` — extract palette and centralize shared material definitions. Preserve exact old colors, roughness, metalness, opacity, side and transparency semantics. If safe shared material caching/disposal cannot be proven, first extract without changing instance lifecycle and document the follow-up; do not introduce a leak.
-6. `buildings/citadel/CitadelLegacy.tsx` — current TownHall and roof banner only; no redesign.
-7. `buildings/legacy/LegacyBuildings.tsx` — current building bodies, building list and existing VFX.
-8. `performance/qualityProfiles.ts` — initial profile must preserve current DPR `[1, 1.75]` and shadow settings exactly. No adaptive quality behavior in this slice.
+1. `scene/CourtCamera.tsx` (`130` lines) — camera rig, damping, zoom clamping, and focus offset behavior preserved 1:1.
+2. `scene/CourtEnvironment.tsx` (`570` lines) — `Ground`, `Road`, `Gatehouse`, `Palisade`, `Meadow`, `Snowflakes`, `Birds`, and `CourtEnvironment`. Replaced both hardcoded `+ 6.5` offsets in `Ground` with `worldToCell(x, z, grid?.size ?? 14)`. Added `useState` + `useEffect` unmount/StrictMode-safe disposal for all `26` `ShapeGeometry` snow patch allocations (`userData.__tdlDisposed`).
+3. `scene/CourtInteraction.tsx` (`248` lines) — `GridOverlay` (with `BufferGeometry` unmount/StrictMode-safe disposal), `PlacementGhost`, and pointer/touch event wiring delegating directly to unmodified PR #28 `courtInput.ts` and `gridMath.ts`.
+4. `scene/WebglFallback.tsx` (`23` lines) — `webglAvailable()` and `WebglFallback`, retaining `court-fallback.jpg` and localized `texts.nowebgl`.
+5. `materials/palette.ts` (`89` lines) and `materials/MaterialRegistry.ts` (`194` lines) — extracted `PALETTE` (`C`), `ACCENT_COLORS`, and centralized immutable R3F material spec definitions preserving exact scalar values (`roughness`, `metalness`, `opacity`, `side`, `depthWrite`, `emissiveIntensity`, `flatShading`). Preserved per-`<mesh>` R3F instance lifecycles so animated opacity/emissive mutations (`Smoke`, `TownHall` chimney smoke, `Dust`, `LanternFlame`) and `Palisade` `instanceColor` remain isolated; shared `THREE.Material` pooling is documented as a follow-up in `MaterialRegistry.ts`.
+6. `buildings/citadel/CitadelLegacy.tsx` (`188` lines) — legacy `TownHall` and `RoofBanner` preserved 1:1.
+7. `buildings/legacy/LegacyBuildings.tsx` (`732` lines) — legacy `BuildingBody`, `BuildingEntry`, `Buildings`, `Smoke`, `Dust`, and shared `LanternFlame` (imported by `CourtEnvironment.tsx` to keep module dependency graph acyclic).
+8. `performance/qualityProfiles.ts` (`64` lines) — `DEFAULT_QUALITY_PROFILE` preserving `dpr: [1, 1.75]`, `shadows: true`, `ACESFilmicToneMapping`, `toneMappingExposure: 1.12`, camera, and shadow frustum/bias parameters.
+9. `apps/client/tests/courtExtraction.test.tsx` (`128` lines) — unit coverage for palette/material specs, `qualityProfiles`, `worldToCell` parity (`size=14` and scaled `size=16`), 26 `ShapeGeometry` unmount + React `<StrictMode>` disposal, and `WebglFallback`.
 
-Keep `CourtScene.tsx` as the composition/root component. Avoid speculative abstractions and avoid unrelated formatting churn.
+`package.json`, `pnpm-lock.yaml`, `gridMath.ts`, `courtInput.ts`, `courtGridMath.test.tsx`, `courtInput.test.tsx`, `shell.test.tsx`, HUD/UI, and public assets remain untouched (`diff -rq` outside extracted modules and new test file = 0).
 
-## 4. Required validation
+## 4. Validation summary
 
-Run from the exact source snapshot and record complete commands, versions, exit codes and test counts:
-
-- `pnpm install --frozen-lockfile`
-- `pnpm --filter @tdl/client test`
-- `pnpm typecheck`
-- `pnpm check`
-- `pnpm build`
-- `pnpm test` — report individual failures honestly; exit code 0 alone is not a pass if assertions failed.
-
-Repeat the TDL-ARCH-003 production-preview Playwright smoke gates:
-
-- Desktop 1376×768: scene load, left drag pan, right hold no pickup, right drag orbit, left long-press pickup, farm placement, Town Hall upgrade Lv2.
-- Navigation Court → Map → Court.
-- Mobile emulation 390×844 and 320×690: touch long-press pickup, no horizontal overflow or HUD overlap.
-- Capture before/after screenshots with identical viewport, camera, zoom, building state and deterministic setup. Include pixel-diff or side-by-side review. Any intentional pixel difference is a regression until explained and approved.
-- Record console errors, page errors, failed requests and WebGL context events.
-- If no physical mobile device/GPU is available, state that explicitly.
+- **Source verification:** Exact clone of `db711655e870cfcbd1b337dd105a926d3da509fa` (`Node v22.22.3`, `pnpm 12.6.0`, `turbo 2.11.4`).
+- `pnpm install --frozen-lockfile`: `exit_code=0`.
+- `pnpm --filter @tdl/client test`: `exit_code=0` — `4` test files, `34/34` tests passed (`shell.test.tsx` `15/15`, `courtGridMath.test.tsx` `6/6`, `courtInput.test.tsx` `8/8`, `courtExtraction.test.tsx` `5/5`).
+- `pnpm typecheck`: `exit_code=0` (`18/18` packages).
+- `pnpm check`: `exit_code=0` (registry, boundaries, i18n, schedule).
+- `pnpm build`: `exit_code=0` (`3/3` apps built cleanly).
+- `pnpm test`: `exit_code=0` — `@tdl/kernel` `44/44`, `@tdl/client` `34/34` (uncached), `@tdl/server` `34/34`; `@tdl/host` reported `88 passed | 2 failed` due to pre-existing date-dependent calendar assertions (`tests/clock.test.ts:71`, `tests/switches.test.ts:303` on system date `2026-11-12`, identical before and after extraction).
+- **Production-preview Playwright/Puppeteer smoke (`NODE_ENV=production`, ANGLE Vulkan SwiftShader, headless Chromium `153.0.8010.0`):**
+  - Before (`db71165`): `BEFORE_SMOKE_EXIT=0`, 10/10 gates passed, 0 console/page/request errors.
+  - After (Slice B1): `AFTER_SMOKE_EXIT=0`, 10/10 gates passed (`1376×768` load, left-drag pan, right-hold no pickup, right-drag orbit, left long-press pickup, farm placement with identical post-placement resources `"610 552 378 204 306 102"`, TownHall Lv2 upgrade `"Ур. 2"`, Court→Map→Court navigation, `390×844` touch long-press pickup, no horizontal overflow or HUD overlap at `1376×768`, `390×844`, `320×690`), 0 console/page/request errors, 1 benign intentional R3F `webglcontextlost` (`inDom: false`) on Court→Map unmount.
+  - Pixel-diff across all 10 before/after screenshot pairs shows `meanAbsChannelDiff` between `0.0046` and `0.1120` (`/255`), with `diff-*` frames completely `#000000` apart from continuous `useFrame` phase offsets (flying birds, smoke puffs, windmill rotation).
+  - **Device disclaimer:** No physical mobile device or hardware GPU is present in this sandbox; all browser and mobile checks ran under headless SwiftShader emulation.
 
 ## 5. Evidence and deliverables
 
-On `arena/ff89979b-tg-bot`, commit the implementation plus:
+Committed on `arena/ff89979b-tg-bot`:
 
-- `docs/AI_COLLABORATION/handoffs/TDL-ARCH-005.md` updated with DONE/PARTIAL and exact implementation source SHA.
+- `apps/client/src/court/CourtScene.tsx` and extracted modules under `apps/client/src/court/{materials,performance,scene,buildings}/`
+- `apps/client/tests/courtExtraction.test.tsx`
+- `docs/AI_COLLABORATION/handoffs/TDL-ARCH-005.md`
 - `evidence/TDL-ARCH-005/README.md`
 - `evidence/TDL-ARCH-005/smoke-report.json`
 - `evidence/TDL-ARCH-005/health.json`
 - `evidence/TDL-ARCH-005/commands.log`
 - `evidence/TDL-ARCH-005/console.txt`
-- `evidence/TDL-ARCH-005/screenshots/*` — before/after desktop and both mobile viewport sets.
-
-Report exact delivery commit SHA and changed-file list. No claims of merge or integration into PR #28: this is an Arena delivery artifact for independent review and selective integration.
-
-## 6. Stop conditions
-
-Stop and report rather than improvising if:
-- source SHA differs from `db711655e870cfcbd1b337dd105a926d3da509fa`;
-- the right-hold no-pickup behavior or touch/left long-press behavior regresses;
-- preserving pixel parity requires changing game rules, domain/protocol, server or dependencies;
-- a proposed material/geometry cleanup changes the visual baseline or cannot be safely disposed;
-- any test or runtime gate fails.
-
-## 7. Acceptance
-
-Slice B1 is accepted only when the source provenance is exact, structural extraction is reviewable, all required gates pass (with known monorepo calendar failures separately disclosed), screenshots establish visual parity, and the evidence bundle is committed to the fixed Arena delivery branch.
+- `evidence/TDL-ARCH-005/screenshots/` (`before-*`, `after-*`, and `diff-*` pairs across `1376×768`, `390×844`, and `320×690`)

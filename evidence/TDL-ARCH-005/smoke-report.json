@@ -1,0 +1,362 @@
+{
+  "phase": "after",
+  "origin": "http://127.0.0.1:3000",
+  "testedAt": "2026-11-12T18:37:49.837Z",
+  "webglRendererInfo": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "vendor": "WebKit",
+    "renderer": "WebKit WebGL",
+    "unmaskedVendor": "Google Inc. (Google)",
+    "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "steps": {
+    "desktopCourtLoad": {
+      "ok": true,
+      "canvasPresent": true
+    },
+    "leftDragPan": {
+      "ok": true,
+      "triggeredPickup": false,
+      "visualChanged": true
+    },
+    "rightHoldNoPickup": {
+      "ok": true,
+      "triggeredPickup": false
+    },
+    "rightDragOrbit": {
+      "ok": true,
+      "triggeredPickup": false,
+      "visualChanged": true
+    },
+    "leftLongPressPickup": {
+      "ok": true
+    },
+    "farmPlace": {
+      "ok": true,
+      "afterFarmRes": "610 552 378 204 306 102"
+    },
+    "upgradeLv2": {
+      "ok": true,
+      "lvlText": "\u0423\u0440. 2"
+    },
+    "navigation": {
+      "ok": true,
+      "onMap": true,
+      "backOnCourt": true
+    },
+    "touchLongPressPickup": {
+      "ok": true
+    },
+    "noHorizontalOverflow": {
+      "ok": true,
+      "desktop": false,
+      "mobile390": false,
+      "mobile320": false
+    }
+  },
+  "desktopLayout": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 820,
+      "h": 768,
+      "attrW": 820,
+      "attrH": 768
+    },
+    "top": {
+      "x": 292,
+      "y": 10,
+      "w": 792,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "profile": {
+      "x": 292,
+      "y": 10,
+      "w": 178,
+      "h": 65,
+      "right": 470,
+      "bottom": 75
+    },
+    "res": {
+      "x": 961,
+      "y": 10,
+      "w": 123,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "nav": {
+      "x": 536,
+      "y": 684,
+      "w": 304,
+      "h": 74,
+      "right": 840,
+      "bottom": 758
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 682,
+      "attrH": 1477
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 374,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 169,
+      "h": 63,
+      "right": 177,
+      "bottom": 69
+    },
+    "res": {
+      "x": 271,
+      "y": 6,
+      "w": 111,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "nav": {
+      "x": 51,
+      "y": 766,
+      "w": 288,
+      "h": 72,
+      "right": 339,
+      "bottom": 838
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 560,
+      "attrH": 1207
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 304,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 161,
+      "h": 62,
+      "right": 169,
+      "bottom": 68
+    },
+    "res": {
+      "x": 215,
+      "y": 6,
+      "w": 97,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "nav": {
+      "x": 39,
+      "y": 622,
+      "w": 242,
+      "h": 62,
+      "right": 281,
+      "bottom": 684
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "webglContextEvents": [
+    {
+      "tag": "desktop",
+      "step": "desktop:nav-back-to-court-remount",
+      "text": "THREE.WebGLRenderer: Context Lost.",
+      "ts": "2026-11-12T18:36:42.276Z"
+    }
+  ],
+  "webglContextDomEventsDesktop": [
+    {
+      "tag": "desktop",
+      "step": "desktop:nav-back-to-court-remount",
+      "type": "webglcontextlost",
+      "defaultPrevented": true,
+      "inDom": false,
+      "ts": 1794508602277
+    }
+  ],
+  "webglContextDomEventsMobile": [],
+  "consoleErrors": [],
+  "consoleWarningsCount": 0,
+  "pageErrors": [],
+  "failedRequests": [],
+  "sourceSha": "db711655e870cfcbd1b337dd105a926d3da509fa",
+  "beforeBaseline": {
+    "testedAt": "2026-11-12T18:24:54.580Z",
+    "steps": {
+      "desktopCourtLoad": {
+        "ok": true,
+        "canvasPresent": true
+      },
+      "leftDragPan": {
+        "ok": true,
+        "triggeredPickup": false,
+        "visualChanged": true
+      },
+      "rightHoldNoPickup": {
+        "ok": true,
+        "triggeredPickup": false
+      },
+      "rightDragOrbit": {
+        "ok": true,
+        "triggeredPickup": false,
+        "visualChanged": true
+      },
+      "leftLongPressPickup": {
+        "ok": true
+      },
+      "farmPlace": {
+        "ok": true,
+        "afterFarmRes": "610 552 378 204 306 102"
+      },
+      "upgradeLv2": {
+        "ok": true,
+        "lvlText": "\u0423\u0440. 2"
+      },
+      "navigation": {
+        "ok": true,
+        "onMap": true,
+        "backOnCourt": true
+      },
+      "touchLongPressPickup": {
+        "ok": true
+      },
+      "noHorizontalOverflow": {
+        "ok": true,
+        "desktop": false,
+        "mobile390": false,
+        "mobile320": false
+      }
+    },
+    "webglContextEventsCount": 1,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "failedRequests": []
+  },
+  "pixelDiff": [
+    {
+      "name": "01-desktop-court-full-lv1.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0303,
+      "pctPixelsDiffGt0": 0.0784,
+      "pctPixelsDiffGt8": 0.0365,
+      "pctPixelsDiffGt24": 0.022
+    },
+    {
+      "name": "02-desktop-right-orbit-no-pickup.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0046,
+      "pctPixelsDiffGt0": 0.1051,
+      "pctPixelsDiffGt8": 0.0181,
+      "pctPixelsDiffGt24": 0.0009
+    },
+    {
+      "name": "03-desktop-left-longpress-pickup.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0332,
+      "pctPixelsDiffGt0": 0.1279,
+      "pctPixelsDiffGt8": 0.0361,
+      "pctPixelsDiffGt24": 0.0301
+    },
+    {
+      "name": "04-desktop-farm-grid.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0054,
+      "pctPixelsDiffGt0": 0.0894,
+      "pctPixelsDiffGt8": 0.0214,
+      "pctPixelsDiffGt24": 0.0073
+    },
+    {
+      "name": "05-desktop-farm-placed.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0417,
+      "pctPixelsDiffGt0": 0.1819,
+      "pctPixelsDiffGt8": 0.1144,
+      "pctPixelsDiffGt24": 0.0749
+    },
+    {
+      "name": "06-desktop-upgrade-lv2.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0516,
+      "pctPixelsDiffGt0": 0.1663,
+      "pctPixelsDiffGt8": 0.094,
+      "pctPixelsDiffGt24": 0.0594
+    },
+    {
+      "name": "06b-desktop-returned-from-map.png",
+      "resolution": "1376x768",
+      "meanAbsChannelDiff": 0.0881,
+      "pctPixelsDiffGt0": 0.1932,
+      "pctPixelsDiffGt8": 0.1114,
+      "pctPixelsDiffGt24": 0.103
+    },
+    {
+      "name": "07-mobile-390-full.png",
+      "resolution": "780x1688",
+      "meanAbsChannelDiff": 0.094,
+      "pctPixelsDiffGt0": 0.3979,
+      "pctPixelsDiffGt8": 0.1138,
+      "pctPixelsDiffGt24": 0.0753
+    },
+    {
+      "name": "08-mobile-390-touch-pickup.png",
+      "resolution": "780x1688",
+      "meanAbsChannelDiff": 0.1011,
+      "pctPixelsDiffGt0": 0.3947,
+      "pctPixelsDiffGt8": 0.1314,
+      "pctPixelsDiffGt24": 0.0855
+    },
+    {
+      "name": "09-mobile-320-full.png",
+      "resolution": "640x1380",
+      "meanAbsChannelDiff": 0.112,
+      "pctPixelsDiffGt0": 0.3858,
+      "pctPixelsDiffGt8": 0.1178,
+      "pctPixelsDiffGt24": 0.0956
+    }
+  ]
+}
