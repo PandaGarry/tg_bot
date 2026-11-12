@@ -68,3 +68,17 @@
 - **PR #28 evidence gap:** smoke report ссылается на tested SHA PR #27, а не на текущий интегрированный HEAD PR #28. Также зафиксированы WebGL Context Lost и Vite HMR WebSocket errors. Это не закрытые дефекты.
 - **Следующая задача:** `docs/AI_COLLABORATION/handoffs/TDL-ARCH-003.md` — повторная runtime-валидация exact HEAD, production preview, классификация WebGL context loss, команды и exit codes, новые screenshots/logs. Arena и ChatGPT используют одну ветку; изменения выполняются последовательно.
 - **Никакой PR не сливать** до проверки evidence, code review и устранения/объяснения mergeability status.
+
+
+## TDL-ARCH-003 — Arena runtime validation received (12.11.2026)
+
+- Arena tested the exact integrated PR #28 code HEAD `c10e99a1d51a25eb4a7873b2e6d6e6d4857dc194` in isolated clone `/tmp/tdl-pr28`, production preview, HeadlessChrome 153 + SwiftShader. The subsequent commit below imports evidence only; no application source was changed after the tested SHA.
+- Result: client tests 29/29; typecheck 18/18 tasks; `pnpm check`; production build 3/3 packages — all exit code 0.
+- Runtime: desktop 1376×768, mobile emulation 390×844 and 320×690. Court load, pan, right hold without pickup, right-drag orbit, left long-press pickup, touch long-press pickup, Farm placement, Citadel level-2 upgrade, Court↔Map navigation, no horizontal overflow — PASS.
+- Production preview: no console errors, page errors, failed requests or warnings. WebSocket HMR errors from dev mode absent.
+- WebGL context loss is explained by R3F Canvas unmount/remount lifecycle on navigation; event observed on already detached canvas, no loss during active court interaction, scene remounts successfully. Not a SwiftShader crash.
+- Monorepo tests: 195 passed plus 2 calendar-dependent failures in `@tdl/host` on 2026-11-12. Note: Vitest process returned exit code 0 despite failed assertions; this is a test-runner/reporting caveat, not a clean test pass.
+- Environment is software-rendered; no physical iOS/Android GPU or FPS claim.
+- Evidence imported from Arena session branch `arena/ff89979b-tg-bot` into this PR branch as evidence-only commit `6c2f986ed00196579eb00e8c1686bb075fc08ef4`. Source Arena commits: `c3ae8321de3dd21ab6480e58e72c0da6bfcb0dc4`, `17f49483dc92eb5c2a9f05fc84ae154d6e7ab4e9`.
+- Evidence folder: [evidence/TDL-ARCH-003](https://github.com/PandaGarry/tg_bot/tree/refactor/tdl-court-grid-input-impl/evidence/TDL-ARCH-003).
+- PR #28 remains open and draft. Do not merge until base PR #26 relationship and GitHub mergeability are reviewed, and calendar test failures are separately understood.
