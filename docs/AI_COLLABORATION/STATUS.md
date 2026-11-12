@@ -1,6 +1,6 @@
 # TDL — текущее состояние совместной разработки
 
-> Обновлено: 12.11.2026. Текущие факты сверены с GitHub. Сверяйте HEAD и Actions перед каждым новым handoff.
+> Snapshot: 12.11.2026. Этот файл фиксирует проверенную точку состояния; перед каждым новым handoff сверяйте текущие refs и GitHub Actions.
 
 ## GitHub baseline
 
@@ -8,16 +8,16 @@
 |---|---|
 | Репозиторий | `PandaGarry/tg_bot` |
 | Default branch | `main` |
-| HEAD main | `3e77cd2a45cb50763b96b77fa258a75bfa2b7472` |
-| Документационный PR #11 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/11), merge commit `3e77cd2`, 16 файлов |
-| Основной кодовый PR #9 | [OPEN](https://github.com/PandaGarry/tg_bot/pull/9), 443 файла, требует независимого review |
-| HEAD PR #9 | `fb4ecae64bb54ba0a854c74134f4511405edbb76` |
-| CI run #420 | [IN_PROGRESS](https://github.com/PandaGarry/tg_bot/actions/runs/43219922568) на HEAD `fb4ecae`; запуск начат до merge PR #11 и использовал прежнюю base SHA |
-| Последний ранее завершённый CI | [run #416 PASS](https://github.com/PandaGarry/tg_bot/actions/runs/43219202084) на HEAD `4dba3d1`; не подтверждает текущий HEAD |
+| Main baseline перед этим status-only PR | `7f70e17539ed521d20db15fd33f6ab4d83a69b8f` (PR #12 squash merge) |
+| Документационный PR #11 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/11), merge `3e77cd2` |
+| Status/workflow PR #12 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/12), merge `7f70e17` |
+| Основной кодовый PR #9 | [OPEN](https://github.com/PandaGarry/tg_bot/pull/9), 427 файлов после пересечения с документами main |
+| HEAD PR #9 | `1cf39a6fdebcde60f01b02555ba03dd1efabb1e7` |
+| Base SHA PR #9 на момент проверки | `3e77cd2a45cb50763b96b77fa258a75bfa2b7472`; отстаёт от main на один commit (PR #12) |
+| CI run #421 | [IN_PROGRESS](https://github.com/PandaGarry/tg_bot/actions/runs/43220192351) на HEAD `1cf39a6`, base `3e77cd2`; один job typecheck/tests/checks/build выполняется |
+| Последний завершённый PASS | [run #416](https://github.com/PandaGarry/tg_bot/actions/runs/43219202084) на старом HEAD `4dba3d1`; не подтверждает текущий PR |
 
-После merge PR #11 проверить, что GitHub Actions запустил CI на PR #9 с новой базой main. Не считать run #420 доказательством проверки merge-base после интеграции PR #11.
-
-## Утверждённая продуктовая цель
+## Продуктовая цель
 
 - Оригинальная undead-fantasy вселенная The Dead Lords.
 - Premium stylized realism.
@@ -26,23 +26,29 @@
 - Сначала качественный vertical prototype, затем масштабирование.
 - Mobile + browser/PC.
 
-Основная спецификация: `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
-Оперативный план: `PROJECT_MASTER.md`.
+Источники: `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`, `docs/DECISIONS.md`, `PROJECT_MASTER.md`.
 
-## Что реально интегрировано
+## Интегрировано в main
 
-- Общая продуктовая спецификация, оперативный план, протокол Cloud/Arena.ai/ChatGPT, очередь и handoff-файлы теперь находятся в `main` после PR #11.
-- Корневой `AGENTS.md` содержит актуальный блок правил; исторические инструкции ниже него нужно читать с учётом этого приоритета.
-- PR #9 с накопленным кодовым diff не слит. Его изменения нельзя считать интегрированными.
-- 3D runtime не выбран и не создан в production-клиенте. Текущая реализация остаётся PixiJS/React.
-- Полный визуальный рефакторинг, каталог зданий, реальная мобильная производительность и production deployment не подтверждены.
+- PR #11: продуктовая спецификация, общая точка входа, базовый multi-agent protocol и стартовые handoff.
+- PR #12: актуализация очереди, operational status и активация протокола по поручению владельца.
+- ChatGPT, Cloud и Arena.ai имеют отдельные роли и задания; GitHub — общий handoff-канал и source of truth.
 
-## Активные handoff
+## Не считать реализованным
 
-- Cloud: `docs/AI_COLLABORATION/handoffs/TDL-3D-001.md`.
-- Arena.ai: `docs/AI_COLLABORATION/handoffs/TDL-ENV-001.md`.
-- Очередь: `docs/AI_COLLABORATION/QUEUE.md`.
+- Целевой 3D runtime не выбран и не создан в production-клиенте; текущая клиентская база — PixiJS/React.
+- PR #9 не слит; его код не является интегрированной частью main.
+- Нет доказательства законченного 3D vertical slice, полного каталога зданий, физических mobile tests или production deployment.
+- Run #421 ещё не завершён, а его base SHA предшествует PR #12.
 
-## Правило обновления
+## Следующие действия
 
-После каждого принятого PR записывать merge SHA, актуальные PR HEAD, CI run и результаты фактических проверок. Не переписывать историю прошлых snapshots. Сначала принимать независимый малый PR, затем проверять крупные накопленные изменения.
+1. PR #9: обновить ветку на актуальный main, дождаться CI на новой базе и провести независимый review 427-файлового diff. Не сливать автоматически.
+2. Cloud: выполнить `TDL-3D-001` — независимую матрицу web 3D/Godot Web вариантов.
+3. Arena.ai: выполнить `TDL-ENV-001` — environment check и runtime screenshots без изменения проекта.
+4. ChatGPT: проверить отчёты, подготовить одинаковый benchmark и следующий handoff.
+5. После технологического и визуального gate — изолированный vertical prototype.
+
+## Правило доказательств
+
+Каждый статус «запущено», «проверено», «готово» сопровождается SHA, командами, результатами и реальными артефактами. Непроверенное обозначать прямо. Исторические snapshots не переписывать.
