@@ -66,7 +66,7 @@ apps/client/src/
   Никаких прямых вызовов методов между `game/` и `ui/`.
 - HUD — `src/ui/` + `hud.css` (единый источник правды). Визуальный дизайн UI
   согласуется с заказчиком по процессу «разбор → скелет → варианты → выбор»
-  (этап 2.5, [docs/plan/roadmap.md](docs/plan/roadmap.md)).
+  (этап 2.5, [PROJECT_MASTER.md](PROJECT_MASTER.md)).
   Палитра для canvas/спрайтов — из палитры дизайна (`hud.css` / дизайн-документ).
 
 ### Правила Pixi (src/game/)
