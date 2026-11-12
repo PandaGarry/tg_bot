@@ -1,0 +1,329 @@
+{
+  "mode": "pr9",
+  "repoDir": "/tmp/tdl-pr9",
+  "origin": "http://127.0.0.1:3000",
+  "browserVersion": "HeadlessChrome/153.0.8010.0",
+  "steps": {
+    "intro": {
+      "ok": true,
+      "elapsedMs": 2584
+    },
+    "loading": {
+      "ok": true
+    },
+    "login": {
+      "ok": true,
+      "elapsedMs": 7243
+    },
+    "register": {
+      "ok": true,
+      "login": "probe-mwdl30aa"
+    },
+    "createLord": {
+      "ok": true
+    },
+    "courtDesktop": {
+      "ok": true,
+      "hasCanvas": true,
+      "rafStats": {
+        "frames": 45,
+        "avgMs": 67.92,
+        "p95Ms": 100,
+        "approxFps": 14.7
+      }
+    },
+    "panZoom": {
+      "ok": true
+    },
+    "buildPlace": {
+      "ok": true
+    },
+    "navigation": {
+      "ok": true
+    }
+  },
+  "webglInfo": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "shadingLanguage": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+    "vendor": "Google Inc. (Google)",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "canvasDesktop": {
+    "hasCanvas": true,
+    "canvasClient": {
+      "w": 1376,
+      "h": 768,
+      "attrW": 1376,
+      "attrH": 768
+    },
+    "glInfo": {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "shadingLanguage": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+      "vendor": "Google Inc. (Google)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    "fallbackNote": null
+  },
+  "rafDesktop": {
+    "frames": 45,
+    "avgMs": 67.92,
+    "p95Ms": 100,
+    "approxFps": 14.7
+  },
+  "layoutDesktop": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 1376,
+      "h": 768,
+      "attrW": 1376,
+      "attrH": 768
+    },
+    "top": {
+      "x": 286,
+      "y": 8,
+      "w": 804,
+      "h": 50,
+      "right": 1090,
+      "bottom": 58
+    },
+    "profile": {
+      "x": 286,
+      "y": 8,
+      "w": 127,
+      "h": 50,
+      "right": 413,
+      "bottom": 58
+    },
+    "res": {
+      "x": 421,
+      "y": 8,
+      "w": 669,
+      "h": 42,
+      "right": 1090,
+      "bottom": 50
+    },
+    "nav": {
+      "x": 500,
+      "y": 722,
+      "w": 590,
+      "h": 38,
+      "right": 1090,
+      "bottom": 760
+    },
+    "overlap": false
+  },
+  "layoutResize390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 390,
+      "attrH": 844
+    },
+    "top": {
+      "x": 8,
+      "y": 8,
+      "w": 374,
+      "h": 50,
+      "right": 382,
+      "bottom": 58
+    },
+    "profile": {
+      "x": 8,
+      "y": 8,
+      "w": 127,
+      "h": 50,
+      "right": 135,
+      "bottom": 58
+    },
+    "res": {
+      "x": 143,
+      "y": 8,
+      "w": 239,
+      "h": 42,
+      "right": 382,
+      "bottom": 50
+    },
+    "nav": {
+      "x": 8,
+      "y": 798,
+      "w": 374,
+      "h": 38,
+      "right": 382,
+      "bottom": 836
+    },
+    "overlap": false
+  },
+  "layoutResize320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 320,
+      "attrH": 690
+    },
+    "top": {
+      "x": 8,
+      "y": 8,
+      "w": 304,
+      "h": 50,
+      "right": 312,
+      "bottom": 58
+    },
+    "profile": {
+      "x": 8,
+      "y": 8,
+      "w": 127,
+      "h": 50,
+      "right": 135,
+      "bottom": 58
+    },
+    "res": {
+      "x": 143,
+      "y": 8,
+      "w": 169,
+      "h": 42,
+      "right": 312,
+      "bottom": 50
+    },
+    "nav": {
+      "x": 8,
+      "y": 644,
+      "w": 304,
+      "h": 38,
+      "right": 312,
+      "bottom": 682
+    },
+    "overlap": false
+  },
+  "mobileContext390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 780,
+      "attrH": 1688
+    },
+    "top": {
+      "x": 8,
+      "y": 8,
+      "w": 374,
+      "h": 50,
+      "right": 382,
+      "bottom": 58
+    },
+    "profile": {
+      "x": 8,
+      "y": 8,
+      "w": 116,
+      "h": 50,
+      "right": 124,
+      "bottom": 58
+    },
+    "res": {
+      "x": 132,
+      "y": 8,
+      "w": 250,
+      "h": 42,
+      "right": 382,
+      "bottom": 50
+    },
+    "nav": {
+      "x": 8,
+      "y": 798,
+      "w": 374,
+      "h": 38,
+      "right": 382,
+      "bottom": 836
+    },
+    "overlap": false
+  },
+  "mobileContext320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 640,
+      "attrH": 1380
+    },
+    "top": {
+      "x": 8,
+      "y": 8,
+      "w": 304,
+      "h": 50,
+      "right": 312,
+      "bottom": 58
+    },
+    "profile": {
+      "x": 8,
+      "y": 8,
+      "w": 116,
+      "h": 50,
+      "right": 124,
+      "bottom": 58
+    },
+    "res": {
+      "x": 132,
+      "y": 8,
+      "w": 180,
+      "h": 42,
+      "right": 312,
+      "bottom": 50
+    },
+    "nav": {
+      "x": 8,
+      "y": 644,
+      "w": 304,
+      "h": 38,
+      "right": 312,
+      "bottom": 682
+    },
+    "overlap": false
+  },
+  "reloadSessionPersisted": true,
+  "consoleErrors": [
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=oXhGPVUqusga' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=oXhGPVUqusga' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=oXhGPVUqusga' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). "
+  ],
+  "pageErrors": [
+    "[desktop] Error: WebSocket closed without opened.",
+    "[desktop] Error: WebSocket closed without opened.",
+    "[mobile] Error: WebSocket closed without opened."
+  ],
+  "failedRequests": [],
+  "consoleWarningsCount": 0
+}
