@@ -16,32 +16,32 @@ const GATE_HALF = 1.5;
 
 /** Палитра Bone-Wood №05: тёплое дерево, кость, тёплый снег. */
 const C = {
-  sky: "#c3d3da",
-  fogFar: "#c3d3da",
-  snowOuter: "#f7f4ec",
-  snowPatch: "#f3efe4",
-  dirt: "#8a6544",
-  path: "#b08a5c",
-  log: "#6d4a2c",
-  logTip: "#7d5735",
-  gate: "#5d4229",
-  banner: "#d9c9a6",
-  stone: "#a09a8c",
-  wall: "#7b5236",
-  beam: "#4a3320",
-  roof: "#f7f3e8",
-  door: "#352417",
-  window: "#2e2013",
-  frame: "#d9c9a6",
-  fir1: "#2f5540",
-  fir2: "#3a6047",
-  firTip: "#eef3ea",
-  trunk: "#5d4530",
-  rock: "#b9b2a4",
-  wool: "#f1ead9",
-  sheepHead: "#2c2622",
-  flag: "#b3402f",
-  smoke: "#efe9dd",
+  sky: "#252a2d",
+  fogFar: "#343a3b",
+  snowOuter: "#514c43",
+  snowPatch: "#625d52",
+  dirt: "#38332d",
+  path: "#78664c",
+  log: "#49352b",
+  logTip: "#604735",
+  gate: "#302722",
+  banner: "#75634d",
+  stone: "#77766d",
+  wall: "#49352b",
+  beam: "#252a2d",
+  roof: "#514638",
+  door: "#1d1b19",
+  window: "#151719",
+  frame: "#80613a",
+  fir1: "#29362f",
+  fir2: "#35443a",
+  firTip: "#a09b8c",
+  trunk: "#49352b",
+  rock: "#77766d",
+  wool: "#a09b8c",
+  sheepHead: "#242321",
+  flag: "#80613a",
+  smoke: "#77766d",
 } as const;
 
 /** Детерминированный генератор: раскладка одинакова между кадрами и устройствами. */
@@ -1523,150 +1523,190 @@ function CourtInput({
   );
 }
 
+/**
+ * TDL Citadel — first full-geometry art-direction prototype.
+ * Every major silhouette is modeled in 3D; no concept image is used as a flat texture.
+ */
 function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) {
-  // клетка Ратуши — из данных: перенос долгим нажатием двигает и модель
   const at = grid.buildings.find((b) => b.type === "townhall") ?? { x: 7, z: 7 };
-  const smoke = useRef<(THREE.Mesh | null)[]>([]);
+  const core = useRef<THREE.MeshStandardMaterial>(null!);
+  const coreLight = useRef<THREE.PointLight>(null!);
   useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    smoke.current.forEach((m, i) => {
-      if (!m) return;
-      const p = (t * 0.22 + i / 6) % 1;
-      m.position.set(0.85 + Math.sin((p + i) * 5) * 0.1, 2.75 + p * 2.2, -0.75);
-      m.scale.setScalar(0.5 + p * 1.6);
-      (m.material as THREE.MeshStandardMaterial).opacity = 0.4 * (1 - p);
-    });
+    const pulse = 0.82 + Math.sin(clock.elapsedTime * 2.2) * 0.16;
+    if (core.current) core.current.emissiveIntensity = pulse;
+    if (coreLight.current) coreLight.current.intensity = 1.1 + Math.sin(clock.elapsedTime * 2.2) * 0.25;
   });
+  const stone = "#555957";
+  const edge = "#858176";
+  const dark = "#292d2e";
+  const timber = "#49352b";
+  const iron = "#252a2d";
+  const bronze = "#80613a";
   return (
-    // Главное здание двора: каменный подиум с крыльцом, тёплый камень первого
-    // этажа, деревянный второй, часовая башня со шпилём. Масштаб 0.8 — Ратуша
-    // выше и богаче рядовых построек, но не подавляет их; растёт с уровнем.
-    // Дверь и крыльцо — на восток, к воротам (круг 21).
     <group
       position={[gridToWorld(at.x, grid.size), 0.08, gridToWorld(at.z, grid.size)]}
-      scale={0.8 * (1 + 0.05 * (level - 1))}
+      scale={0.82 * (1 + 0.045 * (level - 1))}
       rotation-y={Math.PI / 2}
     >
-      {/* подиум и широкое крыльцо */}
-      <mesh position-y={0.17} castShadow receiveShadow>
-        <boxGeometry args={[2.9, 0.34, 2.9]} />
-        <meshStandardMaterial color="#9a948a" roughness={0.95} flatShading />
+      {/* stepped basalt foundation */}
+      <mesh position-y={0.16} castShadow receiveShadow>
+        <boxGeometry args={[3.45, 0.32, 3.45]} />
+        <meshStandardMaterial color="#383b39" roughness={0.96} />
       </mesh>
-      {[0, 1, 2].map((i) => (
-        <mesh key={i} position={[0, 0.3 - i * 0.1, 1.56 + i * 0.22]} castShadow receiveShadow>
-          <boxGeometry args={[1.3 - i * 0.12, 0.1, 0.26]} />
-          <meshStandardMaterial color="#aaa396" roughness={0.95} flatShading />
+      <mesh position-y={0.36} castShadow receiveShadow>
+        <boxGeometry args={[3.12, 0.14, 3.12]} />
+        <meshStandardMaterial color={edge} roughness={0.9} />
+      </mesh>
+      {/* central keep mass */}
+      <mesh position-y={1.38} castShadow receiveShadow>
+        <boxGeometry args={[2.5, 1.95, 2.5]} />
+        <meshStandardMaterial color={stone} roughness={0.94} />
+      </mesh>
+      {/* masonry courses and corner quoin blocks */}
+      {[0.62, 1.05, 1.48, 1.91].map((y) => (
+        <mesh key={y} position={[0, y, 1.258]} castShadow>
+          <boxGeometry args={[2.52, 0.045, 0.035]} />
+          <meshStandardMaterial color={edge} roughness={0.95} />
         </mesh>
       ))}
-      {/* первый этаж — тёплый камень со светлыми угловыми квадрами */}
-      <mesh position-y={0.95} castShadow receiveShadow>
-        <boxGeometry args={[2.5, 1.2, 2.5]} />
-        <meshStandardMaterial color={C.stone} roughness={0.9} flatShading />
+      {[-1, 1].flatMap((x) => [-1, 1].map((z) => (
+        <group key={`${x}:${z}`} position={[x * 1.17, 1.35, z * 1.17]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[0.32, 2.08, 0.32]} />
+            <meshStandardMaterial color={edge} roughness={0.9} />
+          </mesh>
+          {[0.48, 0.92, 1.36, 1.8].map((y) => (
+            <mesh key={y} position={[0, y - 1.35, 0.17]}>
+              <boxGeometry args={[0.34, 0.055, 0.035]} />
+              <meshStandardMaterial color="#4a4c48" roughness={1} />
+            </mesh>
+          ))}
+        </group>
+      )))}
+      {/* deep entrance, iron-bound gate and stone archivolt */}
+      <mesh position={[0, 0.96, 1.27]} castShadow>
+        <boxGeometry args={[0.82, 1.36, 0.12]} />
+        <meshStandardMaterial color={bronze} roughness={0.72} metalness={0.22} />
       </mesh>
-      {[
-        [-1.12, -1.12],
-        [1.12, -1.12],
-        [-1.12, 1.12],
-        [1.12, 1.12],
-      ].map(([x, z], i) => (
-        <mesh key={i} position={[x!, 0.95, z!]} castShadow>
-          <boxGeometry args={[0.3, 1.24, 0.3]} />
-          <meshStandardMaterial color="#b8b1a2" roughness={0.9} flatShading />
+      <mesh position={[0, 0.94, 1.34]} castShadow>
+        <boxGeometry args={[0.64, 1.22, 0.08]} />
+        <meshStandardMaterial color="#171a1b" roughness={0.98} />
+      </mesh>
+      {[-0.2, 0.2].map((x) => (
+        <mesh key={x} position={[x, 0.94, 1.395]}>
+          <boxGeometry args={[0.035, 1.16, 0.025]} />
+          <meshStandardMaterial color={iron} metalness={0.55} roughness={0.48} />
         </mesh>
       ))}
-      {/* фасад: дверь с золотой аркой, два окна */}
-      <mesh position={[0, 0.62, 1.24]}>
-        <boxGeometry args={[0.74, 1.18, 0.05]} />
-        <meshStandardMaterial color="#f0c866" metalness={0.45} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 0.6, 1.29]} castShadow>
-        <boxGeometry args={[0.58, 1.1, 0.06]} />
-        <meshStandardMaterial color="#4a3320" roughness={0.9} />
-      </mesh>
+      {/* two narrow lit arrow slits */}
       {[-0.82, 0.82].map((x) => (
-        <group key={x} position={[x, 1.05, 1.26]}>
+        <group key={x} position={[x, 1.35, 1.275]}>
           <mesh>
-            <boxGeometry args={[0.34, 0.44, 0.06]} />
-            <meshStandardMaterial color={C.frame} roughness={0.85} />
+            <boxGeometry args={[0.19, 0.62, 0.045]} />
+            <meshStandardMaterial color={dark} roughness={0.95} />
           </mesh>
           <mesh position-z={0.03}>
-            <boxGeometry args={[0.24, 0.34, 0.05]} />
-            <meshStandardMaterial color={C.window} roughness={0.5} />
+            <boxGeometry args={[0.055, 0.43, 0.02]} />
+            <meshStandardMaterial color="#b77a3e" emissive="#8c4d20" emissiveIntensity={0.35} roughness={0.6} />
           </mesh>
         </group>
       ))}
-      {/* второй этаж — дерево, карниз со снегом */}
-      <mesh position-y={1.92} castShadow receiveShadow>
-        <boxGeometry args={[2.1, 0.86, 2.1]} />
-        <meshStandardMaterial color={C.wall} roughness={0.95} flatShading />
-      </mesh>
-      <mesh position-y={2.4} castShadow>
-        <boxGeometry args={[2.26, 0.12, 2.26]} />
-        <meshStandardMaterial color={C.beam} roughness={0.9} flatShading />
-      </mesh>
-      <mesh position-y={2.5}>
-        <boxGeometry args={[2.3, 0.07, 2.3]} />
-        <meshStandardMaterial color="#fbf8f0" roughness={0.85} flatShading />
-      </mesh>
-      {/* окна второго этажа: золотые рамы */}
-      {[-0.55, 0.55].map((x) => (
-        <group key={x} position={[x, 1.95, 1.08]}>
-          <mesh>
-            <boxGeometry args={[0.4, 0.5, 0.05]} />
-            <meshStandardMaterial color="#f0c866" metalness={0.4} roughness={0.45} />
+      {/* buttresses anchor the keep into the ground */}
+      {[-1, 1].map((x) => (
+        <group key={x} position={[x * 1.18, 0.72, 0]}>
+          <mesh rotation-z={x * -0.16} position={[0, 0.48, 0]} castShadow>
+            <boxGeometry args={[0.38, 1.2, 0.48]} />
+            <meshStandardMaterial color="#444846" roughness={0.96} />
           </mesh>
-          <mesh position-z={0.03}>
-            <boxGeometry args={[0.3, 0.4, 0.05]} />
-            <meshStandardMaterial color={C.window} roughness={0.5} />
+          <mesh position={[0, 1.1, 0]} castShadow>
+            <boxGeometry args={[0.48, 0.14, 0.58]} />
+            <meshStandardMaterial color={edge} roughness={0.9} />
           </mesh>
         </group>
       ))}
-      {/* часовая башня с окном */}
-      <mesh position-y={3.0} castShadow>
-        <boxGeometry args={[1.15, 1.4, 1.15]} />
-        <meshStandardMaterial color="#aaa396" roughness={0.9} flatShading />
+      {/* three vertical towers with layered stone crowns */}
+      {[
+        { x: -0.92, z: -0.92, h: 2.15, r: 0.52 },
+        { x: 0.92, z: -0.92, h: 2.45, r: 0.56 },
+        { x: 0, z: -0.72, h: 2.9, r: 0.62 },
+      ].map((tower, i) => (
+        <group key={i} position={[tower.x, 0, tower.z]}>
+          <mesh position-y={tower.h * 0.5} castShadow receiveShadow>
+            <cylinderGeometry args={[tower.r * 0.82, tower.r, tower.h, 8]} />
+            <meshStandardMaterial color={i === 2 ? "#62645e" : stone} roughness={0.93} flatShading />
+          </mesh>
+          <mesh position-y={tower.h + 0.04} castShadow>
+            <cylinderGeometry args={[tower.r * 1.08, tower.r * 1.12, 0.16, 8]} />
+            <meshStandardMaterial color={edge} roughness={0.9} />
+          </mesh>
+          <mesh position-y={tower.h + 0.42} castShadow>
+            <coneGeometry args={[tower.r * 1.12, 0.72, 8]} />
+            <meshStandardMaterial color="#302b28" roughness={0.86} />
+          </mesh>
+          {Array.from({ length: 4 }, (_, j) => (
+            <mesh key={j} position={[Math.cos(j * Math.PI / 2) * tower.r * 0.88, tower.h + 0.17, Math.sin(j * Math.PI / 2) * tower.r * 0.88]} castShadow>
+              <boxGeometry args={[0.12, 0.28, 0.12]} />
+              <meshStandardMaterial color={edge} roughness={0.92} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      {/* timber gallery and iron braces */}
+      <mesh position-y={2.28} castShadow>
+        <boxGeometry args={[2.72, 0.16, 2.72]} />
+        <meshStandardMaterial color={timber} roughness={0.92} />
       </mesh>
-      <group position={[0, 3.3, 0.58]}>
-        <mesh>
-          <boxGeometry args={[0.34, 0.42, 0.06]} />
-          <meshStandardMaterial color="#f0c866" metalness={0.4} roughness={0.45} />
+      {[-1, 1].map((x) => (
+        <mesh key={x} position={[x * 1.24, 2.08, 1.34]} rotation-z={x * 0.42} castShadow>
+          <boxGeometry args={[0.11, 0.62, 0.12]} />
+          <meshStandardMaterial color={iron} metalness={0.35} roughness={0.72} />
         </mesh>
-        <mesh position-z={0.04}>
-          <boxGeometry args={[0.24, 0.32, 0.05]} />
-          <meshStandardMaterial color={C.window} roughness={0.5} />
+      ))}
+      {/* necrotic heart is physically integrated into the front tower */}
+      <group position={[0, 3.02, 0.18]}>
+        <mesh castShadow>
+          <octahedronGeometry args={[0.38, 1]} />
+          <meshStandardMaterial ref={core} color="#71834b" emissive="#7da64b" emissiveIntensity={0.82} roughness={0.22} metalness={0.18} />
         </mesh>
+        <mesh rotation-y={Math.PI / 4}>
+          <torusGeometry args={[0.55, 0.045, 8, 24]} />
+          <meshStandardMaterial color="#64734a" emissive="#526d35" emissiveIntensity={0.42} metalness={0.4} roughness={0.45} />
+        </mesh>
+        <pointLight ref={coreLight} color="#91b85a" intensity={1.1} distance={4.5} />
       </group>
-      {/* уровень 2+: золотой пояс башни */}
+      {/* stage upgrades add defensive mass, not just a scale multiplier */}
       {level >= 2 ? (
-        <mesh position-y={2.54}>
-          <boxGeometry args={[1.24, 0.09, 1.24]} />
-          <meshStandardMaterial color="#f0c866" metalness={0.55} roughness={0.35} flatShading />
-        </mesh>
+        <>
+          {[-1, 1].map((x) => (
+            <mesh key={x} position={[x * 1.52, 1.28, 0]} castShadow>
+              <boxGeometry args={[0.28, 1.8, 0.38]} />
+              <meshStandardMaterial color="#494e4b" roughness={0.96} />
+            </mesh>
+          ))}
+          <mesh position-y={2.42} castShadow>
+            <boxGeometry args={[2.9, 0.12, 2.9]} />
+            <meshStandardMaterial color={edge} roughness={0.9} />
+          </mesh>
+        </>
       ) : null}
-      {/* шатёр: тёплая черепица, снег, золочёный шпиль */}
-      <mesh position-y={4.02} rotation-y={Math.PI / 4} castShadow>
-        <coneGeometry args={[1.05, 0.95, 4]} />
-        <meshStandardMaterial color="#5a4434" roughness={0.85} flatShading />
-      </mesh>
-      <mesh position-y={4.33} rotation-y={Math.PI / 4}>
-        <coneGeometry args={[0.62, 0.34, 4]} />
-        <meshStandardMaterial color="#fbf8f0" roughness={0.8} flatShading />
-      </mesh>
-      <mesh position-y={4.8}>
-        <coneGeometry args={[0.09, 0.34, 6]} />
-        <meshStandardMaterial color="#f0c866" metalness={0.6} roughness={0.3} />
-      </mesh>
-      {/* уровень 3+: знамя на башне */}
-      {level >= 3 ? <RoofBanner y={4.52} s={0.9} /> : null}
-      {/* труба с дымом */}
-      <mesh position={[0.85, 2.6, -0.75]} castShadow>
-        <boxGeometry args={[0.3, 0.7, 0.3]} />
-        <meshStandardMaterial color={C.stone} roughness={0.9} flatShading />
-      </mesh>
-      {Array.from({ length: 6 }, (_, i) => (
-        <mesh key={i} ref={(m) => { smoke.current[i] = m; }}>
-          <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color={C.smoke} transparent opacity={0.4} depthWrite={false} />
+      {level >= 3 ? (
+        <>
+          {[-1, 1].map((x) => (
+            <group key={x} position={[x * 1.28, 2.7, 1.1]}>
+              <mesh position-y={0.42} castShadow>
+                <cylinderGeometry args={[0.035, 0.035, 1.05, 6]} />
+                <meshStandardMaterial color={bronze} metalness={0.55} roughness={0.4} />
+              </mesh>
+              <WaveCloth w={0.42} h={0.34} color="#51403a" position={[0.22, 0.65, 0]} />
+            </group>
+          ))}
+        </>
+      ) : null}
+      {/* entry stair and worn paving */}
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} position={[0, 0.09 + i * 0.09, 1.78 + i * 0.22]} castShadow receiveShadow>
+          <boxGeometry args={[1.2 + i * 0.18, 0.16, 0.25]} />
+          <meshStandardMaterial color={i % 2 ? "#77766d" : "#5a5d58"} roughness={0.96} />
         </mesh>
       ))}
     </group>
