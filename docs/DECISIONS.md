@@ -20,7 +20,7 @@
 - **Техническая рамка:** сохраняем 2D изометрию PixiJS, текущие footprint, pivots, hit regions и архитектурную границу Pixi/React. 3D не возвращаем.
 - **Производственный порядок:** сначала vertical slice (terrain/roads + Цитадель + стены + 2–3 здания + HUD фрагмент), интеграция в Pixi и проверка на desktop/390/320 px; полный каталог и HUD масштабируются после визуальной и технической приёмки среза.
 - **Ограничение:** не копировать ассеты/узнаваемые решения коммерческих игр; исторические спрайты остаются временными fallback до замены оригинальным пакетом.
-- Подробная спецификация: [design/art-direction.md](design/art-direction.md), инвентарь: [design/art-asset-inventory.md](design/art-asset-inventory.md). (решено)
+- Актуальные визуальные требования и критерии: [TDL_PRODUCT_VISION_AND_ACCEPTANCE.md](TDL_PRODUCT_VISION_AND_ACCEPTANCE.md). Подробный asset bible и production inventory должны быть подготовлены в рамках TDL-VIS-001. (решено)
 
 
 ## 08.11.2026: направление дальнейшей разработки TDL
