@@ -19,10 +19,10 @@
 
 ## 3. Проверенное состояние на 12.11.2026
 
-- PR #11 и PR #12 приняты в main; единая продуктовая спецификация и multi-agent workflow доступны на основной ветке.
-- HEAD main на момент обновления: `b6e1614f43c43df217b315dffea8157353608628`.
-- PR #9 открыт, 427 файлов, HEAD `6d87eea206b7de7599dd9663529dec5419806bbb`; base совпадает с main.
-- CI run #429 завершился SUCCESS на точном HEAD PR #9 `6d87eea`.
+- PR #11, PR #12 и PR #17 приняты в main; PR #17 закрепил основной состав ChatGPT + Arena.ai.
+- HEAD main после PR #17: `728e9592ad5d56e4c117ffcc5f92dbcff19acd55`.
+- PR #9 открыт, 427 файлов, HEAD `6d87eea206b7de7599dd9663529dec5419806bbb`; его base отстаёт от main на документационный commit PR #17.
+- CI run #429 завершился SUCCESS на точном HEAD PR #9 `6d87eea`; после синхронизации с PR #17 нужен новый CI.
 - GitHub сообщает, что PR #9 mergeable; это не заменяет независимый review накопленного 427-файлового diff.
 - Клиентская база — PixiJS/React. 3D runtime не выбран, production 3D сцена не создана.
 - Полный визуальный рефакторинг, каталог зданий, физические mobile tests и production deployment не подтверждены.
