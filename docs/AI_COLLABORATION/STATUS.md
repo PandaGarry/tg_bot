@@ -1,6 +1,6 @@
 # TDL — текущее состояние совместной разработки
 
-> Snapshot: 12.11.2026. Этот файл фиксирует проверенную точку состояния; перед каждым новым handoff сверяйте текущие refs и GitHub Actions.
+> Snapshot: 12.11.2026 после merge PR #17. Проверено по GitHub; перед каждым новым handoff сверять refs и Actions.
 
 ## GitHub baseline
 
@@ -8,14 +8,15 @@
 |---|---|
 | Репозиторий | `PandaGarry/tg_bot` |
 | Default branch | `main` |
-| Main baseline перед этим status-only PR | `7f70e17539ed521d20db15fd33f6ab4d83a69b8f` (PR #12 squash merge) |
+| HEAD `main` после PR #17 | `728e9592ad5d56e4c117ffcc5f92dbcff19acd55` |
 | Документационный PR #11 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/11), merge `3e77cd2` |
 | Status/workflow PR #12 | [MERGED](https://github.com/PandaGarry/tg_bot/pull/12), merge `7f70e17` |
-| Основной кодовый PR #9 | [OPEN](https://github.com/PandaGarry/tg_bot/pull/9), 427 файлов после пересечения с документами main |
-| HEAD PR #9 | `1cf39a6fdebcde60f01b02555ba03dd1efabb1e7` |
-| Base SHA PR #9 на момент проверки | `3e77cd2a45cb50763b96b77fa258a75bfa2b7472`; отстаёт от main на один commit (PR #12) |
-| CI run #421 | [IN_PROGRESS](https://github.com/PandaGarry/tg_bot/actions/runs/43220192351) на HEAD `1cf39a6`, base `3e77cd2`; один job typecheck/tests/checks/build выполняется |
-| Последний завершённый PASS | [run #416](https://github.com/PandaGarry/tg_bot/actions/runs/43219202084) на старом HEAD `4dba3d1`; не подтверждает текущий PR |
+| Основной кодовый PR #9 | [OPEN](https://github.com/PandaGarry/tg_bot/pull/9), 427 файлов |
+| HEAD PR #9 | `6d87eea206b7de7599dd9663529dec5419806bbb` |
+| Base PR #9 | `b6e1614f43c43df217b315dffea8157353608628`; отстаёт от main на один документационный commit PR #17 |
+| Mergeability PR #9 | GitHub сообщает `mergeable=true`; это не заменяет code review |
+| CI run #429 | [SUCCESS](https://github.com/PandaGarry/tg_bot/actions/runs/43220837032) на точном HEAD PR #9 `6d87eea` |
+| Последний более ранний PASS | run #416 на старом SHA; не нужен как подтверждение PR #9, так как run #429 проверил текущий HEAD |
 
 ## Продуктовая цель
 
@@ -30,23 +31,22 @@
 
 ## Интегрировано в main
 
-- PR #11: продуктовая спецификация, общая точка входа, базовый multi-agent protocol и стартовые handoff.
-- PR #12: актуализация очереди, operational status и активация протокола по поручению владельца.
-- ChatGPT, Cloud и Arena.ai имеют отдельные роли и задания; GitHub — общий handoff-канал и source of truth.
+- PR #11: продуктовая спецификация, общая точка входа и базовый multi-agent protocol.
+- PR #12: очередь, handoff и активный процесс совместной работы.
+- Основной производственный состав закреплён PR #17 как ChatGPT + Arena.ai. PR #17 слит в main commit `728e9592ad5d56e4c117ffcc5f92dbcff19acd55`. Внешние консультанты необязательны и не блокируют задачи.
 
 ## Не считать реализованным
 
 - Целевой 3D runtime не выбран и не создан в production-клиенте; текущая клиентская база — PixiJS/React.
-- PR #9 не слит; его код не является интегрированной частью main.
+- PR #9 не слит; его код не является интегрированной частью main, хотя его текущий HEAD прошёл CI run #429.
 - Нет доказательства законченного 3D vertical slice, полного каталога зданий, физических mobile tests или production deployment.
-- Run #421 ещё не завершён, а его base SHA предшествует PR #12.
 
 ## Следующие действия
 
-1. PR #9: обновить ветку на актуальный main, дождаться CI на новой базе и провести независимый review 427-файлового diff. Не сливать автоматически.
-2. Cloud: выполнить `TDL-3D-001` — независимую матрицу web 3D/Godot Web вариантов.
-3. Arena.ai: выполнить `TDL-ENV-001` — environment check и runtime screenshots без изменения проекта.
-4. ChatGPT: проверить отчёты, подготовить одинаковый benchmark и следующий handoff.
+1. **ChatGPT — TDL-3D-001:** завершить анализ текущего кода PR #9 и сравнение web-native 3D/Godot Web; подготовить benchmark и рекомендацию. Эта задача теперь закреплена за ChatGPT в main.
+2. **Arena.ai — TDL-ENV-001:** выполнить environment check и runtime screenshots без изменения проекта.
+3. **ChatGPT — TDL-VIS-001:** подготовить visual bible и критерии визуальной приёмки; Arena проверит их на runtime после появления прототипа.
+4. **PR #9:** синхронизировать ветку с main после PR #17, получить CI на точном новом HEAD и провести независимый review 427-файлового diff перед merge; run #429 прошёл на HEAD `6d87eea`, но сам по себе не является code review.
 5. После технологического и визуального gate — изолированный vertical prototype.
 
 ## Правило доказательств
