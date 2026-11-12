@@ -1626,9 +1626,9 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       ))}
       {/* three vertical towers with layered stone crowns */}
       {[
-        { x: -0.92, z: -0.92, h: 2.15, r: 0.52 },
-        { x: 0.92, z: -0.92, h: 2.45, r: 0.56 },
-        { x: 0, z: -0.72, h: 2.9, r: 0.62 },
+        { x: -1.02, z: -1.62, h: 2.15, r: 0.52 },
+        { x: 1.02, z: -1.62, h: 2.45, r: 0.56 },
+        { x: 0, z: -1.78, h: 2.9, r: 0.62 },
       ].map((tower, i) => (
         <group key={i} position={[tower.x, 0, tower.z]}>
           <mesh position-y={tower.h * 0.5} castShadow receiveShadow>
@@ -1662,8 +1662,23 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
           <meshStandardMaterial color={iron} metalness={0.35} roughness={0.72} />
         </mesh>
       ))}
-      {/* necrotic heart is physically integrated into the front tower */}
-      <group position={[0, 3.02, 0.18]}>
+      {/* carved stone socket anchors the necrotic heart to the roof */}
+      <group position={[0, 2.53, 0.22]}>
+        <mesh position-y={0.02} castShadow receiveShadow>
+          <boxGeometry args={[0.72, 0.18, 0.72]} />
+          <meshStandardMaterial color="#414541" roughness={0.96} />
+        </mesh>
+        <mesh position-y={0.16} castShadow>
+          <cylinderGeometry args={[0.34, 0.42, 0.22, 8]} />
+          <meshStandardMaterial color={edge} roughness={0.88} flatShading />
+        </mesh>
+        <mesh position-y={0.29}>
+          <cylinderGeometry args={[0.25, 0.3, 0.06, 8]} />
+          <meshStandardMaterial color={bronze} metalness={0.42} roughness={0.55} />
+        </mesh>
+      </group>
+      {/* necrotic heart is physically integrated into its stone socket */}
+      <group position={[0, 3.02, 0.22]}>
         <mesh castShadow>
           <octahedronGeometry args={[0.38, 1]} />
           <meshStandardMaterial ref={core} color="#71834b" emissive="#7da64b" emissiveIntensity={0.82} roughness={0.22} metalness={0.18} />
@@ -1683,10 +1698,18 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
               <meshStandardMaterial color="#494e4b" roughness={0.96} />
             </mesh>
           ))}
-          <mesh position-y={2.42} castShadow>
-            <boxGeometry args={[2.9, 0.12, 2.9]} />
-            <meshStandardMaterial color={edge} roughness={0.9} />
-          </mesh>
+          {[-1, 1].map((side) => (
+            <group key={side}>
+              <mesh position={[side * 1.42, 2.42, 0]} castShadow>
+                <boxGeometry args={[0.18, 0.14, 2.9]} />
+                <meshStandardMaterial color={edge} roughness={0.9} />
+              </mesh>
+              <mesh position={[0, 2.42, side * 1.42]} castShadow>
+                <boxGeometry args={[2.9, 0.14, 0.18]} />
+                <meshStandardMaterial color={edge} roughness={0.9} />
+              </mesh>
+            </group>
+          ))}
         </>
       ) : null}
       {level >= 3 ? (
@@ -1704,7 +1727,7 @@ function TownHall({ level = 1, grid }: { level?: number; grid: CourtGridLite }) 
       ) : null}
       {/* entry stair and worn paving */}
       {[0, 1, 2].map((i) => (
-        <mesh key={i} position={[0, 0.09 + i * 0.09, 1.78 + i * 0.22]} castShadow receiveShadow>
+        <mesh key={i} position={[0, 0.27 - i * 0.09, 1.78 + i * 0.22]} castShadow receiveShadow>
           <boxGeometry args={[1.2 + i * 0.18, 0.16, 0.25]} />
           <meshStandardMaterial color={i % 2 ? "#77766d" : "#5a5d58"} roughness={0.96} />
         </mesh>
