@@ -7,11 +7,14 @@
 
 ## 1. Карта
 
-**Сначала читать:** [`PROJECT_MASTER.md`](PROJECT_MASTER.md) — единый оперативный план, приоритеты аудита, архитектурная оценка, фазы реализации и критерии готовности.
+**Сначала читать:** [`PROJECT_MASTER.md`](../PROJECT_MASTER.md) — единый оперативный план, фазы реализации и gates. Продуктовая цель и критерии: [`TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`](TDL_PRODUCT_VISION_AND_ACCEPTANCE.md). Совместная работа Cloud/Arena/ChatGPT: [`AI_COLLABORATION/README.md`](AI_COLLABORATION/README.md).
 
 | Что | Где | Зачем |
 |---|---|---|
 | Этот файл | `docs/README.md` | Архитектура, статусы, процесс работы |
+| Продуктовая цель | `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md` | Утверждённый визуальный стиль, платформы, scope и acceptance gates |
+| Совместная работа ИИ | `docs/AI_COLLABORATION/README.md` | Роли Cloud/Arena/ChatGPT, ветки, handoff, review и правила передачи |
+| Оперативный план | `../PROJECT_MASTER.md` | Очередность фаз, зависимости и критерии перехода |
 | Состояние | `docs/STATUS.md` | Что решено, что описано, что реализовано в коде |
 | Журнал решений | `docs/DECISIONS.md` | Каждое решение заказчика, с датой и причиной |
 | Аудит | `docs/audit/` | Реестр технических находок, рисков, проверок и исправлений |
