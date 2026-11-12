@@ -4,7 +4,7 @@
 
 ## Обязательный порядок
 
-1. Откройте `AGENTS.md`, затем `docs/AI_COLLABORATION/README.md`, `STATUS.md`, `PROJECT_MASTER.md`, `docs/DECISIONS.md` и `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
+1. Откройте `AGENTS.md`, затем `docs/AI_COLLABORATION/README.md`, `docs/AI_COLLABORATION/STATUS.md`, `PROJECT_MASTER.md`, `docs/DECISIONS.md` и `docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md`.
 2. Сверьте текущий HEAD, активные PR и статус CI. Не работайте по старому SHA и не считайте незлитый PR частью `main`.
 3. Найдите назначенную задачу в `docs/AI_COLLABORATION/QUEUE.md` и прочитайте её handoff. Если задачи нет — не начинайте кодить: предложите независимый аудит или запросите назначение.
 4. Подтвердите в чате владельцу, что прочитали, какой SHA используете, какой scope поняли и какие файлы собираетесь менять.
