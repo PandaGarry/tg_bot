@@ -11,6 +11,8 @@
 | TDL-VIS-001 | READY | Подготовить визуальный benchmark поселения и чек-лист ассетов | Cloud (референсы/критика), ChatGPT (спецификация) | критерии качества, масштаба, материалов, освещения и читаемости на gameplay zoom | производство визуального vertical slice |
 | TDL-AUD-001 | BLOCKED | Проверить текущий репозиторий и CI после интеграции PR #9 | ChatGPT | актуальная карта систем, известных дефектов, baseline CI и список P0/P1 | реализация следующих задач |
 
+| TDL-ENV-001 | READY | Проверить браузерную/Node/PostgreSQL среду и возможности Godot в Arena.ai без изменения проекта | Arena.ai | воспроизводимый environment report, smoke test и реальные desktop/mobile screenshots | план prototype QA |
+
 ## BACKLOG
 
 - TDL-3D-002 — изолированный runtime-прототип 3D-сцены (только после согласования матрицы TDL-3D-001).
