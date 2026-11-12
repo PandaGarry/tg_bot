@@ -10,6 +10,18 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
+import {
+  buildingAt,
+  CELL,
+  footprintCenterToWorld,
+  footprintKeys,
+  footprintSize,
+  gridToWorld,
+  isFootprintFree,
+  worldToCell,
+  type CourtGridLite,
+} from "./scene/gridMath.js";
+import { createCourtInputController } from "./scene/courtInput.js";
 
 const PLOT = 7.7; // половина площадки (14 клеток по 1.1)
 const GATE_HALF = 1.5;
@@ -291,60 +303,6 @@ function Ground({ grid }: { grid: CourtGridLite | null }) {
 // Высоты: снег 0.14 → лента 0.17 → плиты 0.17–0.24. Кривая известна Ground'у,
 // чтобы сугробы не прорастали сквозь дорогу. У ворот лента расширяется «воронкой».
 // Клетка двора: 14 × 1.1 = 15.4 — ровно площадка PLOT (модуль хранит размер сетки).
-const CELL = 1.1;
-/** Клетка сетки → мир: сетка центрирована, край упирается в частокол. */
-function gridToWorld(g: number, size: number): number {
-  return (g - (size - 1) / 2) * CELL;
-}
-/** Пятна построек [ширина, глубина] — копия FOOTPRINT модуля court (сервер — власть). */
-const FOOTVIEW: Record<string, [number, number]> = {
-  townhall: [3, 3],
-  cottage: [2, 2],
-  farm: [2, 2],
-  sawmill: [2, 2],
-  quarry: [2, 2],
-  mine: [2, 2],
-  barracks: [2, 2],
-  lantern: [1, 1],
-  bench: [2, 1],
-  well: [2, 2],
-  flag: [1, 1],
-  road: [1, 1],
-};
-
-/** Мир → клетка сетки. */
-function worldToCell(wx: number, wz: number, size: number) {
-  return {
-    x: Math.round(wx / CELL + (size - 1) / 2),
-    z: Math.round(wz / CELL + (size - 1) / 2),
-  };
-}
-
-/** Занятые постройками клетки (переносимую можно пропустить). */
-function footprintKeys(grid: CourtGridLite, skip?: { x: number; z: number }): Set<string> {
-  const set = new Set<string>();
-  for (const b of grid.buildings) {
-    if (skip && b.x === skip.x && b.z === skip.z) continue;
-    const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    for (let dx = -halfW; dx < w - halfW; dx++) {
-      for (let dz = -halfH; dz < h - halfH; dz++) set.add(`${b.x + dx}:${b.z + dz}`);
-    }
-  }
-  return set;
-}
-
-/** Постройка, чьё пятно накрывает клетку (для долгого нажатия). */
-function buildingAt(grid: CourtGridLite, cx: number, cz: number) {
-  for (const b of grid.buildings) {
-    const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-    const halfW = Math.floor(w / 2);
-    const halfH = Math.floor(h / 2);
-    if (cx >= b.x - halfW && cx < b.x - halfW + w && cz >= b.z - halfH && cz < b.z - halfH + h) return b;
-  }
-  return null;
-}
 
 /**
  * Гравийная дорога: плита на клетку — тёмное основание и россыпь мелких
@@ -1311,9 +1269,7 @@ function Buildings({ grid }: { grid: CourtGridLite }) {
     <>
       {grid.buildings.map((b) => {
         if (b.type === "townhall") return null; // Ратуша — отдельная живая модель
-        const [w, h] = FOOTVIEW[b.type] ?? [1, 1];
-        const cx = gridToWorld(b.x - Math.floor(w / 2) + (w - 1) / 2, grid.size);
-        const cz = gridToWorld(b.z - Math.floor(h / 2) + (h - 1) / 2, grid.size);
+        const { wx: cx, wz: cz } = footprintCenterToWorld(b.type, b.x, b.z, grid.size);
         return (
           <Popped key={`${b.type}:${b.x}:${b.z}`} x={cx} z={cz}>
             <BuildingBody type={b.type} />
@@ -1403,41 +1359,88 @@ function CourtInput({
   onPickup: (type: string, x: number, z: number) => void;
 }) {
   const [hover, setHover] = useState<{ x: number; z: number } | null>(null);
-  const down = useRef<{ x: number; y: number; cell: { x: number; z: number } } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const held = useRef(false);
   const size = grid.size;
 
   const roads = useMemo(() => new Set(grid.roads.map((r) => `${r.x}:${r.z}`)), [grid]);
   const busy = useMemo(() => footprintKeys(grid, pending?.from), [grid, pending]);
-  const [viewW, viewH] = FOOTVIEW[pending?.type ?? (tool?.kind === "place" ? tool.type : "")] ?? [1, 1];
-  const halfW = Math.floor(viewW / 2);
-  const halfH = Math.floor(viewH / 2);
+  const activeType = pending?.type ?? (tool?.kind === "place" ? tool.type : "");
+  const [viewW, viewH] = footprintSize(activeType);
 
-  const free = (gx: number, gz: number): boolean => {
-    for (let dx = -halfW; dx < viewW - halfW; dx++) {
-      for (let dz = -halfH; dz < viewH - halfH; dz++) {
-        const x = gx + dx;
-        const z = gz + dz;
-        if (x < 0 || z < 0 || x > size - 1 || z > size - 1) return false;
-        const key = `${x}:${z}`;
-        if (busy.has(key) || roads.has(key)) return false;
-      }
-    }
-    return true;
-  };
+  const free = (gx: number, gz: number): boolean =>
+    isFootprintFree({ size, type: activeType, gx, gz, busy, roads });
 
-  const centerOf = (cell: { x: number; z: number }) => ({
-    wx: gridToWorld(cell.x - halfW + (viewW - 1) / 2, size),
-    wz: gridToWorld(cell.z - halfH + (viewH - 1) / 2, size),
+  const centerOf = (cell: { x: number; z: number }) =>
+    footprintCenterToWorld(activeType, cell.x, cell.z, size);
+
+  const handlersRef = useRef({
+    onHold: (_cell: { x: number; z: number }) => false as boolean,
+    onTap: (_cell: { x: number; z: number }) => {},
   });
-
-  const clearTimer = () => {
-    if (timer.current !== null) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
+  handlersRef.current = {
+    onHold: (cell) => {
+      if (pending || tool) return false;
+      const hit = buildingAt(grid, cell.x, cell.z);
+      if (hit) {
+        onPickup(hit.type, hit.x, hit.z);
+        return true;
+      }
+      // на постройке пусто — может, это плита дороги
+      if (roads.has(`${cell.x}:${cell.z}`)) {
+        onPickup("road", cell.x, cell.z);
+        return true;
+      }
+      return false;
+    },
+    onTap: (cell) => {
+      if (pending) {
+        if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
+      } else if (tool?.kind === "place") {
+        if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
+      } else if (tool?.kind === "road") {
+        onRoad(cell.x, cell.z, roads.has(`${cell.x}:${cell.z}`));
+      }
+    },
   };
+
+  const controller = useMemo(
+    () =>
+      createCourtInputController({
+        onHold: (cell) => handlersRef.current.onHold(cell),
+        onTap: (cell) => handlersRef.current.onTap(cell),
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    const onWindowDown = (ev: PointerEvent) => {
+      if (ev.button !== 0) {
+        controller.cancelAll();
+        return;
+      }
+      controller.onGlobalPointerDown(ev.pointerId);
+    };
+    const onWindowUp = (ev: PointerEvent) => {
+      if (ev.button !== 0) return;
+      controller.onGlobalPointerEnd(ev.pointerId);
+    };
+    const onWindowCancel = (ev: PointerEvent) => {
+      controller.onPointerCancel(ev.pointerId);
+    };
+    const onWindowBlur = () => {
+      controller.cancelAll();
+    };
+    window.addEventListener("pointerdown", onWindowDown);
+    window.addEventListener("pointerup", onWindowUp);
+    window.addEventListener("pointercancel", onWindowCancel);
+    window.addEventListener("blur", onWindowBlur);
+    return () => {
+      window.removeEventListener("pointerdown", onWindowDown);
+      window.removeEventListener("pointerup", onWindowUp);
+      window.removeEventListener("pointercancel", onWindowCancel);
+      window.removeEventListener("blur", onWindowBlur);
+      controller.dispose();
+    };
+  }, [controller]);
 
   const ghost = pending
     ? { valid: true, ...centerOf(pending) }
@@ -1453,55 +1456,41 @@ function CourtInput({
         rotation-x={-Math.PI / 2}
         position-y={0.22}
         onPointerMove={(e) => {
-          const d = down.current;
-          if (d && Math.hypot(e.nativeEvent.clientX - d.x, e.nativeEvent.clientY - d.y) > 8) clearTimer();
+          controller.onPointerMove({
+            pointerId: e.nativeEvent.pointerId,
+            buttons: e.nativeEvent.buttons,
+            clientX: e.nativeEvent.clientX,
+            clientY: e.nativeEvent.clientY,
+          });
           setHover(worldToCell(e.point.x, e.point.z, size));
         }}
         onPointerDown={(e) => {
           const cell = worldToCell(e.point.x, e.point.z, size);
-          down.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, cell };
-          held.current = false;
-          clearTimer();
-          // долгое нажатие: поднять постройку для переноски
-          timer.current = setTimeout(() => {
-            timer.current = null;
-            const d = down.current;
-            down.current = null;
-            if (!d || pending || tool) return;
-            const hit = buildingAt(grid, d.cell.x, d.cell.z);
-            if (hit) {
-              held.current = true;
-              onPickup(hit.type, hit.x, hit.z);
-              return;
-            }
-            // на постройке пусто — может, это плита дороги
-            if (roads.has(`${d.cell.x}:${d.cell.z}`)) {
-              held.current = true;
-              onPickup("road", d.cell.x, d.cell.z);
-            }
-          }, 550);
+          controller.onPointerDown({
+            pointerId: e.nativeEvent.pointerId,
+            button: e.nativeEvent.button,
+            buttons: e.nativeEvent.buttons,
+            pointerType: e.nativeEvent.pointerType,
+            clientX: e.nativeEvent.clientX,
+            clientY: e.nativeEvent.clientY,
+            cell,
+          });
         }}
         onPointerUp={(e) => {
-          clearTimer();
-          const d = down.current;
-          down.current = null;
-          if (!d || held.current) {
-            held.current = false;
-            return;
-          }
-          if (Math.hypot(e.nativeEvent.clientX - d.x, e.nativeEvent.clientY - d.y) > 8) return;
           const cell = worldToCell(e.point.x, e.point.z, size);
-          if (pending) {
-            if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
-          } else if (tool?.kind === "place") {
-            if (free(cell.x, cell.z)) onTarget(cell.x, cell.z);
-          } else if (tool?.kind === "road") {
-            onRoad(cell.x, cell.z, roads.has(`${cell.x}:${cell.z}`));
-          }
+          controller.onPointerUp({
+            pointerId: e.nativeEvent.pointerId,
+            button: e.nativeEvent.button,
+            clientX: e.nativeEvent.clientX,
+            clientY: e.nativeEvent.clientY,
+            cell,
+          });
         }}
-        onPointerLeave={() => {
-          clearTimer();
-          down.current = null;
+        onPointerCancel={(e) => {
+          controller.onPointerCancel(e.nativeEvent.pointerId);
+        }}
+        onPointerLeave={(e) => {
+          controller.onPointerLeave(e.nativeEvent.pointerId);
         }}
       >
         <planeGeometry args={[size * CELL, size * CELL]} />
@@ -1813,11 +1802,7 @@ function MeadowLife() {
 
 // ---------- оболочка сцены: fallback и подсказка поворота ----------
 /** Сетка двора из вида: то, что отдаёт модуль court. */
-export interface CourtGridLite {
-  size: number;
-  buildings: { type: string; x: number; z: number }[];
-  roads: { x: number; z: number }[];
-}
+export type { CourtGridLite };
 
 export type CourtTool = { kind: "place"; type: string } | { kind: "road" } | null;
 
@@ -1860,9 +1845,7 @@ export function CourtScene({
     if (!prev) return; // первая загрузка — просто рисуем двор
     const added = grid.buildings.find((b) => !prev.has(`${b.type}:${b.x}:${b.z}`));
     if (!added) return;
-    const [w, h] = FOOTVIEW[added.type] ?? [1, 1];
-    const x = gridToWorld(added.x - Math.floor(w / 2) + (w - 1) / 2, grid.size);
-    const z = gridToWorld(added.z - Math.floor(h / 2) + (h - 1) / 2, grid.size);
+    const { wx: x, wz: z } = footprintCenterToWorld(added.type, added.x, added.z, grid.size);
     setBursts((list) => [...list, { key: `${added.type}:${added.x}:${added.z}:${Date.now()}`, x, z }]);
   }, [grid]);
 

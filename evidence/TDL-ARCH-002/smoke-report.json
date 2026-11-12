@@ -1,0 +1,214 @@
+{
+  "task": "TDL-ARCH-002",
+  "branch": "arena/ff89979b-tg-bot",
+  "prReference": 27,
+  "prBranchReference": "refactor/tdl-court-grid-input-foundation",
+  "prBaseSha": "0a5e465ede6096ecdfc33b4771b0761baf327fab",
+  "prHeadSha": "657aa6b459f502591e0c51d883a861d14571794c",
+  "origin": "http://127.0.0.1:3000",
+  "testedAt": "2026-11-12T15:47:55.015Z",
+  "browserVersion": "HeadlessChrome/153.0.8010.0",
+  "steps": {
+    "desktopFullLv1": {
+      "ok": true
+    },
+    "leftDragPan": {
+      "ok": true,
+      "triggeredPickup": false,
+      "visualChanged": true
+    },
+    "rightHold750msTriggeredPickup": false,
+    "rightDragOrbit": {
+      "ok": true,
+      "triggeredPickup": false,
+      "visualChanged": true
+    },
+    "leftLongPressPickup": {
+      "ok": true
+    },
+    "farmPlace": {
+      "ok": true,
+      "afterFarmRes": "610 552 378 204 306 102"
+    },
+    "upgradeLv2": {
+      "ok": true,
+      "lvlText": "Ур. 2"
+    },
+    "navigation": {
+      "ok": true
+    },
+    "touchLongPressPickup": {
+      "ok": true
+    }
+  },
+  "desktopLayout": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 820,
+      "h": 768,
+      "attrW": 820,
+      "attrH": 768
+    },
+    "top": {
+      "x": 292,
+      "y": 10,
+      "w": 792,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "profile": {
+      "x": 292,
+      "y": 10,
+      "w": 165,
+      "h": 65,
+      "right": 457,
+      "bottom": 75
+    },
+    "res": {
+      "x": 961,
+      "y": 10,
+      "w": 123,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "nav": {
+      "x": 536,
+      "y": 684,
+      "w": 304,
+      "h": 74,
+      "right": 840,
+      "bottom": 758
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 682,
+      "attrH": 1477
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 374,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 161,
+      "h": 63,
+      "right": 169,
+      "bottom": 69
+    },
+    "res": {
+      "x": 271,
+      "y": 6,
+      "w": 111,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "nav": {
+      "x": 51,
+      "y": 766,
+      "w": 288,
+      "h": 72,
+      "right": 339,
+      "bottom": 838
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "mobileLayout320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 560,
+      "attrH": 1207
+    },
+    "top": {
+      "x": 8,
+      "y": 6,
+      "w": 304,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "profile": {
+      "x": 8,
+      "y": 6,
+      "w": 154,
+      "h": 62,
+      "right": 162,
+      "bottom": 68
+    },
+    "res": {
+      "x": 215,
+      "y": 6,
+      "w": 97,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "nav": {
+      "x": 39,
+      "y": 622,
+      "w": 242,
+      "h": 62,
+      "right": 281,
+      "bottom": 684
+    },
+    "overlapProfileRes": false,
+    "overlapTopNav": false
+  },
+  "consoleErrors": [
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=TU8Ik4Ih-wgb' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=TU8Ik4Ih-wgb' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). "
+  ],
+  "consoleWarningsCount": 0,
+  "consoleLogs": [
+    "[desktop][debug] [vite] connecting...",
+    "[desktop][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=TU8Ik4Ih-wgb' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[desktop][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[desktop][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[desktop][log] THREE.WebGLRenderer: Context Lost.",
+    "[mobile][debug] [vite] connecting...",
+    "[mobile][error] WebSocket connection to 'ws://127.0.0.1:24678/?token=TU8Ik4Ih-wgb' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[mobile][error] [vite] failed to connect to websocket (Error: WebSocket closed without opened.). ",
+    "[mobile][info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  ],
+  "pageErrors": [
+    "[desktop] WebSocket closed without opened.",
+    "[mobile] WebSocket closed without opened."
+  ],
+  "failedRequests": []
+}
