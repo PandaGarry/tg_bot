@@ -1,6 +1,6 @@
 # TDL-ARCH-003 — повторная runtime-валидация общей ветки
 
-**Статус:** READY  
+**Статус:** DONE — evidence accepted by ChatGPT review (12.11.2026)  
 **Общая рабочая ветка:** `refactor/tdl-court-grid-input-impl`  
 **База задания / HEAD после фиксации протокола:** `ca552b98089f196e15fbb97b81faac8c4d8a6019`  
 **Связанный PR:** https://github.com/PandaGarry/tg_bot/pull/28  
@@ -111,3 +111,14 @@ ChatGPT и Arena.ai работают над этой задачей в одно�
 - Recommended next step:
 
 После сдачи ChatGPT проверяет evidence и diff, обновляет статус/документацию и решает следующий этап. PR #28 не сливать до review.
+
+
+## Результат приёмки ChatGPT — 12.11.2026
+
+- Evidence пакет проверен в PR #28: JSON, commands.log, README, список файлов и runtime screenshot.
+- Tested application SHA подтверждён как `c10e99a1d51a25eb4a7873b2e6d6e6d4857dc194`; текущие коммиты evidence/docs не меняли исходный код приложения.
+- Runtime smoke принят с оговорками: HeadlessChrome + SwiftShader, мобильная эмуляция, не физические устройства.
+- Monorepo: 195 passed + 2 calendar-dependent failed в `@tdl/host`; не считать suite полностью зелёным.
+- WebGL: событие на detached canvas при R3F unmount; README сохраняет неопределённость точного шага навигации, не приписывает GPU-сбой.
+- ChatGPT оставил review-комментарий в PR #28. PR остаётся draft; merge запрещён до review базового PR #26 и дальнейшей интеграционной проверки.
+- Визуальный acceptance не пройден и не проверялся этой задачей: screenshot показывает старый снежный blockout. ARCH-003 подтверждает функциональность и адаптивность, но не новый gothic art direction.
