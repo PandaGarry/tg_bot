@@ -1,6 +1,6 @@
 (() => {
 const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const W=1440,H=900,cols=27,rows=22,tw=76,th=38,ox=720,oy=92;
+const W=1440,H=900,cols=27,rows=22,tw=56,th=28,ox=720,oy=65;
 let mode='move',player={x:13.2,y:15.3},target=null,toastTimer,selected=null,progress=0;
 const objects=[
  {id:'inn',x:11,y:8,type:'inn',name:'Постоялый двор «У трёх сосен»',desc:'Небольшой двор для путников. Хозяйка обещает горячую еду и сухую постель.'},
