@@ -63,6 +63,18 @@ A pack that fails visual compatibility is rejected even if its license is permis
 - Status: candidate only. The archive and individual frames still need direct visual inspection and license-attribution packaging before any integration.
 - Attribution, if used: "Jana Ochse (2D!PIXX), www.2dpixx.de".
 
+
+### Paid quality benchmark candidate: Golden Skull Art — Village Exterior
+
+- Source: https://goldenskullart-store.itch.io/2d-isometric-village-tile-pack
+- Described contents: 312 high-resolution hand-drawn isometric sprites plus 80 conversion meshes; 512px atlas cells, 2:1 isometric grid.
+- Commercial use is permitted under the seller's stated license; redistribution of the pack or derived assets is not permitted.
+- Known caveats reported by the seller: some stone-wall/timber-frame border artifacts, some blurry props, placeholder signs, and non-standard y-positioning requirements.
+- Status: strongest visual-quality candidate found so far, but not purchased, downloaded, inspected or integrated. Purchase requires an explicit project-budget decision. It must still pass our own visual and technical checks.
+- Source explicitly states that no generative AI was used.
+
+This pack is not automatically approved: the cost, usage restrictions and reported defects must be weighed against the benefit of a coherent hand-drawn asset base.
+
 ## Acceptance gates
 
 A benchmark is not accepted until all gates pass:
