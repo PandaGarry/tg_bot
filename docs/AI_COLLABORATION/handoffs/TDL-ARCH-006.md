@@ -1,9 +1,10 @@
 # TDL-ARCH-006 — Citadel Visual Prototype v2 (L1–L5)
 
-> **Статус:** DONE (v2 architectural overhaul delivered on Arena branch for independent review and selective integration)  
-> **Delivery branch:** `arena/ff89979b-tg-bot` (фиксированная сессионная ветка; не переключалась)  
-> **Implementation base:** PR #28, branch `refactor/tdl-court-grid-input-impl`  
-> **Exact source SHA:** `1fd88f7569428fd138daec775184228f36f8b0f2`  
+> **Статус:** DONE & POST-INTEGRATION VERIFIED (v2 integrated on PR #28 at `a5fe323859455082b66eb61bc090b0e3796d3fc6`)  
+> **Delivery branch (evidence & handoff):** `arena/ff89979b-tg-bot` (фиксированная сессионная ветка; не переключалась)  
+> **Integrated PR branch & tested HEAD SHA:** `refactor/tdl-court-grid-input-impl` (PR #28) @ `a5fe323859455082b66eb61bc090b0e3796d3fc6`  
+> **Parent PR #28 SHA:** `1fd88f7569428fd138daec775184228f36f8b0f2`  
+> **Arena prototype source SHA:** `c9145652320a28582ee5367c4418be7984df4cb9`  
 > **Prior milestone:** `TDL-ARCH-005` (`db711655` + post-integration validation on `1fd88f75` in `evidence/TDL-ARCH-005-post/`)
 
 ## 1. Mission
@@ -57,3 +58,25 @@ Verified clean against `1fd88f7569428fd138daec775184228f36f8b0f2` (`diff -rq` ou
   - Visual inspection confirmed across all 12 unedited screenshots (`01..05` same-camera Lv1–Lv5 progression, `06` full court Lv5, `06b` portal close-orbit confirming visible oak doors/hardware/toothed portcullis, `06c` masonry macro closeup, `07` desktop pickup, `08–10` mobile 390/320 Lv5 & touch pickup).
   - `consoleErrors: 0`, `pageErrors: 0`, `failedRequests: 0`; 1 expected benign `webglcontextlost` on detached canvas unmount during `Court → Map` navigation.
   - **Device disclaimer:** No physical mobile device or hardware GPU is present in this sandbox; all browser renders and screenshots ran under headless SwiftShader emulation.
+
+## 6. Post-Integration Verification on PR #28 (`a5fe323859455082b66eb61bc090b0e3796d3fc6`)
+
+- **Evidence folder:** `evidence/TDL-ARCH-006-post/` (`README.md`, `commands.log`, `smoke-report.json`, `health.json`, `console.txt`, and 12 unedited screenshots in `screenshots/`).
+- **Exact tested SHA:** `a5fe323859455082b66eb61bc090b0e3796d3fc6` on `PandaGarry/tg_bot` branch `refactor/tdl-court-grid-input-impl` (parent `1fd88f7569428fd138daec775184228f36f8b0f2`), tested in clean detached checkout `/tmp/tdl-arch006-post` with zero source edits, zero Turborepo cache hits, and zero PR mutations.
+- **Integrity parity (`1fd88f7..a5fe323` & vs `c914565`):**
+  - Exactly the 7 expected Citadel integration files changed/added (`+3364 / -3`).
+  - Zero diff vs Arena v2 prototype `c9145652320a28582ee5367c4418be7984df4cb9` outside `docs/` and `evidence/`.
+  - Zero diff vs `1fd88f7` across `gridMath.ts`, `courtInput.ts`, `courtGridMath.test.tsx`, `courtInput.test.tsx`, `package.json`, and `pnpm-lock.yaml`.
+- **Automated checks (`commands.log`):**
+  - `pnpm install --frozen-lockfile`: `exit_code=0`.
+  - `pnpm --filter @tdl/client test`: `exit_code=0` (`5` files, `39/39` tests passed).
+  - `pnpm typecheck`: `exit_code=0` (`18/18` packages, `0/18` cached).
+  - `pnpm check`: `exit_code=0` (`11` modules, boundaries clean, `24`/`126` i18n keys, `810` calendar windows).
+  - `pnpm build`: `exit_code=0` (`3/3` packages: `@tdl/server`, `@tdl/court3d`, `@tdl/client`, `0/3` cached).
+  - `pnpm test`: `exit_code=0` (`0/6` cached) — `@tdl/kernel` `44/44`, `@tdl/client` `39/39`, `@tdl/server` `34/34`, `@tdl/court3d` & `@tdl/protocol` `--passWithNoTests`; `@tdl/host` reproduced the pre-existing `88 passed | 2 failed` calendar assertions on `2026-11-13` (`tests/clock.test.ts:71`, `tests/switches.test.ts:303`) — explicitly reported rather than claimed green.
+- **Production runtime smoke (`smoke-report.json`, PostgreSQL 18.4, `HeadlessChrome` + SwiftShader):**
+  - `13/13` checks passed (`allOk: true`): `desktopCourtLoad`, `rightHoldNoPickup`, `leftLongPressPickup`, `leftDragPan`, `upgradeLv2`..`upgradeLv5`, `rightDragOrbit`, `farmPlace` (`630 1364 2286 2258 318 4454`), `navigation` (`Court → Map → Court`), `touchLongPressPickup`, and `noHorizontalOverflow` (`false` at `1376×768`, `390×844`, `320×690`).
+  - `consoleErrors: 0`, `pageErrors: 0`, `failedRequests: 0`; `console.txt` contains strictly 1 detached-canvas unmount event (`THREE.WebGLRenderer: Context Lost.` paired with `[tdl-webgl-probe] desktop contextlost inDom=false`) during `Court → Map`.
+  - Unedited screenshots (`01`–`05`, `06`, `06b`, `06c`, `07`–`10`) inspected and confirmed across L1–L5 progression, portal depth/hardware/portcullis, masonry/buttresses/towers/reliquary, desktop/mobile touch interactions, and HUD clearance.
+  - **Device disclaimer:** Verified under HeadlessChrome + ANGLE Vulkan SwiftShader emulation; no physical smartphone or hardware GPU is present in this sandbox.
+
