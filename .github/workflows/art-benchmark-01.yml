@@ -1,0 +1,60 @@
+name: Art benchmark 01 runtime preview
+
+on:
+  push:
+    branches: [prototype/mmorpg-zero]
+    paths:
+      - 'art/benchmark-01/**'
+      - '.github/workflows/art-benchmark-01.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+      - name: Install browser
+        run: |
+          npm init -y
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Render desktop and mobile previews
+        run: |
+          mkdir -p artifacts
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            for (const [name, viewport] of Object.entries({
+              desktop: {width:1440,height:1000},
+              mobile: {width:390,height:844}
+            })) {
+              const page = await browser.newPage({viewport, deviceScaleFactor:1});
+              const errors = [];
+              page.on('pageerror', e => errors.push(e.message));
+              await page.goto('file://' + process.cwd() + '/art/benchmark-01/index.html', {waitUntil:'load'});
+              await page.screenshot({path:'artifacts/art-benchmark-01-' + name + '.png', fullPage:true});
+              const broken = await page.locator('img').evaluateAll(imgs => imgs.filter(i => !i.complete || i.naturalWidth === 0).map(i => i.src));
+              if (broken.length) throw new Error('Broken art assets: ' + broken.join(', '));
+              if (errors.length) throw new Error('Browser errors: ' + errors.join(' | '));
+              console.log(name + ' preview: PASS; images=' + await page.locator('img').count());
+              await page.close();
+            }
+            await browser.close();
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+      - name: Upload preview screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: art-benchmark-01-runtime-previews
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
