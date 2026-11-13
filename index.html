@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#18241e"><title>THE BETWEEN — First Look</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="shell">
+  <header class="topbar"><div class="brand"><span class="sigil">✦</span><div><strong>THE BETWEEN</strong><small>FRONTIER SETTLEMENT · PROTOTYPE 01</small></div></div><div class="realm"><i></i> ПЕРЕХОДНЫЕ ЗЕМЛИ <span>•</span> ДЕНЬ 04</div><button class="menu" id="helpBtn">УПРАВЛЕНИЕ <b>?</b></button></header>
+  <section class="viewport" aria-label="Игровой мир">
+    <canvas id="world" width="1440" height="900"></canvas>
+    <div class="location"><span>✧</span><div><b>ТИХАЯ ДОЛИНА</b><small>Пограничье · Северный тракт</small></div></div>
+    <div class="weather"><span>☀</span><div><b>ЯСНО</b><small>18° · лёгкий ветер</small></div></div>
+    <div class="quest"><small>ТЕКУЩАЯ ЗАДАЧА</small><b>Следы новой жизни</b><p>Осмотритесь в поселении и поговорите с его жителями.</p><div class="progress"><i></i></div><small>0 / 2 ДЕЙСТВИЯ</small></div>
+    <div class="toast" id="toast">Добро пожаловать в Тихую долину</div>
+  </section>
+  <footer class="bottom">
+    <div class="player"><div class="avatar">П</div><div class="playerdata"><b>Путник</b><small>Уровень 1 · Странник</small><div class="bars"><i></i><i></i></div></div></div>
+    <div class="actions"><button class="action active" data-action="move"><span>⌖</span><small>ДВИЖЕНИЕ</small></button><button class="action" data-action="inspect"><span>◉</span><small>ОСМОТР</small></button><button class="action" data-action="gather"><span>⚒</span><small>СОБРАТЬ</small></button><button class="action" data-action="journal"><span>▤</span><small>ЖУРНАЛ</small></button></div>
+    <div class="resources"><div><small>МОНЕТЫ</small><b> 12</b></div><div><small>ДЕРЕВО</small><b> 0</b></div><div><small>КАМЕНЬ</small><b> 0</b></div></div>
+  </footer>
+</main>
+<div class="modal hidden" id="modal"><div class="dialog"><button class="close" id="closeModal">×</button><small>ПЕРВЫЕ ШАГИ</small><h2>Как освоиться</h2><p><b>WASD / стрелки</b> — перемещение персонажа.</p><p><b>Клик по земле</b> — пройти к точке.</p><p><b>Клик по жителю или зданию</b> — узнать больше.</p><p><b>Осмотр / Собрать</b> — сменить режим взаимодействия.</p><button id="startBtn">ПОНЯТНО</button></div></div>
+<script src="game.js"></script>
+</body></html>

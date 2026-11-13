@@ -1,19 +1,27 @@
-# TDL — MMORPG Prototype
+# THE BETWEEN — MMORPG prototype
 
-A clean-start workspace for the new persistent online fantasy world.
+Новый самостоятельный проект, создаваемый с нуля. Это не продолжение старой игры из репозитория.
 
-This branch is intentionally separate from the legacy Telegram bot application.
-The existing repository history and all other branches are preserved.
+## Prototype 01 — Quiet Valley
 
-## Current objective
+Первый визуально-интерактивный вертикальный срез: браузерная 2.5D/isometric-inspired сцена на Canvas без внешнего игрового движка и без сторонних ассетов.
 
-Build a small, playable visual prototype that demonstrates:
-- a coherent fantasy environment and terrain;
-- a settlement with readable buildings and props;
-- player movement and camera controls;
-- a minimal HUD and object interaction;
-- an art direction that can scale into the intended MMORPG.
+### Запуск
+Откройте `index.html` в современном браузере. Для локального сервера можно выполнить:
 
-## Status
+```bash
+python3 -m http.server 8000
+```
 
-Prototype foundation — implementation not yet started.
+Затем откройте `http://localhost:8000`.
+
+### Уже реализовано
+- процедурно собранная изометрическая карта с травой, цветами, камнем и водой;
+- поселение с постоялым двором, домом старосты, кузницей, колодцем, огородом и ограждением;
+- деревья, скальные объекты, персонаж и жители;
+- перемещение WASD/стрелками и переход к точке кликом;
+- выбор зданий/NPC, режимы осмотра и сбора;
+- минимальный HUD, задача и адаптивная компоновка.
+
+### Границы текущего среза
+Это ранний визуальный прототип, а не MMO-клиент: нет сетевого сервера, сохранений, полноценной навигации, анимационного рига и боевой системы. Следующий этап — проверка runtime, улучшение читаемости сцены, персонажа и окружения, затем игровой цикл взаимодействия.
