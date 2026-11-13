@@ -1,0 +1,505 @@
+================================================================
+COMMAND: pnpm install --frozen-lockfile
+STARTED: 2026-11-13T19:27:24Z
+Scope: all 20 workspace projects
+✓ Lockfile passes supply-chain policies (verified 1h ago)
+Lockfile is up to date, resolution step is skipped
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: /home/user/.local/share/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Packages: +229
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 229, reused 229, downloaded 0, added 229, done
+
+devDependencies:
++ @types/node 22.18.12
++ embedded-postgres 18.4.0-beta.17
++ tsx 4.23.15
++ turbo 2.11.4
++ typescript 5.9.3
++ vitest 5.0.1
+
+Done in 286ms using pnpm v12.6.0
+EXIT_CODE=0 (1_install)
+
+================================================================
+COMMAND: pnpm --filter @tdl/client test
+STARTED: 2026-11-13T19:27:25Z
+$ vitest run --passWithNoTests
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/apps/client[39m
+
+[90mstderr[2m | tests/shell.test.tsx
+[22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ [32m✓[39m tests/shell.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 1348[2mms[22m[39m
+   [32m✓[39m вступление [2m(3)[22m
+     [33m[2m✓[22m[39m восемь кадров, пропуск со второго, последний кадр ведёт к двору[33m 399[2mms[22m[39m
+   [32m✓[39m создание лорда [2m(1)[22m
+     [33m[2m✓[22m[39m восемь голов, шесть знаков, восемь цветов, три типа[33m 317[2mms[22m[39m
+ [32m✓[39m tests/courtInput.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+[90mstderr[2m | tests/citadelLevels.test.tsx
+[22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+
+ [32m✓[39m tests/citadelLevels.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 548[2mms[22m[39m
+   [32m✓[39m TDL-ARCH-006 R2 Ossuary Cathedral-Fortress level & architecture invariants [2m(5)[22m
+     [33m[2m✓[22m[39m строит детерминированные R2 PBR-текстуры и освобождает их без утечек в StrictMode[33m 476[2mms[22m[39m
+ [32m✓[39m tests/courtGridMath.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+[90mstderr[2m | tests/courtExtraction.test.tsx
+[22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+
+ [32m✓[39m tests/courtExtraction.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 231[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m39 passed[39m[22m[90m (39)[39m
+[2m   Start at [22m 19:27:25
+[2m   Duration [22m 7.45s[2m (environment 41%, tests 32%, import 14%, transform 13%)[22m
+
+[2mEnvironment [22m [33mjsdom was created 5 times[39m[2m · 2.76s total, 41% of tracked time[22m
+[2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+
+EXIT_CODE=0 (2_client_test)
+
+================================================================
+COMMAND: pnpm typecheck
+STARTED: 2026-11-13T19:27:33Z
+$ turbo run typecheck
+
+   • turbo 2.11.4
+   • Packages in scope: @tdl/client, @tdl/court3d, @tdl/host, @tdl/kernel, @tdl/module-court, @tdl/module-day-window, @tdl/module-holiday, @tdl/module-hour-window, @tdl/module-month-window, @tdl/module-probe, @tdl/module-season-autumn, @tdl/module-season-spring, @tdl/module-season-summer, @tdl/module-season-winter, @tdl/module-week-window, @tdl/modules, @tdl/protocol, @tdl/server, @tdl/tools
+   • Running typecheck in 19 packages
+   • Remote caching disabled
+
+@tdl/court3d:typecheck: cache miss, executing fa918b97780ede3e
+@tdl/kernel:typecheck: cache miss, executing 6d92444cc62ab858
+@tdl/protocol:typecheck: cache miss, executing 9bc573a51ee99da8
+@tdl/module-season-autumn:typecheck: cache miss, executing 14fb2f3c4f471f94
+@tdl/module-day-window:typecheck: cache miss, executing efa91b6c30f47a82
+@tdl/module-week-window:typecheck: cache miss, executing 0b252a4a2aab2f58
+@tdl/module-season-spring:typecheck: cache miss, executing 59060e9390d28822
+@tdl/module-season-summer:typecheck: cache miss, executing 2cbe4091f0bb09a9
+@tdl/module-season-winter:typecheck: cache miss, executing b89c510ed3a505c6
+@tdl/module-month-window:typecheck: cache miss, executing 64d345032189fe4b
+@tdl/module-week-window:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-season-spring:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-season-autumn:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/kernel:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/court3d:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/protocol:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-season-winter:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-day-window:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-season-summer:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-month-window:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-holiday:typecheck: cache miss, executing 5f0b740c4687f95a
+@tdl/module-hour-window:typecheck: cache miss, executing b73f8d1fb7a1d347
+@tdl/module-probe:typecheck: cache miss, executing 431ee371dce2870a
+@tdl/module-court:typecheck: cache miss, executing e61b9d37199f8240
+@tdl/modules:typecheck: cache miss, executing 0b122b4aeea83be6
+@tdl/client:typecheck: cache miss, executing bb595221646814c7
+@tdl/host:typecheck: cache miss, executing 8cc5f17954b9384c
+@tdl/module-hour-window:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-holiday:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/modules:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-court:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/client:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/module-probe:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/host:typecheck: $ tsc -p tsconfig.json --noEmit
+@tdl/server:typecheck: cache miss, executing 4e585c2b504183a4
+@tdl/server:typecheck: $ tsc -p tsconfig.json --noEmit
+
+ Tasks:    18 successful, 18 total
+Cached:    0 cached, 18 total
+  Time:    38.711s 
+
+EXIT_CODE=0 (3_typecheck)
+
+================================================================
+COMMAND: pnpm check
+STARTED: 2026-11-13T19:28:12Z
+$ node tools/gen-registry.mjs && tsx tools/check/registry.ts && tsx tools/check/boundaries.ts && tsx tools/check/i18n.ts && tsx tools/check/schedule.ts
+реестр: 11 модул(ей) — _probe (+вид), court, day-window, holiday, hour-window, month-window, season-autumn, season-spring, season-summer, season-winter, week-window
+реестр в порядке: 11 модул(ей), порядок загрузки — _probe → court → day-window → holiday → hour-window → month-window → season-autumn → season-spring → season-summer → season-winter → week-window
+границы пакетов в порядке: 11 модул(ей), ядро без имён игры
+тексты в порядке: ядро 24 ключей, оболочка 126 ключей, модулей 11
+календарь в порядке: 11 модул(ей), годы 2026/2027/2028, окон на 2027 — 810 (season 5, feast 8, weekly 53, daily 366, monthly 13, hourly 365)
+EXIT_CODE=0 (4_check)
+
+================================================================
+COMMAND: pnpm build
+STARTED: 2026-11-13T19:28:14Z
+$ pnpm check && turbo run build
+$ node tools/gen-registry.mjs && tsx tools/check/registry.ts && tsx tools/check/boundaries.ts && tsx tools/check/i18n.ts && tsx tools/check/schedule.ts
+реестр: 11 модул(ей) — _probe (+вид), court, day-window, holiday, hour-window, month-window, season-autumn, season-spring, season-summer, season-winter, week-window
+реестр в порядке: 11 модул(ей), порядок загрузки — _probe → court → day-window → holiday → hour-window → month-window → season-autumn → season-spring → season-summer → season-winter → week-window
+границы пакетов в порядке: 11 модул(ей), ядро без имён игры
+тексты в порядке: ядро 24 ключей, оболочка 126 ключей, модулей 11
+календарь в порядке: 11 модул(ей), годы 2026/2027/2028, окон на 2027 — 810 (season 5, feast 8, weekly 53, daily 366, monthly 13, hourly 365)
+
+   • turbo 2.11.4
+   • Packages in scope: @tdl/client, @tdl/court3d, @tdl/host, @tdl/kernel, @tdl/module-court, @tdl/module-day-window, @tdl/module-holiday, @tdl/module-hour-window, @tdl/module-month-window, @tdl/module-probe, @tdl/module-season-autumn, @tdl/module-season-spring, @tdl/module-season-summer, @tdl/module-season-winter, @tdl/module-week-window, @tdl/modules, @tdl/protocol, @tdl/server, @tdl/tools
+   • Running build in 19 packages
+   • Remote caching disabled
+
+@tdl/court3d:build: cache miss, executing 34c290e520bca44e
+@tdl/client:build: cache miss, executing 39512e8e5242a664
+@tdl/server:build: cache miss, executing c6343feea61aeda5
+@tdl/server:build: $ esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:pg --external:@node-rs/argon2 --external:ws --external:bufferutil --external:utf-8-validate --external:vite --outfile=dist/index.mjs && cp -r ../../packages/host/drizzle dist/drizzle
+@tdl/court3d:build: $ vite build
+@tdl/client:build: $ vite build
+@tdl/server:build: 
+@tdl/server:build:   dist/index.mjs  1.2mb ⚠️
+@tdl/server:build: 
+@tdl/server:build: ⚡ Done in 155ms
+@tdl/court3d:build: vite v8.3.1 building client environment for production...
+@tdl/court3d:build: transforming...
+@tdl/client:build: vite v8.3.1 building client environment for production...
+@tdl/client:build: transforming...
+@tdl/court3d:build: ✓ 31 modules transformed.
+@tdl/court3d:build: rendering chunks...
+@tdl/client:build: ✓ 175 modules transformed.
+@tdl/court3d:build: computing gzip size...
+@tdl/court3d:build: dist/index.html                    1.05 kB │ gzip:   0.67 kB
+@tdl/court3d:build: dist/assets/index-B7mRBBO2.js  1,100.32 kB │ gzip: 303.79 kB
+@tdl/court3d:build: 
+@tdl/court3d:build: ✓ built in 780ms
+@tdl/court3d:build: [plugin builtin:vite-reporter] 
+@tdl/court3d:build: (!) Some chunks are larger than 500 kB after minification. Consider:
+@tdl/court3d:build: - Using dynamic import() to code-split the application
+@tdl/court3d:build: - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+@tdl/court3d:build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+@tdl/client:build: rendering chunks...
+@tdl/client:build: computing gzip size...
+@tdl/client:build: dist/index.html                     0.52 kB │ gzip:   0.35 kB
+@tdl/client:build: dist/assets/index-CQhOt_zS.css     29.39 kB │ gzip:   7.25 kB
+@tdl/client:build: dist/assets/index-CAwUE3KM.js   1,404.35 kB │ gzip: 381.27 kB │ map: 6,012.98 kB
+@tdl/client:build: 
+@tdl/client:build: [plugin @tailwindcss/vite:generate:build] [33m[SOURCEMAP_BROKEN] [0mSourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help: https://rolldown.rs/guide/troubleshooting#warning-sourcemap-is-likely-to-be-incorrect
+@tdl/client:build: 
+@tdl/client:build: [plugin builtin:vite-reporter] 
+@tdl/client:build: (!) Some chunks are larger than 500 kB after minification. Consider:
+@tdl/client:build: - Using dynamic import() to code-split the application
+@tdl/client:build: - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+@tdl/client:build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+@tdl/client:build: ✓ built in 1.00s
+
+ Tasks:    3 successful, 3 total
+Cached:    0 cached, 3 total
+  Time:    1.814s 
+
+EXIT_CODE=0 (5_build)
+
+================================================================
+COMMAND: pnpm test
+STARTED: 2026-11-13T19:28:18Z
+$ turbo run test --concurrency=1
+
+   • turbo 2.11.4
+   • Packages in scope: @tdl/client, @tdl/court3d, @tdl/host, @tdl/kernel, @tdl/module-court, @tdl/module-day-window, @tdl/module-holiday, @tdl/module-hour-window, @tdl/module-month-window, @tdl/module-probe, @tdl/module-season-autumn, @tdl/module-season-spring, @tdl/module-season-summer, @tdl/module-season-winter, @tdl/module-week-window, @tdl/modules, @tdl/protocol, @tdl/server, @tdl/tools
+   • Running test in 19 packages
+   • Remote caching disabled
+
+@tdl/court3d:test: cache miss, executing 450ae8d0817c6706
+@tdl/court3d:test: $ vitest run --passWithNoTests
+@tdl/court3d:test: 
+@tdl/court3d:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/apps/court3d[39m
+@tdl/court3d:test: 
+@tdl/court3d:test: No test files found, exiting with code 0
+@tdl/court3d:test: 
+@tdl/court3d:test: [2minclude: [22m[33m**/*.{test,spec}.?(c|m)[jt]s?(x)[39m
+@tdl/court3d:test: [2mexclude:  [22m[33m**/node_modules/**[2m, [22m**/.git/**[39m
+@tdl/court3d:test: 
+@tdl/kernel:test: cache miss, executing 73761ae11e627061
+@tdl/kernel:test: $ vitest run
+@tdl/kernel:test: 
+@tdl/kernel:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/packages/kernel[39m
+@tdl/kernel:test: 
+@tdl/kernel:test:  [32m✓[39m tests/schedule.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 587[2mms[22m[39m
+@tdl/kernel:test:  [32m✓[39m tests/switches.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+@tdl/kernel:test:  [32m✓[39m tests/kernel.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@tdl/kernel:test: 
+@tdl/kernel:test: [2m Test Files [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+@tdl/kernel:test: [2m      Tests [22m [1m[32m44 passed[39m[22m[90m (44)[39m
+@tdl/kernel:test: [2m   Start at [22m 19:28:19
+@tdl/kernel:test: [2m   Duration [22m 1.28s[2m (tests 69%, transform 22%, import 7%, worker 1%)[22m
+@tdl/kernel:test: 
+@tdl/protocol:test: cache miss, executing 7bc06c3ac6c457c2
+@tdl/protocol:test: $ vitest run --passWithNoTests
+@tdl/protocol:test: 
+@tdl/protocol:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/packages/protocol[39m
+@tdl/protocol:test: 
+@tdl/protocol:test: No test files found, exiting with code 0
+@tdl/protocol:test: 
+@tdl/protocol:test: [2minclude: [22m[33m**/*.{test,spec}.?(c|m)[jt]s?(x)[39m
+@tdl/protocol:test: [2mexclude:  [22m[33m**/node_modules/**[2m, [22m**/.git/**[39m
+@tdl/protocol:test: 
+@tdl/client:test: cache miss, executing 281b3205d4eaf438
+@tdl/client:test: $ vitest run --passWithNoTests
+@tdl/client:test: 
+@tdl/client:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/apps/client[39m
+@tdl/client:test: 
+@tdl/client:test: [90mstderr[2m | tests/shell.test.tsx
+@tdl/client:test: [22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+@tdl/client:test: 
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+@tdl/client:test:  [32m✓[39m tests/shell.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 1174[2mms[22m[39m
+@tdl/client:test:    [32m✓[39m вступление [2m(3)[22m
+@tdl/client:test:      [33m[2m✓[22m[39m восемь кадров, пропуск со второго, последний кадр ведёт к двору[33m 365[2mms[22m[39m
+@tdl/client:test: [90mstderr[2m | tests/citadelLevels.test.tsx
+@tdl/client:test: [22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+@tdl/client:test: 
+@tdl/client:test:  [32m✓[39m tests/citadelLevels.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 658[2mms[22m[39m
+@tdl/client:test:    [32m✓[39m TDL-ARCH-006 R2 Ossuary Cathedral-Fortress level & architecture invariants [2m(5)[22m
+@tdl/client:test:      [33m[2m✓[22m[39m строит детерминированные R2 PBR-текстуры и освобождает их без утечек в StrictMode[33m 572[2mms[22m[39m
+@tdl/client:test: [90mstderr[2m | tests/courtExtraction.test.tsx
+@tdl/client:test: [22m[39mTHREE.WARNING: Multiple instances of Three.js being imported.
+@tdl/client:test: 
+@tdl/client:test:  [32m✓[39m tests/courtExtraction.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+@tdl/client:test:  [32m✓[39m tests/courtGridMath.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+@tdl/client:test:  [32m✓[39m tests/courtInput.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@tdl/client:test: 
+@tdl/client:test: [2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+@tdl/client:test: [2m      Tests [22m [1m[32m39 passed[39m[22m[90m (39)[39m
+@tdl/client:test: [2m   Start at [22m 19:28:21
+@tdl/client:test: [2m   Duration [22m 6.76s[2m (environment 41%, tests 33%, import 14%, transform 12%)[22m
+@tdl/client:test: 
+@tdl/client:test: [2mEnvironment [22m [33mjsdom was created 5 times[39m[2m · 2.48s total, 41% of tracked time[22m
+@tdl/client:test: [2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+@tdl/client:test: [2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+@tdl/client:test: 
+@tdl/host:test: cache miss, executing 1344a975635cbfb3
+@tdl/host:test: $ vitest run --passWithNoTests
+@tdl/host:test: 
+@tdl/host:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/packages/host[39m
+@tdl/host:test: 
+@tdl/host:test: [tests] база tdl_test_host: postgres://tdl:***@127.0.0.1:55432/tdl_test_host
+@tdl/host:test:  [31m❯[39m tests/switches.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1343[2mms[22m[39m
+@tdl/host:test:    [31m❯[39m переключатели единиц мира [2m(12)[22m
+@tdl/host:test:      [32m✓[39m единицы сборки видны, состояния согласованы, счётчик един[32m 178[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m план окон посчитан заранее и покрывает горизонт[32m 74[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m точечный запрет гасит единицу, а срок снимает его сам[32m 158[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m команда единицы не проходит, пока единица закрыта[32m 86[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m срок возврата возвращает модуль сам: и в ответе, и в базе[32m 159[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m срок возврата возвращает модуль в рождённое состояние, а не просто во «включено»[32m 151[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m срок возврата возвращает и единицу: окно снова решает само[32m 187[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m простой мира: окна догоняются, а повседневное считается пропущенным[32m 107[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m журнал расписания пишет старт и стоп окон сами[32m 61[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m счётчики расписания видны оператору[32m 56[2mms[22m[39m
+@tdl/host:test: [31m     [31m×[31m примерка зимы: пора включается вне календаря, осень уступает, вид идёт следом[39m[32m 90[2mms[22m[39m
+@tdl/host:test:      [32m✓[39m чужая единица не переключается: отказ вместо тишины[32m 33[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/gates.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 701[2mms[22m[39m
+@tdl/host:test: [90mstdout[2m | tests/stress.test.ts[2m > [22m[2mнапор команд[2m > [22m[2mдвести команд от двадцати дворов применяются ровно по разу
+@tdl/host:test: [22m[39m[напор] 200 команд за 1018 мс, p50 656 мс, p95 986 мс, проходов 1
+@tdl/host:test: 
+@tdl/host:test: [90mstdout[2m | tests/stress.test.ts[2m > [22m[2mпоток сроков[2m > [22m[2mшестьсот наступивших сроков не топят очередь команд и идут по разу
+@tdl/host:test: [22m[39m[сроки] 600 сроков: сроки 50 мс, шаг 64 мс, проходов 31
+@tdl/host:test: 
+@tdl/host:test:  [32m✓[39m tests/stress.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 3758[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m напор команд [2m(5)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m двести команд от двадцати дворов применяются ровно по разу[33m 1112[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m поток сроков [2m(1)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m шестьсот наступивших сроков не топят очередь команд и идут по разу[33m 1708[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/foundation.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 1449[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/quarantine.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1442[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m карантин и лечение единиц [2m(7)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m сбой после третьего лечения требует оператора и сам не снимается[33m 428[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/visibility.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1170[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m видимость изменения [2m(6)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m отчёты не хранятся бесконечно: остаётся сотня последних на игрока[33m 563[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/deadlines.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1162[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m порядок и пачка [2m(4)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m сорок сроков проводятся каждый ровно один раз[33m 449[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/guards.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 986[2mms[22m[39m
+@tdl/host:test:  [31m❯[39m tests/clock.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 962[2mms[22m[39m
+@tdl/host:test:    [31m❯[39m часы мира и календарь [2m(2)[22m
+@tdl/host:test:      [32m✓[39m плохой пульс не откатывает и не замораживает ход мира[32m 193[2mms[22m[39m
+@tdl/host:test: [31m     [31m×[31m мир стоял 40 суток: события идут по календарю, сроки игроков не сгорают[39m[32m 115[2mms[22m[39m
+@tdl/host:test:    [32m✓[39m сон писателя [2m(1)[22m
+@tdl/host:test:      [33m[2m✓[22m[39m в тишине писатель не крутится, а просыпается на срок[33m 651[2mms[22m[39m
+@tdl/host:test:  [32m✓[39m tests/writer.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 185[2mms[22m[39m
+@tdl/host:test: 
+@tdl/host:test: [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+@tdl/host:test: 
+@tdl/host:test: [41m[1m FAIL [22m[49m tests/clock.test.ts[2m > [22mчасы мира и календарь[2m > [22mмир стоял 40 суток: события идут по календарю, сроки игроков не сгорают
+@tdl/host:test: [31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+@tdl/host:test: 
+@tdl/host:test: [32m- Expected[39m
+@tdl/host:test: [31m+ Received[39m
+@tdl/host:test: 
+@tdl/host:test: [32m- true[39m
+@tdl/host:test: [31m+ false[39m
+@tdl/host:test: 
+@tdl/host:test: [36m [2m❯[22m tests/clock.test.ts:[2m71:82[22m[39m
+@tdl/host:test:     [90m 69|[39m
+@tdl/host:test:     [90m 70|[39m       // Догон: окна, начавшиеся и кончившиеся за простой, видны в жур…
+@tdl/host:test:     [90m 71|[39m       expect(world.records.some((record) => record.event === "schedule…
+@tdl/host:test:     [90m   |[39m                                                                                  [31m^[39m
+@tdl/host:test:     [90m 72|[39m       expect(world.records.some((record) => record.event === "schedule…
+@tdl/host:test:     [90m 73|[39m       const stats = world.service.stats();
+@tdl/host:test: 
+@tdl/host:test: [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+@tdl/host:test: 
+@tdl/host:test: [41m[1m FAIL [22m[49m tests/switches.test.ts[2m > [22mпереключатели единиц мира[2m > [22mпримерка зимы: пора включается вне календаря, осень уступает, вид идёт следом
+@tdl/host:test: [31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+@tdl/host:test: 
+@tdl/host:test: [32m- Expected[39m
+@tdl/host:test: [31m+ Received[39m
+@tdl/host:test: 
+@tdl/host:test: [32m- false[39m
+@tdl/host:test: [31m+ true[39m
+@tdl/host:test: 
+@tdl/host:test: [36m [2m❯[22m tests/switches.test.ts:[2m303:38[22m[39m
+@tdl/host:test:     [90m301|[39m       );
+@tdl/host:test:     [90m302|[39m       expect(daily.has("wall-day")).toBe(true);
+@tdl/host:test:     [90m303|[39m       expect(daily.has("build-day")).toBe(false);
+@tdl/host:test:     [90m   |[39m                                      [31m^[39m
+@tdl/host:test:     [90m304|[39m       // В журнал о примерке сказано один раз, а не на каждом проходе.
+@tdl/host:test:     [90m305|[39m       expect(world.records.filter((record) => record.event === "schedu…
+@tdl/host:test: 
+@tdl/host:test: [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+@tdl/host:test: 
+@tdl/host:test: 
+@tdl/host:test: [2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (10)[39m
+@tdl/host:test: [2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m88 passed[39m[22m[90m (90)[39m
+@tdl/host:test: [2m   Start at [22m 19:28:28
+@tdl/host:test: [2m   Duration [22m 21.16s[2m (tests 69%, import 27%, transform 3%)[22m
+@tdl/host:test: 
+@tdl/server:test: cache miss, executing fb2ad8a42b0891f1
+@tdl/server:test: $ vitest run --passWithNoTests
+@tdl/server:test: 
+@tdl/server:test: [1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/apps/server[39m
+@tdl/server:test: 
+@tdl/server:test: [tests] база tdl_test_server: postgres://tdl:***@127.0.0.1:55432/tdl_test_server
+@tdl/server:test:  [32m✓[39m tests/socket.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 2916[2mms[22m[39m
+@tdl/server:test:    [32m✓[39m напор на сокет [2m(5)[22m
+@tdl/server:test:      [33m[2m✓[22m[39m соединения разных лордов не путают патчи[33m 808[2mms[22m[39m
+@tdl/server:test:      [33m[2m✓[22m[39m слишком большое сообщение не роняет мир[33m 468[2mms[22m[39m
+@tdl/server:test:      [33m[2m✓[22m[39m десять команд с пяти соединений проходят без потерь[33m 499[2mms[22m[39m
+@tdl/server:test:  [32m✓[39m tests/http.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 277[2mms[22m[39m
+@tdl/server:test:  [32m✓[39m tests/resilience.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1506[2mms[22m[39m
+@tdl/server:test:    [32m✓[39m второй процесс на том же мире [2m(1)[22m
+@tdl/server:test:      [33m[2m✓[22m[39m первый забирает право, второй продолжает, первый замолкает[33m 422[2mms[22m[39m
+@tdl/server:test:    [32m✓[39m перезапуск под нагрузкой [2m(2)[22m
+@tdl/server:test:      [33m[2m✓[22m[39m сколько команд применено, столько и ответов: ни потерь, ни двойной выдачи[33m 345[2mms[22m[39m
+@tdl/server:test:  [32m✓[39m tests/lifecycle.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 171[2mms[22m[39m
+@tdl/server:test: 
+@tdl/server:test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+@tdl/server:test: [2m      Tests [22m [1m[32m34 passed[39m[22m[90m (34)[39m
+@tdl/server:test: [2m   Start at [22m 19:28:50
+@tdl/server:test: [2m   Duration [22m 8.08s[2m (tests 67%, import 27%, transform 7%)[22m
+@tdl/server:test: 
+
+ Tasks:    6 successful, 6 total
+Cached:    0 cached, 6 total
+  Time:    40.327s 
+
+EXIT_CODE=0 (6_test)
+
+$ vitest run --passWithNoTests
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.1 [39m[90m/tmp/tdl-arch006-r2-post/packages/host[39m
+
+[tests] база tdl_test_host: postgres://tdl:***@127.0.0.1:55432/tdl_test_host
+ [31m❯[39m tests/switches.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1308[2mms[22m[39m
+   [31m❯[39m переключатели единиц мира [2m(12)[22m
+     [32m✓[39m единицы сборки видны, состояния согласованы, счётчик един[32m 188[2mms[22m[39m
+     [32m✓[39m план окон посчитан заранее и покрывает горизонт[32m 88[2mms[22m[39m
+     [32m✓[39m точечный запрет гасит единицу, а срок снимает его сам[32m 153[2mms[22m[39m
+     [32m✓[39m команда единицы не проходит, пока единица закрыта[32m 85[2mms[22m[39m
+     [32m✓[39m срок возврата возвращает модуль сам: и в ответе, и в базе[32m 155[2mms[22m[39m
+     [32m✓[39m срок возврата возвращает модуль в рождённое состояние, а не просто во «включено»[32m 155[2mms[22m[39m
+     [32m✓[39m срок возврата возвращает и единицу: окно снова решает само[32m 147[2mms[22m[39m
+     [32m✓[39m простой мира: окна догоняются, а повседневное считается пропущенным[32m 92[2mms[22m[39m
+     [32m✓[39m журнал расписания пишет старт и стоп окон сами[32m 57[2mms[22m[39m
+     [32m✓[39m счётчики расписания видны оператору[32m 52[2mms[22m[39m
+[31m     [31m×[31m примерка зимы: пора включается вне календаря, осень уступает, вид идёт следом[39m[32m 89[2mms[22m[39m
+     [32m✓[39m чужая единица не переключается: отказ вместо тишины[32m 40[2mms[22m[39m
+ [31m❯[39m tests/clock.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 885[2mms[22m[39m
+   [31m❯[39m часы мира и календарь [2m(2)[22m
+     [32m✓[39m плохой пульс не откатывает и не замораживает ход мира[32m 144[2mms[22m[39m
+[31m     [31m×[31m мир стоял 40 суток: события идут по календарю, сроки игроков не сгорают[39m[32m 103[2mms[22m[39m
+   [32m✓[39m сон писателя [2m(1)[22m
+     [33m[2m✓[22m[39m в тишине писатель не крутится, а просыпается на срок[33m 636[2mms[22m[39m
+[90mstdout[2m | tests/stress.test.ts[2m > [22m[2mнапор команд[2m > [22m[2mдвести команд от двадцати дворов применяются ровно по разу
+[22m[39m[напор] 200 команд за 819 мс, p50 421 мс, p95 783 мс, проходов 1
+
+[90mstdout[2m | tests/stress.test.ts[2m > [22m[2mпоток сроков[2m > [22m[2mшестьсот наступивших сроков не топят очередь команд и идут по разу
+[22m[39m[сроки] 600 сроков: сроки 53 мс, шаг 67 мс, проходов 30
+
+ [32m✓[39m tests/stress.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 3430[2mms[22m[39m
+   [32m✓[39m напор команд [2m(5)[22m
+     [33m[2m✓[22m[39m двести команд от двадцати дворов применяются ровно по разу[33m 903[2mms[22m[39m
+   [32m✓[39m поток сроков [2m(1)[22m
+     [33m[2m✓[22m[39m шестьсот наступивших сроков не топят очередь команд и идут по разу[33m 1626[2mms[22m[39m
+ [32m✓[39m tests/foundation.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 1552[2mms[22m[39m
+ [32m✓[39m tests/quarantine.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1402[2mms[22m[39m
+   [32m✓[39m карантин и лечение единиц [2m(7)[22m
+     [33m[2m✓[22m[39m сбой после третьего лечения требует оператора и сам не снимается[33m 461[2mms[22m[39m
+ [32m✓[39m tests/visibility.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1177[2mms[22m[39m
+   [32m✓[39m видимость изменения [2m(6)[22m
+     [33m[2m✓[22m[39m отчёты не хранятся бесконечно: остаётся сотня последних на игрока[33m 613[2mms[22m[39m
+ [32m✓[39m tests/deadlines.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1070[2mms[22m[39m
+   [32m✓[39m порядок и пачка [2m(4)[22m
+     [33m[2m✓[22m[39m сорок сроков проводятся каждый ровно один раз[33m 429[2mms[22m[39m
+ [32m✓[39m tests/guards.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 839[2mms[22m[39m
+ [32m✓[39m tests/gates.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 611[2mms[22m[39m
+ [32m✓[39m tests/writer.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 184[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/clock.test.ts[2m > [22mчасы мира и календарь[2m > [22mмир стоял 40 суток: события идут по календарю, сроки игроков не сгорают
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/clock.test.ts:[2m71:82[22m[39m
+    [90m 69|[39m
+    [90m 70|[39m       // Догон: окна, начавшиеся и кончившиеся за простой, видны в жур…
+    [90m 71|[39m       expect(world.records.some((record) => record.event === "schedule…
+    [90m   |[39m                                                                                  [31m^[39m
+    [90m 72|[39m       expect(world.records.some((record) => record.event === "schedule…
+    [90m 73|[39m       const stats = world.service.stats();
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/switches.test.ts[2m > [22mпереключатели единиц мира[2m > [22mпримерка зимы: пора включается вне календаря, осень уступает, вид идёт следом
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/switches.test.ts:[2m303:38[22m[39m
+    [90m301|[39m       );
+    [90m302|[39m       expect(daily.has("wall-day")).toBe(true);
+    [90m303|[39m       expect(daily.has("build-day")).toBe(false);
+    [90m   |[39m                                      [31m^[39m
+    [90m304|[39m       // В журнал о примерке сказано один раз, а не на каждом проходе.
+    [90m305|[39m       expect(world.records.filter((record) => record.event === "schedu…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m88 passed[39m[22m[90m (90)[39m
+[2m   Start at [22m 19:29:10
+[2m   Duration [22m 19.55s[2m (tests 69%, import 28%, transform 3%)[22m
+
+HOST_DIRECT_EXIT=0
