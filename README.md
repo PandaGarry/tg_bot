@@ -1,30 +1,19 @@
-# The Dead Lords / Мёртвые лорды
+# TDL — MMORPG Prototype
 
-Браузерная стратегия (жанр RoK), зомби-лорд замка. Коротко: **TDL**.
+A clean-start workspace for the new persistent online fantasy world.
 
-Документация: [docs/README.md](docs/README.md) — карта проекта. Продуктовая цель: [docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md](docs/TDL_PRODUCT_VISION_AND_ACCEPTANCE.md). Оперативный план: [PROJECT_MASTER.md](PROJECT_MASTER.md). Совместная работа Cloud/Arena/ChatGPT: [docs/AI_COLLABORATION/README.md](docs/AI_COLLABORATION/README.md).
-Состояние: [docs/STATUS.md](docs/STATUS.md). Решения: [docs/DECISIONS.md](docs/DECISIONS.md).
-Исторические документы и их актуальность указаны в [docs/README.md](docs/README.md).
+This branch is intentionally separate from the legacy Telegram bot application.
+The existing repository history and all other branches are preserved.
 
-## Разработка
+## Current objective
 
-```bash
-cp .env.example .env      # адрес базы, порт, секрет сессий
-pnpm dev:db               # местный Postgres на 55432 (первый раз — инициализация)
-pnpm dev                  # мир: API, сокет и клиент через Vite на PORT из .env
-pnpm db:reset             # снести схему базы разработки и поднять мир заново
-```
+Build a small, playable visual prototype that demonstrates:
+- a coherent fantasy environment and terrain;
+- a settlement with readable buildings and props;
+- player movement and camera controls;
+- a minimal HUD and object interaction;
+- an art direction that can scale into the intended MMORPG.
 
-Проверки: `pnpm typecheck`, `pnpm test`, `pnpm check`, `pnpm build`.
-`pnpm check` вместе с прочим считает календарь сборки за три года: полосы, пробелы, покрытие пор года.
-Печать расписания: `pnpm schedule --days 90 [--from 2026-12-01] [--tz 180]` — окна и состояния единиц по часам мира.
-Снимки интерфейса: `pnpm shots [--only style-08]`, страница макета — `pnpm shots --page hud/main-screen.html --size 1376x768 --scale 1.5 --file docs/game/ui/hud/main-screen.jpg` (состояния: `?zoom=near`, `?mode=build`, `?annotate=1`, `?quests=1`), нарезка иконок и спрайтов зданий из AI-листа по цветовому ключу — `pnpm icons hud/icons/sheet-a.png --prefix a` (для зданий `--merge-gap -1`), прототип двора-конструктора — `docs/game/ui/court/index.html` (снимки `pnpm shots --page "court/index.html?state=built"`), контактный лист — `pnpm shots --sheet concepts/<каталог>` — Chromium из npm-пакета снимает макеты и страницы концептов
-из `docs/game/ui/` в `docs/game/ui/shots/` (для просмотра файлами, без живого предпросмотра).
-Тесты идут на настоящем Postgres: каждый пакет сносит схему своей базы
-`tdl_test_<пакет>` и не трогает рабочую. Адрес можно задать явно —
-`TDL_TEST_DB_URL` (тогда имя базы обязано содержать `test`).
+## Status
 
-Файлы `.env` и `.devdb/` в репозиторий не попадают: после переноса окружения
-их нужно создать заново (`cp .env.example .env`, `pnpm dev:db`).
-
-Состояние работы и что смотреть в предпросмотре — [STATUS.md](STATUS.md).
+Prototype foundation — implementation not yet started.
