@@ -75,6 +75,33 @@ A pack that fails visual compatibility is rejected even if its license is permis
 
 This pack is not automatically approved: the cost, usage restrictions and reported defects must be weighed against the benefit of a coherent hand-drawn asset base.
 
+### High-volume isometric pack: SmallScaleInt — 2D Fantasy Tileset
+
+- Source: https://smallscaleint.itch.io/2d-fantasy-tileset
+- Advertised contents: 1,800+ environment tiles, animated effects, seven characters with 8-direction movement and 24 animations each; 228 MB archive.
+- License: seller's Standard Commercial License permits unlimited commercial/personal game projects; raw assets may not be redistributed or sublicensed.
+- Seller states no generative AI was used.
+- Price observed during research: $19.99 sale price (regular $39.99); price may change.
+- Important visual caveat: the listing explicitly tags the pack as pixel art / retro. It is a strong completeness and animation candidate, but it may not meet the preferred non-pixel HD look. Do not buy it as the primary art direction without inspecting the full preview and testing it against our target style.
+- Status: research candidate, not purchased or integrated.
+
+### Painterly style study: Leckie Pixel Studio — Painted Village + Painted Forest
+
+- Village: https://leckie1989.itch.io/painted-fantasy-hd-village
+- Forest: https://leckie1989.itch.io/painted-fantasy-hd-forest
+- Seller describes soft-edged painterly artwork, seamless ground transitions, transparent PNG props and Godot 4 TileSet resources.
+- Each pack is listed at $8.99 or more; unlimited personal/commercial project use is permitted, while raw asset redistribution is prohibited.
+- Technical caveat: tiles are 64×64 and the village pack's props are static. These may be useful as a style study, but resolution/detail and animation coverage must be checked before treating them as a production foundation.
+- Status: research candidates, not purchased or integrated.
+
+### Character animation candidate: Franuka — Fantasy RPG Heroes Pack
+
+- Source: https://www.artstation.com/marketplace/p/bpa8r/fantasy-rpg-heroes-pack
+- Advertised contents: four 4-direction animated characters and 40+ animations, including idle, walk, hit, die, melee, ranged and dash.
+- License: Extended Commercial License; seller advertises unlimited commercial projects.
+- Price observed: USD $8.50; verify current terms at purchase.
+- Status: character-only candidate. Its style and sprite scale must match the selected environment before integration.
+
 ## Acceptance gates
 
 A benchmark is not accepted until all gates pass:

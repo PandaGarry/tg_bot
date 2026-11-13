@@ -16,7 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 26
+          cache: npm
       - name: Install browser test tools
         run: |
           npm init -y
@@ -59,6 +60,7 @@ jobs:
             await page.waitForTimeout(300);
             await page.screenshot({path:'artifacts/quiet-valley-mobile.png', fullPage:true});
             if (errors.length) throw new Error('Browser errors: '+errors.join(' | '));
+            console.log('Node:', process.version);
             console.log('Desktop canvas:', JSON.stringify(desktop));
             console.log('Browser runtime: PASS');
             await browser.close();
