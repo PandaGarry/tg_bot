@@ -80,3 +80,31 @@ Verified clean against `1fd88f7569428fd138daec775184228f36f8b0f2` (`diff -rq` ou
   - Unedited screenshots (`01`–`05`, `06`, `06b`, `06c`, `07`–`10`) inspected and confirmed across L1–L5 progression, portal depth/hardware/portcullis, masonry/buttresses/towers/reliquary, desktop/mobile touch interactions, and HUD clearance.
   - **Device disclaimer:** Verified under HeadlessChrome + ANGLE Vulkan SwiftShader emulation; no physical smartphone or hardware GPU is present in this sandbox.
 
+## 7. R2 Architectural Overhaul — Ossuary Cathedral-Fortress (`evidence/TDL-ARCH-006-r2/`)
+
+- **Objective & Architectural Pivot:** Reimagined the Citadel from a symmetrical 4-turret keep into an asymmetric dark-medieval **Ossuary Cathedral-Fortress** inspired by cathedral gothic ruins and dark citadel massing:
+  - **Three-part asymmetrical silhouette:** (1) broad steep-roofed central **Nave Hall**, (2) projecting **Monumental Gatehouse** with gabled wimperg, recessed studded oak portals & flanking braziers, and (3) a soaring **Asymmetric Left Rear Belfry/Ossuary Tower** counterweighted by a **Right Side Chapel / Lean-to Transept** and **Polygonal Rear Apse**.
+  - **Broken Ossuary Crown:** Iconic curved bone-and-iron rib crown (`crownRib` & `brokenCrownEmblem`) forming an open Gothic ossuary pavilion atop the tower at L4–L5 (housing the animated necrotic crystal and crowned spire standard), plus carved Broken Ossuary Crown relief crest in the front gatehouse wimperg across L1–L5.
+  - **Dual Cascading Fallback:** Archived verified `a5fe323` v2 code under `apps/client/src/court/buildings/citadel/v2/` (`CitadelV2Building`, `citadelV2Levels`, `citadelV2Geometry`, `citadelV2Materials`), with `CitadelRenderer.tsx` cascading `R2 CitadelBuilding -> stable CitadelV2Building -> CitadelLegacy`.
+
+- **R2 Code Scope (verified clean vs `a5fe323` — zero edits to server, `gridMath.ts`, `courtInput.ts`, `CourtEnvironment.tsx`, `CourtCamera.tsx`, `CourtScene.tsx`, `package.json`, or `pnpm-lock.yaml`):**
+  1. `apps/client/src/court/buildings/citadel/citadelLevels.ts` — 5 distinct asymmetrical stages (`fortified-chapel-manor` → `watchtower-nave` → `apse-sanctuary-keep` → `charnel-cathedral` → `sovereign-ossuary-citadel`) strictly bounded inside the `[3, 3]` footprint (`3.30m × 3.30m`, `stepReachZ <= 1.62m < 1.65m`, max height `6.12m <= 6.20m`).
+  2. `apps/client/src/court/buildings/citadel/citadelGeometry.ts` — 13 carved procedural geometries (`buttress`, `pointedArch`, `gableRoof`, `leanToRoof`, `flyingButtress`, `crownRib`, `brokenCrownEmblem`, `pinnacleSpire`, `heraldicShield`, `trefoilTracery`, `wimperg`, `crystal`, `crystalCore`) with StrictMode-safe disposal.
+  3. `apps/client/src/court/materials/citadelMaterials.ts` — 17 deterministic `256×256` procedural PBR `DataTexture` maps (`wall` ashlar albedo/bump/roughness, `dressed` stone albedo/bump/roughness, `timber` charred oak albedo/bump, `slate` shingle albedo/bump, `iron` forged metal albedo/bump/roughness, `bone` aged ossuary albedo/bump, `banner` heraldic cloth + swallowtail `alphaMap`) calibrated with large readable courses and grime gradients at court distance.
+  4. `apps/client/src/court/buildings/citadel/CitadelBuilding.tsx` — monolithic Three.js/R3F implementation with:
+     - Open recessed Gothic gatehouse (`portalVoid` behind `doorZ - 0.08`, recessed oak door at `0.72 * portalVoidHeight` with 3 iron strap bands & bronze rings, open upper Gothic arch revealing pierced `trefoilTracery` & raised toothed iron portcullis, crocketed wimperg, Broken Ossuary Crown emblem, and restrained warm amber braziers).
+     - Stepped nave buttresses, tall glowing hearth lancet windows, chimney with ascending ash smoke, right lean-to side chapel (L4–L5), polygonal rear apse (L3–L5), 2 openwork flying buttresses bridging nave to tower (L5), left corner belfry tower with belt cornices & buttresses, and `BrokenOssuaryCrownTop` at L4–L5.
+  5. `apps/client/src/court/buildings/citadel/CitadelRenderer.tsx` & `v2/*` — dual-fallback boundary (`citadel` | `citadel-v2` | `legacy`).
+  6. `apps/client/tests/citadelLevels.test.tsx` — expanded 5-test Vitest suite validating asymmetrical progression invariants, explicit `[3, 3]` bounds for every sub-mass (`nave`, `apse`, `sideChapel`, `tower`, `gatehouse`, `steps`), 17 textures + 13 geometries under `<StrictMode>`, and `R2 -> v2 -> Legacy` fallback behavior.
+
+- **Two-Pass Craft & Verification (`evidence/TDL-ARCH-006-r2/`):**
+  - **Pass A (`pass-a/`):** Blockout captures (`pass-a-lv1.png`..`pass-a-lv5.png`, `pass-a-contact-sheet.png`) confirming three-part silhouette & proportion growth prior to surface ornament.
+  - **Pass B (`pass-b/`):** Final textured & lit captures (`pass-b-lv1.png`..`pass-b-lv5.png`, `pass-b-contact-sheet.png`, `pass-b-lv5-front-3q.png`, `pass-b-lv5-portal-closeup.png`, `pass-b-lv5-transept-side.png`, `pass-b-lv5-rear-side.png`, `pass-b-lv5-mobile-390x844.png`, `pass-b-before-lighting-lv5.png`, `pass-b-lighting-before-after.png`, `v2-vs-r2-comparison.png`, `v2-vs-r2-lv5-direct.png`).
+  - **Automated checks & smoke (`smoke-report.json`, `health.json`):**
+    - `pnpm --filter @tdl/client test`: `39/39` passed (`5` files, `citadelLevels` `5/5`).
+    - `pnpm -r --filter '!@tdl/host' test`: all non-host workspace tests passed (`kernel` `44/44`, `client` `39/39`, `server` `34/34`, `court3d` & `protocol` `0` tests).
+    - `pnpm --filter @tdl/host test`: `88/90 passed`, `2 failed` (`tests/clock.test.ts:71`, `tests/switches.test.ts:303` — pre-existing calendar-date failures in unmodified `@tdl/host`).
+    - `pnpm typecheck` (`18/18`), `pnpm check`, and `pnpm build` (`3/3`): all passed (`exit_code=0`).
+    - Production runtime smoke against `apps/server/dist/index.mjs` + PostgreSQL `18.4` (`HeadlessChrome` + SwiftShader): `/api/health` (`ok: true`, `ready: true`), `desktopCourtLoad` (`Ур. 5`), `rightHoldNoPickup`, `leftLongPressPickup`, `navigation` (`Court → Map → Court`), and responsive layout checks (`1376×768`, `390×844`, `320×690`, zero horizontal overflow, zero HUD overlap) all passed with `0` console errors, `0` page errors, and `0` failed requests.
+
+

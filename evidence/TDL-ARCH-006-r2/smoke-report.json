@@ -1,0 +1,115 @@
+{
+  "phase": "TDL-ARCH-006-R2-Ossuary-Cathedral-Fortress",
+  "baseSha": "a5fe323859455082b66eb61bc090b0e3796d3fc6",
+  "origin": "http://127.0.0.1:3000",
+  "testedAt": "2026-11-13T19:14:32.477Z",
+  "steps": {
+    "desktopCourtLoad": {
+      "ok": true,
+      "canvasPresent": true,
+      "levelText": "Ур. 5"
+    },
+    "rightHoldNoPickup": {
+      "ok": true,
+      "triggeredPickup": false
+    },
+    "leftLongPressPickup": {
+      "ok": true
+    },
+    "navigation": {
+      "ok": true,
+      "onMap": true,
+      "backOnCourt": true
+    },
+    "noHorizontalOverflow": {
+      "ok": true,
+      "desktop": false,
+      "mobile390": false,
+      "mobile320": false
+    },
+    "noLayoutOverlap": {
+      "ok": true
+    }
+  },
+  "desktopLayout": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "lord": {
+      "x": 292,
+      "y": 10,
+      "w": 186,
+      "h": 65,
+      "right": 478,
+      "bottom": 75
+    },
+    "res": {
+      "x": 937,
+      "y": 10,
+      "w": 147,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "overlapLordRes": false
+  },
+  "mobileLayout390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "lord": {
+      "x": 8,
+      "y": 6,
+      "w": 173,
+      "h": 63,
+      "right": 181,
+      "bottom": 69
+    },
+    "res": {
+      "x": 253,
+      "y": 6,
+      "w": 129,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "overlapLordRes": false
+  },
+  "mobileLayout320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "lord": {
+      "x": 8,
+      "y": 6,
+      "w": 165,
+      "h": 62,
+      "right": 173,
+      "bottom": 68
+    },
+    "res": {
+      "x": 199,
+      "y": 6,
+      "w": 113,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "overlapLordRes": false
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

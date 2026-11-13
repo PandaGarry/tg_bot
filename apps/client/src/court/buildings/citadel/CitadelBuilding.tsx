@@ -1,17 +1,20 @@
 /**
- * Архитектурный компонент Цитадели уровней 1..5 (TDL-ARCH-006 v2).
+ * Pass B — полная архитектурная и материальная проработка Цитадели TDL-ARCH-006 R2
+ * (Ossuary Cathedral-Fortress, уровни 1..5).
  *
- * Пять стадий развития ЕДИНОГО архитектурного замысла (осевой готический
- * оплот-некрополь):
- * - массивные многоступенчатые готические порталы с глубокой резьбой,
- *   вимпергами, краббами, трилистником и перспективными архивольтами;
- * - сложная каменная кладка, угловая 3D-рустовка, утопленные стрельчатые
- *   аркады, контрфорсы с пинаклями, нервюры, рёбра шатров и ажурные аркбутаны;
- * - выразительный центральный некротический реликварий с нервюрной сенью,
- *   многослойным кристаллом и вращающимися рунными орбитами;
- * - геральдические щиты, рваные боевые штандарты, кованая фурнитура,
- *   резные рогатые черепа и костяные оссуарные элементы;
- * - богатые выветренные материалы, сколы, трещины и следы копоти.
+ * Архитектурный замысел (трёхчастный асимметричный собор-оплот):
+ * 1. Primary mass — широкий соборный Неф с ритмом глубоких проёмов и контрфорсов,
+ *    гранёная Апсида (L3–L5) и поперечное крыло-Трансепт (L4–L5);
+ * 2. Secondary mass — выступающий монументальный Гейтхаус со ступенчатыми пилонами,
+ *    многослойной аркой-пустотой, дубовыми окованными вратами и кованой герсой;
+ * 3. Dominant vertical accent — вынесенная на лево-тыльное плечо гранёная Башня-Реликварий,
+ *    соединённая с Нефом аркбутанами и увенчанная скульптурной Broken Ossuary Crown.
+ *
+ * Символ фракции Broken Ossuary Crown последовательно повторяется в 4 масштабах:
+ * 1) макро-корона на башне-реликварии (L4–L5);
+ * 2) каменный/костяно-железный горельеф над главными вратами (L1–L5);
+ * 3) готический щит ордена и боевые штандарты с рваной кромкой;
+ * 4) переплёт стрельчатых окон-ланцетов.
  */
 
 import { useFrame } from "@react-three/fiber";
@@ -30,56 +33,79 @@ import { footprintCenterToWorld, type CourtGridLite } from "../../scene/gridMath
 import { useCitadelGeometrySet, type CitadelGeometrySet } from "./citadelGeometry.js";
 import { getCitadelVisualSpec, type CitadelLevelVisualSpec } from "./citadelLevels.js";
 
-/** Объёмный готический геральдический щит ордена. */
-function HeraldicShield({
+/** Скульптурный знак Broken Ossuary Crown (для портала и фронтонов). */
+function BrokenCrownEmblem({
   position,
   rotationY = 0,
   scale = 1,
-  gilded = false,
+  withNiche = true,
   geoms,
   tex,
 }: {
   position: readonly [number, number, number];
   rotationY?: number;
   scale?: number;
-  gilded?: boolean;
+  withNiche?: boolean;
   geoms: CitadelGeometrySet;
   tex: CitadelTextureSet;
 }) {
   return (
     <group position={[position[0], position[1], position[2]]} rotation-y={rotationY} scale={scale}>
-      {/* кованая/бронзовая подложка-обод */}
-      <mesh geometry={geoms.heraldicShield} scale={[0.26, 0.28, 0.036]} castShadow>
+      {withNiche ? (
+        <>
+          {/* Каменная резная рамка ниши */}
+          <mesh position={[0, 0.12, -0.025]} castShadow>
+            <boxGeometry args={[1.18, 0.96, 0.06]} />
+            <meshStandardMaterial
+              map={tex.dressedMap}
+              bumpMap={tex.dressedBump}
+              bumpScale={0.024}
+              roughnessMap={tex.dressedRoughness}
+              color="#d8d2c6"
+              roughness={0.86}
+            />
+          </mesh>
+          {/* Тёмная сердцевина-разлом за короной */}
+          <mesh position={[0, 0.12, 0.004]}>
+            <boxGeometry args={[0.98, 0.78, 0.04]} />
+            <meshStandardMaterial color={CITADEL_PALETTE.portalVoid} roughness={0.95} />
+          </mesh>
+        </>
+      ) : null}
+      {/* Левое и правое костяные/светло-каменные восходящие рёбра */}
+      <mesh geometry={geoms.brokenCrownEmblem} position={[0, 0.02, 0.036]} castShadow>
+        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.018} roughness={0.74} />
+      </mesh>
+      <mesh geometry={geoms.brokenCrownEmblem} position={[0, 0.02, 0.036]} scale={[-1, 1, 1]} castShadow>
+        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.018} roughness={0.74} />
+      </mesh>
+      {/* Третье центральное верхнее ребро в глубине разлома */}
+      <mesh position={[0, 0.24, 0.022]} castShadow>
+        <coneGeometry args={[0.10, 0.44, 4]} />
+        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.018} roughness={0.74} />
+      </mesh>
+      {/* Единая вертикальная кованая железная ость с бронзовым запорным узлом */}
+      <mesh position={[0, 0.13, 0.072]} castShadow>
+        <boxGeometry args={[0.068, 0.74, 0.048]} />
         <meshStandardMaterial
-          map={gilded ? undefined : tex.ironMap}
-          color={gilded ? CITADEL_PALETTE.agedBronze : "#3b3e45"}
-          roughness={0.44}
+          map={tex.ironMap}
+          bumpMap={tex.ironBump}
+          bumpScale={0.014}
+          roughnessMap={tex.ironRoughness}
+          roughness={0.38}
           metalness={0.78}
         />
       </mesh>
-      {/* тёмно-багровое эмалевое поле */}
-      <mesh geometry={geoms.heraldicShield} position-z={0.012} scale={[0.21, 0.23, 0.03]}>
-        <meshStandardMaterial color={CITADEL_PALETTE.bannerCloth} roughness={0.68} metalness={0.14} />
-      </mesh>
-      {/* рельефный геральдический крест и центральный умбон */}
-      <mesh position={[0, 0.01, 0.03]}>
-        <boxGeometry args={[0.028, 0.16, 0.016]} />
-        <meshStandardMaterial color={CITADEL_PALETTE.bannerGold} roughness={0.4} metalness={0.76} />
-      </mesh>
-      <mesh position={[0, 0.03, 0.03]}>
-        <boxGeometry args={[0.12, 0.026, 0.016]} />
-        <meshStandardMaterial color={CITADEL_PALETTE.bannerGold} roughness={0.4} metalness={0.76} />
-      </mesh>
-      <mesh position={[0, 0.03, 0.038]}>
-        <octahedronGeometry args={[0.026, 0]} />
-        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.01} roughness={0.72} />
+      <mesh position={[0, -0.06, 0.078]} castShadow>
+        <boxGeometry args={[0.24, 0.055, 0.052]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.44} metalness={0.68} />
       </mesh>
     </group>
   );
 }
 
-/** Резной рогатый костяной череп-трофей в кованой оправе. */
-function HornedSkullTrophy({
+/** Готический геральдический щит со знаком Broken Ossuary Crown. */
+function BrokenCrownShield({
   position,
   rotationY = 0,
   scale = 1,
@@ -94,40 +120,162 @@ function HornedSkullTrophy({
 }) {
   return (
     <group position={[position[0], position[1], position[2]]} rotation-y={rotationY} scale={scale}>
-      {/* железная розетка-подложка */}
-      <mesh position-z={-0.01} rotation-x={Math.PI / 2}>
-        <cylinderGeometry args={[0.11, 0.12, 0.03, 6]} />
-        <meshStandardMaterial map={tex.ironMap} roughness={0.46} metalness={0.82} />
+      <mesh geometry={geoms.heraldicShield} scale={[0.26, 0.28, 0.036]} castShadow>
+        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.40} metalness={0.76} />
       </mesh>
-      {/* черепная коробка */}
-      <mesh position={[0, 0.02, 0.04]} castShadow>
-        <dodecahedronGeometry args={[0.09, 0]} />
-        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.018} roughness={0.76} />
+      <mesh geometry={geoms.heraldicShield} position-z={0.012} scale={[0.21, 0.23, 0.03]}>
+        <meshStandardMaterial color={CITADEL_PALETTE.bannerCloth} roughness={0.70} metalness={0.12} />
       </mesh>
-      {/* верхняя челюсть / морда */}
-      <mesh position={[0, -0.045, 0.075]} rotation-x={0.25} castShadow>
-        <boxGeometry args={[0.08, 0.07, 0.08]} />
-        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.015} roughness={0.78} />
+      {/* Мини-эмблема Broken Ossuary Crown на щите */}
+      <group position={[0, -0.02, 0.026]} scale={0.14}>
+        <mesh geometry={geoms.brokenCrownEmblem} position={[0, 0, 0]}>
+          <meshStandardMaterial map={tex.boneMap} roughness={0.72} />
+        </mesh>
+        <mesh geometry={geoms.brokenCrownEmblem} position={[0, 0, 0]} scale={[-1, 1, 1]}>
+          <meshStandardMaterial map={tex.boneMap} roughness={0.72} />
+        </mesh>
+        <mesh position={[0, 0.14, 0.04]}>
+          <boxGeometry args={[0.075, 0.72, 0.045]} />
+          <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.42} metalness={0.70} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/** Готическое стрельчатое окно-ланцет, повторяющее переплёт Broken Ossuary Crown. */
+function BrokenCrownLancet({
+  position,
+  rotationY = 0,
+  width = 0.28,
+  height = 0.56,
+  lit = true,
+  geoms,
+  tex,
+}: {
+  position: readonly [number, number, number];
+  rotationY?: number;
+  width?: number;
+  height?: number;
+  lit?: boolean;
+  geoms: CitadelGeometrySet;
+  tex: CitadelTextureSet;
+}) {
+  return (
+    <group position={[position[0], position[1], position[2]]} rotation-y={rotationY}>
+      {/* Утопленный каменный наличник */}
+      <mesh geometry={geoms.pointedArch} position={[0, -height * 0.5, 0]} scale={[width, height, 0.08]} castShadow>
+        <meshStandardMaterial
+          map={tex.dressedMap}
+          bumpMap={tex.dressedBump}
+          bumpScale={0.02}
+          roughnessMap={tex.dressedRoughness}
+          roughness={0.86}
+        />
       </mesh>
-      {/* глубокие закопчённые глазницы */}
-      {[-0.036, 0.036].map((ex) => (
-        <mesh key={ex} position={[ex, 0.015, 0.11]}>
-          <sphereGeometry args={[0.02, 6, 6]} />
-          <meshStandardMaterial color="#12100f" roughness={0.95} />
+      {/* Тёмный или тлеющий проём */}
+      <mesh position={[0, -height * 0.04, 0.008]}>
+        <boxGeometry args={[width * 0.58, height * 0.72, 0.04]} />
+        {lit ? (
+          <meshStandardMaterial {...createHearthWindowMaterialProps()} />
+        ) : (
+          <meshStandardMaterial color={CITADEL_PALETTE.portalVoid} roughness={0.95} />
+        )}
+      </mesh>
+      {/* Переплёт Broken Crown: вертикальная железная ость + пара верхних косых перемычек */}
+      <mesh position={[0, -height * 0.02, 0.032]}>
+        <boxGeometry args={[0.024, height * 0.74, 0.024]} />
+        <meshStandardMaterial map={tex.ironMap} roughness={0.38} metalness={0.78} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * width * 0.14, height * 0.14, 0.032]} rotation-z={s * 0.26}>
+          <boxGeometry args={[0.018, height * 0.34, 0.022]} />
+          <meshStandardMaterial map={tex.ironMap} roughness={0.38} metalness={0.78} />
         </mesh>
       ))}
-      {/* пара загнутых костяных рогов */}
-      <mesh geometry={geoms.hornTrophy} position={[0.045, 0.055, 0.03]} scale={0.16} castShadow>
-        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.015} roughness={0.74} />
+    </group>
+  );
+}
+
+/** Глубокая слепая стрельчатая арочная ниша пролёта стены (masonry bay). */
+function BlindMasonryBay({
+  position,
+  rotationY = 0,
+  width,
+  height,
+  geoms,
+  tex,
+}: {
+  position: readonly [number, number, number];
+  rotationY?: number;
+  width: number;
+  height: number;
+  geoms: CitadelGeometrySet;
+  tex: CitadelTextureSet;
+}) {
+  return (
+    <group position={[position[0], position[1], position[2]]} rotation-y={rotationY}>
+      <mesh geometry={geoms.pointedArch} position={[0, -height * 0.5, 0.02]} scale={[width, height, 0.07]} castShadow>
+        <meshStandardMaterial
+          map={tex.dressedMap}
+          bumpMap={tex.dressedBump}
+          bumpScale={0.022}
+          roughnessMap={tex.dressedRoughness}
+          roughness={0.86}
+        />
       </mesh>
-      <mesh geometry={geoms.hornTrophy} position={[-0.045, 0.055, 0.03]} scale={[-0.16, 0.16, 0.16]} castShadow>
-        <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.015} roughness={0.74} />
+      <mesh position={[0, -height * 0.08, -0.002]}>
+        <boxGeometry args={[width * 0.60, height * 0.74, 0.03]} />
+        <meshStandardMaterial color="#3c3a37" roughness={0.94} />
       </mesh>
     </group>
   );
 }
 
-/** Локальный рваный геральдический штандарт (собственная геометрия на экземпляр). */
+/** Строгая кованая жаровня с анимированным пламенем (локальный свет только у врат). */
+function GateBrazier({
+  position,
+  lightIntensity = 0.85,
+  tex,
+}: {
+  position: readonly [number, number, number];
+  lightIntensity?: number;
+  tex: CitadelTextureSet;
+}) {
+  const flameRef = useRef<THREE.Mesh>(null);
+  const phase = position[0] * 3.1 + position[2] * 2.3;
+
+  useFrame(({ clock }) => {
+    const f = flameRef.current;
+    if (!f) return;
+    const t = clock.elapsedTime;
+    const flicker = 0.88 + Math.sin(t * 7.8 + phase) * 0.14 + Math.cos(t * 12.1 + phase) * 0.08;
+    f.scale.set(0.92, flicker * 1.12, 0.92);
+    f.rotation.y = t * 1.6;
+  });
+
+  return (
+    <group position={[position[0], position[1], position[2]]}>
+      <mesh position={[0, 0.16, 0]} castShadow>
+        <cylinderGeometry args={[0.07, 0.10, 0.32, 6]} />
+        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.40} metalness={0.78} />
+      </mesh>
+      <mesh position={[0, 0.34, 0]} castShadow>
+        <cylinderGeometry args={[0.125, 0.065, 0.10, 6]} />
+        <meshStandardMaterial map={tex.ironMap} roughness={0.38} metalness={0.8} />
+      </mesh>
+      <mesh ref={flameRef} position={[0, 0.44, 0]}>
+        <coneGeometry args={[0.062, 0.16, 5]} />
+        <meshStandardMaterial {...createBrazierFlameMaterialProps()} />
+      </mesh>
+      {lightIntensity > 0 ? (
+        <pointLight position={[0, 0.56, 0.10]} color={CITADEL_PALETTE.flameGlow} intensity={lightIntensity} distance={2.1} decay={2.2} />
+      ) : null}
+    </group>
+  );
+}
+
+/** Боевой штандарт ордена со знаком Broken Ossuary Crown и рваным краем. */
 function CitadelBanner({
   position,
   scale = 1,
@@ -147,1706 +295,980 @@ function CitadelBanner({
     const pos = mesh.geometry.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
-      pos.setZ(i, Math.sin(x * 7.2 + t * 5.1 + phase) * 0.048 * (x + 0.25));
+      pos.setZ(i, Math.sin(x * 7.0 + t * 5.0 + phase) * 0.045 * (x + 0.25));
     }
     pos.needsUpdate = true;
   });
   return (
     <group position={[position[0], position[1], position[2]]} scale={scale}>
-      <mesh position-y={0.42} castShadow>
-        <cylinderGeometry args={[0.022, 0.028, 0.94, 6]} />
-        <meshStandardMaterial
-          map={tex.ironMap}
-          bumpMap={tex.ironBump}
-          roughnessMap={tex.ironRoughness}
-          bumpScale={0.015}
-          roughness={0.78}
-          metalness={0.82}
-        />
+      <mesh position-y={0.38} castShadow>
+        <cylinderGeometry args={[0.020, 0.026, 0.86, 6]} />
+        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.40} metalness={0.78} />
       </mesh>
-      <mesh position={[0.16, 0.78, 0]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.015, 0.015, 0.36, 6]} />
-        <meshStandardMaterial map={tex.boneMap} roughness={0.76} metalness={0.05} />
+      <mesh position-y={0.84}>
+        <coneGeometry args={[0.036, 0.10, 4]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.42} metalness={0.70} />
       </mesh>
-      <mesh position={[0, 0.91, 0]} castShadow>
-        <coneGeometry args={[0.044, 0.14, 4]} />
-        <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.4} metalness={0.76} />
-      </mesh>
-      <mesh ref={clothRef} position={[0.31, 0.56, 0]}>
-        <planeGeometry args={[0.58, 0.38, 10, 1]} />
+      <mesh ref={clothRef} position={[0.28, 0.58, 0]} castShadow>
+        <planeGeometry args={[0.54, 0.34, 8, 1]} />
         <meshStandardMaterial
           map={tex.bannerMap}
           alphaMap={tex.bannerAlpha}
-          alphaTest={0.42}
+          alphaTest={0.45}
           side={THREE.DoubleSide}
-          roughness={0.88}
-          metalness={0.04}
+          roughness={0.82}
         />
-      </mesh>
-    </group>
-  );
-}
-
-/** Тлеющая кованая жаровня с профилированной чашей, углями и изолированным пламенем. */
-function IronBrazier({
-  position,
-  tall = false,
-  tex,
-}: {
-  position: readonly [number, number, number];
-  tall?: boolean;
-  tex: CitadelTextureSet;
-}) {
-  const flameRef = useRef<THREE.Mesh>(null);
-  const phase = position[0] * 1.9 + position[2] * 2.3;
-
-  useFrame(({ clock }) => {
-    const m = flameRef.current;
-    if (!m) return;
-    const t = clock.elapsedTime;
-    const flicker = 0.88 + Math.sin(t * 9.5 + phase) * 0.12 + Math.sin(t * 15.3 + phase * 1.7) * 0.07;
-    m.scale.set(0.94 + (flicker - 0.9) * 0.24, flicker, 0.94 + (flicker - 0.9) * 0.24);
-    (m.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.88 + flicker * 0.34;
-  });
-
-  const postH = tall ? 0.58 : 0.24;
-  return (
-    <group position={[position[0], position[1], position[2]]}>
-      <mesh position-y={postH * 0.16} castShadow>
-        <cylinderGeometry args={[0.11, 0.14, postH * 0.32, 6]} />
-        <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.88} />
-      </mesh>
-      <mesh position-y={postH * 0.62} castShadow receiveShadow>
-        <cylinderGeometry args={[0.062, 0.088, postH * 0.76, 6]} />
-        <meshStandardMaterial
-          map={tex.ironMap}
-          bumpMap={tex.ironBump}
-          roughnessMap={tex.ironRoughness}
-          bumpScale={0.018}
-          roughness={0.78}
-          metalness={0.82}
-        />
-      </mesh>
-      <mesh position-y={postH + 0.06} castShadow>
-        <cylinderGeometry args={[0.145, 0.075, 0.12, 8]} />
-        <meshStandardMaterial
-          map={tex.ironMap}
-          roughnessMap={tex.ironRoughness}
-          roughness={0.78}
-          metalness={0.84}
-        />
-      </mesh>
-      <mesh position-y={postH + 0.1}>
-        <cylinderGeometry args={[0.105, 0.105, 0.03, 6]} />
-        <meshStandardMaterial color="#3c190e" emissive="#c44214" emissiveIntensity={0.72} roughness={0.8} />
-      </mesh>
-      <mesh ref={flameRef} position-y={postH + 0.19}>
-        <coneGeometry args={[0.072, 0.2, 6]} />
-        <meshStandardMaterial {...createBrazierFlameMaterialProps()} />
       </mesh>
     </group>
   );
 }
 
 /**
- * Глубоко утопленное стрельчатое окно-ниша (с профилированной аркой, пилястрами,
- * ажурным трилистником на ур. 3+, кованым переплётом и подтёком копоти под отливом).
+ * Доминирующее завершение башни-реликвария:
+ * - открытый 8-гранный готический фонарь со стрельчатыми арочными прорезями (L4–L5);
+ * - три скульптурных костяных/каменных ребра Broken Ossuary Crown в ракурсе (все 3 видны!);
+ * - глубокая тёмная сердцевина с пульсирующей некротической филактерией;
+ * - пронзающая кованая вертикальная железная ость-шпиль и редкие бронзовые скобы.
  */
-function RecessedLancetWindow({
+function BrokenOssuaryCrownTop({
+  baseY,
+  topY,
+  shaftRadius,
+  geoms,
+  tex,
+  sovereign,
+  withBanner,
+}: {
+  baseY: number;
+  topY: number;
+  shaftRadius: number;
+  geoms: CitadelGeometrySet;
+  tex: CitadelTextureSet;
+  sovereign: boolean;
+  withBanner: boolean;
+}) {
+  const crystalRef = useRef<THREE.Mesh>(null);
+  const innerRef = useRef<THREE.Mesh>(null);
+  const h = topY - baseY;
+  const ribH = h * (sovereign ? 0.80 : 0.74);
+  const ribScale = sovereign ? 1.06 : 0.92;
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const hoverY = ribH * 0.44 + Math.sin(t * 2.0) * 0.032;
+    if (crystalRef.current) {
+      crystalRef.current.position.y = hoverY;
+      crystalRef.current.rotation.y = t * 0.68;
+    }
+    if (innerRef.current) {
+      innerRef.current.position.y = hoverY;
+      innerRef.current.rotation.y = -t * 1.05;
+    }
+  });
+
+  // Разворот тройки рёбер так, чтобы все 3 отчётливо разделялись в дефолтной камере [-1, +1] и сзади/сбоку
+  const ribs: readonly { angle: number; hMul: number; rMul: number }[] = [
+    { angle: -Math.PI * 0.78, hMul: 0.94, rMul: 0.96 },
+    { angle: Math.PI * 0.26, hMul: 0.92, rMul: 0.96 },
+    { angle: Math.PI * 0.86, hMul: 1.08, rMul: 1.02 },
+  ];
+
+  return (
+    <group position={[0, baseY, 0]}>
+      {/* Открытый коронационный постамент с бронзовым обручем */}
+      <mesh position={[0, 0.07, 0]} rotation-y={Math.PI / 8} castShadow>
+        <cylinderGeometry args={[shaftRadius * 1.24, shaftRadius * 1.06, 0.14, 8]} />
+        <meshStandardMaterial
+          map={tex.dressedMap}
+          bumpMap={tex.dressedBump}
+          bumpScale={0.022}
+          roughnessMap={tex.dressedRoughness}
+          roughness={0.86}
+        />
+      </mesh>
+      <mesh position={[0, 0.16, 0]} rotation-x={Math.PI / 2}>
+        <torusGeometry args={[shaftRadius * 1.04, 0.028, 6, 16]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.44} metalness={0.68} />
+      </mesh>
+
+      {/* Нижняя глубокая тёмная камера-колодец внутри короны (не перекрывает пустоту сверху!) */}
+      <mesh position={[0, 0.14, 0]}>
+        <cylinderGeometry args={[shaftRadius * 0.46, shaftRadius * 0.60, 0.18, 8]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.portalVoid} roughness={0.96} />
+      </mesh>
+      {/* Узкая вертикальная тёмная щель-пустота за железной остью между рёбрами */}
+      <mesh position={[0, ribH * 0.42, 0]}>
+        <cylinderGeometry args={[0.065, 0.10, ribH * 0.68, 6]} />
+        <meshStandardMaterial color="#0d0d11" roughness={0.96} />
+      </mesh>
+
+      {/* Три скульптурных костяно-каменных ребра Broken Ossuary Crown */}
+      {ribs.map((rb, idx) => (
+        <group key={idx} rotation-y={rb.angle}>
+          <mesh
+            geometry={geoms.crownRib}
+            position={[0, 0.10, 0]}
+            scale={[ribScale * 1.14, ribH * rb.hMul, ribScale * rb.rMul]}
+            castShadow
+          >
+            <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.02} roughness={0.76} metalness={0.04} />
+          </mesh>
+          {/* Кованая скрепа у основания каждого ребра */}
+          <mesh position={[0, 0.24, shaftRadius * 1.02]} castShadow>
+            <boxGeometry args={[0.14, 0.08, 0.09]} />
+            <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.38} metalness={0.78} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Единая вертикальная кованая железная ость-шпиль через разлом короны */}
+      <mesh position={[0, h * 0.50, 0]} castShadow>
+        <cylinderGeometry args={[0.026, 0.044, h, 6]} />
+        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.36} metalness={0.80} />
+      </mesh>
+      {/* Запорная кованая перекладина + верхний бронзовый финиал */}
+      <mesh position={[0, ribH * 0.66, 0]} castShadow>
+        <boxGeometry args={[shaftRadius * 1.16, 0.046, 0.048]} />
+        <meshStandardMaterial map={tex.ironMap} roughness={0.36} metalness={0.80} />
+      </mesh>
+      <mesh position={[0, h * 0.90, 0]}>
+        <octahedronGeometry args={[0.056, 0]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.42} metalness={0.72} />
+      </mesh>
+
+      {/* Сдержанная некротическая филактерия в разломе тёмной пустоты между костяных рёбер */}
+      <mesh ref={crystalRef} geometry={geoms.crystal} position={[0, ribH * 0.40, 0]} scale={sovereign ? 0.48 : 0.38}>
+        <meshStandardMaterial {...createNecroticCrystalMaterialProps()} />
+      </mesh>
+      <mesh ref={innerRef} geometry={geoms.crystalCore} position={[0, ribH * 0.40, 0]} scale={sovereign ? 0.48 : 0.38}>
+        <meshStandardMaterial color="#6fe0b0" emissive="#2da677" emissiveIntensity={0.85} roughness={0.22} />
+      </mesh>
+      <pointLight
+        position={[0, ribH * 0.44, 0]}
+        color={CITADEL_PALETTE.necroticGlow}
+        intensity={sovereign ? 0.58 : 0.42}
+        distance={2.2}
+        decay={2.2}
+      />
+
+      {/* Державный вымпел на ости L5 */}
+      {withBanner ? <CitadelBanner position={[0, h * 0.72, 0]} scale={0.72} phase={0.7} tex={tex} /> : null}
+    </group>
+  );
+}
+
+/** Крупнопрофилированная сланцевая двускатная крыша с выступающими торцами, коньком и стропильными швами. */
+function DetailedSlateGableRoof({
   position,
   rotationY = 0,
-  width = 0.28,
-  height = 0.5,
-  mode = "hearth",
-  gilded = false,
-  tracery = false,
+  width,
+  height,
+  depth,
+  ribCount,
   geoms,
   tex,
 }: {
   position: readonly [number, number, number];
   rotationY?: number;
-  width?: number;
-  height?: number;
-  mode?: "hearth" | "necrotic";
-  gilded?: boolean;
-  tracery?: boolean;
+  width: number;
+  height: number;
+  depth: number;
+  ribCount: number;
   geoms: CitadelGeometrySet;
   tex: CitadelTextureSet;
 }) {
-  const glassProps =
-    mode === "necrotic"
-      ? {
-          color: CITADEL_PALETTE.necroticBase,
-          emissive: CITADEL_PALETTE.necroticGlow,
-          emissiveIntensity: 0.78,
-          roughness: 0.26,
-        }
-      : createHearthWindowMaterialProps();
+  const halfW = width * 0.54;
+  const slopeLen = Math.hypot(halfW, height);
+  const slopeAngle = Math.atan2(height, halfW);
 
   return (
     <group position={[position[0], position[1], position[2]]} rotation-y={rotationY}>
-      {/* стрельчатый профилированный наличник */}
-      <mesh
-        geometry={geoms.pointedArch}
-        position={[0, -height * 0.48, 0.032]}
-        scale={[width + 0.14, height + 0.12, 0.075]}
-        castShadow
-      >
-        <meshStandardMaterial
-          map={tex.dressedMap}
-          bumpMap={tex.dressedBump}
-          roughnessMap={tex.dressedRoughness}
-          bumpScale={0.022}
-          color={gilded ? "#8f8572" : undefined}
-          roughness={0.86}
-        />
+      {/* Основное тело сланцевой кровли */}
+      <mesh geometry={geoms.gableRoof} scale={[width, height, depth]} castShadow receiveShadow>
+        <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.036} roughness={0.68} metalness={0.08} />
       </mesh>
-      {/* выступающий скошенный подоконник */}
-      <mesh position={[0, -height * 0.5 - 0.025, 0.045]} castShadow>
-        <boxGeometry args={[width + 0.18, 0.055, 0.095]} />
-        <meshStandardMaterial map={tex.dressedMap} roughness={0.88} />
-      </mesh>
-      {/* тёмный след копоти/подтёков под подоконником */}
-      <mesh position={[0, -height * 0.5 - 0.14, 0.012]}>
-        <planeGeometry args={[width + 0.08, 0.18]} />
-        <meshStandardMaterial map={tex.sootOverlay} transparent opacity={0.42} depthWrite={false} roughness={0.98} />
-      </mesh>
-      {/* замковый трилистник (на старших уровнях) */}
-      {tracery ? (
-        <mesh
-          geometry={geoms.trefoilTracery}
-          position={[0, height * 0.16, 0.048]}
-          scale={[width * 0.68, height * 0.34, 0.032]}
-        >
+      {/* Выраженные толстые каменные торцевые щипцы/свесы (edge thickness!) */}
+      {[-depth * 0.5 + 0.025, depth * 0.5 - 0.025].map((zOff, idx) => (
+        <mesh key={`barge-${idx}`} geometry={geoms.gableRoof} position={[0, 0.015, zOff]} scale={[width * 1.03, height * 1.03, 0.065]} castShadow>
           <meshStandardMaterial
-            color={gilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.stoneDressed}
-            roughness={gilded ? 0.46 : 0.85}
-            metalness={gilded ? 0.68 : 0.05}
+            map={tex.dressedMap}
+            bumpMap={tex.dressedBump}
+            bumpScale={0.02}
+            roughnessMap={tex.dressedRoughness}
+            roughness={0.86}
           />
         </mesh>
-      ) : null}
-      {/* утопленное светящееся стекло */}
-      <mesh position={[0, -height * 0.04, 0.026]}>
-        <boxGeometry args={[width - 0.02, height * 0.84, 0.018]} />
-        <meshStandardMaterial {...glassProps} />
+      ))}
+      {/* Объёмный сланцево-железный коньковый гребень */}
+      <mesh position={[0, height + 0.015, 0]} castShadow>
+        <boxGeometry args={[0.10, 0.08, depth + 0.08]} />
+        <meshStandardMaterial map={tex.dressedMap} roughness={0.82} />
       </mesh>
-      {/* кованая решётка (чётко впереди стекла) */}
-      <mesh position={[0, -height * 0.04, 0.052]}>
-        <boxGeometry args={[0.024, height * 0.84, 0.02]} />
-        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.5} metalness={0.82} />
-      </mesh>
-      <mesh position={[0, 0.04, 0.052]}>
-        <boxGeometry args={[width - 0.01, 0.024, 0.02]} />
-        <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.5} metalness={0.82} />
-      </mesh>
-    </group>
-  );
-}
-
-/** 3D-перевязка выступающих угловых рустовых камней (со сколами времени). */
-function StaggeredCornerQuoins({
-  x,
-  z,
-  baseY,
-  height,
-  sx,
-  sz,
-  tex,
-}: {
-  x: number;
-  z: number;
-  baseY: number;
-  height: number;
-  sx: number;
-  sz: number;
-  tex: CitadelTextureSet;
-}) {
-  const count = 5;
-  const stepH = height / count;
-  return (
-    <group>
-      {Array.from({ length: count }, (_, i) => {
-        const wide = i % 2 === 0;
-        const w = wide ? 0.27 : 0.21;
-        const d = wide ? 0.21 : 0.27;
-        const chipped = i === 1 && sx > 0 ? 0.025 : 0;
+      {/* Поперечные швы / рёбра скатов кровли — дают чёткий ритм плоскостей с 24 м */}
+      {Array.from({ length: ribCount }, (_, i) => {
+        const z = (i / Math.max(1, ribCount - 1) - 0.5) * (depth * 0.72);
         return (
-          <mesh
-            key={i}
-            position={[x - sx * (w * 0.28 + chipped), baseY + stepH * (i + 0.5), z - sz * (d * 0.28)]}
-            castShadow
-            receiveShadow
-          >
-            <boxGeometry args={[w, stepH * 0.88, d]} />
-            <meshStandardMaterial
-              map={tex.dressedMap}
-              bumpMap={tex.dressedBump}
-              roughnessMap={tex.dressedRoughness}
-              bumpScale={0.025}
-              roughness={0.88}
-            />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
-/** Восьмигранная угловая башня-бастион с рёбрами шатра, рустовыми поясами и пинаклями. */
-function CornerBastionTurret({
-  position,
-  baseY,
-  height,
-  radius,
-  spireHeight,
-  hasCrownRing,
-  hasBoneSpurs,
-  hasRibbedSpire,
-  gildedTrim,
-  geoms,
-  tex,
-}: {
-  position: readonly [number, number];
-  baseY: number;
-  height: number;
-  radius: number;
-  spireHeight: number;
-  hasCrownRing: boolean;
-  hasBoneSpurs: boolean;
-  hasRibbedSpire: boolean;
-  gildedTrim: boolean;
-  geoms: CitadelGeometrySet;
-  tex: CitadelTextureSet;
-}) {
-  const topY = baseY + height;
-  const spireBaseY = topY + (hasCrownRing ? 0.07 : 0.02);
-  const spireR = radius * 1.13;
-  const ribTilt = Math.atan2(spireR, spireHeight);
-  const ribLen = Math.hypot(spireR, spireHeight);
-
-  return (
-    <group position={[position[0], 0, position[1]]}>
-      {/* расширенный скошенный цоколь башни (плоские грани на 0°/90°/180°/270°) */}
-      <mesh position-y={baseY + 0.16} rotation-y={Math.PI / 8} castShadow receiveShadow>
-        <cylinderGeometry args={[radius * 1.07, radius * 1.21, 0.32, 8]} />
-        <meshStandardMaterial
-          map={tex.dressedMap}
-          bumpMap={tex.dressedBump}
-          roughnessMap={tex.dressedRoughness}
-          bumpScale={0.028}
-          roughness={0.88}
-        />
-      </mesh>
-      {/* основное восьмигранное тело из выветренного базальта */}
-      <mesh position-y={baseY + height / 2} rotation-y={Math.PI / 8} castShadow receiveShadow>
-        <cylinderGeometry args={[radius * 0.96, radius * 1.05, height, 8]} />
-        <meshStandardMaterial
-          map={tex.basaltMap}
-          bumpMap={tex.basaltBump}
-          roughnessMap={tex.basaltRoughness}
-          bumpScale={0.036}
-          roughness={0.9}
-        />
-      </mesh>
-      {/* двойные каменные и кованые пояски обвязки (без жирных рыжих полос) */}
-      {[0.38, 0.68].map((frac, idx) => (
-        <group key={idx} position-y={baseY + height * frac}>
-          <mesh rotation-y={Math.PI / 8} castShadow>
-            <cylinderGeometry args={[radius * 1.03, radius * 1.03, 0.058, 8]} />
-            <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.86} />
-          </mesh>
-          <mesh rotation-y={Math.PI / 8}>
-            <cylinderGeometry args={[radius * 1.038, radius * 1.038, 0.018, 8]} />
-            <meshStandardMaterial
-              map={idx === 1 || !gildedTrim ? tex.ironMap : undefined}
-              color={idx === 0 && gildedTrim ? "#6e5632" : undefined}
-              roughness={0.48}
-              metalness={0.78}
-            />
-          </mesh>
-        </group>
-      ))}
-      {/* глубокие утопленные амбразуры-бойницы строго на плоских гранях восьмигранника */}
-      {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((ang, idx) => (
-        <group key={idx} rotation-y={ang}>
-          <mesh position={[0, baseY + height * 0.56, radius * 0.905]}>
-            <boxGeometry args={[0.075, 0.25, 0.022]} />
-            <meshStandardMaterial map={tex.basaltMap} roughness={0.92} />
-          </mesh>
-          <mesh position={[0, baseY + height * 0.56, radius * 0.922]}>
-            <boxGeometry args={[0.032, 0.19, 0.014]} />
-            <meshStandardMaterial color="#18130f" emissive={CITADEL_PALETTE.hearthGlow} emissiveIntensity={0.62} roughness={0.4} />
-          </mesh>
-        </group>
-      ))}
-      {/* верхний карниз машикулей */}
-      <mesh position-y={topY - 0.05} rotation-y={Math.PI / 8} castShadow>
-        <cylinderGeometry args={[radius * 1.15, radius * 0.98, 0.15, 8]} />
-        <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.024} roughness={0.86} />
-      </mesh>
-      {/* парапетная корона + малые угловые пинакли/клыки */}
-      {hasCrownRing ? (
-        <group position-y={topY + 0.08}>
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
-            const ang = (i * Math.PI) / 4;
-            const chipped = i === 3 ? 0.12 : 0.16;
-            return (
+          <group key={`rr-${i}`} position={[0, height * 0.5, z]}>
+            {[-1, 1].map((side) => (
               <mesh
-                key={i}
-                position={[Math.sin(ang) * radius * 1.01, 0, Math.cos(ang) * radius * 1.01]}
-                rotation-y={ang}
+                key={side}
+                position={[side * halfW * 0.48, 0.02, 0]}
+                rotation-z={side * (Math.PI * 0.5 - slopeAngle)}
                 castShadow
               >
-                <boxGeometry args={[radius * 0.42, chipped, 0.095]} />
-                <meshStandardMaterial map={tex.dressedMap} roughness={0.88} />
+                <boxGeometry args={[0.045, slopeLen * 0.96, 0.045]} />
+                <meshStandardMaterial map={tex.ironMap} roughness={0.44} metalness={0.68} />
               </mesh>
-            );
-          })}
-        </group>
-      ) : null}
-      {/* костяные клыки/шпицы и мини-пинакли по короне */}
-      {hasBoneSpurs
-        ? [0, 1, 2, 3].map((i) => {
-            const ang = (i * Math.PI) / 2 + Math.PI / 4;
-            return (
-              <group key={i} position={[Math.sin(ang) * radius * 1.1, topY + 0.08, Math.cos(ang) * radius * 1.1]}>
-                <mesh geometry={geoms.pinnacleSpire} scale={[0.38, 0.28, 0.38]} castShadow>
-                  <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.012} roughness={0.76} />
-                </mesh>
-              </group>
-            );
-          })
-        : null}
-      {/* сланцевый готический шатёр башни */}
-      <mesh position-y={spireBaseY + spireHeight / 2} rotation-y={Math.PI / 8} castShadow>
-        <coneGeometry args={[spireR, spireHeight, 8]} />
-        <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.03} roughness={0.74} metalness={0.08} />
-      </mesh>
-      {/* НАСТОЯЩИЕ наклонные архитектурные рёбра-нервюры вдоль рёбер шатра */}
-      {hasRibbedSpire
-        ? [0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
-            const ang = (i * Math.PI) / 4 + Math.PI / 8;
-            return (
-              <group key={i} rotation-y={ang}>
-                <mesh
-                  position={[0, spireBaseY + spireHeight * 0.5, spireR * 0.49]}
-                  rotation-x={-ribTilt}
-                  castShadow
-                >
-                  <boxGeometry args={[0.036, ribLen * 0.96, 0.042]} />
-                  <meshStandardMaterial
-                    map={tex.ironMap}
-                    roughnessMap={tex.ironRoughness}
-                    color={gildedTrim && i % 2 === 0 ? "#6e5632" : undefined}
-                    roughness={0.46}
-                    metalness={0.8}
-                  />
-                </mesh>
-              </group>
-            );
-          })
-        : null}
-      {/* шпиль-навершие */}
-      <mesh position-y={spireBaseY + spireHeight + 0.14} castShadow>
-        <coneGeometry args={[0.042, 0.32, 6]} />
-        <meshStandardMaterial
-          color={gildedTrim ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.forgedIron}
-          roughness={0.42}
-          metalness={0.8}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/** Ряд зубцов парапета с выщерблинами времени и резными угловыми пинаклями. */
-function BattlementPerimeter({
-  halfSpan,
-  y,
-  weatheringStage,
-  geoms,
-  tex,
-  hasCornerPinacles,
-  skipCorners = false,
-}: {
-  halfSpan: number;
-  y: number;
-  weatheringStage: 1 | 2 | 3;
-  geoms: CitadelGeometrySet;
-  tex: CitadelTextureSet;
-  hasCornerPinacles?: boolean;
-  skipCorners?: boolean;
-}) {
-  const offsets = [-0.62, 0, 0.62];
-  return (
-    <group position-y={y}>
-      <mesh position-y={-0.02} castShadow>
-        <boxGeometry args={[halfSpan * 2 + 0.08, 0.08, halfSpan * 2 + 0.08]} />
-        <meshStandardMaterial map={tex.dressedMap} roughness={0.88} />
-      </mesh>
-      {offsets.map((frac, idx) => {
-        const p = frac * (halfSpan - 0.16);
-        // намеренные сколы и разная сохранность зубцов (следы боёв и времени)
-        const frontH = idx === 0 && weatheringStage >= 2 ? 0.16 : 0.22;
-        const sideH = idx === 2 && weatheringStage >= 3 ? 0.15 : 0.22;
-        return (
-          <group key={frac}>
-            <mesh position={[p, frontH * 0.5 + 0.01, halfSpan - 0.03]} castShadow>
-              <boxGeometry args={[0.28, frontH, 0.12]} />
-              <meshStandardMaterial
-                map={tex.dressedMap}
-                bumpMap={tex.dressedBump}
-                roughnessMap={tex.dressedRoughness}
-                bumpScale={0.022}
-                roughness={0.88}
-              />
-            </mesh>
-            <mesh position={[p, 0.12, -(halfSpan - 0.03)]} castShadow>
-              <boxGeometry args={[0.28, 0.22, 0.12]} />
-              <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.88} />
-            </mesh>
-            <mesh position={[halfSpan - 0.03, sideH * 0.5 + 0.01, p]} castShadow>
-              <boxGeometry args={[0.12, sideH, 0.28]} />
-              <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.88} />
-            </mesh>
-            <mesh position={[-(halfSpan - 0.03), 0.12, p]} castShadow>
-              <boxGeometry args={[0.12, 0.22, 0.28]} />
-              <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.88} />
-            </mesh>
-            {/* кованые зубцы-шипы в проёмах мерлонов */}
-            {idx !== 1 ? (
-              <mesh position={[p + 0.24, 0.08, halfSpan - 0.03]}>
-                <coneGeometry args={[0.02, 0.14, 4]} />
-                <meshStandardMaterial map={tex.ironMap} roughness={0.5} metalness={0.82} />
-              </mesh>
-            ) : null}
+            ))}
           </group>
         );
       })}
-      {!skipCorners
-        ? [
-            [-1, -1],
-            [1, -1],
-            [-1, 1],
-            [1, 1],
-          ].map(([sx, sz], i) => (
-            <group key={i} position={[sx! * (halfSpan - 0.04), 0.12, sz! * (halfSpan - 0.04)]}>
-              <mesh castShadow>
-                <boxGeometry args={[0.24, 0.24, 0.24]} />
-                <meshStandardMaterial map={tex.dressedMap} roughness={0.88} />
+    </group>
+  );
+}
+
+/** Монументальный выдвинутый Гейтхаус со ступенчатыми архивольтами, дубовыми вратами и герсой. */
+function MonumentalGatehouse({
+  spec,
+  geoms,
+  tex,
+}: {
+  spec: CitadelLevelVisualSpec;
+  geoms: CitadelGeometrySet;
+  tex: CitadelTextureSet;
+}) {
+  const py = spec.plinthHeight;
+  const gateZCenter = spec.gateFrontZ - spec.gateDepth * 0.5;
+  const frontFaceZ = spec.gateDepth * 0.5;
+  const pylonW = (spec.gateWidth - spec.portalVoidWidth) * 0.5;
+  const lintelH = Math.max(0.46, spec.gateWallHeight - spec.portalVoidHeight);
+  const doorZ = frontFaceZ - spec.portalVoidDepth * 0.72;
+  const portcullisZ = frontFaceZ - spec.portalVoidDepth * 0.28;
+
+  return (
+    <group position={[spec.gateCenterX, py, gateZCenter]}>
+      {/* Боковые устои/пилоны гейтхауса в крупной блочной кладке */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={side}
+          position={[side * (spec.portalVoidWidth * 0.5 + pylonW * 0.5), spec.gateWallHeight * 0.5, 0]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[pylonW, spec.gateWallHeight, spec.gateDepth]} />
+          <meshStandardMaterial
+            map={tex.wallMap}
+            bumpMap={tex.wallBump}
+            bumpScale={0.04}
+            roughnessMap={tex.wallRoughness}
+            roughness={0.86}
+          />
+        </mesh>
+      ))}
+
+      {/* Выступающие контрфорсы пилонов (L2–L5) */}
+      {spec.level >= 2
+        ? [-1, 1].map((side) => (
+            <group key={`gp-${side}`}>
+              <mesh
+                geometry={geoms.buttress}
+                position={[side * (spec.gateWidth * 0.42), 0, frontFaceZ]}
+                scale={[0.14, spec.gateWallHeight * 0.88, 0.20]}
+                castShadow
+              >
+                <meshStandardMaterial
+                  map={tex.dressedMap}
+                  bumpMap={tex.dressedBump}
+                  bumpScale={0.022}
+                  roughnessMap={tex.dressedRoughness}
+                  roughness={0.84}
+                />
               </mesh>
-              {hasCornerPinacles ? (
-                <mesh geometry={geoms.pinnacleSpire} position-y={0.12} scale={[0.7, 0.45, 0.7]} castShadow>
-                  <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
+              {spec.hasPinnacles ? (
+                <mesh
+                  geometry={geoms.pinnacleSpire}
+                  position={[side * (spec.gateWidth * 0.42), spec.gateWallHeight, 0.08]}
+                  scale={[0.42, 0.38, 0.42]}
+                  castShadow
+                >
+                  <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
                 </mesh>
               ) : null}
             </group>
           ))
         : null}
-    </group>
-  );
-}
 
-/**
- * Выразительный центральный некротический реликварий (эволюционирует от
- * 4-аркового оссуария-фонаря на L3 до соборной 8-арковой ротонды с нервюрным
- * сводом, костяными консолями, рунными кольцами и коронованным шпилем на L4..5).
- */
-function NecroticReliquaryCrown({
-  y,
-  scale = 1,
-  level,
-  ringCount,
-  gilded,
-  geoms,
-  tex,
-}: {
-  y: number;
-  scale?: number;
-  level: 3 | 4 | 5;
-  ringCount: 0 | 1 | 2;
-  gilded: boolean;
-  geoms: CitadelGeometrySet;
-  tex: CitadelTextureSet;
-}) {
-  const crystalRef = useRef<THREE.Mesh>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    const pulse = 0.78 + Math.sin(t * 2.15) * 0.24;
-    const bob = Math.sin(t * 1.9) * 0.026;
-    if (crystalRef.current) {
-      crystalRef.current.rotation.y = t * 0.48;
-      crystalRef.current.position.y = 0.48 + bob;
-      (crystalRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
-    }
-    if (coreRef.current) {
-      coreRef.current.rotation.y = -t * 0.7;
-      coreRef.current.position.y = 0.48 + bob;
-    }
-    if (ring1Ref.current) {
-      ring1Ref.current.rotation.z = t * 0.55;
-      ring1Ref.current.rotation.y = t * 0.35;
-    }
-    if (ring2Ref.current) {
-      ring2Ref.current.rotation.x = -t * 0.62;
-      ring2Ref.current.rotation.z = -t * 0.32;
-    }
-    if (lightRef.current) {
-      lightRef.current.intensity = (level === 5 ? 1.15 : level === 4 ? 0.85 : 0.58) * (0.85 + Math.sin(t * 2.15) * 0.15);
-    }
-  });
-
-  const isCathedral = level === 5;
-  const isChapel = level >= 4;
-  const ribCount = isChapel ? 8 : 4;
-  const radius = isCathedral ? 0.48 : isChapel ? 0.4 : 0.34;
-  const vaultH = isCathedral ? 0.96 : isChapel ? 0.82 : 0.68;
-
-  return (
-    <group position-y={y} scale={scale}>
-      {/* восьмигранный алтарный цоколь реликвария */}
-      <mesh position-y={0.08} castShadow>
-        <cylinderGeometry args={[radius * 1.06, radius * 1.24, 0.16, 8]} />
+      {/* Массивная каменная притолока/фриз над проёмом */}
+      <mesh position={[0, spec.portalVoidHeight + lintelH * 0.5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[spec.portalVoidWidth + 0.12, lintelH, spec.gateDepth]} />
         <meshStandardMaterial
           map={tex.dressedMap}
           bumpMap={tex.dressedBump}
-          roughnessMap={tex.dressedRoughness}
           bumpScale={0.025}
-          roughness={0.86}
-        />
-      </mesh>
-      <mesh position-y={0.17} castShadow>
-        <cylinderGeometry args={[radius * 1.12, radius * 1.12, 0.05, 8]} />
-        <meshStandardMaterial
-          color={gilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.forgedIron}
-          roughness={0.42}
-          metalness={0.8}
-        />
-      </mesh>
-
-      {/* геральдические щиты ордена по 4 граням цоколя (L4..5) */}
-      {isChapel
-        ? [0, Math.PI / 2, Math.PI, -Math.PI / 2].map((ang, idx) => (
-            <HeraldicShield
-              key={idx}
-              position={[Math.sin(ang) * (radius * 1.14), 0.11, Math.cos(ang) * (radius * 1.14)]}
-              rotationY={ang}
-              scale={0.72}
-              gilded={gilded}
-              geoms={geoms}
-              tex={tex}
-            />
-          ))
-        : null}
-
-      {/* костяные рёбра оссуария по кругу цоколя (L4..5) */}
-      {isChapel
-        ? [0, 1, 2, 3].map((i) => {
-            const ang = (i * Math.PI) / 2 + Math.PI / 4;
-            return (
-              <mesh
-                key={`br${i}`}
-                geometry={geoms.vaultRib}
-                position={[0, 0.12, 0]}
-                rotation-y={ang}
-                scale={[0.85, 0.42, radius * 2.15]}
-                castShadow
-              >
-                <meshStandardMaterial map={tex.boneMap} bumpMap={tex.boneBump} bumpScale={0.015} roughness={0.76} />
-              </mesh>
-            );
-          })
-        : null}
-
-      {/* 4 или 8 изогнутых готических каменных/кованых нервюр свода ротонды */}
-      {Array.from({ length: ribCount }, (_, i) => {
-        const ang = (i * Math.PI * 2) / ribCount + (isChapel ? 0 : Math.PI / 4);
-        const rx = Math.sin(ang) * radius;
-        const rz = Math.cos(ang) * radius;
-        return (
-          <group key={i}>
-            {/* пилон-нервюра свода */}
-            <mesh
-              geometry={geoms.vaultRib}
-              position={[0, 0.16, 0]}
-              rotation-y={ang}
-              scale={[0.86, vaultH, radius * 2.18]}
-              castShadow
-            >
-              <meshStandardMaterial
-                map={i % 2 === 0 || !gilded ? tex.dressedMap : tex.ironMap}
-                color={gilded && i % 2 === 1 ? CITADEL_PALETTE.agedBronze : undefined}
-                roughness={gilded && i % 2 === 1 ? 0.44 : 0.85}
-                metalness={gilded && i % 2 === 1 ? 0.76 : 0.06}
-              />
-            </mesh>
-            {/* угловой резной пинакль на каждом устое (для L4..5) */}
-            {isChapel && i % 2 === 0 ? (
-              <mesh
-                geometry={geoms.pinnacleSpire}
-                position={[rx * 1.02, 0.18, rz * 1.02]}
-                scale={[0.56, 0.48, 0.56]}
-                castShadow
-              >
-                <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
-              </mesh>
-            ) : null}
-          </group>
-        );
-      })}
-
-      {/* замковое кольцо свода (ключевой камень ротонды) */}
-      <mesh position-y={0.16 + vaultH} castShadow>
-        <cylinderGeometry args={[radius * 0.52, radius * 0.62, 0.1, 8]} />
-        <meshStandardMaterial
-          color={gilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.forgedIron}
-          roughness={0.42}
-          metalness={0.8}
-        />
-      </mesh>
-
-      {/* парящий многослойный некротический кристалл + тёмное ядро */}
-      <mesh ref={crystalRef} geometry={geoms.crystal} position-y={0.48} scale={isCathedral ? 1.08 : 0.9}>
-        <meshStandardMaterial {...createNecroticCrystalMaterialProps()} />
-      </mesh>
-      <mesh ref={coreRef} geometry={geoms.crystalCore} position-y={0.48} scale={isCathedral ? 1.0 : 0.85}>
-        <meshStandardMaterial color="#0b2820" emissive="#124e3c" emissiveIntensity={0.6} roughness={0.2} metalness={0.6} />
-      </mesh>
-
-      {/* вращающиеся рунные орбиты вокруг кристалла */}
-      {ringCount >= 1 ? (
-        <mesh ref={ring1Ref} position-y={0.48} rotation={[0.52, 0, 0.28]}>
-          <torusGeometry args={[radius * 0.58, 0.018, 6, 20]} />
-          <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.36} metalness={0.84} />
-        </mesh>
-      ) : null}
-      {ringCount >= 2 ? (
-        <mesh ref={ring2Ref} position-y={0.48} rotation={[-0.48, 0.35, 0.5]}>
-          <torusGeometry args={[radius * 0.72, 0.016, 6, 20]} />
-          <meshStandardMaterial map={tex.ironMap} roughness={0.38} metalness={0.88} />
-        </mesh>
-      ) : null}
-
-      {/* сфокусированный локальный некротический свет (освещает свод ротонды изнутри) */}
-      <pointLight
-        ref={lightRef}
-        position={[0, 0.5, 0]}
-        color={CITADEL_PALETTE.necroticGlow}
-        intensity={isCathedral ? 1.15 : 0.8}
-        distance={3.4}
-        decay={2}
-      />
-
-      {/* ажурный готический шпиль-венец над замковым камнем */}
-      <mesh geometry={geoms.pinnacleSpire} position-y={0.18 + vaultH} scale={[1.38, 0.92, 1.38]} castShadow>
-        <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.025} roughness={0.72} metalness={0.12} />
-      </mesh>
-      {/* золочёно-кованый крестоцвет на макушке */}
-      <mesh position-y={0.18 + vaultH + 0.94} castShadow>
-        <coneGeometry args={[0.044, 0.24, 6]} />
-        <meshStandardMaterial
-          color={gilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.forgedIron}
-          roughness={0.38}
-          metalness={0.84}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-/**
- * МАССИВНЫЙ ГОТИЧЕСКИЙ ПОРТАЛ (+Z) С ГЛУБОКОЙ РЕЗЬБОЙ:
- * уступчатые перспективные архивольты (2..3 слоя), тонкие колонки с капителями,
- * резной трилистник тимпана, острый вимперг с краббами, геральдический щит,
- * костяные рогатые трофеи, окованные ворота с заклёпками и зубастая герса.
- */
-function CitadelPortal({
-  spec,
-  keepBaseY,
-  keepHalf,
-  geoms,
-  tex,
-}: {
-  spec: CitadelLevelVisualSpec;
-  keepBaseY: number;
-  keepHalf: number;
-  geoms: CitadelGeometrySet;
-  tex: CitadelTextureSet;
-}) {
-  const zFace = keepHalf;
-  const isBarbican = spec.gateStyle === "barbican-fortress";
-  const hasPorch = spec.level >= 2;
-  const hasPortcullis = spec.level >= 3;
-  const porchDepth = isBarbican ? 0.36 : spec.level >= 3 ? 0.28 : spec.level === 2 ? 0.22 : 0.16;
-  const frontZ = zFace + porchDepth;
-  const doorW = isBarbican ? 0.72 : spec.level >= 3 ? 0.64 : 0.56;
-  const doorH = isBarbican ? 1.06 : spec.level >= 3 ? 0.96 : 0.88;
-  const doorZ = frontZ - (spec.portalArchTiers - 1) * 0.065 - 0.04;
-  const gilded = spec.goldTrimStage === "gilded-tracery" || spec.goldTrimStage === "sovereign-filigree";
-
-  return (
-    <group>
-      {/* корпус портального притвора / барбакана: боковые устои + свод над проёмом, открытая ниша для ворот */}
-      <group position={[0, keepBaseY, zFace + porchDepth / 2]}>
-        {/* перемычка-антреволь над аркой проёма (оставляет проход открытым до doorZ!) */}
-        <mesh position-y={doorH * 0.86} castShadow receiveShadow>
-          <boxGeometry args={[doorW + 0.4, doorH * 0.24, porchDepth]} />
-          <meshStandardMaterial
-            map={tex.basaltMap}
-            bumpMap={tex.basaltBump}
-            roughnessMap={tex.basaltRoughness}
-            bumpScale={0.032}
-            roughness={0.9}
-          />
-        </mesh>
-        {/* боковые устои ниши (обрамляют уступчатый проём слева и справа, оставляя ворота полностью видимыми) */}
-        {[-1, 1].map((sx) => (
-          <mesh key={`jamb${sx}`} position={[sx * (doorW * 0.48 + 0.12), doorH * 0.44, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.24, doorH * 0.88, porchDepth]} />
-            <meshStandardMaterial
-              map={tex.basaltMap}
-              bumpMap={tex.basaltBump}
-              roughnessMap={tex.basaltRoughness}
-              bumpScale={0.032}
-              roughness={0.9}
-            />
-          </mesh>
-        ))}
-        {/* боковые портальные пилоны (с пинаклями на ур. 3..5) */}
-        {[-1, 1].map((sx) => (
-          <group key={sx} position={[sx * (doorW * 0.56 + 0.1), 0, porchDepth * 0.16]}>
-            <mesh position-y={doorH * 0.68} castShadow>
-              <boxGeometry args={[0.2, doorH * 1.36, porchDepth * 0.92]} />
-              <meshStandardMaterial
-                map={tex.dressedMap}
-                bumpMap={tex.dressedBump}
-                roughnessMap={tex.dressedRoughness}
-                bumpScale={0.025}
-                roughness={0.86}
-              />
-            </mesh>
-            {spec.hasPinnacles ? (
-              <mesh geometry={geoms.pinnacleSpire} position-y={doorH * 1.36} scale={[0.62, 0.44, 0.62]} castShadow>
-                <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
-              </mesh>
-            ) : (
-              <mesh position-y={doorH * 1.38} castShadow>
-                <coneGeometry args={[0.13, 0.22, 4]} />
-                <meshStandardMaterial map={tex.slateMap} roughness={0.72} />
-              </mesh>
-            )}
-            {/* костяные трофеи или щиты на пилонах барбакана (ур. 4..5) */}
-            {spec.level >= 4 ? (
-              <HornedSkullTrophy position={[0, doorH * 0.92, porchDepth * 0.48]} scale={0.78} geoms={geoms} tex={tex} />
-            ) : null}
-          </group>
-        ))}
-
-        {/* накрывающая скатная крыша притвора (строго в профиль вимперга, без торчащих углов) */}
-        {hasPorch ? (
-          <mesh
-            geometry={geoms.gableRoof}
-            position={[0, doorH * 0.78, -0.02]}
-            scale={[doorW + 0.34, 0.64, porchDepth * 0.94]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.025} roughness={0.74} />
-          </mesh>
-        ) : null}
-      </group>
-
-      {/* ПЕРСПЕКТИВНЫЕ СТУПЕНЧАТЫЕ АРХИВОЛЬТЫ (2 или 3 вложенных стрельчатых обвода!) */}
-      {Array.from({ length: spec.portalArchTiers }, (_, tier) => {
-        const shrink = tier * 0.14;
-        const z = frontZ - tier * 0.065;
-        return (
-          <group key={`arch${tier}`}>
-            <mesh
-              geometry={geoms.pointedArch}
-              position={[0, keepBaseY, z]}
-              scale={[doorW + 0.38 - shrink, doorH + 0.3 - shrink * 0.72, 0.085]}
-              castShadow
-            >
-              <meshStandardMaterial
-                map={tex.dressedMap}
-                bumpMap={tex.dressedBump}
-                roughnessMap={tex.dressedRoughness}
-                bumpScale={0.024}
-                roughness={0.86}
-              />
-            </mesh>
-            {/* тонкие боковые колонки-пилястры у каждого уступа */}
-            {[-1, 1].map((sx) => (
-              <mesh
-                key={sx}
-                position={[sx * ((doorW + 0.3 - shrink) * 0.41), keepBaseY + (doorH + 0.1 - shrink) * 0.32, z + 0.032]}
-              >
-                <cylinderGeometry args={[0.026, 0.032, (doorH + 0.1 - shrink) * 0.64, 6]} />
-                <meshStandardMaterial
-                  color={tier === 0 && gilded ? "#6e5632" : CITADEL_PALETTE.stoneDressed}
-                  roughness={tier === 0 && gilded ? 0.46 : 0.84}
-                  metalness={tier === 0 && gilded ? 0.7 : 0.06}
-                />
-              </mesh>
-            ))}
-          </group>
-        );
-      })}
-
-      {/* ВЫСОКИЙ РЕЗНОЙ ГОТИЧЕСКИЙ ВИМПЕРГ С КРАББАМИ НАД ПОРТАЛОМ */}
-      <mesh
-        geometry={geoms.wimperg}
-        position={[0, keepBaseY + doorH * 0.76, frontZ + 0.04]}
-        scale={[doorW + 0.44, 0.74, 0.08]}
-        castShadow
-      >
-        <meshStandardMaterial
-          map={tex.dressedMap}
-          bumpMap={tex.dressedBump}
           roughnessMap={tex.dressedRoughness}
-          bumpScale={0.024}
           roughness={0.84}
         />
       </mesh>
-      {/* шпиль-крестоцвет вимперга */}
-      <mesh position={[0, keepBaseY + doorH * 0.76 + 0.86, frontZ + 0.04]} castShadow>
-        <coneGeometry args={[0.034, 0.18, 4]} />
-        <meshStandardMaterial
-          color={gilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.forgedIron}
-          roughness={0.42}
-          metalness={0.8}
-        />
+
+      {/* Карнизный пояс и зубчатый крепостной парапет (отличает гейтхаус от фронтона нефа!) */}
+      <mesh position={[0, spec.gateWallHeight + 0.04, 0]} castShadow>
+        <boxGeometry args={[spec.gateWidth + 0.10, 0.08, spec.gateDepth + 0.08]} />
+        <meshStandardMaterial map={tex.dressedMap} roughness={0.82} />
+      </mesh>
+      <mesh position={[0, spec.gateWallHeight + spec.gateParapetHeight * 0.35, 0]} castShadow>
+        <boxGeometry args={[spec.gateWidth + 0.06, spec.gateParapetHeight * 0.65, spec.gateDepth + 0.04]} />
+        <meshStandardMaterial map={tex.wallMap} bumpMap={tex.wallBump} bumpScale={0.03} roughness={0.86} />
+      </mesh>
+      {spec.level >= 2
+        ? [-0.38, -0.13, 0.13, 0.38].map((mx, i) => (
+            <mesh key={`gm-${i}`} position={[mx * spec.gateWidth, spec.gateWallHeight + spec.gateParapetHeight * 0.85, frontFaceZ - 0.05]} castShadow>
+              <boxGeometry args={[spec.gateWidth * 0.16, spec.gateParapetHeight * 0.48, 0.14]} />
+              <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+            </mesh>
+          ))
+        : null}
+
+      {/* Задняя тёмная стенка и глухая верхняя/боковая полость тоннеля (ЗА створками врат и под трилистником!) */}
+      <mesh position={[0, spec.portalVoidHeight * 0.5, doorZ - 0.08]}>
+        <boxGeometry args={[spec.portalVoidWidth * 0.96, spec.portalVoidHeight * 0.98, 0.10]} />
+        <meshStandardMaterial color={CITADEL_PALETTE.portalVoid} roughness={0.96} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh
+          key={`tun-side-${side}`}
+          position={[side * (spec.portalVoidWidth * 0.48), spec.portalVoidHeight * 0.48, frontFaceZ - spec.portalVoidDepth * 0.5]}
+        >
+          <boxGeometry args={[0.04, spec.portalVoidHeight * 0.96, spec.portalVoidDepth]} />
+          <meshStandardMaterial color="#19161a" roughness={0.94} />
+        </mesh>
+      ))}
+      <mesh position={[0, spec.portalVoidHeight * 0.94, frontFaceZ - spec.portalVoidDepth * 0.5]}>
+        <boxGeometry args={[spec.portalVoidWidth * 0.96, 0.08, spec.portalVoidDepth]} />
+        <meshStandardMaterial color="#161418" roughness={0.94} />
       </mesh>
 
-      {/* РЕЗНОЙ ТИМПАН-ТРИЛИСТНИК + ГЕРБОВЫЙ ЩИТ + КОСТЯНОЙ ЧЕРЕП */}
-      <mesh
-        geometry={geoms.trefoilTracery}
-        position={[0, keepBaseY + doorH * 0.78, frontZ - 0.11]}
-        scale={[doorW * 0.86, 0.42, 0.04]}
-      >
-        <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-      </mesh>
-      <HeraldicShield
-        position={[0, keepBaseY + doorH + 0.16, frontZ + 0.075]}
-        scale={isBarbican ? 0.92 : 0.78}
-        gilded={gilded}
+      {/* Ступенчатые уступчатые архивольты уходящие в глубину к воротам */}
+      {Array.from({ length: spec.portalArchTiers }, (_, tIdx) => {
+        const s = 1 - tIdx * 0.12;
+        const az = frontFaceZ - 0.04 - tIdx * (spec.portalVoidDepth * 0.24);
+        return (
+          <mesh
+            key={`arch-${tIdx}`}
+            geometry={geoms.pointedArch}
+            position={[0, 0.01, az]}
+            scale={[spec.portalVoidWidth * 1.18 * s, spec.portalVoidHeight * 1.02 * s, 0.11]}
+            castShadow
+          >
+            <meshStandardMaterial
+              map={tex.dressedMap}
+              bumpMap={tex.dressedBump}
+              bumpScale={0.024}
+              roughnessMap={tex.dressedRoughness}
+              roughness={0.84}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* Прорезной готический тимпан-трилистник в арке (L3–L5) */}
+      {spec.level >= 3 ? (
+        <mesh
+          geometry={geoms.trefoilTracery}
+          position={[0, spec.portalVoidHeight * 0.68, doorZ + 0.06]}
+          scale={[spec.portalVoidWidth * 0.68, spec.portalVoidHeight * 0.28, 0.06]}
+          castShadow
+        >
+          <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+        </mesh>
+      ) : null}
+
+      {/* Толстые окованные дубовые врата (4 широкие плахи на текстуре) */}
+      <group position={[0, 0, doorZ]}>
+        <mesh position={[0, spec.portalVoidHeight * 0.36, 0]} castShadow receiveShadow>
+          <boxGeometry args={[spec.portalVoidWidth * 0.86, spec.portalVoidHeight * 0.72, 0.08]} />
+          <meshStandardMaterial map={tex.timberMap} bumpMap={tex.timberBump} bumpScale={0.032} roughness={0.76} />
+        </mesh>
+        {/* Центральный стык створок + 3 кованые железные полосы с петлями и заклёпками */}
+        <mesh position={[0, spec.portalVoidHeight * 0.36, 0.045]}>
+          <boxGeometry args={[0.025, spec.portalVoidHeight * 0.70, 0.02]} />
+          <meshStandardMaterial map={tex.ironMap} roughness={0.36} metalness={0.80} />
+        </mesh>
+        {[0.14, 0.36, 0.58].map((yf, idx) => (
+          <mesh key={`band-${idx}`} position={[0, spec.portalVoidHeight * yf, 0.048]} castShadow>
+            <boxGeometry args={[spec.portalVoidWidth * 0.84, 0.045, 0.024]} />
+            <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.34} metalness={0.82} />
+          </mesh>
+        ))}
+        {/* Пара бронзовых колец-стучалок */}
+        {[-0.11, 0.11].map((rx, idx) => (
+          <mesh key={`ring-${idx}`} position={[rx, spec.portalVoidHeight * 0.30, 0.060]}>
+            <torusGeometry args={[0.038, 0.010, 6, 12]} />
+            <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.38} metalness={0.76} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Полуопущенная зубчатая кованая решётка-герса в тени арки (L2–L5) */}
+      {spec.hasPortcullis ? (
+        <group position={[0, spec.portalVoidHeight * 0.58, portcullisZ]}>
+          {[-0.32, -0.11, 0.11, 0.32].map((bx, idx) => (
+            <group key={`bar-${idx}`} position={[bx * spec.portalVoidWidth, 0, 0]}>
+              <mesh castShadow>
+                <boxGeometry args={[0.028, spec.portalVoidHeight * 0.56, 0.028]} />
+                <meshStandardMaterial map={tex.ironMap} roughness={0.36} metalness={0.82} />
+              </mesh>
+              <mesh position={[0, -spec.portalVoidHeight * 0.30, 0]} rotation-x={Math.PI} castShadow>
+                <coneGeometry args={[0.026, 0.075, 4]} />
+                <meshStandardMaterial map={tex.ironMap} roughness={0.36} metalness={0.82} />
+              </mesh>
+            </group>
+          ))}
+          {[-0.10, 0.12].map((hy, idx) => (
+            <mesh key={`hbar-${idx}`} position={[0, hy, 0]} castShadow>
+              <boxGeometry args={[spec.portalVoidWidth * 0.78, 0.03, 0.03]} />
+              <meshStandardMaterial map={tex.ironMap} roughness={0.36} metalness={0.82} />
+            </mesh>
+          ))}
+        </group>
+      ) : null}
+
+      {/* Горельефный знак Broken Ossuary Crown на каменном фризе над входом */}
+      <BrokenCrownEmblem
+        position={[0, spec.portalVoidHeight + lintelH * 0.54, frontFaceZ + 0.032]}
+        scale={spec.crownReliefScale}
+        withNiche={spec.level >= 2}
         geoms={geoms}
         tex={tex}
       />
-      {spec.level >= 2 && spec.level <= 3 ? (
-        <HornedSkullTrophy
-          position={[0, keepBaseY + doorH + 0.36, frontZ + 0.07]}
-          scale={0.72}
+
+      {/* Строгий каменный щипец-вимперг обрамляющий эмблему на L3–L5 */}
+      {spec.level >= 3 ? (
+        <mesh
+          geometry={geoms.wimperg}
+          position={[0, spec.portalVoidHeight + lintelH * 0.10, frontFaceZ + 0.01]}
+          scale={[spec.portalVoidWidth * 1.12, lintelH * 1.04, 0.07]}
+          castShadow
+        >
+          <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+        </mesh>
+      ) : null}
+
+      {/* Геральдический щит ордена на парапете гейтхауса L4–L5 */}
+      {spec.level >= 4 ? (
+        <BrokenCrownShield
+          position={[0, spec.gateWallHeight + spec.gateParapetHeight * 0.42, frontFaceZ + 0.036]}
+          scale={0.78}
           geoms={geoms}
           tex={tex}
         />
       ) : null}
 
-      {/* САЖИСТАЯ КОПОТЬ НА ПИЛОНАХ НАД ЖАРОВНЯМИ (ур. 2..5, не перекрывает проём арки) */}
-      {spec.level >= 2
-        ? [-1, 1].map((sx) => (
-            <mesh
-              key={`soot${sx}`}
-              position={[sx * (doorW * 0.56 + 0.1), keepBaseY + doorH * 0.96, zFace + porchDepth * 0.63]}
-            >
-              <planeGeometry args={[0.19, 0.44]} />
-              <meshStandardMaterial map={tex.sootOverlay} transparent opacity={0.44} depthWrite={false} roughness={0.98} />
-            </mesh>
+      {/* Сдержанные кованые жаровни у врат (мягко подсвечивают глубину портала без пересвета пилонов) */}
+      {spec.brazierCount >= 2
+        ? [-1, 1].map((side) => (
+            <GateBrazier
+              key={`bz-f-${side}`}
+              position={[side * (spec.gateWidth * 0.48), 0, frontFaceZ + 0.22]}
+              lightIntensity={side === -1 ? 0.50 : 0.40}
+              tex={tex}
+            />
           ))
         : null}
+    </group>
+  );
+}
 
-      {/* МАССИВНЫЕ ОКОВАННЫЕ ДУБОВЫЕ ВРАТА В ГЛУБИНЕ НИШИ */}
-      <group position={[0, keepBaseY, doorZ]}>
-        <mesh position-y={doorH * 0.44} castShadow>
-          <boxGeometry args={[doorW * 0.84, doorH * 0.86, 0.06]} />
-          <meshStandardMaterial map={tex.timberMap} bumpMap={tex.timberBump} bumpScale={0.028} roughness={0.9} />
+/** Анимируемый дым очага из каменной трубы правого придела/нефа. */
+function ChimneySmoke({ origin, tex }: { origin: readonly [number, number, number]; tex: CitadelTextureSet }) {
+  const puffs = useRef<(THREE.Mesh | null)[]>([]);
+  const baseProps = createAshSmokeMaterialProps();
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    puffs.current.forEach((m, i) => {
+      if (!m) return;
+      const p = (t * 0.20 + i / 5) % 1;
+      m.position.set(
+        origin[0] + Math.sin(p * 4.5 + i) * 0.07,
+        origin[1] + p * 1.15,
+        origin[2] + Math.cos(p * 3.8 + i) * 0.06,
+      );
+      m.scale.setScalar(0.32 + p * 0.72);
+      const mat = m.material as THREE.MeshStandardMaterial;
+      mat.opacity = 0.28 * (1 - p);
+    });
+  });
+
+  return (
+    <group>
+      {/* Строгая каменная дымовая труба */}
+      <mesh position={[origin[0], origin[1] - 0.34, origin[2]]} castShadow>
+        <boxGeometry args={[0.20, 0.68, 0.20]} />
+        <meshStandardMaterial map={tex.wallMap} bumpMap={tex.wallBump} bumpScale={0.03} roughness={0.88} />
+      </mesh>
+      <mesh position={[origin[0], origin[1] - 0.02, origin[2]]} castShadow>
+        <boxGeometry args={[0.26, 0.06, 0.26]} />
+        <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
+      </mesh>
+      {Array.from({ length: 5 }, (_, i) => (
+        <mesh key={i} ref={(el) => { puffs.current[i] = el; }}>
+          <dodecahedronGeometry args={[0.14, 0]} />
+          <meshStandardMaterial {...baseProps} />
         </mesh>
-            {/* кованые полосы петель + заклёпки + центральная планка */}
-            {[-0.22, 0.04, 0.28].map((dy, idx) => (
-              <group key={idx} position={[0, doorH * 0.44 + dy, 0.038]}>
-                <mesh castShadow>
-                  <boxGeometry args={[doorW * 0.78, 0.048, 0.022]} />
-                  <meshStandardMaterial map={tex.ironMap} roughnessMap={tex.ironRoughness} roughness={0.55} metalness={0.86} />
-                </mesh>
-                {[-0.22, -0.09, 0.09, 0.22].map((rx) => (
-                  <mesh key={rx} position={[rx, 0, 0.014]}>
-                    <sphereGeometry args={[0.015, 5, 5]} />
-                    <meshStandardMaterial color="#4e545e" roughness={0.34} metalness={0.88} />
+      ))}
+    </group>
+  );
+}
+
+function CitadelCathedralArchitecture({
+  spec,
+  geoms,
+  tex,
+}: {
+  spec: CitadelLevelVisualSpec;
+  geoms: CitadelGeometrySet;
+  tex: CitadelTextureSet;
+}) {
+  const py = spec.plinthHeight;
+  const naveBaseY = py;
+  const naveTopY = naveBaseY + spec.naveWallHeight;
+  const towerH = spec.towerShaftTopY - py;
+
+  // Аркбутан от левой стенки кровли Нефа к 8-гранному поясу Башни-Реликвария
+  const naveAnchor = new THREE.Vector3(spec.naveCenterX - spec.naveWidth * 0.24, naveTopY + 0.18, spec.naveCenterZ - 0.32);
+  const towerAnchor = new THREE.Vector3(
+    spec.towerCenterX + spec.towerShaftRadius * 0.76,
+    Math.min(spec.towerShaftTopY - 0.32, naveTopY + 1.08),
+    spec.towerCenterZ + spec.towerShaftRadius * 0.56,
+  );
+  const buttressSpan = Math.hypot(towerAnchor.x - naveAnchor.x, towerAnchor.z - naveAnchor.z);
+  const buttressYaw = Math.atan2(-(towerAnchor.z - naveAnchor.z), towerAnchor.x - naveAnchor.x);
+
+  return (
+    <group>
+      {/* Базовый двухступенчатый каменный стилобат + скошенный цокольный отлив */}
+      <mesh position={[spec.plinthOffsetX, py * 0.45, spec.plinthOffsetZ]} castShadow receiveShadow>
+        <boxGeometry args={[spec.plinthWidth, py * 0.90, spec.plinthDepth]} />
+        <meshStandardMaterial
+          map={tex.dressedMap}
+          bumpMap={tex.dressedBump}
+          bumpScale={0.025}
+          color="#726c64"
+          roughness={0.88}
+        />
+      </mesh>
+      <mesh position={[spec.plinthOffsetX, py * 0.94, spec.plinthOffsetZ]} castShadow receiveShadow>
+        <boxGeometry args={[spec.plinthWidth - 0.10, py * 0.16, spec.plinthDepth - 0.10]} />
+        <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.84} />
+      </mesh>
+      {/* Широкие парадные ступени к дорожке */}
+      {Array.from({ length: spec.stepCount }, (_, i) => {
+        const sh = py / spec.stepCount;
+        const sz = spec.gateFrontZ + 0.02 + i * ((spec.stepReachZ - spec.gateFrontZ) / spec.stepCount);
+        return (
+          <mesh key={i} position={[spec.gateCenterX, py - (i + 0.5) * sh, sz]} castShadow receiveShadow>
+            <boxGeometry args={[spec.portalVoidWidth + 0.52 - i * 0.08, sh, 0.20]} />
+            <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.85} />
+          </mesh>
+        );
+      })}
+
+      {/* 1. PRIMARY MASS — СОБОРНЫЙ НЕФ + РИТМ ПРОЁМОВ + АПСИДА + ТРАНСЕПТ */}
+      <group>
+        {/* Стеновой корпус Нефа (крупная блочная кладка) */}
+        <mesh position={[spec.naveCenterX, naveBaseY + spec.naveWallHeight * 0.5, spec.naveCenterZ]} castShadow receiveShadow>
+          <boxGeometry args={[spec.naveWidth, spec.naveWallHeight, spec.naveDepth]} />
+          <meshStandardMaterial
+            map={tex.wallMap}
+            bumpMap={tex.wallBump}
+            bumpScale={0.044}
+            roughnessMap={tex.wallRoughness}
+            roughness={0.86}
+          />
+        </mesh>
+
+        {/* Выраженный тёсаный карниз и зубцы парапета вдоль боковых стен (L3–L5) */}
+        <mesh position={[spec.naveCenterX, naveTopY + 0.04, spec.naveCenterZ]} castShadow>
+          <boxGeometry args={[spec.naveWidth + 0.12, 0.09, spec.naveDepth + 0.12]} />
+          <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.84} />
+        </mesh>
+        {/* Выраженная соборная сланцевая кровля с рёбрами и толстыми щипцами */}
+        <DetailedSlateGableRoof
+          position={[spec.naveCenterX, naveTopY + 0.07, spec.naveCenterZ]}
+          width={spec.naveWidth * 1.02}
+          height={spec.naveRoofHeight}
+          depth={spec.naveDepth + 0.10}
+          ribCount={spec.level >= 3 ? 4 : 2}
+          geoms={geoms}
+          tex={tex}
+        />
+
+        {/* Уступчатые контрфорсы с пинаклями и утопленные ниши-окна по обоим бортам Нефа */}
+        {Array.from({ length: spec.naveButtressPairs }, (_, i) => {
+          const zFrac = (i / (spec.naveButtressPairs - 1) - 0.5) * 0.78;
+          const bz = spec.naveCenterZ + zFrac * spec.naveDepth;
+          return (
+            <group key={`nb-${i}`}>
+              {[-1, 1].map((side) => (
+                <group key={side}>
+                  <mesh
+                    geometry={geoms.buttress}
+                    position={[spec.naveCenterX + side * (spec.naveWidth * 0.5), naveBaseY, bz]}
+                    rotation-y={side * (Math.PI / 2)}
+                    scale={[0.15, spec.naveWallHeight * 0.96, 0.24]}
+                    castShadow
+                  >
+                    <meshStandardMaterial
+                      map={tex.dressedMap}
+                      bumpMap={tex.dressedBump}
+                      bumpScale={0.024}
+                      roughnessMap={tex.dressedRoughness}
+                      roughness={0.84}
+                    />
                   </mesh>
-                ))}
-              </group>
-            ))}
-            <mesh position={[0, doorH * 0.44, 0.038]}>
-              <boxGeometry args={[0.032, doorH * 0.84, 0.022]} />
-              <meshStandardMaterial map={tex.ironMap} roughness={0.5} metalness={0.86} />
+                  {spec.hasPinnacles ? (
+                    <mesh
+                      geometry={geoms.pinnacleSpire}
+                      position={[spec.naveCenterX + side * (spec.naveWidth * 0.5 + 0.05), naveTopY + 0.06, bz]}
+                      scale={[0.42, 0.42, 0.42]}
+                      castShadow
+                    >
+                      <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+                    </mesh>
+                  ) : null}
+                </group>
+              ))}
+            </group>
+          );
+        })}
+
+        {/* Ритм слепых пролётов и окон Broken Crown по видимой левой стене (-X) и правой (+X) */}
+        {Array.from({ length: Math.max(1, spec.naveButtressPairs - 1) }, (_, i) => {
+          const spanZ = spec.naveDepth * 0.78 / (spec.naveButtressPairs - 1);
+          const wz = spec.naveCenterZ + (i - (spec.naveButtressPairs - 2) * 0.5) * spanZ;
+          const bayW = Math.min(0.36, spanZ * 0.72);
+          const bayH = spec.naveWallHeight * 0.76;
+          return (
+            <group key={`bay-${i}`}>
+              <BlindMasonryBay
+                position={[spec.naveCenterX - spec.naveWidth * 0.5, naveBaseY + bayH * 0.5 + 0.08, wz]}
+                rotationY={-Math.PI / 2}
+                width={bayW}
+                height={bayH}
+                geoms={geoms}
+                tex={tex}
+              />
+              <BrokenCrownLancet
+                position={[spec.naveCenterX - spec.naveWidth * 0.5 - 0.01, naveBaseY + spec.naveWallHeight * 0.54, wz]}
+                rotationY={-Math.PI / 2}
+                width={bayW * 0.72}
+                height={bayH * 0.66}
+                lit={spec.level >= 2}
+                geoms={geoms}
+                tex={tex}
+              />
+              {!spec.hasSideChapel ? (
+                <BrokenCrownLancet
+                  position={[spec.naveCenterX + spec.naveWidth * 0.5 + 0.01, naveBaseY + spec.naveWallHeight * 0.54, wz]}
+                  rotationY={Math.PI / 2}
+                  width={bayW * 0.72}
+                  height={bayH * 0.66}
+                  lit={spec.level >= 2}
+                  geoms={geoms}
+                  tex={tex}
+                />
+              ) : null}
+            </group>
+          );
+        })}
+
+        {/* Задняя гранёная Апсида с 3 радиальными контрфорсами и ланцетными окнами (L3–L5) */}
+        {spec.hasRearApse ? (
+          <group position={[spec.naveCenterX, naveBaseY, spec.apseOffsetZ]}>
+            <mesh position={[0, spec.apseHeight * 0.5, 0]} rotation-y={Math.PI / 6} castShadow receiveShadow>
+              <cylinderGeometry args={[spec.apseRadius, spec.apseRadius * 1.06, spec.apseHeight, 6]} />
+              <meshStandardMaterial
+                map={tex.wallMap}
+                bumpMap={tex.wallBump}
+                bumpScale={0.04}
+                roughnessMap={tex.wallRoughness}
+                roughness={0.86}
+              />
             </mesh>
-            {/* кованые дверные кольца */}
-            {[-0.12, 0.12].map((rx) => (
-              <mesh key={rx} position={[rx, doorH * 0.42, 0.052]}>
-                <torusGeometry args={[0.036, 0.01, 5, 10]} />
-                <meshStandardMaterial color="#735b36" roughness={0.44} metalness={0.82} />
-              </mesh>
-            ))}
-            {/* ПОДНЯТАЯ ЗУБАСТАЯ ГЕРСА (ур. 3..5) */}
-            {hasPortcullis ? (
-              <group position={[0, doorH * 0.66, 0.056]}>
-                <mesh position-y={0.1}>
-                  <boxGeometry args={[doorW * 0.82, 0.04, 0.03]} />
-                  <meshStandardMaterial color="#1f2329" roughness={0.46} metalness={0.88} />
+            <mesh position={[0, spec.apseHeight + 0.03, 0]} rotation-y={Math.PI / 6} castShadow>
+              <cylinderGeometry args={[spec.apseRadius * 1.07, spec.apseRadius * 1.07, 0.08, 6]} />
+              <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+            </mesh>
+            <mesh position={[0, spec.apseHeight + 0.44, 0]} rotation-y={Math.PI / 6} castShadow>
+              <coneGeometry args={[spec.apseRadius * 1.10, 0.84, 6]} />
+              <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.03} roughness={0.68} />
+            </mesh>
+            {[Math.PI, Math.PI * 0.68, Math.PI * 1.32].map((ang, idx) => (
+              <group key={`apb-${idx}`} rotation-y={ang}>
+                <mesh
+                  geometry={geoms.buttress}
+                  position={[0, 0, spec.apseRadius * 0.94]}
+                  scale={[0.16, spec.apseHeight * 0.92, 0.24]}
+                  castShadow
+                >
+                  <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
                 </mesh>
-                {[-0.24, -0.12, 0, 0.12, 0.24].map((x) => (
-                  <group key={x} position={[x, 0, 0]}>
-                    <mesh>
-                      <boxGeometry args={[0.026, 0.3, 0.026]} />
-                      <meshStandardMaterial color="#1f2329" roughness={0.46} metalness={0.88} />
-                    </mesh>
-                    <mesh position-y={-0.17} rotation-x={Math.PI}>
-                      <coneGeometry args={[0.024, 0.08, 4]} />
-                      <meshStandardMaterial color="#2a2f36" roughness={0.4} metalness={0.88} />
-                    </mesh>
-                  </group>
-                ))}
               </group>
+            ))}
+            <BrokenCrownLancet
+              position={[0, spec.apseHeight * 0.56, -spec.apseRadius * 0.92]}
+              rotationY={Math.PI}
+              width={0.26}
+              height={0.66}
+              lit
+              geoms={geoms}
+              tex={tex}
+            />
+          </group>
+        ) : null}
+
+        {/* Поперечное правое соборное крыло / Трансепт с перпендикулярной кровлей (L4–L5) */}
+        {spec.hasSideChapel ? (
+          <group position={[spec.sideChapelCenterX, naveBaseY, spec.naveCenterZ - 0.04]}>
+            <mesh position={[0, spec.sideChapelHeight * 0.5, 0]} castShadow receiveShadow>
+              <boxGeometry args={[spec.sideChapelWidth, spec.sideChapelHeight, spec.sideChapelDepth]} />
+              <meshStandardMaterial
+                map={tex.wallMap}
+                bumpMap={tex.wallBump}
+                bumpScale={0.04}
+                roughnessMap={tex.wallRoughness}
+                roughness={0.86}
+              />
+            </mesh>
+            <mesh position={[0, spec.sideChapelHeight + 0.03, 0]} castShadow>
+              <boxGeometry args={[spec.sideChapelWidth + 0.08, 0.07, spec.sideChapelDepth + 0.08]} />
+              <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+            </mesh>
+            <DetailedSlateGableRoof
+              position={[0, spec.sideChapelHeight + 0.06, 0]}
+              rotationY={Math.PI / 2}
+              width={spec.sideChapelDepth * 0.98}
+              height={spec.sideChapelRoofHeight}
+              depth={spec.sideChapelWidth + 0.14}
+              ribCount={2}
+              geoms={geoms}
+              tex={tex}
+            />
+            <mesh
+              geometry={geoms.buttress}
+              position={[spec.sideChapelWidth * 0.5, 0, 0]}
+              rotation-y={Math.PI / 2}
+              scale={[0.18, spec.sideChapelHeight * 0.92, 0.20]}
+              castShadow
+            >
+              <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+            </mesh>
+            <BrokenCrownLancet
+              position={[spec.sideChapelWidth * 0.5 + 0.01, spec.sideChapelHeight * 0.56, 0]}
+              rotationY={Math.PI / 2}
+              width={0.30}
+              height={0.70}
+              lit
+              geoms={geoms}
+              tex={tex}
+            />
+            <BrokenCrownShield
+              position={[spec.sideChapelWidth * 0.5 + 0.02, spec.sideChapelHeight + 0.34, 0]}
+              rotationY={Math.PI / 2}
+              scale={0.75}
+              geoms={geoms}
+              tex={tex}
+            />
+          </group>
+        ) : null}
+
+        {/* Выраженный верхний знак-щита на главном восточном щипце Нефа за Гейтхаусом (L3–L5) */}
+        {spec.level >= 3 ? (
+          <BrokenCrownEmblem
+            position={[spec.naveCenterX, naveTopY + spec.naveRoofHeight * 0.48, spec.naveCenterZ + spec.naveDepth * 0.5 + 0.04]}
+            scale={0.40}
+            withNiche={false}
+            geoms={geoms}
+            tex={tex}
+          />
+        ) : null}
+      </group>
+
+      {/* 2. SECONDARY MASS — МОНУМЕНТАЛЬНЫЙ ГЕЙТХАУС */}
+      <MonumentalGatehouse spec={spec} geoms={geoms} tex={tex} />
+
+      {/* 3. DOMINANT VERTICAL ACCENT — СТУПЕНЧАТО-ГРАНЁНАЯ БАШНЯ-РЕЛИКВАРИЙ */}
+      <group position={[spec.towerCenterX, 0, spec.towerCenterZ]}>
+        {/* Мощный уступчатый цоколь башни в каменной кладке */}
+        <mesh position={[0, py + towerH * 0.19, 0]} castShadow receiveShadow>
+          <boxGeometry args={[spec.towerBaseSize, towerH * 0.38, spec.towerBaseSize]} />
+          <meshStandardMaterial
+            map={tex.wallMap}
+            bumpMap={tex.wallBump}
+            bumpScale={0.042}
+            roughnessMap={tex.wallRoughness}
+            roughness={0.86}
+          />
+        </mesh>
+        <mesh position={[0, py + towerH * 0.39, 0]} castShadow>
+          <boxGeometry args={[spec.towerBaseSize + 0.09, 0.10, spec.towerBaseSize + 0.09]} />
+          <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.84} />
+        </mesh>
+
+        {/* 4 диагонально-осевых контрфорса с пинаклями вокруг устоя башни */}
+        {[0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].map((ang, idx) => (
+          <group key={`tb-${idx}`} rotation-y={ang}>
+            <mesh
+              geometry={geoms.buttress}
+              position={[0, py, spec.towerShaftRadius * 0.86]}
+              scale={[0.15, towerH * 0.78, 0.22]}
+              castShadow
+            >
+              <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.022} roughness={0.84} />
+            </mesh>
+            {spec.hasPinnacles ? (
+              <mesh
+                geometry={geoms.pinnacleSpire}
+                position={[0, py + towerH * 0.39, spec.towerBaseSize * 0.44]}
+                scale={[0.40, 0.44, 0.40]}
+                castShadow
+              >
+                <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+              </mesh>
             ) : null}
           </group>
+        ))}
+
+        {/* Средняя 8-гранная шахта святилища в блочной кладке */}
+        <mesh position={[0, py + towerH * 0.62, 0]} rotation-y={Math.PI / 8} castShadow receiveShadow>
+          <cylinderGeometry args={[spec.towerShaftRadius * 0.94, spec.towerShaftRadius * 1.06, towerH * 0.56, 8]} />
+          <meshStandardMaterial
+            map={tex.wallMap}
+            bumpMap={tex.wallBump}
+            bumpScale={0.042}
+            roughnessMap={tex.wallRoughness}
+            roughness={0.86}
+          />
+        </mesh>
+
+        {/* Углублённые вертикальные щели-амбразуры на плоских гранях 8-гранной башни (Math.PI/8 учтён!) */}
+        {spec.level >= 2
+          ? [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].map((ang, idx) => (
+              <group key={`tslit-${idx}`} rotation-y={ang}>
+                <BrokenCrownLancet
+                  position={[0, py + towerH * 0.66, spec.towerShaftRadius * 0.94]}
+                  width={0.18}
+                  height={0.56}
+                  lit={spec.level >= 3}
+                  geoms={geoms}
+                  tex={tex}
+                />
+              </group>
+            ))
+          : null}
+
+        {/* Верхний ярус фонаря или шатровая крыша */}
+        {spec.hasBrokenCrownTop ? (
+          <>
+            {/* Консольный открытый фонарный ярус оссуария (L4–L5) из 8 каменных столпов + решётка */}
+            <group position={[0, spec.towerShaftTopY - 0.54, 0]}>
+              <mesh position={[0, 0.04, 0]} rotation-y={Math.PI / 8} castShadow>
+                <cylinderGeometry args={[spec.towerShaftRadius * 1.06, spec.towerShaftRadius * 0.96, 0.08, 8]} />
+                <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+              </mesh>
+              <mesh position={[0, 0.28, 0]}>
+                <cylinderGeometry args={[spec.towerShaftRadius * 0.52, spec.towerShaftRadius * 0.56, 0.42, 8]} />
+                <meshStandardMaterial color={CITADEL_PALETTE.portalVoid} roughness={0.95} />
+              </mesh>
+              {Array.from({ length: 8 }, (_, k) => {
+                const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
+                const r = spec.towerShaftRadius * 0.92;
+                return (
+                  <mesh key={`lp-${k}`} position={[Math.sin(a) * r, 0.28, Math.cos(a) * r]} castShadow>
+                    <boxGeometry args={[0.10, 0.44, 0.10]} />
+                    <meshStandardMaterial map={tex.dressedMap} roughness={0.84} />
+                  </mesh>
+                );
+              })}
+            </group>
+            <BrokenOssuaryCrownTop
+              baseY={spec.crownBaseY}
+              topY={spec.crownTotalTopY}
+              shaftRadius={spec.towerShaftRadius}
+              geoms={geoms}
+              tex={tex}
+              sovereign={spec.level === 5}
+              withBanner={spec.bannerCount >= 2}
+            />
+          </>
+        ) : spec.level === 1 ? (
+          <group position={[0, spec.towerShaftTopY, 0]}>
+            <mesh position={[0, 0.12, 0]} castShadow>
+              <boxGeometry args={[spec.towerBaseSize * 0.82, 0.22, spec.towerBaseSize * 0.82]} />
+              <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.03} roughness={0.72} />
+            </mesh>
+          </group>
+        ) : (
+          <group position={[0, spec.towerShaftTopY, 0]}>
+            <mesh position={[0, (spec.crownTotalTopY - spec.towerShaftTopY) * 0.44, 0]} rotation-y={Math.PI / 8} castShadow>
+              <coneGeometry
+                args={[spec.towerShaftRadius * 1.18, (spec.crownTotalTopY - spec.towerShaftTopY) * 0.88, 8]}
+              />
+              <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.032} roughness={0.68} />
+            </mesh>
+            {spec.level === 3 ? (
+              <>
+                <mesh position={[0, (spec.crownTotalTopY - spec.towerShaftTopY) * 0.84, 0]} castShadow>
+                  <cylinderGeometry args={[0.022, 0.036, 0.56, 6]} />
+                  <meshStandardMaterial map={tex.ironMap} roughness={0.38} metalness={0.80} />
+                </mesh>
+                <CitadelBanner position={[0, spec.crownTotalTopY - spec.towerShaftTopY - 0.44, 0]} scale={0.78} phase={0.2} tex={tex} />
+              </>
+            ) : null}
+          </group>
+        )}
+      </group>
+
+      {/* Ажурные аркбутаны в просвете между Нефом и Башней-Реликварием (L3–L5) */}
+      {spec.flyingButtressCount >= 1 ? (
+        <mesh
+          geometry={geoms.flyingButtress}
+          position={[naveAnchor.x, naveAnchor.y, naveAnchor.z]}
+          rotation-y={buttressYaw}
+          scale={[buttressSpan, Math.max(0.55, towerAnchor.y - naveAnchor.y + 0.18), 0.14]}
+          castShadow
+        >
+          <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.022} roughness={0.84} />
+        </mesh>
+      ) : null}
+      {spec.flyingButtressCount >= 2 ? (
+        <mesh
+          geometry={geoms.flyingButtress}
+          position={[naveAnchor.x + 0.14, naveAnchor.y - 0.34, naveAnchor.z + 0.22]}
+          rotation-y={buttressYaw - 0.14}
+          scale={[buttressSpan * 0.96, Math.max(0.52, towerAnchor.y - naveAnchor.y + 0.05), 0.13]}
+          castShadow
+        >
+          <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.022} roughness={0.84} />
+        </mesh>
+      ) : null}
+
+      {/* Очаг-труба с тихим вьющимся дымком */}
+      <ChimneySmoke origin={spec.smokeOrigin} tex={tex} />
     </group>
   );
 }
 
 export function CitadelBuilding({ level = 1, grid }: { level?: number; grid: CourtGridLite }) {
   const spec = getCitadelVisualSpec(level);
-  const tex = useCitadelTextureSet();
   const geoms = useCitadelGeometrySet();
-
+  const tex = useCitadelTextureSet();
   const at = grid.buildings.find((b) => b.type === "townhall") ?? { x: 7, z: 7 };
-  const center = footprintCenterToWorld("townhall", at.x, at.z, grid.size);
-
-  const smokeRefs = useRef<(THREE.Mesh | null)[]>([]);
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    const [ox, oy, oz] = spec.smokeOrigin;
-    smokeRefs.current.forEach((m, i) => {
-      if (!m) return;
-      const p = (t * 0.2 + i / 5) % 1;
-      m.position.set(ox + Math.sin((p + i) * 4.5) * 0.09, oy + p * 1.65, oz);
-      m.scale.setScalar(0.38 + p * 1.15);
-      (m.material as THREE.MeshStandardMaterial).opacity = 0.28 * (1 - p);
-    });
-  });
-
-  const keepBaseY = spec.plinthHeight;
-  const keepTopY = keepBaseY + spec.keepHeight;
-  const upperTopY = keepTopY + spec.upperHeight;
-  const keepHalf = spec.keepWidth / 2;
-  const upperHalf = spec.upperWidth / 2;
-  const plinthHalf = spec.plinthSize / 2;
-
-  const isGilded = spec.goldTrimStage === "gilded-tracery" || spec.goldTrimStage === "sovereign-filigree";
-  const isSovereign = spec.level === 5;
-  const isBarbican = spec.gateStyle === "barbican-fortress";
-  const turretRadius = spec.level >= 5 ? 0.33 : spec.level === 4 ? 0.31 : spec.level === 3 ? 0.31 : 0.32;
-  const turretOffset = spec.level >= 4 ? keepHalf - 0.04 : keepHalf - 0.02;
-  const turretHeight =
-    spec.level === 5
-      ? spec.keepHeight + spec.upperHeight + 0.44
-      : spec.level === 4
-        ? spec.keepHeight + spec.upperHeight + 0.2
-        : spec.level === 3
-          ? spec.keepHeight + spec.upperHeight + 0.08
-          : spec.keepHeight + spec.upperHeight + 0.42;
-  const turretSpireHeight = spec.level >= 5 ? 0.98 : spec.level === 4 ? 0.84 : spec.level === 3 ? 0.72 : 0.84;
-  const turretBannerY = keepBaseY + turretHeight + turretSpireHeight + (spec.level >= 4 ? 0.14 : 0.06);
-
-  const turretPositions: readonly (readonly [number, number])[] =
-    spec.turretLayout === "single-watch"
-      ? [[-turretOffset, turretOffset]]
-      : spec.turretLayout === "twin-front"
-        ? [
-            [-turretOffset, turretOffset],
-            [turretOffset, turretOffset],
-          ]
-        : spec.turretLayout === "four-corner" || spec.turretLayout === "four-bastion-spired"
-          ? [
-              [-turretOffset, turretOffset],
-              [turretOffset, turretOffset],
-              [-turretOffset, -turretOffset],
-              [turretOffset, -turretOffset],
-            ]
-          : [];
-
-  const buttressLateralOffsets = spec.level >= 4 ? [-0.54, 0.54] : [-0.46, 0.46];
+  const { wx, wz } = footprintCenterToWorld("townhall", at.x, at.z, grid.size);
 
   return (
-    <group position={[center.wx, 0.08, center.wz]} rotation-y={Math.PI / 2}>
-      {/* ---------- 1. СТУПЕНЧАТЫЙ СКОШЕННЫЙ КАМЕННЫЙ ПОДИУМ И ЛЕСТНИЦА ---------- */}
-      <mesh position-y={spec.plinthHeight * 0.45} rotation-y={Math.PI / 4} castShadow receiveShadow>
-        <cylinderGeometry
-          args={[(spec.plinthSize * 0.96) / Math.SQRT2, (spec.plinthSize + 0.16) / Math.SQRT2, spec.plinthHeight * 0.9, 4]}
-        />
-        <meshStandardMaterial
-          map={tex.basaltMap}
-          bumpMap={tex.basaltBump}
-          roughnessMap={tex.basaltRoughness}
-          bumpScale={0.034}
-          roughness={0.92}
-        />
-      </mesh>
-      <mesh position-y={spec.plinthHeight - 0.038} castShadow receiveShadow>
-        <boxGeometry args={[spec.plinthSize, 0.076, spec.plinthSize]} />
-        <meshStandardMaterial
-          map={tex.dressedMap}
-          bumpMap={tex.dressedBump}
-          roughnessMap={tex.dressedRoughness}
-          bumpScale={0.025}
-          roughness={0.88}
-        />
-      </mesh>
-
-      {/* парадная каменная лестница внутри пятна (<= spec.stepReachZ) */}
-      {Array.from({ length: spec.stepCount }, (_, i) => {
-        const stepD = (spec.stepReachZ - plinthHalf + 0.12) / spec.stepCount;
-        const zCenter = plinthHalf - 0.06 + stepD * (i + 0.5);
-        const stepH = spec.plinthHeight * ((spec.stepCount - i) / spec.stepCount);
-        const stepW = 1.12 - i * 0.08;
-        return (
-          <mesh key={i} position={[0, stepH / 2, zCenter]} castShadow receiveShadow>
-            <boxGeometry args={[stepW, stepH, stepD + 0.04]} />
-            <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.022} roughness={0.88} />
-          </mesh>
-        );
-      })}
-      {spec.level >= 2
-        ? [-0.58, 0.58].map((sx) => (
-            <mesh
-              key={sx}
-              position={[sx, spec.plinthHeight * 0.52, (plinthHalf + spec.stepReachZ) / 2 - 0.06]}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry args={[0.13, spec.plinthHeight * 0.96, spec.stepReachZ - plinthHalf + 0.14]} />
-              <meshStandardMaterial map={tex.dressedMap} roughness={0.88} />
-            </mesh>
-          ))
-        : null}
-
-      {/* ---------- 2. НИЖНИЙ ЯРУС С ТРЁХМЕРНЫМИ РУСТАМИ, АРКАДАМИ И КОНТРФОРСАМИ ---------- */}
-      <mesh position-y={keepBaseY + spec.keepHeight / 2} castShadow receiveShadow>
-        <boxGeometry args={[spec.keepWidth, spec.keepHeight, spec.keepWidth]} />
-        <meshStandardMaterial
-          map={tex.basaltMap}
-          bumpMap={tex.basaltBump}
-          roughnessMap={tex.basaltRoughness}
-          bumpScale={0.038}
-          roughness={0.9}
-        />
-      </mesh>
-
-      {/* 3D-перевязка угловых рустовых камней (на углах без башен) */}
-      {[
-        [-1, -1],
-        [1, -1],
-        [-1, 1],
-        [1, 1],
-      ].map(([sx, sz], i) => {
-        const coveredByTurret = turretPositions.some(([tx, tz]) => Math.sign(tx) === sx && Math.sign(tz) === sz);
-        if (coveredByTurret) return null;
-        return (
-          <StaggeredCornerQuoins
-            key={i}
-            x={sx! * keepHalf}
-            z={sz! * keepHalf}
-            baseY={keepBaseY}
-            height={spec.keepHeight}
-            sx={sx!}
-            sz={sz!}
-            tex={tex}
-          />
-        );
-      })}
-
-      {/* профилированный каменный кордон-карниз между ярусами */}
-      <mesh position-y={keepTopY} castShadow receiveShadow>
-        <boxGeometry args={[spec.keepWidth + 0.16, 0.11, spec.keepWidth + 0.16]} />
-        <meshStandardMaterial
-          map={tex.dressedMap}
-          bumpMap={tex.dressedBump}
-          roughnessMap={tex.dressedRoughness}
-          bumpScale={0.025}
-          roughness={0.88}
-        />
-      </mesh>
-      {spec.goldTrimStage !== "none" && spec.goldTrimStage !== "subtle-keystone" ? (
-        <mesh position-y={keepTopY + 0.01}>
-          <boxGeometry args={[spec.keepWidth + 0.175, 0.016, spec.keepWidth + 0.175]} />
-          <meshStandardMaterial color="#6e5632" roughness={0.48} metalness={0.76} />
-        </mesh>
-      ) : null}
-
-      {/* МАССИВНЫЙ ГОТИЧЕСКИЙ ПОРТАЛ (+Z) */}
-      <CitadelPortal spec={spec} keepBaseY={keepBaseY} keepHalf={keepHalf} geoms={geoms} tex={tex} />
-
-      {/* УТОПЛЕННЫЕ АРКАДЫ И ГОТИЧЕСКИЕ ОКНА БОКОВЫХ ФАСАДОВ */}
-      {[-1, 1].map((side) => (
-        <group key={`flank${side}`}>
-          {/* каменная пилястра-аркада обрамления бокового фасада */}
-          <mesh
-            geometry={geoms.pointedArch}
-            position={[side * (keepHalf + 0.015), keepBaseY + 0.06, 0]}
-            rotation-y={(side * Math.PI) / 2}
-            scale={[0.88, spec.keepHeight * 0.88, 0.06]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.basaltMap} bumpMap={tex.basaltBump} bumpScale={0.025} roughness={0.9} />
-          </mesh>
-          <RecessedLancetWindow
-            position={[side * keepHalf, keepBaseY + spec.keepHeight * 0.52, 0]}
-            rotationY={(side * Math.PI) / 2}
-            width={0.3}
-            height={0.52}
-            mode="hearth"
-            gilded={isGilded}
-            tracery={spec.level >= 3}
-            geoms={geoms}
-            tex={tex}
-          />
-          {spec.hasHeraldicShields && spec.level >= 3 ? (
-            <HeraldicShield
-              position={[side * (keepHalf + 0.03), keepTopY - 0.16, side * 0.42]}
-              rotationY={(side * Math.PI) / 2}
-              scale={0.7}
-              gilded={isGilded}
-              geoms={geoms}
-              tex={tex}
-            />
-          ) : null}
-        </group>
-      ))}
-
-      {/* ТЫЛЬНЫЙ (-Z) ФАСАД: ОКНО НА L1..2 ИЛИ ГОТИЧЕСКАЯ АПСИДА С НЕРВЮРАМИ НА L3..5 */}
-      {!spec.hasRearApse ? (
-        <group>
-          <mesh
-            geometry={geoms.pointedArch}
-            position={[0, keepBaseY + 0.06, -(keepHalf + 0.015)]}
-            rotation-y={Math.PI}
-            scale={[0.88, spec.keepHeight * 0.88, 0.06]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.basaltMap} roughness={0.9} />
-          </mesh>
-          <RecessedLancetWindow
-            position={[0, keepBaseY + spec.keepHeight * 0.52, -keepHalf]}
-            rotationY={Math.PI}
-            width={0.3}
-            height={0.52}
-            mode="hearth"
-            geoms={geoms}
-            tex={tex}
-          />
-        </group>
-      ) : (
-        <group position={[0, 0, -keepHalf - 0.08]}>
-          <mesh position-y={keepBaseY + (spec.keepHeight + spec.upperHeight * 0.56) / 2} castShadow receiveShadow>
-            <cylinderGeometry args={[0.42, 0.48, spec.keepHeight + spec.upperHeight * 0.56, 6]} />
-            <meshStandardMaterial
-              map={tex.basaltMap}
-              bumpMap={tex.basaltBump}
-              roughnessMap={tex.basaltRoughness}
-              bumpScale={0.034}
-              roughness={0.9}
-            />
-          </mesh>
-          {/* вертикальные нервюры по рёбрам шестигранной апсиды */}
-          {[0, 1, 2, 3, 4, 5].map((i) => {
-            const ang = (i * Math.PI) / 3;
-            return (
-              <mesh
-                key={i}
-                position={[
-                  Math.sin(ang) * 0.44,
-                  keepBaseY + (spec.keepHeight + spec.upperHeight * 0.56) * 0.5,
-                  Math.cos(ang) * 0.44,
-                ]}
-                castShadow
-              >
-                <boxGeometry args={[0.055, spec.keepHeight + spec.upperHeight * 0.56, 0.055]} />
-                <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-              </mesh>
-            );
-          })}
-          <mesh position-y={keepBaseY + spec.keepHeight + spec.upperHeight * 0.56 + 0.02} castShadow>
-            <cylinderGeometry args={[0.49, 0.44, 0.085, 6]} />
-            <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-          </mesh>
-          <mesh position-y={keepBaseY + spec.keepHeight + spec.upperHeight * 0.56 + 0.39} castShadow>
-            <coneGeometry args={[0.51, 0.7, 6]} />
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.026} roughness={0.74} />
-          </mesh>
-          <mesh position-y={keepBaseY + spec.keepHeight + spec.upperHeight * 0.56 + 0.8} castShadow>
-            <coneGeometry args={[0.035, 0.22, 6]} />
-            <meshStandardMaterial map={tex.ironMap} roughness={0.44} metalness={0.82} />
-          </mesh>
-          <RecessedLancetWindow
-            position={[0, keepBaseY + spec.keepHeight * 0.58, -0.44]}
-            rotationY={Math.PI}
-            width={0.24}
-            height={0.58}
-            mode={spec.level >= 4 ? "necrotic" : "hearth"}
-            gilded={isGilded}
-            tracery
-            geoms={geoms}
-            tex={tex}
-          />
-        </group>
-      )}
-
-      {/* СТУПЕНЧАТЫЕ КОНТРФОРСЫ С РЕЗНЫМИ ПИНАКЛЯМИ ПО БОКАМ И ТЫЛУ (С УР. 1..5!) */}
-      {buttressLateralOffsets.map((lat) => (
-        <group key={`but${lat}`}>
-          {[
-            { pos: [keepHalf, keepBaseY, lat] as const, rot: Math.PI / 2, pinX: keepHalf + 0.09, pinZ: lat },
-            { pos: [-keepHalf, keepBaseY, lat] as const, rot: -Math.PI / 2, pinX: -(keepHalf + 0.09), pinZ: lat },
-          ].map((b, bi) => (
-            <group key={bi}>
-              <mesh
-                geometry={geoms.buttress}
-                position={b.pos}
-                rotation-y={b.rot}
-                scale={[0.17, spec.keepHeight * 0.98, 0.27]}
-                castShadow
-                receiveShadow
-              >
-                <meshStandardMaterial
-                  map={tex.dressedMap}
-                  bumpMap={tex.dressedBump}
-                  roughnessMap={tex.dressedRoughness}
-                  bumpScale={0.024}
-                  roughness={0.88}
-                />
-              </mesh>
-              {spec.hasPinnacles ? (
-                <mesh
-                  geometry={geoms.pinnacleSpire}
-                  position={[b.pinX, keepBaseY + spec.keepHeight * 0.95, b.pinZ]}
-                  scale={[0.54, 0.42, 0.54]}
-                  castShadow
-                >
-                  <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-                </mesh>
-              ) : null}
-            </group>
-          ))}
-          {spec.level >= 2 ? (
-            <group>
-              <mesh
-                geometry={geoms.buttress}
-                position={[lat, keepBaseY, -keepHalf]}
-                rotation-y={Math.PI}
-                scale={[0.17, spec.keepHeight * 0.96, 0.24]}
-                castShadow
-                receiveShadow
-              >
-                <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.88} />
-              </mesh>
-              {spec.hasPinnacles ? (
-                <mesh
-                  geometry={geoms.pinnacleSpire}
-                  position={[lat, keepBaseY + spec.keepHeight * 0.93, -(keepHalf + 0.08)]}
-                  scale={[0.48, 0.38, 0.48]}
-                  castShadow
-                >
-                  <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-                </mesh>
-              ) : null}
-            </group>
-          ) : null}
-        </group>
-      ))}
-
-      {/* ---------- 3. ВТОРОЙ ЯРУС С ВЫРАЖЕННЫМ РЕЛЬЕФОМ И АРКАДАМИ ---------- */}
-      <mesh position-y={keepTopY + spec.upperHeight / 2} castShadow receiveShadow>
-        <boxGeometry args={[spec.upperWidth, spec.upperHeight, spec.upperWidth]} />
-        <meshStandardMaterial
-          map={spec.level === 1 ? tex.timberMap : tex.basaltMap}
-          bumpMap={spec.level === 1 ? tex.timberBump : tex.basaltBump}
-          roughnessMap={spec.level === 1 ? undefined : tex.basaltRoughness}
-          bumpScale={0.032}
-          roughness={0.9}
-        />
-      </mesh>
-
-      {/* деревянно-кованый каркас, раскосы и консоли-подкосы (L1..L2 ярко выражены) */}
-      {spec.level <= 3
-        ? [-1, 1].map((side) => (
-            <group key={`tm${side}`}>
-              {[-upperHalf * 0.68, 0, upperHalf * 0.68].map((off) => (
-                <group key={off}>
-                  <mesh position={[off, keepTopY + spec.upperHeight * 0.5, side * (upperHalf + 0.018)]} castShadow>
-                    <boxGeometry args={[0.08, spec.upperHeight, 0.045]} />
-                    <meshStandardMaterial map={tex.timberMap} bumpMap={tex.timberBump} bumpScale={0.022} roughness={0.88} />
-                  </mesh>
-                  <mesh position={[off, keepTopY - 0.12, side * (upperHalf - 0.03)]} rotation-x={side * 0.45} castShadow>
-                    <boxGeometry args={[0.07, 0.24, 0.095]} />
-                    <meshStandardMaterial map={tex.timberMap} roughness={0.88} />
-                  </mesh>
-                </group>
-              ))}
-              {[-upperHalf * 0.68, 0, upperHalf * 0.68].map((off) => (
-                <group key={`s${off}`}>
-                  <mesh position={[side * (upperHalf + 0.018), keepTopY + spec.upperHeight * 0.5, off]} castShadow>
-                    <boxGeometry args={[0.045, spec.upperHeight, 0.08]} />
-                    <meshStandardMaterial map={tex.timberMap} bumpMap={tex.timberBump} bumpScale={0.022} roughness={0.88} />
-                  </mesh>
-                  <mesh position={[side * (upperHalf - 0.03), keepTopY - 0.12, off]} rotation-z={-side * 0.45} castShadow>
-                    <boxGeometry args={[0.095, 0.24, 0.07]} />
-                    <meshStandardMaterial map={tex.timberMap} roughness={0.88} />
-                  </mesh>
-                </group>
-              ))}
-            </group>
-          ))
-        : null}
-
-      {/* готические окна верхнего яруса по всем 4 фасадам + боковые пилястры аркад */}
-      {[
-        { pos: [0, keepTopY + spec.upperHeight * 0.5, upperHalf] as const, rot: 0 },
-        { pos: [0, keepTopY + spec.upperHeight * 0.5, -upperHalf] as const, rot: Math.PI },
-        { pos: [upperHalf, keepTopY + spec.upperHeight * 0.5, 0] as const, rot: Math.PI / 2 },
-        { pos: [-upperHalf, keepTopY + spec.upperHeight * 0.5, 0] as const, rot: -Math.PI / 2 },
-      ].map((w, idx) => (
-        <RecessedLancetWindow
-          key={`uw${idx}`}
-          position={w.pos}
-          rotationY={w.rot}
-          width={spec.level >= 4 ? 0.36 : 0.28}
-          height={spec.level >= 4 ? 0.54 : 0.42}
-          mode={spec.level === 5 && idx === 1 ? "necrotic" : "hearth"}
-          gilded={isGilded}
-          tracery={spec.level >= 4}
-          geoms={geoms}
-          tex={tex}
-        />
-      ))}
-
-      {/* машикули и костяные кронштейны верхнего яруса (ур. 4..5) */}
-      {spec.hasMachicolations ? (
-        <mesh position-y={upperTopY - 0.06} castShadow>
-          <boxGeometry args={[spec.upperWidth + 0.18, 0.12, spec.upperWidth + 0.18]} />
-          <meshStandardMaterial
-            map={tex.dressedMap}
-            bumpMap={tex.dressedBump}
-            roughnessMap={tex.dressedRoughness}
-            bumpScale={0.022}
-            roughness={0.86}
-          />
-        </mesh>
-      ) : null}
-
-      {/* ---------- 4. КРОВЛЯ ОСНОВНОГО ОБЪЁМА / ВИМПЕРГИ / БОЕВОЙ ПАРАПЕТ ---------- */}
-      {spec.roofStyle === "pitched-manor" ? (
-        <group position-y={upperTopY}>
-          <mesh
-            geometry={geoms.gableRoof}
-            scale={[spec.upperWidth + 0.24, 0.92, spec.upperWidth + 0.22]}
-            castShadow
-            receiveShadow
-          >
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.03} roughness={0.74} />
-          </mesh>
-          {/* передний резной вимперг с краббами на фронтоне 1-го уровня */}
-          <mesh
-            geometry={geoms.wimperg}
-            position={[0, 0, upperHalf + 0.12]}
-            scale={[spec.upperWidth + 0.18, 0.88, 0.075]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.022} roughness={0.86} />
-          </mesh>
-          <mesh position-y={0.94} castShadow>
-            <boxGeometry args={[0.1, 0.1, spec.upperWidth + 0.28]} />
-            <meshStandardMaterial map={tex.timberMap} roughness={0.86} />
-          </mesh>
-          <mesh position-y={1.12} castShadow>
-            <coneGeometry args={[0.042, 0.34, 6]} />
-            <meshStandardMaterial map={tex.ironMap} roughness={0.44} metalness={0.84} />
-          </mesh>
-        </group>
-      ) : null}
-
-      {spec.roofStyle === "hip-dormer" ? (
-        <group position-y={upperTopY}>
-          <mesh position-y={0.54} rotation-y={Math.PI / 4} castShadow receiveShadow>
-            <coneGeometry args={[spec.upperWidth * 0.78, 1.08, 4]} />
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.03} roughness={0.74} />
-          </mesh>
-          <mesh
-            geometry={geoms.gableRoof}
-            position={[0, 0.04, upperHalf * 0.42]}
-            scale={[0.88, 0.66, 0.86]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.025} roughness={0.74} />
-          </mesh>
-          <mesh
-            geometry={geoms.wimperg}
-            position={[0, 0.04, upperHalf * 0.86]}
-            scale={[0.92, 0.68, 0.06]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-          </mesh>
-          {/* ЗАЧАТОЧНЫЙ КОВАНЫЙ НЕКРОТИЧЕСКИЙ ФОНАРЬ-МАЯК НА КОНЬКЕ УР. 2 */}
-          <group position-y={1.08}>
-            <mesh position-y={0.14} castShadow>
-              <cylinderGeometry args={[0.12, 0.16, 0.26, 4]} />
-              <meshStandardMaterial map={tex.ironMap} roughness={0.44} metalness={0.82} />
-            </mesh>
-            <mesh position-y={0.16}>
-              <octahedronGeometry args={[0.075, 0]} />
-              <meshStandardMaterial {...createNecroticCrystalMaterialProps()} emissiveIntensity={0.62} />
-            </mesh>
-            <mesh position-y={0.36} castShadow>
-              <coneGeometry args={[0.16, 0.26, 4]} />
-              <meshStandardMaterial color={CITADEL_PALETTE.agedBronze} roughness={0.42} metalness={0.76} />
-            </mesh>
-          </group>
-        </group>
-      ) : null}
-
-      {spec.hasBattlements ? (
-        <BattlementPerimeter
-          halfSpan={upperHalf + 0.06}
-          y={upperTopY}
-          weatheringStage={spec.weatheringStage}
-          geoms={geoms}
-          tex={tex}
-          hasCornerPinacles={spec.hasPinnacles}
-          skipCorners={spec.turretCount === 4}
-        />
-      ) : null}
-
-      {/* крестообразная готическая кровля с 4 резными вимпергами-щипцами (L4..5) */}
-      {spec.level >= 4 ? (
-        <group position-y={upperTopY + 0.02}>
-          <mesh
-            geometry={geoms.gableRoof}
-            scale={[spec.upperWidth * 0.88, 0.86, spec.upperWidth * 0.86]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.025} roughness={0.74} />
-          </mesh>
-          <mesh
-            geometry={geoms.gableRoof}
-            rotation-y={Math.PI / 2}
-            scale={[spec.upperWidth * 0.88, 0.86, spec.upperWidth * 0.86]}
-            castShadow
-          >
-            <meshStandardMaterial map={tex.slateMap} bumpMap={tex.slateBump} bumpScale={0.025} roughness={0.74} />
-          </mesh>
-          {/* резные каменные вимперги-краббы на всех 4 щипцах кровли */}
-          {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((ang, wi) => (
-            <mesh
-              key={wi}
-              geometry={geoms.wimperg}
-              position={[Math.sin(ang) * (upperHalf * 0.86), 0, Math.cos(ang) * (upperHalf * 0.86)]}
-              rotation-y={ang}
-              scale={[spec.upperWidth * 0.88, 0.86, 0.06]}
-              castShadow
-            >
-              <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.02} roughness={0.86} />
-            </mesh>
-          ))}
-        </group>
-      ) : null}
-
-      {/* ---------- 5. УГЛОВЫЕ БАШНИ-БАСТИОНЫ С НЕРВЮРНЫМИ ШАТРАМИ ---------- */}
-      {turretPositions.map(([tx, tz], i) => (
-        <CornerBastionTurret
-          key={`tur${i}`}
-          position={[tx, tz]}
-          baseY={keepBaseY}
-          height={turretHeight}
-          radius={turretRadius}
-          spireHeight={turretSpireHeight}
-          hasCrownRing={spec.level >= 4}
-          hasBoneSpurs={spec.boneAccentStage === "spur-finials" || spec.boneAccentStage === "ossuary-crown"}
-          hasRibbedSpire={spec.level >= 3}
-          gildedTrim={isGilded}
-          geoms={geoms}
-          tex={tex}
-        />
-      ))}
-
-      {/* АЖУРНЫЕ ПРОРЕЗНЫЕ АРКБУТАНЫ 5-ГО УРОВНЯ (от башен к соборному реликварию) */}
-      {spec.hasFlyingButtresses
-        ? turretPositions.map(([tx, tz], i) => {
-            const sx = Math.sign(tx);
-            const sz = Math.sign(tz);
-            const outerX = tx * 0.92;
-            const outerZ = tz * 0.92;
-            const span = Math.hypot(outerX, outerZ) - spec.belfryWidth * 0.56;
-            return (
-              <mesh
-                key={`fly${i}`}
-                geometry={geoms.flyingButtress}
-                position={[outerX, upperTopY + 0.36, outerZ]}
-                rotation-y={Math.atan2(sz, -sx)}
-                scale={[Math.max(0.58, span), spec.belfryHeight * 0.86, 0.15]}
-                castShadow
-              >
-                <meshStandardMaterial
-                  map={tex.dressedMap}
-                  bumpMap={tex.dressedBump}
-                  roughnessMap={tex.dressedRoughness}
-                  bumpScale={0.022}
-                  roughness={0.86}
-                />
-              </mesh>
-            );
-          })
-        : null}
-
-      {/* ---------- 6. ЦЕНТРАЛЬНАЯ БАШНЯ-ДОНЖОН И НЕКРОТИЧЕСКИЙ РЕЛИКВАРИЙ (УР. 3..5) ---------- */}
-      {spec.belfryHeight > 0 ? (
-        <group position-y={upperTopY}>
-          <mesh position-y={spec.belfryHeight / 2} castShadow receiveShadow>
-            <boxGeometry args={[spec.belfryWidth, spec.belfryHeight, spec.belfryWidth]} />
-            <meshStandardMaterial
-              map={tex.basaltMap}
-              bumpMap={tex.basaltBump}
-              roughnessMap={tex.basaltRoughness}
-              bumpScale={0.034}
-              roughness={0.9}
-            />
-          </mesh>
-          {/* угловые контрфорсные колонки донжона */}
-          {[
-            [-1, -1],
-            [1, -1],
-            [-1, 1],
-            [1, 1],
-          ].map(([sx, sz], i) => (
-            <mesh
-              key={i}
-              position={[sx! * (spec.belfryWidth * 0.47), spec.belfryHeight / 2, sz! * (spec.belfryWidth * 0.47)]}
-              castShadow
-            >
-              <boxGeometry args={[0.17, spec.belfryHeight + 0.05, 0.17]} />
-              <meshStandardMaterial map={tex.dressedMap} roughness={0.86} />
-            </mesh>
-          ))}
-          <mesh position-y={spec.belfryHeight - 0.05} castShadow>
-            <boxGeometry args={[spec.belfryWidth + 0.15, 0.1, spec.belfryWidth + 0.15]} />
-            <meshStandardMaterial
-              color={isGilded ? CITADEL_PALETTE.agedBronze : CITADEL_PALETTE.stoneDressed}
-              roughness={isGilded ? 0.42 : 0.86}
-              metalness={isGilded ? 0.76 : 0.05}
-            />
-          </mesh>
-          {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((rot, idx) => (
-            <RecessedLancetWindow
-              key={`bw${idx}`}
-              position={[
-                Math.sin(rot) * (spec.belfryWidth / 2),
-                spec.belfryHeight * 0.56,
-                Math.cos(rot) * (spec.belfryWidth / 2),
-              ]}
-              rotationY={rot}
-              width={0.24}
-              height={0.46}
-              mode={spec.level === 3 || idx % 2 === 0 ? "necrotic" : "hearth"}
-              gilded={isGilded}
-              tracery
-              geoms={geoms}
-              tex={tex}
-            />
-          ))}
-
-          {/* ВЫРАЗИТЕЛЬНЫЙ ЦЕНТРАЛЬНЫЙ НЕКРОТИЧЕСКИЙ РЕЛИКВАРИЙ (L3 -> L4 -> L5) */}
-          <NecroticReliquaryCrown
-            y={spec.belfryHeight}
-            scale={isSovereign ? 1.02 : spec.level === 4 ? 0.94 : 0.84}
-            level={spec.level as 3 | 4 | 5}
-            ringCount={spec.reliquaryRings}
-            gilded={isGilded}
-            geoms={geoms}
-            tex={tex}
-          />
-        </group>
-      ) : null}
-
-      {/* ---------- 7. ЗАКОПЧЁННАЯ ТРУБА ОЧАГА С ПЕПЕЛЬНЫМ ДЫМОМ ---------- */}
-      <group position={[keepHalf - 0.16, keepBaseY + spec.keepHeight, -keepHalf + 0.16]}>
-        <mesh position-y={0.45} castShadow>
-          <boxGeometry args={[0.25, 1.12, 0.25]} />
-          <meshStandardMaterial map={tex.dressedMap} bumpMap={tex.dressedBump} bumpScale={0.025} roughness={0.9} />
-        </mesh>
-        {/* тёмная сажа по верху трубы */}
-        <mesh position-y={0.92}>
-          <boxGeometry args={[0.26, 0.22, 0.26]} />
-          <meshStandardMaterial color={CITADEL_PALETTE.sootChar} roughness={0.96} />
-        </mesh>
-        <mesh position-y={1.06} castShadow>
-          <boxGeometry args={[0.31, 0.08, 0.31]} />
-          <meshStandardMaterial map={tex.ironMap} roughness={0.48} metalness={0.8} />
-        </mesh>
-      </group>
-      {Array.from({ length: 5 }, (_, i) => (
-        <mesh
-          key={`sm${i}`}
-          ref={(m) => {
-            smokeRefs.current[i] = m;
-          }}
-        >
-          <sphereGeometry args={[0.13, 8, 8]} />
-          <meshStandardMaterial {...createAshSmokeMaterialProps()} />
-        </mesh>
-      ))}
-
-      {/* ---------- 8. ЖАРОВНИ И РВАНЫЕ БОЕВЫЕ ШТАНДАРТЫ ---------- */}
-      {spec.brazierCount >= 2 ? (
-        <>
-          <IronBrazier position={[-0.66, keepBaseY, keepHalf + (isBarbican ? 0.38 : 0.22)]} tall={isBarbican} tex={tex} />
-          <IronBrazier position={[0.66, keepBaseY, keepHalf + (isBarbican ? 0.38 : 0.22)]} tall={isBarbican} tex={tex} />
-        </>
-      ) : null}
-      {spec.brazierCount === 4 ? (
-        <>
-          <IronBrazier position={[-0.84, upperTopY, -0.84]} tex={tex} />
-          <IronBrazier position={[0.84, upperTopY, -0.84]} tex={tex} />
-        </>
-      ) : null}
-      {spec.brazierCount >= 2 ? (
-        <pointLight
-          position={[0, keepBaseY + 0.72, keepHalf + 0.48]}
-          color={CITADEL_PALETTE.flameGlow}
-          intensity={0.58}
-          distance={2.8}
-          decay={2}
-        />
-      ) : null}
-
-      {spec.bannerCount === 1 ? (
-        <CitadelBanner position={[0, upperTopY + spec.belfryHeight + 1.38, 0]} scale={0.76} tex={tex} />
-      ) : null}
-      {spec.bannerCount >= 2 ? (
-        <>
-          {/* левая и правая башни относительно камеры после rotation-y=PI/2 (не перекрывают центральный реликварий!) */}
-          <CitadelBanner position={[-turretOffset, turretBannerY, -turretOffset]} scale={0.68} phase={0.3} tex={tex} />
-          <CitadelBanner position={[turretOffset, turretBannerY, turretOffset]} scale={0.68} phase={1.7} tex={tex} />
-        </>
-      ) : null}
-      {spec.bannerCount === 4 ? (
-        <>
-          <CitadelBanner position={[turretOffset, turretBannerY, -turretOffset]} scale={0.68} phase={2.9} tex={tex} />
-          <CitadelBanner position={[0, upperTopY + spec.belfryHeight + 1.66, 0]} scale={0.72} phase={4.1} tex={tex} />
-        </>
-      ) : null}
+    <group position={[wx, 0.08, wz]} rotation-y={Math.PI / 2}>
+      <CitadelCathedralArchitecture spec={spec} geoms={geoms} tex={tex} />
     </group>
   );
 }

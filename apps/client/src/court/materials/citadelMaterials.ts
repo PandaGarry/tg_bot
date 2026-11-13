@@ -1,58 +1,55 @@
 /**
- * Процедурные PBR-текстуры (DataTexture) и семейства материалов Цитадели (TDL-ARCH-006 v2).
+ * Процедурные PBR-текстуры (DataTexture) и палитра материалов Цитадели TDL-ARCH-006 R2.
  *
- * Ноль внешних скачиваний и ноль новых зависимостей: тайловые карты 256×256
- * (albedo, bumpMap, roughnessMap, alphaMap для рваных знамён, а также карты
- * выветренной кости, сажи/копоти и проржавевшего кованого железа) строятся
- * детерминированно в памяти на чистом Uint8Array и корректно освобождаются
- * при размонтировании (включая React StrictMode).
- *
- * Анимированные материалы (дым, пламя жаровен, некротический кристалл)
- * намеренно не разделяются между экземплярами: каждый анимируемый меш владеет
- * собственным экземпляром <meshStandardMaterial>.
+ * Калибровка специально под реальный масштаб и дистанцию игровой камеры (~24 м):
+ * - крупная каменная кладка (4-5 рядов на тайл, выраженные тёмные швы, широкие фаски);
+ * - тёпло-холодная средне-светлая палитра камня (не сливается в чёрное пятно);
+ * - чёткое разведение сланца кровли, крупноплашечного мореного дуба и блестящего кованого железа;
+ * - кость и состаренная бронза зарезервированы только под Broken Ossuary Crown и реликварий;
+ * - на штандартах нанесён единый символ фракции Broken Ossuary Crown.
  */
 
 import { useEffect, useState } from "react";
 import * as THREE from "three";
 
 export interface CitadelMaterialPalette {
-  readonly basaltBase: string;
-  readonly basaltMortar: string;
+  readonly stoneMain: string;
   readonly stoneDressed: string;
-  readonly timberBlackened: string;
-  readonly roofSlate: string;
+  readonly stoneDarkPlinth: string;
+  readonly slateRoof: string;
+  readonly timberOak: string;
   readonly forgedIron: string;
   readonly ironRust: string;
-  readonly agedBronze: string;
   readonly boneIvory: string;
-  readonly sootChar: string;
+  readonly agedBronze: string;
+  readonly portalVoid: string;
   readonly hearthGlow: string;
   readonly flameGlow: string;
   readonly necroticBase: string;
   readonly necroticGlow: string;
   readonly bannerCloth: string;
-  readonly bannerGold: string;
+  readonly bannerTrim: string;
   readonly ashSmoke: string;
 }
 
 export const CITADEL_PALETTE: CitadelMaterialPalette = {
-  basaltBase: "#46494f",
-  basaltMortar: "#202226",
-  stoneDressed: "#726c61",
-  timberBlackened: "#35251a",
-  roofSlate: "#2d343e",
-  forgedIron: "#282c33",
-  ironRust: "#5d3524",
-  agedBronze: "#9d7b3d",
-  boneIvory: "#bfb298",
-  sootChar: "#1d1b1a",
-  hearthGlow: "#e48329",
-  flameGlow: "#ff9938",
-  necroticBase: "#1e6752",
-  necroticGlow: "#34cc92",
-  bannerCloth: "#6b1b1a",
-  bannerGold: "#b58d42",
-  ashSmoke: "#847f78",
+  stoneMain: "#868178",
+  stoneDressed: "#a69e8f",
+  stoneDarkPlinth: "#595651",
+  slateRoof: "#394557",
+  timberOak: "#6b472b",
+  forgedIron: "#3a404a",
+  ironRust: "#6d3e28",
+  boneIvory: "#d4c7aa",
+  agedBronze: "#987943",
+  portalVoid: "#100f13",
+  hearthGlow: "#e6862a",
+  flameGlow: "#ffa042",
+  necroticBase: "#1e6e58",
+  necroticGlow: "#35cf95",
+  bannerCloth: "#6b1b1c",
+  bannerTrim: "#a48344",
+  ashSmoke: "#918c84",
 };
 
 export const CITADEL_TEX_SIZE = 256;
@@ -112,91 +109,85 @@ export interface TexturePixelMaps {
 }
 
 /**
- * Генерирует тайловую карту кладки тёмного готического базальта 256×256:
- * разнородные блоки, сколы углов, трещины, вертикальные потёки копоти и лишайник у швов.
+ * Крупная крепостная кладка стен (macro block scale для читаемости с 24 м):
+ * 5 выраженных рядов по высоте и 3 крупных блока в ряду, широкие скосы-фаски,
+ * чередование тёплых известняковых и холодных базальтовых блоков, глубокие швы.
  */
-export function buildBasaltAshlarMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
+export function buildWallAshlarMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
   const roughness = new Uint8Array(size * size * 4);
-  const rows = 10;
+  const rows = 5;
   const rowH = size / rows;
 
   for (let y = 0; y < size; y++) {
     const row = Math.floor(y / rowH);
     const localY = y - row * rowH;
-    const cols = row % 3 === 0 ? 5 : 4;
+    const cols = row % 2 === 0 ? 3 : 4;
     const colW = size / cols;
-    const stagger = ((row * 37) % cols) * (colW * 0.45);
-    // вертикальный профиль выветривания/копоти (усиление сажи сверху и сырости снизу)
-    const verticalWeather = Math.sin((y / size) * Math.PI * 2) * 0.5 + 0.5;
+    const stagger = ((row * 31) % cols) * (colW * 0.48);
 
     for (let x = 0; x < size; x++) {
       const sx = (x + stagger) % size;
       const col = Math.floor(sx / colW);
       const localX = sx - col * colW;
 
-      const jitterEdge = (valueNoise(x, y, 6, 311) - 0.5) * 3.2;
-      const effY = localY + jitterEdge * 0.55;
-      const effX = localX + jitterEdge * 0.55;
-      const isMortar = effY < 2.6 || effX < 2.6;
+      const edgeJitter = (valueNoise(x, y, 8, 311) - 0.5) * 3.0;
+      const effY = localY + edgeJitter * 0.6;
+      const effX = localX + edgeJitter * 0.6;
+      const isMortar = effY < 4.0 || effX < 4.0;
 
-      // скол угла у части камней
+      // Крупные сколы кромки (macro chips) вместо мелкой пыли
       const chipSeed = hash2d(col, row, 409);
       const cornerDist = Math.min(localX, colW - localX) + Math.min(localY, rowH - localY);
-      const isChipped = chipSeed > 0.62 && cornerDist < 6.5 && hash2d(x, y, 419) > 0.25;
+      const isChipped = chipSeed > 0.58 && cornerDist < 10.5 && valueNoise(x, y, 5, 421) > 0.42;
 
-      // трещины по блоку
-      const crackNoise = Math.abs(valueNoise(x + col * 19, y + row * 11, 14, 503) - 0.5);
-      const hasCrack = hash2d(col, row, 521) > 0.55 && crackNoise < 0.024 && !isMortar;
+      // Тёпло-холодная вариация каждого каменного блока
+      const warmCold = (hash2d(col, row, 19) - 0.5) * 26;
+      const blockTone = (hash2d(col, row, 37) - 0.5) * 38;
+      const broadMineral = (valueNoise(x, y, 16, 53) - 0.5) * 20;
+      const bevelTop = !isMortar && effY < 8.5 ? 20 : 0;
+      const bevelLeft = !isMortar && effX < 7.5 ? 12 : 0;
+      const bevelBot = !isMortar && effY > rowH - 5.5 ? -18 : 0;
+      const bevelRight = !isMortar && effX > colW - 4.5 ? -12 : 0;
 
-      // потёки копоти и дождевой сажи (вертикальные полосы)
-      const sootStreak = Math.max(0, valueNoise(x * 1.9, y * 0.22, 18, 601) - 0.56) * 2.2;
-      // лёгкий зеленовато-серый лишайник возле швов
-      const mossPatch =
-        (localY < 6 || localY > rowH - 5) && valueNoise(x, y, 10, 701) > 0.68 ? 1 : 0;
-
-      const blockVar = (hash2d(col, row, 17) - 0.5) * 34;
-      const coarse = (valueNoise(x, y, 10, 29) - 0.5) * 24;
-      const micro = (hash2d(x, y, 89) - 0.5) * 14;
-      const bevelTop = !isMortar && effY < 5.2 ? 12 : 0;
-      const bevelBot = !isMortar && effY > rowH - 3.6 ? -13 : 0;
+      // Мягкие широкие дождевые потёки у швов
+      const rainStreak = Math.max(0, valueNoise(x * 1.4, y * 0.25, 22, 607) - 0.60) * 1.5;
 
       const idx = (y * size + x) * 4;
       if (isMortar) {
-        const m = clampByte(27 + micro * 0.45 + mossPatch * 7);
-        albedo[idx] = m;
-        albedo[idx + 1] = clampByte(m + 2 + mossPatch * 9);
-        albedo[idx + 2] = clampByte(m + 5);
+        albedo[idx] = 44;
+        albedo[idx + 1] = 43;
+        albedo[idx + 2] = 42;
         albedo[idx + 3] = 255;
-        const b = clampByte(40 + micro * 0.5);
-        bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
+        bump[idx] = bump[idx + 1] = bump[idx + 2] = 34;
         bump[idx + 3] = 255;
         roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = 248;
         roughness[idx + 3] = 255;
       } else {
-        const damageDarken = (isChipped ? -20 : 0) + (hasCrack ? -24 : 0) - sootStreak * 36 - verticalWeather * 8;
-        const r = 74 + blockVar + coarse + micro + bevelTop + bevelBot + damageDarken + mossPatch * 4;
-        const g = 77 + blockVar + coarse + micro + bevelTop + bevelBot + damageDarken + mossPatch * 10;
-        const bCol = 85 + blockVar + coarse + micro + bevelTop + bevelBot + damageDarken;
+        const chipDark = isChipped ? -22 : 0;
+        const base = 132 + blockTone + broadMineral + bevelTop + bevelLeft + bevelBot + bevelRight + chipDark - rainStreak * 28;
+        // Тёплый известняк смещён к золотисто-серому, холодный камень — к сланцево-серому
+        const r = base + warmCold * 0.45;
+        const g = base + warmCold * 0.15;
+        const b = base - warmCold * 0.55;
         albedo[idx] = clampByte(r);
         albedo[idx + 1] = clampByte(g);
-        albedo[idx + 2] = clampByte(bCol);
+        albedo[idx + 2] = clampByte(b);
         albedo[idx + 3] = 255;
 
         const bumpVal =
-          178 +
-          blockVar * 0.65 +
-          coarse * 1.6 +
-          micro * 1.1 +
-          bevelTop * 1.9 +
-          (isChipped ? -48 : 0) +
-          (hasCrack ? -65 : 0);
+          176 +
+          blockTone * 0.4 +
+          broadMineral * 1.4 +
+          bevelTop * 1.8 +
+          bevelLeft * 1.2 +
+          (isChipped ? -58 : 0);
         const bb = clampByte(bumpVal);
         bump[idx] = bump[idx + 1] = bump[idx + 2] = bb;
         bump[idx + 3] = 255;
 
-        const roughVal = clampByte(206 + (isChipped ? 30 : 0) + (hasCrack ? 36 : 0) + sootStreak * 35 - bevelTop * 1.2);
+        const roughVal = clampByte(202 + (isChipped ? 32 : 0) + rainStreak * 28 - bevelTop * 1.1);
         roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = roughVal;
         roughness[idx + 3] = 255;
       }
@@ -206,15 +197,15 @@ export function buildBasaltAshlarMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps
 }
 
 /**
- * Генерирует карту выветренного тёсаного камня для цоколей, архивольтов, вимпергов,
- * контрфорсов и рустов с потёками времени, сколами и трещинами.
+ * Тёсаный светлый камень для контрфорсов, обрамления портала, архивольтов и цоколей:
+ * более ровный, светлее стен на ~18-22%, с глубокими стыками плит.
  */
 export function buildDressedStoneMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
   const roughness = new Uint8Array(size * size * 4);
-  const rows = 5;
-  const cols = 3;
+  const rows = 4;
+  const cols = 2;
   const rowH = size / rows;
   const colW = size / cols;
 
@@ -226,37 +217,33 @@ export function buildDressedStoneMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps
       const sx = (x + stagger) % size;
       const col = Math.floor(sx / colW);
       const localX = sx - col * colW;
-      const edgeNoise = (valueNoise(x, y, 5, 91) - 0.5) * 2.2;
-      const isMortar = localY + edgeNoise < 2.3 || localX + edgeNoise < 2.3;
+      const jitter = (valueNoise(x, y, 7, 91) - 0.5) * 2.4;
+      const isMortar = localY + jitter < 3.4 || localX + jitter < 3.4;
 
-      const blockVar = (hash2d(col, row, 43) - 0.5) * 22;
-      const mineral = (valueNoise(x, y, 12, 59) - 0.5) * 20;
-      const strata = Math.sin((y / size) * Math.PI * 14 + valueNoise(x, y, 16, 61) * 2.5) * 6;
-      const soot = Math.max(0, valueNoise(x * 1.6, y * 0.28, 22, 617) - 0.55) * 2.4;
-      const pit = hash2d(x, y, 631) > 0.965 ? -18 : 0;
-      const crack =
-        hash2d(col, row, 641) > 0.6 && Math.abs(valueNoise(x + col * 11, y, 15, 643) - 0.5) < 0.02 ? -24 : 0;
+      const blockVar = (hash2d(col, row, 43) - 0.5) * 20;
+      const strata = (valueNoise(x, y, 18, 59) - 0.5) * 16;
+      const bevel = !isMortar && localY < 7.0 ? 14 : !isMortar && localY > rowH - 4.5 ? -12 : 0;
 
       const idx = (y * size + x) * 4;
       if (isMortar) {
-        albedo[idx] = 44;
-        albedo[idx + 1] = 42;
-        albedo[idx + 2] = 39;
+        albedo[idx] = 66;
+        albedo[idx + 1] = 63;
+        albedo[idx + 2] = 59;
         albedo[idx + 3] = 255;
-        bump[idx] = bump[idx + 1] = bump[idx + 2] = 56;
+        bump[idx] = bump[idx + 1] = bump[idx + 2] = 48;
         bump[idx + 3] = 255;
-        roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = 248;
+        roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = 244;
         roughness[idx + 3] = 255;
       } else {
-        const d = blockVar + mineral + strata - soot * 40 + pit + crack;
-        albedo[idx] = clampByte(115 + d);
-        albedo[idx + 1] = clampByte(110 + d);
-        albedo[idx + 2] = clampByte(101 + d);
+        const d = blockVar + strata + bevel;
+        albedo[idx] = clampByte(166 + d);
+        albedo[idx + 1] = clampByte(158 + d);
+        albedo[idx + 2] = clampByte(143 + d * 0.9);
         albedo[idx + 3] = 255;
-        const b = clampByte(182 + mineral * 1.5 + strata * 2 + pit * 2 + crack * 2.5);
+        const b = clampByte(184 + strata * 1.5 + bevel * 1.6);
         bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
         bump[idx + 3] = 255;
-        const r = clampByte(202 + soot * 36 - pit * 1.4 - crack * 1.4);
+        const r = clampByte(192 - bevel * 0.8);
         roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = r;
         roughness[idx + 3] = 255;
       }
@@ -265,50 +252,52 @@ export function buildDressedStoneMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps
   return { albedo, bump, roughness };
 }
 
-/** Генерирует карту старого обожжённого дуба с сучками, растрескиванием и железными гвоздями. */
+/**
+ * Грубый выветренный старый дуб для ворот и балок (крупные толстые плахи,
+ * глубокие щели, продольное волокно и редкие железные заклёпки).
+ */
 export function buildTimberMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
-  const planks = 6;
+  const planks = 4;
   const plankW = size / planks;
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const plank = Math.floor(x / plankW);
       const localX = x - plank * plankW;
-      const seam = localX < 2.2;
-      const plankVar = (hash2d(plank, 1, 71) - 0.5) * 16;
-      const warp = valueNoise(x, y, 16, 73) * 4.5;
-      const fiber = Math.sin((x + warp) * 1.15) * 8 + (hash2d(x, y, 91) - 0.5) * 10;
-      const charEdge = Math.max(0, 1 - Math.abs(localX - plankW * 0.5) / (plankW * 0.5));
-      const charDarken = (1 - charEdge) * -10;
-      // шляпки кованых гвоздей на планках
-      const nailY = y % 64;
+      const seam = localX < 3.6;
+      const plankVar = (hash2d(plank, 3, 71) - 0.5) * 20;
+      const warp = valueNoise(x, y, 22, 73) * 5.0;
+      const grain = Math.sin((x * 0.65 + warp) * 1.1) * 11 + (valueNoise(x * 0.5, y * 0.15, 10, 91) - 0.5) * 12;
+      const bevel = !seam && localX < 8 ? 8 : !seam && localX > plankW - 5 ? -9 : 0;
+
+      const nailY = y % 84;
       const isNail =
-        Math.hypot(localX - plankW * 0.22, nailY - 12) < 2.6 ||
-        Math.hypot(localX - plankW * 0.78, nailY - 12) < 2.6;
+        Math.hypot(localX - plankW * 0.24, nailY - 16) < 3.4 ||
+        Math.hypot(localX - plankW * 0.76, nailY - 16) < 3.4;
 
       const idx = (y * size + x) * 4;
       if (seam) {
-        albedo[idx] = 19;
-        albedo[idx + 1] = 14;
-        albedo[idx + 2] = 10;
+        albedo[idx] = 24;
+        albedo[idx + 1] = 16;
+        albedo[idx + 2] = 11;
         albedo[idx + 3] = 255;
-        bump[idx] = bump[idx + 1] = bump[idx + 2] = 36;
+        bump[idx] = bump[idx + 1] = bump[idx + 2] = 28;
         bump[idx + 3] = 255;
       } else if (isNail) {
-        albedo[idx] = 38;
-        albedo[idx + 1] = 40;
-        albedo[idx + 2] = 45;
+        albedo[idx] = 62;
+        albedo[idx + 1] = 66;
+        albedo[idx + 2] = 74;
         albedo[idx + 3] = 255;
-        bump[idx] = bump[idx + 1] = bump[idx + 2] = 232;
+        bump[idx] = bump[idx + 1] = bump[idx + 2] = 242;
         bump[idx + 3] = 255;
       } else {
-        albedo[idx] = clampByte(70 + plankVar + fiber + charDarken);
-        albedo[idx + 1] = clampByte(49 + plankVar * 0.72 + fiber * 0.7 + charDarken * 0.8);
-        albedo[idx + 2] = clampByte(35 + plankVar * 0.55 + fiber * 0.55 + charDarken * 0.6);
+        albedo[idx] = clampByte(107 + plankVar + grain + bevel);
+        albedo[idx + 1] = clampByte(71 + plankVar * 0.74 + grain * 0.72 + bevel);
+        albedo[idx + 2] = clampByte(43 + plankVar * 0.52 + grain * 0.55 + bevel);
         albedo[idx + 3] = 255;
-        const b = clampByte(160 + fiber * 2.4);
+        const b = clampByte(166 + grain * 2.2 + bevel * 1.5);
         bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
         bump[idx + 3] = 255;
       }
@@ -317,12 +306,15 @@ export function buildTimberMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   return { albedo, bump };
 }
 
-/** Генерирует готическую заострённую сланцевую черепицу с нахлёстом, сколами и мхом. */
+/**
+ * Прохладный сланцевый кровельный камень (крупные пластины с чёткими швами
+ * нахлёста, заметной разницей тонов и скошенными кромками).
+ */
 export function buildSlateRoofMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
-  const rows = 10;
-  const cols = 8;
+  const rows = 6;
+  const cols = 5;
   const rowH = size / rows;
   const colW = size / cols;
 
@@ -335,30 +327,28 @@ export function buildSlateRoofMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
       const sx = (x + stagger) % size;
       const col = Math.floor(sx / colW);
       const localX = sx - col * colW;
-      // заострённая нижняя кромка готической сланцевой плитки
-      const tipShift = Math.abs(localX / colW - 0.5) * 6;
+      const tipShift = Math.abs(localX / colW - 0.5) * 8.0;
       const effY = localY + tipShift;
-      const gap = localX < 1.8 || effY < 2.2;
-      const tileVar = (hash2d(col, row, 107) - 0.5) * 24;
-      const speckle = (hash2d(x, y, 121) - 0.5) * 11;
-      const missingCorner = hash2d(col, row, 129) > 0.84 && localX > colW - 6 && localY > rowH - 6;
-      const moss = valueNoise(x, y, 14, 131) > 0.72 && localY < 7 ? 1 : 0;
-      const slopeGrad = (localY / rowH - 0.5) * 16;
+      const gap = localX < 2.8 || effY < 3.4;
+
+      const tileVar = (hash2d(col, row, 107) - 0.5) * 28;
+      const slopeShade = (localY / rowH - 0.5) * 22;
+      const lightEdge = !gap && localY < 8 ? 14 : 0;
 
       const idx = (y * size + x) * 4;
-      if (gap || missingCorner) {
-        albedo[idx] = 20;
-        albedo[idx + 1] = 23;
-        albedo[idx + 2] = 28;
+      if (gap) {
+        albedo[idx] = 24;
+        albedo[idx + 1] = 29;
+        albedo[idx + 2] = 38;
         albedo[idx + 3] = 255;
-        bump[idx] = bump[idx + 1] = bump[idx + 2] = 44;
+        bump[idx] = bump[idx + 1] = bump[idx + 2] = 38;
         bump[idx + 3] = 255;
       } else {
-        albedo[idx] = clampByte(50 + tileVar + speckle + slopeGrad + moss * 6);
-        albedo[idx + 1] = clampByte(57 + tileVar + speckle + slopeGrad + moss * 14);
-        albedo[idx + 2] = clampByte(69 + tileVar + speckle + slopeGrad + moss * 3);
+        albedo[idx] = clampByte(58 + tileVar + slopeShade + lightEdge);
+        albedo[idx + 1] = clampByte(70 + tileVar + slopeShade + lightEdge);
+        albedo[idx + 2] = clampByte(89 + tileVar + slopeShade + lightEdge);
         albedo[idx + 3] = 255;
-        const b = clampByte(142 + (localY / rowH) * 70 + speckle * 1.4);
+        const b = clampByte(142 + (localY / rowH) * 76 + tileVar * 0.4);
         bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
         bump[idx + 3] = 255;
       }
@@ -367,7 +357,9 @@ export function buildSlateRoofMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   return { albedo, bump };
 }
 
-/** Генерирует карту старого кованого железа с молотковыми вмятинами и следами ржавчины. */
+/**
+ * Кованое железо с молотковыми гранями и лёгкой ржавчиной (управляемый металлический блик).
+ */
 export function buildForgedIronMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
@@ -375,21 +367,20 @@ export function buildForgedIronMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const pit = (valueNoise(x, y, 5, 137) - 0.5) * 24;
-      const grain = (hash2d(x, y, 149) - 0.5) * 12;
-      const rustMask = Math.max(0, valueNoise(x, y, 24, 151) - 0.62) * 2.6;
+      const hammer = (valueNoise(x, y, 8, 137) - 0.5) * 26;
+      const rustMask = Math.max(0, valueNoise(x, y, 28, 151) - 0.68) * 2.5;
       const idx = (y * size + x) * 4;
 
-      albedo[idx] = clampByte(41 + pit * 0.6 + grain * 0.5 + rustMask * 52);
-      albedo[idx + 1] = clampByte(44 + pit * 0.6 + grain * 0.5 + rustMask * 20);
-      albedo[idx + 2] = clampByte(51 + pit * 0.6 + grain * 0.5 + rustMask * 6);
+      albedo[idx] = clampByte(58 + hammer * 0.5 + rustMask * 56);
+      albedo[idx + 1] = clampByte(63 + hammer * 0.5 + rustMask * 22);
+      albedo[idx + 2] = clampByte(73 + hammer * 0.5 + rustMask * 6);
       albedo[idx + 3] = 255;
 
-      const b = clampByte(155 + pit * 2.2 + grain);
+      const b = clampByte(160 + hammer * 2.1);
       bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
       bump[idx + 3] = 255;
 
-      const r = clampByte(105 + rustMask * 115 - pit * 1.1);
+      const r = clampByte(88 + rustMask * 115 - hammer * 1.1);
       roughness[idx] = roughness[idx + 1] = roughness[idx + 2] = r;
       roughness[idx + 3] = 255;
     }
@@ -397,22 +388,21 @@ export function buildForgedIronMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   return { albedo, bump, roughness };
 }
 
-/** Генерирует текстуру выветренной древней кости (оссуарий, рога, черепа). */
+/** Древняя выветренная кость — только для эмблемы Broken Ossuary Crown и короны реликвария. */
 export function buildAgedBoneMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   const albedo = new Uint8Array(size * size * 4);
   const bump = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const pore = (hash2d(x, y, 211) - 0.5) * 14;
-      const age = (valueNoise(x, y, 18, 223) - 0.5) * 26;
-      const crack = Math.abs(valueNoise(x, y * 0.5, 14, 227) - 0.5) < 0.022 ? -28 : 0;
-      const grime = Math.max(0, 1 - y / (size * 0.45)) * -26;
+      const age = (valueNoise(x, y, 20, 223) - 0.5) * 24;
+      const striation = Math.sin(x * 0.35 + valueNoise(x, y, 12, 229) * 3.0) * 5;
+      const grime = Math.max(0, 1 - y / (size * 0.35)) * -20;
       const idx = (y * size + x) * 4;
-      albedo[idx] = clampByte(192 + age + pore + crack + grime);
-      albedo[idx + 1] = clampByte(179 + age * 0.9 + pore + crack + grime);
-      albedo[idx + 2] = clampByte(153 + age * 0.8 + pore + crack + grime * 1.1);
+      albedo[idx] = clampByte(212 + age + striation + grime);
+      albedo[idx + 1] = clampByte(199 + age * 0.9 + striation + grime);
+      albedo[idx + 2] = clampByte(170 + age * 0.8 + striation + grime * 1.1);
       albedo[idx + 3] = 255;
-      const b = clampByte(168 + pore * 1.6 + crack * 2.4);
+      const b = clampByte(172 + striation * 2.2 + age * 0.6);
       bump[idx] = bump[idx + 1] = bump[idx + 2] = b;
       bump[idx + 3] = 255;
     }
@@ -420,40 +410,55 @@ export function buildAgedBoneMaps(size = CITADEL_TEX_SIZE): TexturePixelMaps {
   return { albedo, bump };
 }
 
-/** Генерирует тканную текстуру боевого геральдического знамени с эмблемой и сажей. */
+/** Геральдическое знамя со знаком Broken Ossuary Crown (три восходящих ребра + вертикальная ость). */
 export function buildBannerClothMap(size = CITADEL_TEX_SIZE): Uint8Array {
   const albedo = new Uint8Array(size * size * 4);
-  const cx = size * 0.5;
-  const cy = size * 0.46;
+  const cx = size * 0.45;
+  const cy = size * 0.50;
 
   for (let y = 0; y < size; y++) {
-    const borderY = y < 10 || y > size - 11;
-    const soot = Math.max(0, valueNoise(0, y, 26, 307) - 0.5) * 24;
+    const borderY = y < 12 || y > size - 13;
+    const ny = (y - cy) / (size * 0.38); // -1..1
     for (let x = 0; x < size; x++) {
-      const borderX = x < 9 || x > size - 10;
-      const weave = ((x + y) % 2 === 0 ? 4 : -4) + (hash2d(x, y, 173) - 0.5) * 14;
-      const dx = Math.abs(x - cx);
-      const dy = Math.abs(y - cy);
-      // готический крест + геральдический ромб ордена в центре полотна
-      const inDiamond = dx * 1.15 + dy * 0.95 < size * 0.24 && dx * 1.15 + dy * 0.95 > size * 0.17;
-      const inCross = (dx < size * 0.032 && dy < size * 0.28) || (dy < size * 0.032 && dx < size * 0.22);
-      const isEmblem = inDiamond || inCross;
+      const borderX = x < 10 || x > size - 11;
+      const weave = ((x + y) % 2 === 0 ? 4 : -4) + (valueNoise(x, y, 10, 173) - 0.5) * 10;
+      const nx = (x - cx) / (size * 0.34);
+
+      // Знак Broken Ossuary Crown (ориентирован по горизонтали знамени: вверх = -nx или -ny; полотно широкое по X, высокое по Y)
+      // На висящем с вертикального древка знамени x=0 у древка, x=size к хвосту; рисунок вертикален в Y (верх Y = size)
+      const up = -(y - cy) / (size * 0.34); // + вверх в UV
+      const side = (x - cx) / (size * 0.30);
+      const inSpine = Math.abs(side) < 0.08 && Math.abs(up) < 0.88;
+      const inLeftRib = Math.abs(side - (-0.42 + up * 0.14)) < 0.12 && up > -0.45 && up < 0.72;
+      const inRightRib = Math.abs(side - (0.42 - up * 0.14)) < 0.12 && up > -0.45 && up < 0.72;
+      const inBackRib = Math.abs(side) < 0.15 && up > 0.32 && up < 0.86;
+      const inVoid = Math.abs(side) < 0.28 && up > -0.35 && up < 0.48 && !inSpine;
 
       const idx = (y * size + x) * 4;
       if (borderY || borderX) {
-        albedo[idx] = clampByte(54 + weave * 0.6 - soot * 0.5);
-        albedo[idx + 1] = clampByte(42 + weave * 0.5 - soot * 0.5);
-        albedo[idx + 2] = clampByte(25 + weave * 0.4 - soot * 0.4);
+        albedo[idx] = clampByte(58 + weave * 0.5);
+        albedo[idx + 1] = clampByte(46 + weave * 0.4);
+        albedo[idx + 2] = clampByte(28 + weave * 0.3);
         albedo[idx + 3] = 255;
-      } else if (isEmblem) {
-        albedo[idx] = clampByte(178 + weave * 0.7 - soot);
-        albedo[idx + 1] = clampByte(142 + weave * 0.6 - soot);
-        albedo[idx + 2] = clampByte(68 + weave * 0.5 - soot * 0.7);
+      } else if (inSpine) {
+        albedo[idx] = clampByte(152 + weave);
+        albedo[idx + 1] = clampByte(156 + weave);
+        albedo[idx + 2] = clampByte(168 + weave);
+        albedo[idx + 3] = 255;
+      } else if (inLeftRib || inRightRib || inBackRib) {
+        albedo[idx] = clampByte(210 + weave * 0.6);
+        albedo[idx + 1] = clampByte(192 + weave * 0.6);
+        albedo[idx + 2] = clampByte(144 + weave * 0.5);
+        albedo[idx + 3] = 255;
+      } else if (inVoid) {
+        albedo[idx] = 26;
+        albedo[idx + 1] = 16;
+        albedo[idx + 2] = 18;
         albedo[idx + 3] = 255;
       } else {
-        albedo[idx] = clampByte(110 + weave - soot);
-        albedo[idx + 1] = clampByte(28 + weave * 0.5 - soot * 0.5);
-        albedo[idx + 2] = clampByte(26 + weave * 0.5 - soot * 0.5);
+        albedo[idx] = clampByte(112 + weave + ny * 4 + nx * 2);
+        albedo[idx + 1] = clampByte(28 + weave * 0.5);
+        albedo[idx + 2] = clampByte(28 + weave * 0.5);
         albedo[idx + 3] = 255;
       }
     }
@@ -461,17 +466,16 @@ export function buildBannerClothMap(size = CITADEL_TEX_SIZE): Uint8Array {
   return albedo;
 }
 
-/** Альфа-маска рваного «ласточкина хвоста» боевого знамени. */
+/** Альфа-маска «ласточкина хвоста» боевого знамени. */
 export function buildBannerAlphaMap(size = CITADEL_TEX_SIZE): Uint8Array {
   const alpha = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) {
     const ny = y / (size - 1);
-    const vNotch = 1 - Math.abs(ny - 0.5) * 2; // 1 в центре по вертикали, 0 у краёв
+    const vNotch = 1 - Math.abs(ny - 0.5) * 2;
     for (let x = 0; x < size; x++) {
       const nx = x / (size - 1);
-      const fray = (valueNoise(x, y, 8, 733) - 0.5) * 0.08;
-      // вырез ласточкиного хвоста на правом конце (nx > 0.72) + лёгкая бахрома
-      const cutThreshold = 0.96 - vNotch * 0.22 + fray;
+      const fray = (valueNoise(x, y, 10, 733) - 0.5) * 0.06;
+      const cutThreshold = 0.96 - vNotch * 0.24 + fray;
       const visible = nx < cutThreshold ? 255 : 0;
       const idx = (y * size + x) * 4;
       alpha[idx] = alpha[idx + 1] = alpha[idx + 2] = visible;
@@ -481,31 +485,10 @@ export function buildBannerAlphaMap(size = CITADEL_TEX_SIZE): Uint8Array {
   return alpha;
 }
 
-/** Градиентная карта копоти и сажи (для арочных ниш над жаровнями и воротами). */
-export function buildSootGradientMap(size = 128): Uint8Array {
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++) {
-    const ny = y / (size - 1);
-    for (let x = 0; x < size; x++) {
-      const nx = x / (size - 1);
-      const horiz = Math.exp(-Math.pow((nx - 0.5) * 3.1, 2));
-      const vert = Math.pow(1 - ny, 1.5);
-      const noise = 0.72 + valueNoise(x, y, 10, 811) * 0.45;
-      const soot = clampByte(255 * Math.min(1, horiz * vert * noise));
-      const idx = (y * size + x) * 4;
-      data[idx] = 18;
-      data[idx + 1] = 17;
-      data[idx + 2] = 16;
-      data[idx + 3] = soot;
-    }
-  }
-  return data;
-}
-
 export interface CitadelTextureSet {
-  readonly basaltMap: THREE.DataTexture;
-  readonly basaltBump: THREE.DataTexture;
-  readonly basaltRoughness: THREE.DataTexture;
+  readonly wallMap: THREE.DataTexture;
+  readonly wallBump: THREE.DataTexture;
+  readonly wallRoughness: THREE.DataTexture;
   readonly dressedMap: THREE.DataTexture;
   readonly dressedBump: THREE.DataTexture;
   readonly dressedRoughness: THREE.DataTexture;
@@ -520,11 +503,10 @@ export interface CitadelTextureSet {
   readonly boneBump: THREE.DataTexture;
   readonly bannerMap: THREE.DataTexture;
   readonly bannerAlpha: THREE.DataTexture;
-  readonly sootOverlay: THREE.DataTexture;
 }
 
 export function createCitadelTextureSet(): CitadelTextureSet {
-  const basalt = buildBasaltAshlarMaps();
+  const wall = buildWallAshlarMaps();
   const dressed = buildDressedStoneMaps();
   const timber = buildTimberMaps();
   const slate = buildSlateRoofMaps();
@@ -532,19 +514,18 @@ export function createCitadelTextureSet(): CitadelTextureSet {
   const bone = buildAgedBoneMaps();
   const banner = buildBannerClothMap();
   const bannerAlpha = buildBannerAlphaMap();
-  const soot = buildSootGradientMap();
 
   return {
-    basaltMap: makeDataTexture(basalt.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.6, 1.6),
-    basaltBump: makeDataTexture(basalt.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.6, 1.6),
-    basaltRoughness: makeDataTexture(basalt.roughness!, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.6, 1.6),
-    dressedMap: makeDataTexture(dressed.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.5, 1.2),
-    dressedBump: makeDataTexture(dressed.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.5, 1.2),
-    dressedRoughness: makeDataTexture(dressed.roughness!, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.5, 1.2),
-    timberMap: makeDataTexture(timber.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.8, 1),
-    timberBump: makeDataTexture(timber.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.8, 1),
-    slateMap: makeDataTexture(slate.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 2, 2),
-    slateBump: makeDataTexture(slate.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 2, 2),
+    wallMap: makeDataTexture(wall.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.15, 1.05),
+    wallBump: makeDataTexture(wall.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.15, 1.05),
+    wallRoughness: makeDataTexture(wall.roughness!, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.15, 1.05),
+    dressedMap: makeDataTexture(dressed.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.1, 1.0),
+    dressedBump: makeDataTexture(dressed.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.1, 1.0),
+    dressedRoughness: makeDataTexture(dressed.roughness!, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.1, 1.0),
+    timberMap: makeDataTexture(timber.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.0, 1.0),
+    timberBump: makeDataTexture(timber.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.0, 1.0),
+    slateMap: makeDataTexture(slate.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1.2, 1.1),
+    slateBump: makeDataTexture(slate.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1.2, 1.1),
     ironMap: makeDataTexture(iron.albedo, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1, 1),
     ironBump: makeDataTexture(iron.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1, 1),
     ironRoughness: makeDataTexture(iron.roughness!, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1, 1),
@@ -552,7 +533,6 @@ export function createCitadelTextureSet(): CitadelTextureSet {
     boneBump: makeDataTexture(bone.bump, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1, 1),
     bannerMap: makeDataTexture(banner, CITADEL_TEX_SIZE, THREE.SRGBColorSpace, 1, 1, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping),
     bannerAlpha: makeDataTexture(bannerAlpha, CITADEL_TEX_SIZE, THREE.NoColorSpace, 1, 1, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping),
-    sootOverlay: makeDataTexture(soot, 128, THREE.SRGBColorSpace, 1, 1, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping),
   };
 }
 
@@ -582,21 +562,21 @@ export function useCitadelTextureSet(): CitadelTextureSet {
   return set;
 }
 
-/** Изолированные фабрики для анимируемых материалов (без разделения между мешами). */
+/** Изолированные фабрики для анимируемых материалов (собственный экземпляр на меш). */
 export function createHearthWindowMaterialProps() {
   return {
     color: "#cb7526",
     emissive: CITADEL_PALETTE.hearthGlow,
-    emissiveIntensity: 0.78,
-    roughness: 0.34,
+    emissiveIntensity: 0.72,
+    roughness: 0.36,
   } as const;
 }
 
 export function createBrazierFlameMaterialProps() {
   return {
-    color: "#dd7f28",
+    color: "#e2882c",
     emissive: CITADEL_PALETTE.flameGlow,
-    emissiveIntensity: 1.08,
+    emissiveIntensity: 1.05,
     roughness: 0.28,
   } as const;
 }
@@ -606,8 +586,8 @@ export function createNecroticCrystalMaterialProps() {
     color: CITADEL_PALETTE.necroticBase,
     emissive: CITADEL_PALETTE.necroticGlow,
     emissiveIntensity: 0.92,
-    roughness: 0.2,
-    metalness: 0.22,
+    roughness: 0.22,
+    metalness: 0.24,
   } as const;
 }
 
@@ -615,7 +595,7 @@ export function createAshSmokeMaterialProps() {
   return {
     color: CITADEL_PALETTE.ashSmoke,
     transparent: true,
-    opacity: 0.3,
+    opacity: 0.28,
     depthWrite: false,
   } as const;
 }
