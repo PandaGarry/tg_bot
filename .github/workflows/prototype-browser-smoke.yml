@@ -1,0 +1,74 @@
+name: Prototype browser smoke test
+
+on:
+  push:
+    branches: [prototype/mmorpg-zero]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser test tools
+        run: |
+          npm init -y
+          npm install --save-dev playwright
+          npx playwright install --with-deps chromium
+      - name: Start local game server
+        run: |
+          python3 -m http.server 8000 > /tmp/game-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/game-server.log
+          exit 1
+      - name: Run desktop and mobile browser checks
+        run: |
+          mkdir -p artifacts
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({viewport:{width:1440,height:960}, deviceScaleFactor:1});
+            const errors = [];
+            page.on('pageerror', e => errors.push(e.message));
+            await page.goto('http://127.0.0.1:8000/', {waitUntil:'networkidle'});
+            await page.locator('#startBtn').click();
+            await page.waitForTimeout(800);
+            const desktop = await page.locator('#world').evaluate(c => {
+              const ctx=c.getContext('2d');
+              const pixels=ctx.getImageData(0,0,c.width,c.height).data;
+              let nonTransparent=0;
+              for(let i=3;i<pixels.length;i+=4) if(pixels[i]>0) nonTransparent++;
+              return {width:c.width,height:c.height,paintedPixels:nonTransparent};
+            });
+            if (desktop.paintedPixels < 10000) throw new Error('Canvas appears blank: '+JSON.stringify(desktop));
+            await page.screenshot({path:'artifacts/quiet-valley-desktop.png', fullPage:true});
+            await page.keyboard.press('ArrowUp');
+            await page.waitForTimeout(150);
+            await page.setViewportSize({width:390,height:844});
+            await page.waitForTimeout(300);
+            await page.screenshot({path:'artifacts/quiet-valley-mobile.png', fullPage:true});
+            if (errors.length) throw new Error('Browser errors: '+errors.join(' | '));
+            console.log('Desktop canvas:', JSON.stringify(desktop));
+            console.log('Browser runtime: PASS');
+            await browser.close();
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+      - name: Upload runtime screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiet-valley-runtime-screenshots
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
