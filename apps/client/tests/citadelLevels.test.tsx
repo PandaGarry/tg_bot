@@ -1,10 +1,10 @@
 /**
- * Юнит-тесты визуальной прогрессии Цитадели (TDL-ARCH-006 v2):
- * - соответствие уровней 1..5 пяти стадиям единого архитектурного замысла и безопасный clamp;
- * - удержание габаритов всех уровней строго в пятне [3, 3] (3.30 м × 3.30 м);
- * - детерминированные 256×256 DataTexture-карты (albedo, bump, roughness, bone, alpha),
- *   резные Extrude/Tube/Lathe геометрии и их очистка на размонтировании (включая StrictMode);
- * - безопасный откат CitadelRenderer на CitadelLegacy через ErrorBoundary.
+ * Юнит-тесты архитектурной прогрессии Цитадели TDL-ARCH-006 R2 (Ossuary Cathedral-Fortress):
+ * - соответствие уровней 1..5 пяти стадиям трёхчастной композиции и безопасный clamp;
+ * - строгий математический контроль реального пятна [3, 3] (3.30 м × 3.30 м) и высоты <= 6.20 м;
+ * - детерминированные 256×256 DataTexture-карты с крупным масштабом камня/сланца/дуба/железа
+ *   и StrictMode-безопасное освобождение всех текстур и геометрий;
+ * - двойной каскадный откат CitadelRenderer (R2 -> стабильная v2 -> CitadelLegacy).
  */
 
 import { StrictMode } from "react";
@@ -26,10 +26,12 @@ import { CitadelErrorBoundary } from "../src/court/buildings/citadel/CitadelRend
 import {
   buildAgedBoneMaps,
   buildBannerAlphaMap,
-  buildBasaltAshlarMaps,
+  buildBannerClothMap,
+  buildDressedStoneMaps,
   buildForgedIronMaps,
   buildSlateRoofMaps,
   buildTimberMaps,
+  buildWallAshlarMaps,
   createCitadelTextureSet,
   disposeCitadelTextureSet,
   useCitadelTextureSet,
@@ -40,8 +42,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("TDL-ARCH-006 Citadel level mapping & visual architecture invariants", () => {
-  it("сопоставляет уровни 1..5 пяти стадиям единого готического замысла и безопасно ограничивает выбросы", () => {
+describe("TDL-ARCH-006 R2 Ossuary Cathedral-Fortress level & architecture invariants", () => {
+  it("сопоставляет уровни 1..5 пяти структурным стадиям без отката к 4-башенному замку", () => {
     expect(clampCitadelLevel(undefined)).toBe(1);
     expect(clampCitadelLevel(null)).toBe(1);
     expect(clampCitadelLevel(Number.NaN)).toBe(1);
@@ -53,75 +55,82 @@ describe("TDL-ARCH-006 Citadel level mapping & visual architecture invariants", 
     expect(clampCitadelLevel(99)).toBe(5);
 
     const specs = ([1, 2, 3, 4, 5] as const).map((lvl) => getCitadelVisualSpec(lvl));
-    const tags = new Set(specs.map((s) => s.silhouetteTag));
-    const gates = new Set(specs.map((s) => s.gateStyle));
-    const roofs = new Set(specs.map((s) => s.roofStyle));
-    const necrotic = new Set(specs.map((s) => s.necroticStage));
+    expect(new Set(specs.map((s) => s.silhouetteTag)).size).toBe(5);
+    expect(new Set(specs.map((s) => s.gatehouseStage)).size).toBe(5);
+    expect(new Set(specs.map((s) => s.reliquaryStage)).size).toBe(5);
 
-    expect(tags.size).toBe(5);
-    expect(gates.size).toBe(5);
-    expect(roofs.size).toBe(5);
-    expect(necrotic.size).toBe(5);
-
-    // Единый замысел с 1-го уровня: контрфорсы, русты, аркады и геральдика развиваются непрерывно
-    expect(specs.every((s) => s.buttressCount >= 4 && s.hasWallArcading && s.hasQuoins && s.hasHeraldicShields)).toBe(true);
-    expect(specs.map((s) => s.portalArchTiers)).toEqual([2, 2, 3, 3, 3]);
-    expect(specs.map((s) => s.reliquaryRings)).toEqual([0, 0, 0, 1, 2]);
-    expect(specs.map((s) => s.turretCount)).toEqual([0, 1, 2, 4, 4]);
-    expect(specs[3]!.turretLayout).toBe("four-corner");
-    expect(specs[4]!.turretLayout).toBe("four-bastion-spired");
-    expect(specs[4]!.hasFlyingButtresses).toBe(true);
-    expect(specs[3]!.hasFlyingButtresses).toBe(false);
-    expect(specs.map((s) => s.bannerCount)).toEqual([0, 0, 1, 2, 4]);
-    expect(specs.map((s) => s.brazierCount)).toEqual([0, 2, 2, 4, 4]);
+    // Проверка асимметричной эволюции масс (а не 4 одинаковых угловых башен)
+    expect(specs[0]!.hasRearApse).toBe(false);
+    expect(specs[2]!.hasRearApse).toBe(true);
+    expect(specs[2]!.hasSideChapel).toBe(false);
+    expect(specs[3]!.hasSideChapel).toBe(true);
+    expect(specs[3]!.hasBrokenCrownTop).toBe(true);
+    expect(specs[4]!.hasBrokenCrownTop).toBe(true);
+    expect(specs[4]!.flyingButtressCount).toBe(2);
+    expect(specs.map((s) => s.crownReliefScale)).toEqual([0.32, 0.38, 0.44, 0.5, 0.56]);
   });
 
-  it("удерживает габариты и вылет лестницы каждого уровня 1..5 строго внутри пятна 3×3 (3.30 м)", () => {
+  it("жёстко удерживает фактические координаты всех масс (неф, апсида, трансепт, башня, гейтхаус, ступени) внутри пятна 3×3 (3.30 м)", () => {
     const env = getCitadelFootprintEnvelope();
+    const half = env.widthM / 2;
     expect(env.widthM).toBeCloseTo(3.3, 5);
     expect(env.depthM).toBeCloseTo(3.3, 5);
 
     let prevHeight = 0;
     for (const lvl of [1, 2, 3, 4, 5] as const) {
-      const spec = CITADEL_LEVEL_VARIANTS[lvl];
-      const [w, h, d] = spec.boundsMeters;
+      const s = CITADEL_LEVEL_VARIANTS[lvl];
+      const [w, h, d] = s.boundsMeters;
       expect(w).toBeLessThan(env.widthM);
       expect(d).toBeLessThan(env.depthM);
       expect(h).toBeLessThanOrEqual(env.maxHeightM);
-      expect(spec.stepReachZ).toBeLessThan(env.depthM / 2);
-      expect(spec.plinthSize).toBeLessThan(env.widthM);
+      expect(s.crownTotalTopY).toBeLessThanOrEqual(env.maxHeightM);
       expect(h).toBeGreaterThan(prevHeight);
       prevHeight = h;
+
+      // Фактические крайние границы по X и Z:
+      expect(Math.abs(s.plinthOffsetX) + s.plinthWidth / 2).toBeLessThan(half);
+      expect(Math.abs(s.plinthOffsetZ) + s.plinthDepth / 2).toBeLessThan(half);
+      expect(s.stepReachZ + 0.04).toBeLessThan(half);
+      expect(s.gateFrontZ).toBeLessThan(half);
+      expect(Math.abs(s.towerCenterX) + s.towerBaseSize / 2 + 0.16).toBeLessThan(half);
+      expect(Math.abs(s.towerCenterZ) + s.towerBaseSize / 2 + 0.16).toBeLessThan(half);
+      if (s.hasRearApse) {
+        expect(Math.abs(s.apseOffsetZ - s.apseRadius) + 0.05).toBeLessThan(half);
+      }
+      if (s.hasSideChapel) {
+        expect(s.sideChapelCenterX + s.sideChapelWidth / 2 + 0.14).toBeLessThan(half);
+      }
     }
   });
 
-  it("строит детерминированные 256×256 DataTexture-карты (с roughness/bone/alpha) и освобождает их без утечек", () => {
-    const a = buildBasaltAshlarMaps(64);
-    const b = buildBasaltAshlarMaps(64);
+  it("строит детерминированные R2 PBR-текстуры и освобождает их без утечек в StrictMode", () => {
+    const a = buildWallAshlarMaps(64);
+    const b = buildWallAshlarMaps(64);
     expect(a.albedo).toEqual(b.albedo);
     expect(a.bump).toEqual(b.bump);
     expect(a.roughness?.length).toBe(64 * 64 * 4);
+    expect(buildDressedStoneMaps(64).albedo.length).toBe(64 * 64 * 4);
     expect(buildSlateRoofMaps(64).albedo.length).toBe(64 * 64 * 4);
     expect(buildTimberMaps(64).bump.length).toBe(64 * 64 * 4);
     expect(buildForgedIronMaps(64).roughness?.length).toBe(64 * 64 * 4);
     expect(buildAgedBoneMaps(64).albedo.length).toBe(64 * 64 * 4);
+    expect(buildBannerClothMap(64).length).toBe(64 * 64 * 4);
     expect(buildBannerAlphaMap(64).length).toBe(64 * 64 * 4);
 
     const set = createCitadelTextureSet();
     const texCount = Object.keys(set).length;
-    expect(texCount).toBe(18);
-    expect(set.basaltMap.colorSpace).toBe(THREE.SRGBColorSpace);
-    expect(set.basaltBump.colorSpace).toBe(THREE.NoColorSpace);
-    expect(set.basaltRoughness.colorSpace).toBe(THREE.NoColorSpace);
+    expect(texCount).toBe(17);
+    expect(set.wallMap.colorSpace).toBe(THREE.SRGBColorSpace);
+    expect(set.wallBump.colorSpace).toBe(THREE.NoColorSpace);
+    expect(set.wallRoughness.colorSpace).toBe(THREE.NoColorSpace);
     disposeCitadelTextureSet(set);
-    expect(set.basaltMap.userData.__tdlDisposed).toBe(true);
+    expect(set.wallMap.userData.__tdlDisposed).toBe(true);
     expect(set.bannerAlpha.userData.__tdlDisposed).toBe(true);
-    expect(set.sootOverlay.userData.__tdlDisposed).toBe(true);
 
     const disposeSpy = vi.spyOn(THREE.DataTexture.prototype, "dispose");
     function TextureProbe() {
       const t = useCitadelTextureSet();
-      return <span data-ok={t.basaltMap instanceof THREE.DataTexture ? "1" : "0"} />;
+      return <span data-ok={t.wallMap instanceof THREE.DataTexture ? "1" : "0"} />;
     }
     const mounted = render(
       <StrictMode>
@@ -133,29 +142,22 @@ describe("TDL-ARCH-006 Citadel level mapping & visual architecture invariants", 
     expect(disposeSpy).toHaveBeenCalledTimes(texCount * 2);
   });
 
-  it("строит и освобождает резные процедурные геометрии (арки, вимперги, трилистник, пинакли, нервюры, щиты)", () => {
+  it("строит и корректно освобождает все 13 резных геометрий R2 (включая рёбра и эмблему Broken Ossuary Crown)", () => {
     const geomSet = createCitadelGeometrySet();
     const geomCount = Object.keys(geomSet).length;
-    expect(geomCount).toBe(12);
-    expect(geomSet.buttress.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.pointedArch.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.wimperg.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.trefoilTracery.attributes.position.count).toBeGreaterThan(30);
-    expect(geomSet.gableRoof.attributes.position.count).toBeGreaterThan(10);
+    expect(geomCount).toBe(13);
+    expect(geomSet.crownRib.attributes.position.count).toBeGreaterThan(20);
+    expect(geomSet.brokenCrownEmblem.attributes.position.count).toBeGreaterThan(20);
+    expect(geomSet.leanToRoof.attributes.position.count).toBeGreaterThan(10);
     expect(geomSet.flyingButtress.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.pinnacleSpire.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.heraldicShield.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.vaultRib.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.hornTrophy.attributes.position.count).toBeGreaterThan(20);
-    expect(geomSet.crystal.attributes.position.count).toBeGreaterThan(10);
-    expect(geomSet.crystalCore.attributes.position.count).toBeGreaterThan(10);
+    expect(geomSet.pointedArch.attributes.position.count).toBeGreaterThan(20);
     disposeCitadelGeometrySet(geomSet);
-    expect(geomSet.wimperg.userData.__tdlDisposed).toBe(true);
+    expect(geomSet.crownRib.userData.__tdlDisposed).toBe(true);
 
     const disposeSpy = vi.spyOn(THREE.BufferGeometry.prototype, "dispose");
     function GeomProbe() {
       const g = useCitadelGeometrySet();
-      return <span data-ok={g.crystal.attributes.position.count > 0 ? "1" : "0"} />;
+      return <span data-ok={g.crownRib.attributes.position.count > 0 ? "1" : "0"} />;
     }
     const mounted = render(
       <StrictMode>
@@ -167,22 +169,31 @@ describe("TDL-ARCH-006 Citadel level mapping & visual architecture invariants", 
     expect(disposeSpy).toHaveBeenCalledTimes(geomCount * 2);
   });
 
-  it("безопасно откатывается на резервный компонент через CitadelErrorBoundary при ошибке", () => {
+  it("поддерживает каскадный откат R2 -> стабильная v2 -> legacy через CitadelErrorBoundary", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    function BrokenCitadel(): null {
-      throw new Error("boom");
+    function BrokenR2(): null {
+      throw new Error("r2-fail");
+    }
+    function BrokenV2(): null {
+      throw new Error("v2-fail");
     }
 
     const { getByTestId } = render(
-      <CitadelErrorBoundary fallback={<div data-testid="legacy-fallback">legacy</div>}>
-        <BrokenCitadel />
+      <CitadelErrorBoundary
+        fallback={
+          <CitadelErrorBoundary fallback={<div data-testid="legacy-fallback">legacy</div>}>
+            <BrokenV2 />
+          </CitadelErrorBoundary>
+        }
+      >
+        <BrokenR2 />
       </CitadelErrorBoundary>,
     );
 
     expect(getByTestId("legacy-fallback").textContent).toBe("legacy");
-    expect(warnSpy).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledTimes(2);
     warnSpy.mockRestore();
     errSpy.mockRestore();
   });
