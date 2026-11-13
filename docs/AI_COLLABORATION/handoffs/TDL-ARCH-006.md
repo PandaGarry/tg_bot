@@ -107,4 +107,25 @@ Verified clean against `1fd88f7569428fd138daec775184228f36f8b0f2` (`diff -rq` ou
     - `pnpm typecheck` (`18/18`), `pnpm check`, and `pnpm build` (`3/3`): all passed (`exit_code=0`).
     - Production runtime smoke against `apps/server/dist/index.mjs` + PostgreSQL `18.4` (`HeadlessChrome` + SwiftShader): `/api/health` (`ok: true`, `ready: true`), `desktopCourtLoad` (`Ур. 5`), `rightHoldNoPickup`, `leftLongPressPickup`, `navigation` (`Court → Map → Court`), and responsive layout checks (`1376×768`, `390×844`, `320×690`, zero horizontal overflow, zero HUD overlap) all passed with `0` console errors, `0` page errors, and `0` failed requests.
 
+## 8. R2 Final Post-Integration Verification on PR #28 (`adcae02db92468d1a7cfce1e42e98ad51dbcf8cf`)
+
+- **Evidence folder:** `evidence/TDL-ARCH-006-r2-post/` (`README.md`, `commands.log`, `smoke-report.json`, `health.json`, `console.txt`, and 18 unmodified runtime screenshots in `screenshots/`).
+- **Exact tested integrated HEAD SHA:** `adcae02db92468d1a7cfce1e42e98ad51dbcf8cf` on `PandaGarry/tg_bot` branch `refactor/tdl-court-grid-input-impl` (parent `a5fe323859455082b66eb61bc090b0e3796d3fc6`, Arena R2 source `f71497b260ba4c11c8ba5f8a87e5a168380d6b94`), verified in clean detached checkout `/tmp/tdl-arch006-r2-post` with `0` source mutations and `0` PR commits.
+- **Integrity parity (`a5fe323..adcae02` & vs `f71497b`):**
+  - Exactly the 10 expected Citadel R2 + `v2/` files modified/added (`CitadelBuilding.tsx`, `CitadelRenderer.tsx`, `citadelGeometry.ts`, `citadelLevels.ts`, `citadelMaterials.ts`, `citadelLevels.test.tsx`, `v2/{CitadelV2Building,citadelV2Geometry,citadelV2Levels,citadelV2Materials}`).
+  - Zero diff vs Arena source `f71497b` outside `docs/` and `evidence/`; zero diff vs `a5fe323` across `CourtScene.tsx`, `gridMath.ts`, `courtInput.ts`, their tests, `package.json`, and `pnpm-lock.yaml`.
+- **Automated checks (`commands.log`):**
+  - `pnpm install --frozen-lockfile`: `exit_code=0`.
+  - `pnpm --filter @tdl/client test`: `exit_code=0` (`5` files, `39/39` passed).
+  - `pnpm typecheck`: `exit_code=0` (`18/18` packages, `0/18` cached).
+  - `pnpm check`: `exit_code=0` (`11` modules, clean boundaries, `24`/`126` i18n keys, `810` calendar windows).
+  - `pnpm build`: `exit_code=0` (`3/3` bundles, `0/3` cached).
+  - `pnpm test` (`0/6` cached, `exit_code=0`) & direct `pnpm --filter @tdl/host test`: `@tdl/kernel` `44/44`, `@tdl/client` `39/39`, `@tdl/server` `34/34`, `@tdl/court3d` & `@tdl/protocol` `0` tests; `@tdl/host` reproduced the pre-existing `88 passed | 2 failed` calendar assertions on `2026-11-13` (`tests/clock.test.ts:71`, `tests/switches.test.ts:303`) matching `a5fe323` verbatim — not claimed green.
+- **Production smoke, fallback & resource audit (`smoke-report.json`, `console.txt`):**
+  - All production E2E gates passed (`allProductionStepsOk: true`, `0` console errors, `0` page errors, `0` failed requests) across `1376×768`, `390×844`, and `320×690`, including real L2–L5 server upgrades, Farm placement, pure RMB orbit, LMB pan, LMB/touch long-press pickup, and 2× `Court → Map → Court` cycles.
+  - WebGL2 live instrumentation confirmed `593` draws / `37,344` tris at Lv.1 and `846` draws / `56,544` tris at Lv.5 with zero leaked buffers across 2 unmount/remount cycles (`1795` live vs `1803` initial) and `contextlost` occurring strictly on detached `inDom=false` canvases during unmount.
+  - External read-only Vite harness verified explicit `citadel-v2`, `legacy`, and cascading `CitadelErrorBoundary` transitions (`R2 fail → CitadelV2Building` and `R2 + v2 fail → LegacyTownHall`) preserving the surrounding Court scene without crashing (`screenshots/11..14`).
+  - **Device disclaimer:** Verified under HeadlessChrome + ANGLE Vulkan SwiftShader CPU emulation; no 60 FPS or physical mobile hardware GPU claims are made.
+
+
 

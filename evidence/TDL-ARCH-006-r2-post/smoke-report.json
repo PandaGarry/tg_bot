@@ -1,0 +1,254 @@
+{
+  "phase": "TDL-ARCH-006-R2-final-post-integration",
+  "testedSha": "adcae02db92468d1a7cfce1e42e98ad51dbcf8cf",
+  "parentSha": "a5fe323859455082b66eb61bc090b0e3796d3fc6",
+  "arenaSourceSha": "f71497b260ba4c11c8ba5f8a87e5a168380d6b94",
+  "origin": "http://127.0.0.1:3000",
+  "testedAt": "2026-11-13T19:45:59.482Z",
+  "allProductionStepsOk": true,
+  "steps": {
+    "desktopCourtLoad": {
+      "ok": true,
+      "canvasPresent": true,
+      "webglRendererInfo": {
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "unmaskedVendor": "Google Inc. (Google)",
+        "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      }
+    },
+    "rightHoldNoPickup": {
+      "ok": true,
+      "triggeredPickup": false
+    },
+    "leftLongPressPickup": {
+      "ok": true
+    },
+    "leftDragPan": {
+      "ok": true,
+      "visualChanged": true,
+      "triggeredPickup": false
+    },
+    "upgradeLv2": {
+      "ok": true
+    },
+    "upgradeLv3": {
+      "ok": true
+    },
+    "upgradeLv4": {
+      "ok": true
+    },
+    "upgradeLv5": {
+      "ok": true
+    },
+    "rightDragOrbit": {
+      "ok": true,
+      "visualChanged": true,
+      "triggeredPickup": false
+    },
+    "farmPlace": {
+      "ok": true,
+      "afterFarmRes": "5000 752 1778 2254 2000 28402"
+    },
+    "navigation": {
+      "ok": true,
+      "onMap": true,
+      "backOnCourt": true,
+      "cycles": 2
+    },
+    "touchLongPressPickup": {
+      "ok": true
+    },
+    "noHorizontalOverflow": {
+      "ok": true,
+      "desktop": false,
+      "mobile390": false,
+      "mobile320": false
+    },
+    "noLayoutOverlap": {
+      "ok": true
+    }
+  },
+  "webglMetrics": {
+    "rendererInfo": {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "unmaskedVendor": "Google Inc. (Google)",
+      "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+    },
+    "lv1Frame": {
+      "draws": 593,
+      "tris": 37344,
+      "tex": 22,
+      "bufs": 1303
+    },
+    "lv5FrameWithFarm": {
+      "draws": 846,
+      "tris": 56544,
+      "tex": 24,
+      "bufs": 2615
+    },
+    "courtMapCourtLifecycle": {
+      "beforeUnmount": {
+        "createdTextures": 24,
+        "deletedTextures": 0,
+        "createdBuffers": 1803,
+        "deletedBuffers": 0,
+        "activeCanvases": 2
+      },
+      "afterTwoCyclesReturn": {
+        "createdTextures": 72,
+        "deletedTextures": 38,
+        "createdBuffers": 5393,
+        "deletedBuffers": 3598,
+        "activeCanvases": 6
+      },
+      "leakedBuffersAfter2Cycles": -8
+    }
+  },
+  "fallbackVerification": {
+    "explicitV2": {
+      "ok": true,
+      "canvasOk": true,
+      "warnings": 0,
+      "pageErrors": [],
+      "outFile": "11-fallback-v2-lv5.png"
+    },
+    "explicitLegacy": {
+      "ok": true,
+      "canvasOk": true,
+      "warnings": 0,
+      "pageErrors": [],
+      "outFile": "12-fallback-legacy-lv5.png"
+    },
+    "v2VsLegacyDistinct": true,
+    "cascadeR2FailPreservesSceneAndRendersV2": {
+      "canvasOk": true,
+      "injectedError": [
+        "injected-r2-error"
+      ],
+      "note": "Captured unmodified R2->v2 cascade screenshot matches explicit v2 size (264623B vs 265287B)"
+    },
+    "cascadeBothFailPreservesSceneAndRendersLegacy": {
+      "canvasOk": true,
+      "injectedErrors": [
+        "injected-v2-error",
+        "injected-r2-error"
+      ],
+      "note": "Captured unmodified v2->Legacy cascade screenshot matches explicit legacy size (208345B vs 208374B)"
+    }
+  },
+  "desktopLayout": {
+    "viewport": {
+      "width": 1376,
+      "height": 768
+    },
+    "docScrollWidth": 1376,
+    "docClientWidth": 1376,
+    "horizontalOverflow": false,
+    "lord": {
+      "x": 292,
+      "y": 10,
+      "w": 186,
+      "h": 65,
+      "right": 478,
+      "bottom": 75
+    },
+    "res": {
+      "x": 937,
+      "y": 10,
+      "w": 147,
+      "h": 96,
+      "right": 1084,
+      "bottom": 106
+    },
+    "overlapLordRes": false
+  },
+  "mobileLayout390": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "docScrollWidth": 390,
+    "docClientWidth": 390,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 390,
+      "h": 844,
+      "attrW": 682,
+      "attrH": 1477
+    },
+    "lord": {
+      "x": 8,
+      "y": 6,
+      "w": 173,
+      "h": 63,
+      "right": 181,
+      "bottom": 69
+    },
+    "res": {
+      "x": 253,
+      "y": 6,
+      "w": 129,
+      "h": 80,
+      "right": 382,
+      "bottom": 86
+    },
+    "overlapLordRes": false
+  },
+  "mobileLayout320": {
+    "viewport": {
+      "width": 320,
+      "height": 690
+    },
+    "docScrollWidth": 320,
+    "docClientWidth": 320,
+    "horizontalOverflow": false,
+    "canvas": {
+      "w": 320,
+      "h": 690,
+      "attrW": 560,
+      "attrH": 1207
+    },
+    "lord": {
+      "x": 8,
+      "y": 6,
+      "w": 165,
+      "h": 62,
+      "right": 173,
+      "bottom": 68
+    },
+    "res": {
+      "x": 199,
+      "y": 6,
+      "w": 113,
+      "h": 74,
+      "right": 312,
+      "bottom": 80
+    },
+    "overlapLordRes": false
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "webglContextEvents": [
+    {
+      "phase": "court-to-map-to-court",
+      "type": "log",
+      "txt": "THREE.WebGLRenderer: Context Lost."
+    },
+    {
+      "phase": "court-to-map-to-court",
+      "type": "log",
+      "txt": "[tdl-webgl-probe] desktop contextlost inDom=false"
+    },
+    {
+      "phase": "court-to-map-to-court",
+      "type": "log",
+      "txt": "THREE.WebGLRenderer: Context Lost."
+    },
+    {
+      "phase": "court-to-map-to-court",
+      "type": "log",
+      "txt": "[tdl-webgl-probe] desktop contextlost inDom=false"
+    }
+  ]
+}
